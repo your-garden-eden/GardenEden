@@ -1,0 +1,38 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- Nutzer-Profile ---
+    match /users/{userId} {
+      // Erlaube Lese-/Schreibzugriff auf das Haupt-Nutzerdokument für den Eigentümer
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      // --- Wunschlisten-Unterkollektion ---
+      // Erlaube Lese-/Schreibzugriff auf Wunschlisten-Elemente für den Eigentümer
+      match /wishlist/{wishlistItemId} {
+        allow read, write, delete: if request.auth != null && request.auth.uid == userId; // delete hinzugefügt, falls noch nicht da
+      }
+
+      // --- NEU AKTIVIERT: Regel für Warenkorb-ID in privater Unterkollektion ---
+      // Erlaube Lese-/Schreibzugriff auf das 'cart'-Dokument innerhalb der 'private'-Unterkollektion
+      // nur für den Eigentümer des übergeordneten Benutzerdokuments.
+      match /private/cart { // Konkreter Pfad zum Cart-ID-Dokument
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // ALT: Die allgemeine private Regel bleibt entfernt oder auskommentiert,
+      // da wir jetzt eine spezifische Regel für /private/cart haben.
+      // match /private/{privateDoc=**} {
+      //   allow read, write: if request.auth != null && request.auth.uid == userId;
+      // }
+    }
+
+    // --- Standard-Regel (FALLBACK) ---
+    // Verhindere standardmäßig jeden Zugriff auf andere Pfade.
+    match /{document=**} {
+       allow read, write: if false;
+    }
+
+  }
+}
