@@ -8,7 +8,7 @@
       <span class="material-symbols-outlined">{{ isMobileMenuOpen ? 'close' : 'menu' }}</span> <!-- Icon dynamisch ändern -->
     </button>
 
-    <!-- User Actions -->
+    <!-- User Actions (Rest bleibt gleich) -->
     <div class="user-actions">
       <button class="icon-button search-button" title="Suche" i18n-title="Tooltip Search@@header.tooltip.search">
         <span class="material-symbols-outlined">search</span>
@@ -16,16 +16,17 @@
       <a routerLink="/wunschliste" class="icon-button wishlist-button" title="Wunschliste" i18n-title="Tooltip Wishlist@@header.tooltip.wishlist">
         <span class="material-symbols-outlined">favorite_border</span>
       </a>
+      <!-- Warenkorb-Icon -->
       <a routerLink="/warenkorb" (mouseenter)="onCartIconMouseEnter()" (mouseleave)="onCartIconMouseLeave()" class="icon-button cart-button" title="Warenkorb" i18n-title="Tooltip Cart@@header.tooltip.cart">
         <span class="material-symbols-outlined">shopping_cart</span>
-        <ng-container *ngIf="(itemCount$ | async) as count">
+        <!-- === HIER DIE ÄNDERUNG: Signal-Aufruf statt Async Pipe === -->
+        <ng-container *ngIf="itemCount$() as count"> <!-- Signal wird direkt aufgerufen -->
           <span class="cart-badge" *ngIf="count > 0">{{ count }}</span>
         </ng-container>
+        <!-- === ENDE DER ÄNDERUNG === -->
       </a>
-
       <!-- Auth Status: Ausgeloggt -->
-      <ng-container *ngIf="!(currentUser$ | async)">
-        <!-- === HIER HOVER EVENTS HINZUGEFÜGT === -->
+      <ng-container *ngIf="!(currentUser$ | async)"> <!-- currentUser$ ist noch Observable -> async pipe bleibt -->
         <a routerLink="/login"
            class="icon-button login-button"
            title="Anmelden" i18n-title="Tooltip Login@@header.tooltip.login"
@@ -33,11 +34,9 @@
            (mouseleave)="closeLoginOverlayOnLeave()">
           <span class="material-symbols-outlined">person_outline</span>
         </a>
-        <!-- === ENDE HOVER EVENTS === -->
       </ng-container>
-
       <!-- Auth Status: Eingeloggt -->
-      <ng-container *ngIf="currentUser$ | async as user">
+      <ng-container *ngIf="currentUser$ | async as user"> <!-- currentUser$ ist noch Observable -> async pipe bleibt -->
         <a routerLink="/mein-konto" class="icon-button profile-button" title="Mein Konto" i18n-title="Tooltip Profile@@header.tooltip.profile">
           <span class="material-symbols-outlined">account_circle</span>
         </a>
@@ -111,7 +110,7 @@
                  <a routerLink="/mein-konto" (click)="closeMobileMenu()">Mein Konto</a>
                </div>
                <div class="mobile-nav-item-content">
-                  <button (click)="performLogout()">Abmelden</button> <!-- performLogout schließt Menü bereits -->
+                  <button (click)="performLogout()">Abmelden</button>
                </div>
             </ng-container>
          </li>

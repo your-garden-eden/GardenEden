@@ -1,21 +1,36 @@
+<!-- /src/app/shared/components/product-card/product-card.component.html -->
 <div class="product-card">
-    <a [routerLink]="productLink" class="product-link">
-      <div class="product-image-container">
-        <img *ngIf="imageUrl" [src]="imageUrl" [alt]="imageAlt" loading="lazy">
-        <!-- Optional: Platzhalter, wenn kein Bild vorhanden ist -->
-        <div *ngIf="!imageUrl" class="no-image-placeholder">
-          <span class="material-symbols-outlined">image</span> <!-- Oder dein Logo -->
-        </div>
+  <!-- Produkt-Link Container -->
+  <a [routerLink]="productLink" class="product-link">
+    <div class="product-image-container">
+      <img *ngIf="imageUrl" [src]="imageUrl" [alt]="imageAlt" loading="lazy" class="product-image"> <!-- Klasse hinzugefügt -->
+      <div *ngIf="!imageUrl" class="no-image-placeholder">
+        <span class="material-symbols-outlined">image</span>
       </div>
-      <div class="product-info">
-        <h3 class="product-title">{{ product.title }}</h3>
-        <p class="product-price">{{ productPrice }}</p>
-      </div>
-    </a>
-    <!-- Optional: Buttons für "In den Warenkorb" oder "Wunschliste" könnten hier hin -->
-    <!--
-    <div class="product-actions">
-      <button>...</button>
     </div>
-    -->
+    <div class="product-info">
+      <h3 class="product-title">{{ product.title }}</h3>
+      <p class="product-price">{{ productPrice }}</p>
+    </div>
+  </a> <!-- Ende Produkt-Link Container -->
+
+  <!-- === NEU: Aktionen / Warenkorb-Button === -->
+  <div class="product-actions">
+    <button class="add-to-cart-button icon-button"
+            (click)="addToCart($event)"
+            [disabled]="!firstAvailableVariantId || isAdding()"
+            title="In den Warenkorb">
+      <!-- Zeige Icon oder Spinner basierend auf Ladezustand -->
+      <span *ngIf="!isAdding()" class="material-symbols-outlined">add_shopping_cart</span>
+      <span *ngIf="isAdding()" class="button-loading-spinner small"></span>
+      <!-- Optional: Text hinzufügen -->
+      <!-- <span *ngIf="!isAdding()">In den Warenkorb</span> -->
+    </button>
+    <!-- Optional: Wunschliste-Button -->
+    <!-- <button class="wishlist-button icon-button" title="Zur Wunschliste">
+         <span class="material-symbols-outlined">favorite_border</span>
+       </button> -->
   </div>
+  <!-- === ENDE NEU === -->
+
+</div>

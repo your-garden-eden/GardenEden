@@ -1,110 +1,187 @@
 // /src/app/shared/components/product-card/product-card.component.scss
-// Option B: object-fit: contain, transparenter BG
 
 // Farbvariablen und andere Variablen
 $product-link-color: #4E342E;
 $product-link-hover-color: #000000;
 $product-price-color: #2e6b2e; // Grün für Preis
 $card-border-radius: 8px;
-// $image-container-bg: #f8f8f8; // Wird unten auf transparent gesetzt
+$image-container-bg: transparent; // Hintergrund bei 'contain' (transparent)
 $info-area-bg: #FAF8F0;       // Hellbeige für Info-BG
 $card-border-color: #eee;     // Standard-Randfarbe
+$button-primary-bg: var(--primary-color, #28a745); // Nimmt globale Var oder Fallback
+$button-primary-hover-bg: var(--primary-color-hover, #218838); // Nimmt globale Var oder Fallback
 
+// Host-Styling
 :host {
   display: block;
-  height: 100%;
+  height: 100%; // Wichtig für Grid-Layouts
 }
 
-// Der Link selbst, der die Karte umspannt
-.product-link {
-  display: flex;
+// Der Hauptcontainer der Karte
+.product-card {
+  display: flex; // Struktur: Bild+Info oben, Actions unten
   flex-direction: column;
+  height: 100%; // Füllt die Höhe des Host-Elements
   border: 1px solid $card-border-color;
   border-radius: $card-border-radius;
-  overflow: hidden;
-  background-color: #ffffff; // Karte Basis ist weiß
-  transition: box-shadow 0.3s ease, color 0.2s ease;
-  height: 100%;
-  text-decoration: none !important; // Unterstreichung entfernen
-  color: $product-link-color !important; // Basis-Textfarbe
+  background-color: #ffffff; // Weißer Kartenhintergrund
+  overflow: hidden; // Verhindert Überlaufen von Inhalten/Effekten
+  position: relative;
+  transition: box-shadow 0.3s ease;
 
   &:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    color: $product-link-hover-color !important; // Hover-Textfarbe
-    text-decoration: none !important;
+  }
+}
 
-    // Bild-Zoom bei Hover (kann bei 'contain' weniger sinnvoll sein)
-    // .product-image-container .product-image {
-    //     transform: scale(1.05);
-    // }
+// Der klickbare Link-Bereich (umfasst Bild und Basis-Info)
+.product-link {
+  display: flex;
+  flex-direction: column; // Bild über Info
+  text-decoration: none !important;
+  color: $product-link-color !important;
+  flex-grow: 1; // Nimmt verfügbaren Platz ein, drückt Actions nach unten
+
+  &:hover {
+    color: $product-link-hover-color !important;
+    // Optional: Hover-Effekt für Titel/Preis hier, wenn gewünscht
   }
 }
 
 // Bild-Container
 .product-image-container {
   width: 100%;
-  aspect-ratio: 1 / 1; // Quadratisch
+  aspect-ratio: 1 / 1; // Behält das quadratische Format bei
   overflow: hidden;
   display: flex;
   justify-content: center;
   align-items: center;
-  // --- HIER Hintergrund auf transparent ---
-  background-color: transparent; // Kein grauer Hintergrund mehr bei Leerraum
-  // --- ENDE ÄNDERUNG ---
-  position: relative; // Für Platzhalter Positionierung
+  background-color: $image-container-bg; // Transparent
+  position: relative;
 
   .product-image {
     display: block;
     width: 100%;
     height: 100%;
-    // --- object-fit bleibt 'contain' ---
-    object-fit: contain; // Zeigt ganzes Bild
-    // --- ENDE ---
-    transition: transform 0.3s ease; // Beibehalten oder anpassen
+    object-fit: contain; // Zeigt ganzes Bild, kann Leerraum erzeugen
+    transition: transform 0.3s ease;
   }
 
-   // Styling für Platzhalter
+   // Platzhalter für fehlende Bilder
   .no-image-placeholder {
       position: absolute;
       top: 0; left: 0; width: 100%; height: 100%;
       display: flex; justify-content: center; align-items: center;
       .material-symbols-outlined {
-          font-size: 4rem;
-          color: #ccc;
+          font-size: 4rem; // Größe des Icons
+          color: #ccc; // Farbe des Icons
       }
   }
 }
 
 // Info-Bereich (unter dem Bild)
 .product-info {
-  padding: 15px;
-  flex-grow: 1;
+  padding: 15px 15px 10px 15px; // Innenabstand (unten weniger)
+  flex-grow: 1; // Nimmt verfügbaren Platz im Link-Container ein
   display: flex;
   flex-direction: column;
   background-color: $info-area-bg; // Hellbeiger Hintergrund
-  border-bottom-left-radius: $card-border-radius; // Ecken abrunden
-  border-bottom-right-radius: $card-border-radius;
+  // Keine abgerundeten Ecken mehr hier
 }
 
 // Titel im Info-Bereich
 .product-title {
   font-size: 1rem;
   font-weight: 600;
-  margin: 0 0 8px 0;
+  margin: 0 0 8px 0; // Abstand nach unten
   display: -webkit-box;
+  -webkit-line-clamp: 2; // Maximal 2 Zeilen
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  min-height: 2.4em; // Höhe für 2 Zeilen reservieren
-  color: inherit; // Erbt Farbe vom Link (.product-link)
+  min-height: 2.4em; // Reserviert Höhe für ca. 2 Zeilen
+  color: inherit; // Erbt Farbe vom Link
 }
 
 // Preis im Info-Bereich
 .product-price {
   font-size: 1rem;
   font-weight: bold;
-  color: $product-price-color; // Spezifische grüne Farbe
+  color: $product-price-color; // Grün
   margin: 0;
-  margin-top: auto; // Schiebt Preis nach unten
-  padding-top: 8px;
+  padding-top: 8px; // Abstand nach oben
+  // margin-top: auto; // ENTFERNT
 }
+
+// --- Container für Aktionsbuttons ---
+.product-actions {
+  display: flex;
+  justify-content: flex-end; // Buttons nach rechts
+  align-items: center;
+  padding: 8px 15px 10px 15px; // Innenabstand
+  background-color: $info-area-bg; // Gleicher Hintergrund wie Info
+  border-top: 1px solid $card-border-color; // Leichte Trennlinie
+  border-bottom-left-radius: $card-border-radius; // Rundet untere Ecken der Karte ab
+  border-bottom-right-radius: $card-border-radius;
+  gap: 8px; // Abstand zwischen Buttons
+
+  // Styling für alle Icon-Buttons in den Actions
+  .icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px; // Kompaktes Padding
+    border-radius: 50%; // Rund
+    border: 1px solid transparent; // Platzhalter für Rand bei Hover/Fokus
+    background-color: transparent;
+    color: var(--text-color-light, #6c757d); // Dezente Farbe
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+
+    .material-symbols-outlined {
+      font-size: 20px; // Icon-Größe
+    }
+
+    &:hover:not(:disabled) {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    // Fokus-Styling (optional, aber gut für Accessibility)
+    &:focus-visible {
+       outline: none;
+       border-color: var(--primary-color, #28a745); // Fokus-Rand
+       box-shadow: 0 0 0 1px var(--primary-color, #28a745); // Leichter Fokus-Schatten
+    }
+
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+  }
+
+  // Spezifisches Styling für den Warenkorb-Button
+  .add-to-cart-button {
+    color: $button-primary-bg; // Grüne Icon-Farbe
+
+    &:hover:not(:disabled) {
+      background-color: rgba($button-primary-bg, 0.1); // Hellgrüner Hintergrund bei Hover
+      color: $button-primary-hover-bg; // Dunkleres Grün für Icon bei Hover
+    }
+
+     // Styling für den kleinen Spinner
+     .button-loading-spinner.small {
+        display: inline-block;
+        border: 2px solid rgba($button-primary-bg, 0.3);
+        border-radius: 50%;
+        border-top-color: $button-primary-bg;
+        width: 16px; // Größe des Spinners
+        height: 16px;
+        animation: spin 1s linear infinite;
+     }
+  }
+}
+// --- ENDE Actions Container ---
+
+// Keyframes (falls nicht global)
+@keyframes spin { to { transform: rotate(360deg); } }

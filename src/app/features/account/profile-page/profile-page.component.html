@@ -1,173 +1,172 @@
 <!-- /src/app/features/account/profile-page/profile-page.component.html -->
 <div class="profile-page-container">
-    <h1>Mein Konto</h1>
-  
-    <!-- Ladeanzeige -->
-    <div *ngIf="isLoading()" class="loading-indicator">
-      <p>Lade Profildaten...</p>
-    </div>
-  
-    <!-- Fehleranzeige (allgemein) -->
-    <!-- Verwendet errorMessage() -->
-    <div *ngIf="errorMessage() && !isEditing()" class="error-message general-error profile-load-error">
-      <p>{{ errorMessage() }}</p>
-      <a routerLink="/">Zur Startseite</a>
-    </div>
-  
-    <!-- Hauptinhalt, wenn Daten geladen und kein allgemeiner Fehler -->
-    <ng-container *ngIf="userProfile() as profile; else noProfile">
-      <div class="profile-content">
-  
-        <!-- Bearbeiten / Abbrechen Button -->
-        <div class="edit-button-container">
-          <button type="button" class="edit-toggle-button" (click)="toggleEditMode()">
-            <span class="material-symbols-outlined">{{ isEditing() ? 'close' : 'edit' }}</span>
-            {{ isEditing() ? 'Abbrechen' : 'Profil bearbeiten' }}
-          </button>
+  <h1>Mein Konto</h1>
+
+  <!-- Ladeanzeige -->
+  <div *ngIf="isLoading()" class="loading-indicator">
+    <p>Lade Profildaten...</p>
+  </div>
+
+  <!-- Fehleranzeige (allgemein) -->
+  <div *ngIf="errorMessage() && !isEditing()" class="error-message general-error profile-load-error">
+    <p>{{ errorMessage() }}</p>
+    <a routerLink="/">Zur Startseite</a>
+  </div>
+
+  <!-- Hauptinhalt, wenn Daten geladen und kein allgemeiner Fehler -->
+  <ng-container *ngIf="userProfile() as profile; else noProfile">
+    <div class="profile-content">
+
+      <!-- Bearbeiten / Abbrechen Button -->
+      <div class="edit-button-container">
+        <button type="button" class="edit-toggle-button" (click)="toggleEditMode()">
+          <span class="material-symbols-outlined">{{ isEditing() ? 'close' : 'edit' }}</span>
+          {{ isEditing() ? 'Abbrechen' : 'Profil bearbeiten' }}
+        </button>
+      </div>
+
+      <!-- Erfolgsmeldung nach Speichern -->
+      <div *ngIf="successMessage()" class="success-message">
+        {{ successMessage() }}
+      </div>
+
+      <!-- Formular (umschließt Anzeige und Bearbeitung) -->
+      <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" novalidate class="profile-form">
+
+        <h2>Persönliche Daten</h2>
+
+        <!-- E-Mail (Immer nur Anzeige, da deaktiviert) -->
+        <div class="form-field">
+          <label for="profileEmail">E-Mail-Adresse</label>
+          <input type="email" id="profileEmail" formControlName="email" readonly>
+          <small class="field-hint">E-Mail-Adresse kann nicht geändert werden.</small>
         </div>
-  
-        <!-- Erfolgsmeldung nach Speichern -->
-        <div *ngIf="successMessage()" class="success-message">
-          {{ successMessage() }}
+
+        <!-- Vorname -->
+        <div class="form-field">
+          <label for="profileFirstName">Vorname</label>
+          <div class="display-field" *ngIf="!isEditing()">{{ profile.firstName }}</div>
+          <ng-container *ngIf="isEditing()">
+            <input type="text" id="profileFirstName" formControlName="firstName" required
+                   [attr.aria-invalid]="firstName?.invalid && (firstName?.touched || formSubmitted())"
+                   aria-describedby="firstNameError">
+            <div id="firstNameError" class="error-container"
+                 *ngIf="firstName?.invalid && (firstName?.touched || formSubmitted())">
+              <small *ngIf="firstName?.errors?.['required']">Vorname ist erforderlich.</small>
+            </div>
+          </ng-container>
         </div>
-  
-        <!-- Formular (umschließt Anzeige und Bearbeitung) -->
-        <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" novalidate class="profile-form">
-  
-          <h2>Persönliche Daten</h2>
-  
-          <!-- E-Mail (Immer nur Anzeige, da deaktiviert) -->
-          <div class="form-field">
-            <label for="profileEmail">E-Mail-Adresse</label>
-            <input type="email" id="profileEmail" formControlName="email" readonly>
-            <small class="field-hint">E-Mail-Adresse kann nicht geändert werden.</small>
-          </div>
-  
-          <!-- Vorname -->
-          <div class="form-field">
-            <label for="profileFirstName">Vorname</label>
-            <div class="display-field" *ngIf="!isEditing()">{{ profile.firstName }}</div>
-            <ng-container *ngIf="isEditing()">
-              <input type="text" id="profileFirstName" formControlName="firstName" required
-                     [attr.aria-invalid]="firstName?.invalid && (firstName?.touched || formSubmitted())"
-                     aria-describedby="firstNameError">
-              <div id="firstNameError" class="error-container"
-                   *ngIf="firstName?.invalid && (firstName?.touched || formSubmitted())">
-                <small *ngIf="firstName?.errors?.['required']">Vorname ist erforderlich.</small>
+
+        <!-- Nachname -->
+        <div class="form-field">
+          <label for="profileLastName">Nachname</label>
+          <div class="display-field" *ngIf="!isEditing()">{{ profile.lastName }}</div>
+          <ng-container *ngIf="isEditing()">
+            <input type="text" id="profileLastName" formControlName="lastName" required
+                   [attr.aria-invalid]="lastName?.invalid && (lastName?.touched || formSubmitted())"
+                   aria-describedby="lastNameError">
+             <div id="lastNameError" class="error-container"
+                 *ngIf="lastName?.invalid && (lastName?.touched || formSubmitted())">
+              <small *ngIf="lastName?.errors?.['required']">Nachname ist erforderlich.</small>
+            </div>
+          </ng-container>
+        </div>
+
+        <h2>Adresse</h2>
+
+        <!-- Adresse - Straße -->
+        <div class="form-field">
+           <label for="profileAddressStreet">Straße & Hausnummer</label>
+           <!-- === KORREKTUR: ?. entfernt === -->
+           <div class="display-field" *ngIf="!isEditing()">{{ profile.address.street || 'N/A' }}</div>
+           <ng-container *ngIf="isEditing()">
+              <input type="text" id="profileAddressStreet" formControlName="addressStreet" required
+                     [attr.aria-invalid]="addressStreet?.invalid && (addressStreet?.touched || formSubmitted())"
+                     aria-describedby="addressStreetError">
+              <div id="addressStreetError" class="error-container"
+                    *ngIf="addressStreet?.invalid && (addressStreet?.touched || formSubmitted())">
+                <small *ngIf="addressStreet?.errors?.['required']">Straße und Hausnummer sind erforderlich.</small>
               </div>
-            </ng-container>
-          </div>
-  
-          <!-- Nachname -->
-          <div class="form-field">
-            <label for="profileLastName">Nachname</label>
-            <div class="display-field" *ngIf="!isEditing()">{{ profile.lastName }}</div>
-            <ng-container *ngIf="isEditing()">
-              <input type="text" id="profileLastName" formControlName="lastName" required
-                     [attr.aria-invalid]="lastName?.invalid && (lastName?.touched || formSubmitted())"
-                     aria-describedby="lastNameError">
-               <div id="lastNameError" class="error-container"
-                   *ngIf="lastName?.invalid && (lastName?.touched || formSubmitted())">
-                <small *ngIf="lastName?.errors?.['required']">Nachname ist erforderlich.</small>
-              </div>
-            </ng-container>
-          </div>
-  
-          <h2>Adresse</h2>
-  
-          <!-- Adresse - Straße -->
-          <div class="form-field">
-             <label for="profileAddressStreet">Straße & Hausnummer</label>
-             <div class="display-field" *ngIf="!isEditing()">{{ profile.address?.street || 'N/A' }}</div>
+           </ng-container>
+         </div>
+
+         <!-- Adresse - PLZ & Ort (in einer Reihe) -->
+         <div class="form-row">
+           <div class="form-field zip-field">
+             <label for="profileAddressZip">Postleitzahl</label>
+             <!-- === KORREKTUR: ?. entfernt === -->
+             <div class="display-field" *ngIf="!isEditing()">{{ profile.address.zip || 'N/A' }}</div>
              <ng-container *ngIf="isEditing()">
-                <input type="text" id="profileAddressStreet" formControlName="addressStreet" required
-                       [attr.aria-invalid]="addressStreet?.invalid && (addressStreet?.touched || formSubmitted())"
-                       aria-describedby="addressStreetError">
-                <div id="addressStreetError" class="error-container"
-                      *ngIf="addressStreet?.invalid && (addressStreet?.touched || formSubmitted())">
-                  <small *ngIf="addressStreet?.errors?.['required']">Straße und Hausnummer sind erforderlich.</small>
+                <input type="text" id="profileAddressZip" formControlName="addressZip" required inputmode="numeric"
+                      [attr.aria-invalid]="addressZip?.invalid && (addressZip?.touched || formSubmitted())"
+                      aria-describedby="addressZipError">
+                <div id="addressZipError" class="error-container"
+                      *ngIf="addressZip?.invalid && (addressZip?.touched || formSubmitted())">
+                  <small *ngIf="addressZip?.errors?.['required']">PLZ ist erforderlich.</small>
+                  <small *ngIf="addressZip?.errors?.['pattern']">Ungültige PLZ.</small>
                 </div>
              </ng-container>
            </div>
-  
-           <!-- Adresse - PLZ & Ort (in einer Reihe) -->
-           <div class="form-row">
-             <div class="form-field zip-field">
-               <label for="profileAddressZip">Postleitzahl</label>
-               <div class="display-field" *ngIf="!isEditing()">{{ profile.address?.zip || 'N/A' }}</div>
-               <ng-container *ngIf="isEditing()">
-                  <input type="text" id="profileAddressZip" formControlName="addressZip" required inputmode="numeric"
-                        [attr.aria-invalid]="addressZip?.invalid && (addressZip?.touched || formSubmitted())"
-                        aria-describedby="addressZipError">
-                  <div id="addressZipError" class="error-container"
-                        *ngIf="addressZip?.invalid && (addressZip?.touched || formSubmitted())">
-                    <small *ngIf="addressZip?.errors?.['required']">PLZ ist erforderlich.</small>
-                    <small *ngIf="addressZip?.errors?.['pattern']">Ungültige PLZ.</small>
-                  </div>
-               </ng-container>
-             </div>
-             <div class="form-field city-field">
-               <label for="profileAddressCity">Ort</label>
-               <div class="display-field" *ngIf="!isEditing()">{{ profile.address?.city || 'N/A' }}</div>
-               <ng-container *ngIf="isEditing()">
-                  <input type="text" id="profileAddressCity" formControlName="addressCity" required
-                        [attr.aria-invalid]="addressCity?.invalid && (addressCity?.touched || formSubmitted())"
-                        aria-describedby="addressCityError">
-                  <div id="addressCityError" class="error-container"
-                        *ngIf="addressCity?.invalid && (addressCity?.touched || formSubmitted())">
-                    <small *ngIf="addressCity?.errors?.['required']">Ort ist erforderlich.</small>
-                  </div>
-               </ng-container>
-             </div>
+           <div class="form-field city-field">
+             <label for="profileAddressCity">Ort</label>
+              <!-- === KORREKTUR: ?. entfernt === -->
+             <div class="display-field" *ngIf="!isEditing()">{{ profile.address.city || 'N/A' }}</div>
+             <ng-container *ngIf="isEditing()">
+                <input type="text" id="profileAddressCity" formControlName="addressCity" required
+                      [attr.aria-invalid]="addressCity?.invalid && (addressCity?.touched || formSubmitted())"
+                      aria-describedby="addressCityError">
+                <div id="addressCityError" class="error-container"
+                      *ngIf="addressCity?.invalid && (addressCity?.touched || formSubmitted())">
+                  <small *ngIf="addressCity?.errors?.['required']">Ort ist erforderlich.</small>
+                </div>
+             </ng-container>
            </div>
-  
-           <h2>Einstellungen</h2>
-  
-           <!-- Newsletter -->
-           <div class="form-field checkbox-field">
-               <!-- Anzeige und Bearbeitung in einem, da es nur eine Checkbox ist -->
-               <input type="checkbox" id="profileNewsletter" formControlName="newsletter" [disabled]="!isEditing()">
-               <label for="profileNewsletter">
-                   Ja, ich möchte den Newsletter abonnieren. (Status: {{ profile.newsletterSubscribed ? 'Abonniert' : 'Nicht abonniert' }})
-                   <span *ngIf="!isEditing()" class="edit-hint">(Zum Ändern auf "Bearbeiten" klicken)</span>
-                </label>
-           </div>
-  
-           <!-- Passwort ändern (Platzhalter/Button) -->
-           <div class="form-field">
-              <label>Passwort</label>
-              <div class="display-field" *ngIf="!isEditing()">********</div>
-               <ng-container *ngIf="isEditing()">
-                   <button type="button" class="change-password-button" disabled>Passwort ändern</button>
-                   <small class="field-hint">Funktion wird später hinzugefügt.</small>
-               </ng-container>
-           </div>
-  
-          <!-- Allgemeine Fehlermeldung (beim Speichern) -->
-          <div *ngIf="errorMessage() && isEditing()" class="error-message general-error profile-save-error">
-            {{ errorMessage() }}
-          </div>
-  
-          <!-- Speichern-Button -->
-          <div class="action-button-container" *ngIf="isEditing()">
-            <button type="submit" class="submit-button" [disabled]="profileForm.invalid || isSaving()">
-              <span *ngIf="!isSaving()">Änderungen speichern</span>
-              <span *ngIf="isSaving()" class="button-loading-spinner"></span>
-              <span *ngIf="isSaving()">Speichere...</span>
-            </button>
-          </div>
-  
-        </form> <!-- Ende profileForm -->
-      </div> <!-- Ende profile-content -->
-    </ng-container> <!-- Ende *ngIf="userProfile() as profile" -->
-  
-    <!-- Fallback, wenn Profil nicht geladen werden konnte (nach Ladeversuch) -->
-    <ng-template #noProfile>
-       <!-- === KORRIGIERTES *ngIf === -->
-      <p *ngIf="!isLoading() && !errorMessage()">
-         Benutzerprofil nicht verfügbar.
-      </p>
-       <!-- === ENDE KORREKTUR === -->
-    </ng-template>
-  
-  </div> <!-- Ende profile-page-container -->
+         </div>
+
+         <h2>Einstellungen</h2>
+
+         <!-- Newsletter -->
+         <div class="form-field checkbox-field">
+             <input type="checkbox" id="profileNewsletter" formControlName="newsletter"> <!-- Kein [disabled] -->
+             <label for="profileNewsletter">
+                 Ja, ich möchte den Newsletter abonnieren.
+                 <span *ngIf="!isEditing()"> (Status: {{ profile.newsletterSubscribed ? 'Abonniert' : 'Nicht abonniert' }})</span>
+             </label>
+         </div>
+
+         <!-- Passwort ändern (Platzhalter/Button) -->
+         <div class="form-field">
+            <label>Passwort</label>
+            <div class="display-field" *ngIf="!isEditing()">********</div>
+             <ng-container *ngIf="isEditing()">
+                 <button type="button" class="change-password-button" disabled>Passwort ändern</button>
+                 <small class="field-hint">Funktion wird später hinzugefügt.</small>
+             </ng-container>
+         </div>
+
+        <!-- Allgemeine Fehlermeldung (beim Speichern) -->
+        <div *ngIf="errorMessage() && isEditing()" class="error-message general-error profile-save-error">
+          {{ errorMessage() }}
+        </div>
+
+        <!-- Speichern-Button -->
+        <div class="action-button-container" *ngIf="isEditing()">
+          <button type="submit" class="submit-button" [disabled]="profileForm.invalid || isSaving()">
+            <span *ngIf="!isSaving()">Änderungen speichern</span>
+            <span *ngIf="isSaving()" class="button-loading-spinner"></span>
+            <span *ngIf="isSaving()">Speichere...</span>
+          </button>
+        </div>
+
+      </form> <!-- Ende profileForm -->
+    </div> <!-- Ende profile-content -->
+  </ng-container> <!-- Ende *ngIf="userProfile() as profile" -->
+
+  <!-- Fallback, wenn Profil nicht geladen werden konnte (nach Ladeversuch) -->
+  <ng-template #noProfile>
+    <p *ngIf="!isLoading() && !errorMessage()"> <!-- Korrekte Signale verwendet -->
+       Benutzerprofil nicht verfügbar.
+    </p>
+  </ng-template>
+
+</div> <!-- Ende profile-page-container -->
