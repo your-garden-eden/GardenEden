@@ -1,0 +1,30 @@
+<div class="maintenance-container">
+    <!-- Logo-Pfad direkt im src-Attribut -->
+    <img class="logo" src="assets/Logo.jpeg" alt="Your Garden Eden Logo">
+  
+    <h1>Bald sind wir Online</h1>
+  
+    <div class="countdown" *ngIf="!countdownEnded">
+      <div class="time-unit">
+        <span class="value">{{ days }}</span>
+        <span class="label">Tage</span>
+      </div>
+      <div class="time-unit">
+        <span class="value">{{ hours }}</span>
+        <span class="label">Stunden</span>
+      </div>
+      <div class="time-unit">
+        <span class="value">{{ minutes }}</span>
+        <span class="label">Minuten</span>
+      </div>
+      <div class="time-unit">
+        <span class="value">{{ seconds }}</span>
+        <span class="label">Sekunden</span>
+      </div>
+    </div>
+  
+    <div class="countdown-ended" *ngIf="countdownEnded">
+      <h2>Wir sind gleich für Sie da!</h2>
+    </div>
+  
+  </div>

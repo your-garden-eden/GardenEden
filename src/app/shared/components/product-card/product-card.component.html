@@ -1,0 +1,21 @@
+<div class="product-card">
+    <a [routerLink]="productLink" class="product-link">
+      <div class="product-image-container">
+        <img *ngIf="imageUrl" [src]="imageUrl" [alt]="imageAlt" loading="lazy">
+        <!-- Optional: Platzhalter, wenn kein Bild vorhanden ist -->
+        <div *ngIf="!imageUrl" class="no-image-placeholder">
+          <span class="material-symbols-outlined">image</span> <!-- Oder dein Logo -->
+        </div>
+      </div>
+      <div class="product-info">
+        <h3 class="product-title">{{ product.title }}</h3>
+        <p class="product-price">{{ productPrice }}</p>
+      </div>
+    </a>
+    <!-- Optional: Buttons für "In den Warenkorb" oder "Wunschliste" könnten hier hin -->
+    <!--
+    <div class="product-actions">
+      <button>...</button>
+    </div>
+    -->
+  </div>

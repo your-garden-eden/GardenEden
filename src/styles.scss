@@ -1,1 +1,35 @@
 /* You can add global styles to this file, and also import other style files */
+
+/* --- NEUE MATERIAL SYMBOLS (Outlined) --- */
+/* Import Google Material Symbols font */
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
+
+/* Basic setup for using Material Symbols */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px; /* Adjust as needed */
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+/* --- ENDE NEUE MATERIAL SYMBOLS ---*/
+
+
+/* Optional: Add general body styles or resets if needed */
+body {
+  margin: 0;
+  font-family: sans-serif; /* Choose your base font */
+}
+
+/* Klasse zum Sperren des Body-Scrolls, wenn Mobile-Menü offen ist */
+body.body-no-scroll {
+  overflow: hidden;
+}

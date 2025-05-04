@@ -1,0 +1,78 @@
+// /src/app/features/product-list/product-list.component.scss
+
+// Farbvariablen
+$title-color: #4E342E;
+$grid-gap: 20px;
+$card-min-width-list: 280px; // Desktop Mindestbreite
+$mobile-breakpoint-medium: 768px; // Mittlerer Breakpoint
+$mobile-breakpoint-small: 576px;  // Kleiner Breakpoint
+
+.category-page-content { // Beachte: Diese Klasse wird im HTML verwendet.
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+// --- HIER WURDE DER KLASSENNAME ANGEPASST ---
+.product-list-title { // <-- Umbenannt von .category-title
+  text-align: center; // <-- Zentrierung ist schon drin!
+  margin-bottom: 2rem;
+  font-size: 2.5rem;
+  color: $title-color;
+  font-weight: 600;
+}
+// --- ENDE ANPASSUNG KLASSENNAME ---
+
+.loading-indicator,
+.error-message {
+  text-align: center;
+  padding: 3rem;
+  color: #777;
+}
+.error-message {
+    color: red;
+    font-weight: bold;
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax($card-min-width-list, 1fr)); // Standard für Desktop
+  gap: $grid-gap;
+}
+
+.load-more-trigger {
+  height: 50px;
+  margin-top: $grid-gap;
+}
+
+.loading-indicator.more-loading {
+  padding: 1rem;
+  p { font-style: italic; }
+}
+
+// Responsive Anpassungen für mittlere Screens (optional)
+@media (max-width: $mobile-breakpoint-medium) {
+    .product-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); // Etwas kleinere Kacheln
+        gap: 1rem;
+    }
+     .category-page-content {
+        padding: 1rem;
+    }
+    // Regel für den Titel auch hier anpassen
+    .product-list-title { // <-- Auch hier umbenannt
+        font-size: 1.8rem;
+    }
+}
+
+// Responsive Anpassungen für kleine Screens (z.B. Handys)
+@media (max-width: $mobile-breakpoint-small) {
+    .product-grid {
+        grid-template-columns: repeat(2, 1fr); // 2 Spalten beibehalten
+        gap: 1rem; // Abstand beibehalten oder anpassen
+    }
+     // Anpassungen für Titel auf kleinen Screens, falls gewünscht
+     // .product-list-title { // <-- Auch hier umbenannt
+     //    font-size: 1.5rem;
+     // }
+}

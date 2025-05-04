@@ -1,0 +1,76 @@
+:host {
+    display: block; // Wichtig, damit Höhe/Breite wirken
+    width: 100%;
+    min-height: 100vh; // Mindestens die Höhe des Viewports
+  }
+  
+  .maintenance-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; // Stellt sicher, dass der Container den Viewport füllt
+    background-color: rgb(255, 255, 255);
+    color: rgb(135, 220, 109);
+    padding: 2rem; // Etwas Innenabstand
+    box-sizing: border-box; // Padding wird in Höhe/Breite einberechnet
+    text-align: center;
+  
+    .logo {
+      width: 40%; // Macht das Logo groß - % ist relativ zum Container
+      max-width: 400px; // Maximale Breite, um Übergröße zu verhindern
+      height: auto; // Seitenverhältnis beibehalten
+      margin-bottom: 2rem; // Abstand nach unten
+    }
+  
+    h1 {
+      font-size: 2.5rem; // Große Schrift für den Haupttext
+      margin-bottom: 2rem; // Abstand nach unten
+      font-weight: 300; // Etwas leichtere Schrift
+    }
+  
+    .countdown {
+      display: flex;
+      justify-content: center;
+      align-items: baseline; // Grundlinie ausrichten
+      gap: 1.5rem; // Abstand zwischen den Zeiteinheiten
+      flex-wrap: wrap; // Umbruch auf kleinen Bildschirmen
+  
+      .time-unit {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+  
+        .value {
+          font-size: 3rem; // Große Zahlen für den Countdown
+          font-weight: bold;
+          line-height: 1;
+        }
+  
+        .label {
+          font-size: 0.9rem; // Kleinere Beschriftung
+          text-transform: uppercase;
+          color: #ccc; // Etwas gedämpfte Farbe
+        }
+      }
+    }
+  
+    .countdown-ended {
+        h2 {
+          font-size: 2rem;
+          color: #4caf50; // Grüne Farbe z.B. für "Live"
+        }
+    }
+  }
+  
+  // Optional: Media Query für sehr kleine Bildschirme, um Schriftgrößen anzupassen
+  @media (max-width: 480px) {
+    .maintenance-container {
+      h1 {
+        font-size: 2rem;
+      }
+      .countdown .time-unit .value {
+        font-size: 2rem;
+      }
+    }
+  }

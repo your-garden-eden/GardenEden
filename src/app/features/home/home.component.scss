@@ -1,0 +1,63 @@
+// Variablen
+$mobile-breakpoint: 768px;
+
+.hero-section {
+  position: relative;
+  width: 100%;
+  height: 70vh; // Basis-Höhe Desktop
+  min-height: 400px;
+  overflow: hidden;
+}
+
+.hero-video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: translate(-50%, -50%);
+  z-index: 0; // Kann jetzt auch -1 sein, wenn nichts drüber liegt
+}
+
+/*
+// Entfernt, da .hero-overlay nicht mehr existiert
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 1;
+}
+*/
+
+/*
+// Entfernt, da .hero-content nicht mehr verwendet wird
+.hero-content {
+  // ...
+}
+*/
+
+/*
+// Entfernt, da .cta-button nicht mehr existiert
+.cta-button {
+  // ...
+}
+*/
+
+// Responsive Anpassungen für die Section-Höhe bleiben erhalten
+@media (max-width: $mobile-breakpoint) {
+  .hero-section {
+    height: 40vh;
+    min-height: 250px;
+  }
+
+  /*
+  // Entfernt, da .hero-content nicht mehr verwendet wird
+  .hero-content {
+    // ...
+  }
+  */
+}

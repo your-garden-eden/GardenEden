@@ -1,0 +1,148 @@
+// /src/app/features/category-overview/category-overview.component.scss
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+.category-overview-page {
+  padding: 20px 15px;
+  max-width: 1200px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.error-message {
+  text-align: center;
+  color: var(--color-error, #d32f2f);
+  margin-top: 40px;
+
+  a {
+    color: var(--color-primary, #007bff);
+    text-decoration: underline;
+    margin-top: 10px;
+    display: inline-block;
+  }
+}
+
+// Styling für die Icon-Leiste (Desktop)
+.subcategories-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 30px 25px;
+  padding: 20px 0;
+  list-style: none;
+  margin: 0 0 40px 0; // Mehr Abstand nach unten zur Produktvorschau
+  border-bottom: 1px solid #eee; // Trennlinie (optional)
+  padding-bottom: 30px; // Abstand zur Trennlinie
+}
+
+.subcategory-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  text-decoration: none;
+  color: inherit;
+  padding: 0 5px;
+  transition: transform 0.2s ease-in-out;
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-4px);
+  }
+}
+
+.subcategory-icon {
+  display: block;
+  width: 90px;
+  height: 90px;
+  object-fit: contain;
+  margin-bottom: 12px;
+}
+
+.subcategory-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+// Styling für die Produktvorschau-Sektion
+.product-preview-section {
+  margin-top: 40px; // Abstand nach oben
+
+  h2 { // Titel der Vorschau
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: #333; // Etwas andere Farbe als Haupttitel (optional)
+  }
+
+  .loading-indicator, .error-message, .no-products-message {
+    text-align: center;
+    padding: 2rem;
+    color: #777;
+  }
+  .error-message { color: var(--color-error, #d32f2f); }
+}
+
+// Grid für die Produktvorschau
+.product-preview-grid {
+  display: grid;
+  // Responsive Spalten, ähnlich wie Produktliste, aber ggf. weniger Items pro Reihe?
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); // Kleinere Mindestbreite für Preview-Karten?
+  gap: 20px;
+  padding: 10px 0; // Weniger Padding als Hauptgrid
+}
+
+// --- Mobile Anpassungen für Icon-Leiste (Grid) ---
+@media (max-width: 768px) {
+  h1 { font-size: 1.7rem; }
+
+  .subcategories-container {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: max-content;
+    justify-content: center;
+    overflow-x: auto;
+    gap: 25px;
+    padding: 20px 15px 30px 15px; // Padding anpassen
+    margin-bottom: 30px; // Abstand reduzieren
+
+    scrollbar-width: none;
+    &::-webkit-scrollbar { display: none; }
+    -webkit-overflow-scrolling: touch;
+  }
+
+   .subcategory-icon { width: 75px; height: 75px; margin-bottom: 10px; }
+   .subcategory-label { font-size: 0.85rem; }
+
+   // Anpassung für Vorschau-Grid auf Mobile?
+   .product-preview-section h2 { font-size: 1.4rem; margin-bottom: 20px;}
+   .product-preview-grid {
+       grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); // Noch kleinere Karten?
+       gap: 15px;
+   }
+}
+
+// --- Mobile Anpassungen für sehr kleine Screens ---
+@media (max-width: 480px) {
+   h1 { font-size: 1.5rem; margin-bottom: 20px; }
+   .subcategories-container { gap: 20px; padding: 15px 10px 25px 10px; }
+   .subcategory-icon { width: 65px; height: 65px; margin-bottom: 8px; }
+   .subcategory-label { font-size: 0.8rem; }
+
+   .product-preview-section h2 { font-size: 1.3rem; }
+   .product-preview-grid {
+       grid-template-columns: repeat(2, 1fr); // Fix 2 Spalten auf kleinsten Screens?
+       gap: 10px;
+   }
+}

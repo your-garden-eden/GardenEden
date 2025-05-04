@@ -1,13 +1,40 @@
 <!doctype html>
-<html lang="en">
+<html lang="de"> <!-- Sprache auf Deutsch gesetzt -->
 <head>
   <meta charset="utf-8">
-  <title>YourGardenEden</title>
+  <title>Your Garden Eden</title> <!-- Titel angepasst -->
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+  <!-- === Material Symbols (Wichtig für Icons) === -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+  <!-- === Google Fonts (Beispiel - Anpassen oder Entfernen) === -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+  <!-- === Google Maps API Skript (Autocomplete) === -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA2W0UsyZEPQA8_GbRYbftcDEtGCe6pDSc&libraries=places&callback=initMap" async defer></script>
+  <!-- === ENDE Google Maps === -->
+
+  <!-- === NEU: Google Identity Services (GIS) Client === -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <!-- === ENDE GIS Client === -->
+
 </head>
 <body>
-  <app-root></app-root>
+  <app-root></app-root> <!-- Deine Haupt-Angular-Komponente -->
+
+  <!-- === Leere initMap Funktion (für Google Maps Callback) === -->
+  <script>
+    function initMap() {
+      // Leere Funktion, nur um den Callback-Parameter im API-Skript zufriedenzustellen.
+      console.log('Google Maps JS API wurde (potenziell) initialisiert.');
+      // GIS initialisiert sich selbst oder wird durch Code getriggert.
+    }
+  </script>
+  <!-- === ENDE initMap === -->
 </body>
 </html>

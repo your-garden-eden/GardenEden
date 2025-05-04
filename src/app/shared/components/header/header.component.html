@@ -1,0 +1,123 @@
+<!-- /src/app/shared/components/header/header.component.html -->
+<header class="app-header two-rows">
+
+  <!-- Obere Reihe -->
+  <div class="top-row">
+    <!-- Hamburger Button (initial nur mobil sichtbar) -->
+    <button id="hamburger-button" class="icon-button hamburger-button" (click)="toggleMobileMenu()" aria-label="Menü öffnen/schließen">
+      <span class="material-symbols-outlined">{{ isMobileMenuOpen ? 'close' : 'menu' }}</span> <!-- Icon dynamisch ändern -->
+    </button>
+
+    <!-- User Actions -->
+    <div class="user-actions">
+      <button class="icon-button search-button" title="Suche" i18n-title="Tooltip Search@@header.tooltip.search">
+        <span class="material-symbols-outlined">search</span>
+      </button>
+      <a routerLink="/wunschliste" class="icon-button wishlist-button" title="Wunschliste" i18n-title="Tooltip Wishlist@@header.tooltip.wishlist">
+        <span class="material-symbols-outlined">favorite_border</span>
+      </a>
+      <a routerLink="/warenkorb" (mouseenter)="onCartIconMouseEnter()" (mouseleave)="onCartIconMouseLeave()" class="icon-button cart-button" title="Warenkorb" i18n-title="Tooltip Cart@@header.tooltip.cart">
+        <span class="material-symbols-outlined">shopping_cart</span>
+        <ng-container *ngIf="(itemCount$ | async) as count">
+          <span class="cart-badge" *ngIf="count > 0">{{ count }}</span>
+        </ng-container>
+      </a>
+
+      <!-- Auth Status: Ausgeloggt -->
+      <ng-container *ngIf="!(currentUser$ | async)">
+        <!-- === HIER HOVER EVENTS HINZUGEFÜGT === -->
+        <a routerLink="/login"
+           class="icon-button login-button"
+           title="Anmelden" i18n-title="Tooltip Login@@header.tooltip.login"
+           (mouseenter)="openLoginOverlayOnEnter()"
+           (mouseleave)="closeLoginOverlayOnLeave()">
+          <span class="material-symbols-outlined">person_outline</span>
+        </a>
+        <!-- === ENDE HOVER EVENTS === -->
+      </ng-container>
+
+      <!-- Auth Status: Eingeloggt -->
+      <ng-container *ngIf="currentUser$ | async as user">
+        <a routerLink="/mein-konto" class="icon-button profile-button" title="Mein Konto" i18n-title="Tooltip Profile@@header.tooltip.profile">
+          <span class="material-symbols-outlined">account_circle</span>
+        </a>
+        <button (click)="performLogout()" class="icon-button logout-button" title="Abmelden" i18n-title="Tooltip Logout@@header.tooltip.logout">
+          <span class="material-symbols-outlined">logout</span>
+        </button>
+      </ng-container>
+    </div> <!-- Ende .user-actions -->
+  </div> <!-- Ende .top-row -->
+
+  <!-- Hauptnavigation & Mobile Menu Container -->
+  <nav class="main-nav bottom-row" [class.mobile-menu-active]="isMobileMenuOpen">
+    <!-- Logo Container -->
+    <div class="logo-container">
+      <a routerLink="/" title="Zur Startseite" i18n-title="Tooltip Logo Link@@header.tooltip.logoLink">
+        <img src="assets/icons/Logo.png" alt="Your Garden Eden Logo" class="logo" i18n-alt="Logo Alt Text@@header.logoAltText">
+      </a>
+    </div>
+
+    <!-- Desktop Navigationsliste -->
+    <ul class="desktop-nav-list">
+      <li *ngFor="let item of navItems" class="nav-item" [class.has-submenu]="item.subItems">
+        <a [routerLink]="item.link" routerLinkActive="active-link" [attr.i18n]="item.i18nId">{{ item.label }}</a>
+        <ul *ngIf="item.subItems" class="submenu">
+          <li *ngFor="let subItem of item.subItems">
+            <a [routerLink]="subItem.link" routerLinkActive="active-link" [attr.i18n]="subItem.i18nId">{{ subItem.label }}</a>
+          </li>
+        </ul>
+      </li>
+    </ul> <!-- Ende Desktop Navigationsliste -->
+
+    <!-- === MOBILES MENÜ - Overlay & Panel === -->
+    <div class="mobile-menu-overlay" *ngIf="isMobileMenuOpen" (click)="closeMobileMenu()"></div>
+
+    <div class="mobile-menu-panel" [class.is-open]="isMobileMenuOpen">
+      <button class="icon-button close-mobile-menu-button" (click)="closeMobileMenu()" aria-label="Menü schließen">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+
+      <ul class="mobile-nav-list">
+        <li *ngFor="let item of navItems" class="mobile-nav-item">
+          <div class="mobile-nav-item-content">
+            <a [routerLink]="item.link" (click)="!item.subItems ? closeMobileMenu() : null" [class.main-category-link]="!item.subItems" routerLinkActive="active-link" [attr.i18n]="item.i18nId">{{ item.label }}</a>
+            <button *ngIf="item.subItems && item.subItems.length > 0"
+                    (click)="toggleSubmenu(item)"
+                    class="icon-button expand-button"
+                    [attr.aria-expanded]="item.isExpanded">
+              <span class="material-symbols-outlined">
+                {{ item.isExpanded ? 'expand_less' : 'expand_more' }}
+              </span>
+            </button>
+          </div>
+          <ul class="mobile-submenu" *ngIf="item.isExpanded">
+            <li *ngFor="let subItem of item.subItems">
+              <a [routerLink]="subItem.link" (click)="closeMobileMenu()" routerLinkActive="active-link" [attr.i18n]="subItem.i18nId">{{ subItem.label }}</a>
+            </li>
+          </ul>
+        </li>
+         <!-- Mobile Auth Links/Buttons -->
+         <li class="mobile-nav-item auth-links-mobile">
+            <ng-container *ngIf="!(currentUser$ | async)">
+              <div class="mobile-nav-item-content">
+                 <a routerLink="/login" (click)="closeMobileMenu()">Anmelden</a>
+              </div>
+              <div class="mobile-nav-item-content">
+                 <a routerLink="/register" (click)="closeMobileMenu()">Registrieren</a>
+              </div>
+            </ng-container>
+            <ng-container *ngIf="currentUser$ | async as user">
+               <div class="mobile-nav-item-content">
+                 <a routerLink="/mein-konto" (click)="closeMobileMenu()">Mein Konto</a>
+               </div>
+               <div class="mobile-nav-item-content">
+                  <button (click)="performLogout()">Abmelden</button> <!-- performLogout schließt Menü bereits -->
+               </div>
+            </ng-container>
+         </li>
+      </ul>
+    </div>
+    <!-- === ENDE MOBILES MENÜ === -->
+
+  </nav> <!-- Ende .main-nav.bottom-row -->
+</header>

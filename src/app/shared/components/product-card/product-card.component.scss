@@ -1,0 +1,110 @@
+// /src/app/shared/components/product-card/product-card.component.scss
+// Option B: object-fit: contain, transparenter BG
+
+// Farbvariablen und andere Variablen
+$product-link-color: #4E342E;
+$product-link-hover-color: #000000;
+$product-price-color: #2e6b2e; // Grün für Preis
+$card-border-radius: 8px;
+// $image-container-bg: #f8f8f8; // Wird unten auf transparent gesetzt
+$info-area-bg: #FAF8F0;       // Hellbeige für Info-BG
+$card-border-color: #eee;     // Standard-Randfarbe
+
+:host {
+  display: block;
+  height: 100%;
+}
+
+// Der Link selbst, der die Karte umspannt
+.product-link {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid $card-border-color;
+  border-radius: $card-border-radius;
+  overflow: hidden;
+  background-color: #ffffff; // Karte Basis ist weiß
+  transition: box-shadow 0.3s ease, color 0.2s ease;
+  height: 100%;
+  text-decoration: none !important; // Unterstreichung entfernen
+  color: $product-link-color !important; // Basis-Textfarbe
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    color: $product-link-hover-color !important; // Hover-Textfarbe
+    text-decoration: none !important;
+
+    // Bild-Zoom bei Hover (kann bei 'contain' weniger sinnvoll sein)
+    // .product-image-container .product-image {
+    //     transform: scale(1.05);
+    // }
+  }
+}
+
+// Bild-Container
+.product-image-container {
+  width: 100%;
+  aspect-ratio: 1 / 1; // Quadratisch
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  // --- HIER Hintergrund auf transparent ---
+  background-color: transparent; // Kein grauer Hintergrund mehr bei Leerraum
+  // --- ENDE ÄNDERUNG ---
+  position: relative; // Für Platzhalter Positionierung
+
+  .product-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    // --- object-fit bleibt 'contain' ---
+    object-fit: contain; // Zeigt ganzes Bild
+    // --- ENDE ---
+    transition: transform 0.3s ease; // Beibehalten oder anpassen
+  }
+
+   // Styling für Platzhalter
+  .no-image-placeholder {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      display: flex; justify-content: center; align-items: center;
+      .material-symbols-outlined {
+          font-size: 4rem;
+          color: #ccc;
+      }
+  }
+}
+
+// Info-Bereich (unter dem Bild)
+.product-info {
+  padding: 15px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: $info-area-bg; // Hellbeiger Hintergrund
+  border-bottom-left-radius: $card-border-radius; // Ecken abrunden
+  border-bottom-right-radius: $card-border-radius;
+}
+
+// Titel im Info-Bereich
+.product-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 2.4em; // Höhe für 2 Zeilen reservieren
+  color: inherit; // Erbt Farbe vom Link (.product-link)
+}
+
+// Preis im Info-Bereich
+.product-price {
+  font-size: 1rem;
+  font-weight: bold;
+  color: $product-price-color; // Spezifische grüne Farbe
+  margin: 0;
+  margin-top: auto; // Schiebt Preis nach unten
+  padding-top: 8px;
+}

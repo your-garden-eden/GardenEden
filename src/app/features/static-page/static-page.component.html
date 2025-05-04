@@ -1,0 +1,26 @@
+<!-- /src/app/features/static-page/static-page.component.html -->
+<div class="static-page-container"> <!-- Äußerer Container -->
+
+    <!-- Ladeanzeige (sollte nur kurz sichtbar sein) -->
+    <div *ngIf="isLoading()" class="loading-indicator">
+      <p>Seite wird geladen...</p>
+    </div>
+  
+    <!-- Fehleranzeige (z.B. wenn contentFile in Route fehlt) -->
+    <div *ngIf="error()" class="error-message">
+      <p>{{ error() }}</p>
+      <a routerLink="/">Zurück zur Startseite</a>
+    </div>
+  
+    <!-- ngx-markdown Komponente zum Anzeigen des Inhalts -->
+    <div *ngIf="!isLoading() && !error() && markdownSource()" class="static-page-content">
+      <markdown
+        [src]="markdownSource()!"
+        (load)="onMarkdownLoad()"
+        (error)="onMarkdownError($event)">
+          <!-- Optional: Wird angezeigt, während Markdown geladen wird -->
+          <!-- <p>Inhalt wird geladen...</p> -->
+      </markdown>
+    </div>
+  
+  </div>

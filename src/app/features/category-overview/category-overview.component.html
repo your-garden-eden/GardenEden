@@ -1,0 +1,75 @@
+<!-- /src/app/features/category-overview/category-overview.component.html -->
+<div class="category-overview-page">
+
+  <!-- Titel der Hauptkategorie -->
+  <h1 *ngIf="categoryTitle() && !error()">{{ categoryTitle() }}</h1>
+
+  <!-- Fehleranzeige für Hauptkategorie -->
+  <div *ngIf="error()" class="error-message">
+    <p>{{ error() }}</p>
+    <a routerLink="/">Zurück zur Startseite</a>
+  </div>
+
+  <!-- Container für Unterkategorien (Icons) -->
+  <div *ngIf="!error() && subCategories().length > 0" class="subcategories-container">
+    <a *ngFor="let subItem of subCategories()"
+       [routerLink]="subItem.link"
+       class="subcategory-item">
+      <img *ngIf="subItem.iconFilename"
+           [src]="getIconPath(subItem.iconFilename)"
+           [alt]="subItem.label"
+           class="subcategory-icon"
+           loading="lazy">
+      <span class="subcategory-label">{{ subItem.label }}</span>
+    </a>
+  </div>
+
+  <!-- Meldung, wenn keine Unterkategorien gefunden wurden -->
+  <div *ngIf="!error() && subCategories().length === 0 && categoryTitle()">
+    <p>Für die Kategorie "{{ categoryTitle() }}" gibt es aktuell keine Unterkategorien.</p>
+  </div>
+
+  <!-- ======================================== -->
+  <!-- Sektion für EINFACHE Produktvorschau     -->
+  <!-- ======================================== -->
+  <section class="product-preview-section" *ngIf="!error()">
+
+    <!-- Optionale Überschrift für die Vorschau -->
+    <h2 *ngIf="!isLoadingPreview() && !previewError() && productPreview().length > 0">
+      Beliebte Produkte aus dieser Kategorie
+    </h2>
+
+    <!-- Ladeanzeige für die Vorschau -->
+    <div *ngIf="isLoadingPreview()" class="loading-indicator preview-loading">
+      <p>Lade Produktvorschau...</p>
+    </div>
+
+    <!-- Fehleranzeige für die Vorschau -->
+    <div *ngIf="previewError()" class="error-message preview-error">
+      <p>{{ previewError() }}</p>
+    </div>
+
+    <!-- Produkt-Grid für die Vorschau -->
+    <div *ngIf="!isLoadingPreview() && !previewError() && productPreview().length > 0" class="product-preview-grid">
+      <!-- Einfache Schleife über productPreview() -->
+      <app-product-card
+          *ngFor="let product of productPreview(); trackBy: trackPreviewProductById"
+          [product]="product">
+          <!-- Kein displayMode -->
+      </app-product-card>
+    </div>
+
+    <!-- === KORRIGIERTES *ngIf === -->
+    <!-- Meldung, wenn keine Vorschauprodukte geladen wurden (aber kein Fehler) -->
+    <!-- Prüft jetzt korrekt productPreview().length -->
+     <div *ngIf="!isLoadingPreview() && !previewError() && productPreview().length === 0 && subCategories().length > 0" class="no-products-message">
+       <p>Keine Produkte für die Vorschau gefunden.</p>
+     </div>
+    <!-- === ENDE KORREKTUR === -->
+
+  </section>
+  <!-- ======================================== -->
+  <!-- Ende EINFACHE Produktvorschau-Sektion   -->
+  <!-- ======================================== -->
+
+</div>

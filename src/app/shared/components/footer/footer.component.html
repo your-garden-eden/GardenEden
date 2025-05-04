@@ -1,0 +1,55 @@
+<!-- /src/app/shared/components/footer/footer.component.html -->
+<footer class="app-footer">
+  <div class="footer-content">
+
+    <div class="footer-column links-column">
+      <h4>Rechtliches</h4>
+      <ul>
+        <li><a routerLink="/impressum">Impressum</a></li>
+        <li><a routerLink="/datenschutz">Datenschutzerklärung</a></li>
+        <li><a routerLink="/agb">AGB</a></li>
+        <li><a routerLink="/widerrufsrecht">Widerrufsrecht</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-column links-column">
+      <h4>Kundenservice</h4>
+      <ul>
+        <li><a routerLink="/kontakt">Kontakt</a></li>
+        <li><a routerLink="/versand">Versand & Lieferung</a></li> <!-- Enthält auch Retoure -->
+        <!-- <li><a routerLink="/retoure">Retoure & Rückgabe</a></li> --> <!-- Entfernt -->
+        <li><a routerLink="/faq">FAQ</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-column links-column">
+      <h4>Über uns</h4>
+      <ul>
+        <li><a routerLink="/ueber-uns">Wer wir sind</a></li>
+        <!-- Karriere & Presse entfernt -->
+      </ul>
+    </div>
+
+    <div class="footer-column social-column">
+      <h4>Folge uns</h4>
+      <div class="social-icons">
+        <!-- Beispiel-Link - ersetzen durch echte Profile! -->
+        <a href="https://www.instagram.com/yourgardeneden/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+           <img src="assets/icons/social/instagram.png" alt="Instagram" width="24" height="24"> <!-- Pfad prüfen! -->
+        </a>
+         <!-- Füge hier ggf. weitere Social Icons hinzu -->
+         <!--
+         <a href="https://www.facebook.com/yourgardeneden/" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+            <img src="assets/icons/social/facebook.png" alt="Facebook" width="24" height="24">
+         </a>
+         -->
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer-bottom">
+    <!-- Stellt sicher, dass 'currentYear' in der TS-Datei existiert -->
+    <p>© {{ currentYear }} Your Garden Eden. Alle Rechte vorbehalten.</p>
+  </div>
+</footer>
