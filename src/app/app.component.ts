@@ -1,15 +1,15 @@
 // /src/app/app.component.ts
-import { Component, inject, Signal } from '@angular/core'; // inject, Signal importiert
+import { Component, inject, Signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { environment } from '../environments/environment';
 import { MaintenanceComponent } from './maintenance/maintenance.component';
 import { HeaderComponent } from './shared/components/header/header.component';
 import { FooterComponent } from './shared/components/footer/footer.component';
-
-// --- NEU: Imports für Overlay ---
-import { LoginOverlayComponent } from './shared/components/login-overlay/login-overlay.component'; // Pfad prüfen!
-import { UiStateService } from './shared/services/ui-state.service'; // Pfad prüfen!
+import { LoginOverlayComponent } from './shared/components/login-overlay/login-overlay.component';
+// --- NEU: Import für MiniCart ---
+import { MiniCartComponent } from './shared/components/mini-cart/mini-cart.component'; // Pfad prüfen!
+import { UiStateService } from './shared/services/ui-state.service';
 
 @Component({
   selector: 'app-root',
@@ -20,18 +20,20 @@ import { UiStateService } from './shared/services/ui-state.service'; // Pfad pr�
     MaintenanceComponent,
     HeaderComponent,
     FooterComponent,
-    LoginOverlayComponent // <<< Hinzugefügt
+    LoginOverlayComponent,
+    MiniCartComponent // <<< Hinzugefügt
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
 export class AppComponent {
   maintenanceMode = environment.maintenanceMode;
-  currentYear = new Date().getFullYear(); // Bleibt für Footer
+  currentYear = new Date().getFullYear();
 
-  // --- NEU: UiStateService injizieren und Signal verfügbar machen ---
+  // --- UiStateService injizieren und Signale verfügbar machen ---
   private uiStateService = inject(UiStateService);
-  // Mache das Signal vom Service im Template unter diesem Namen verfügbar
   isLoginOverlayOpen$: Signal<boolean> = this.uiStateService.isLoginOverlayOpen$;
+  // --- NEU: Signal für MiniCart ---
+  isMiniCartOpen$: Signal<boolean> = this.uiStateService.isMiniCartOpen$;
 
 }

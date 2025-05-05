@@ -11,13 +11,15 @@
   </main>
   <app-footer></app-footer>
 
-  <!-- === Login Overlay (mit Klasse für Animation) === -->
-  <!-- Wird nur gerendert, wenn isLoginOverlayOpen$() true ist -->
-  <!-- [class.visible] steuert die Animations-Transitions im SCSS -->
+  <!-- Login Overlay (mit Klasse für Animation) -->
   <app-login-overlay
       *ngIf="isLoginOverlayOpen$()"
       [class.visible]="isLoginOverlayOpen$()">
   </app-login-overlay>
-  <!-- === ENDE Login Overlay === -->
+
+  <!-- === NEU: Mini Warenkorb === -->
+  <!-- Wird nur gerendert, wenn isMiniCartOpen$() true ist -->
+  <app-mini-cart *ngIf="isMiniCartOpen$()"></app-mini-cart>
+  <!-- === ENDE NEU === -->
 
 </ng-container>

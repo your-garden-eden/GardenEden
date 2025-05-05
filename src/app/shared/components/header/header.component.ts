@@ -1,12 +1,12 @@
 // /src/app/shared/components/header/header.component.ts
-import { Component, inject, Renderer2, Inject, PLATFORM_ID, OnDestroy, Signal } from '@angular/core'; // Signal hinzugefügt
+import { Component, inject, Renderer2, Inject, PLATFORM_ID, OnDestroy, Signal } from '@angular/core'; // Signal hinzugefügt, OnDestroy war schon da
 import { RouterModule, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Observable, Subscription } from 'rxjs'; // Observable für currentUser$
+import { Observable, Subscription } from 'rxjs'; // Subscription hinzugefügt
 import { User } from '@angular/fire/auth';
 import { AuthService } from '../../../shared/services/auth.service';
 import { CartService } from '../../../shared/services/cart.service'; // CartService importieren
-import { UiStateService } from '../../../shared/services/ui-state.service';
+import { UiStateService } from '../../../shared/services/ui-state.service'; // UiStateService importieren
 import { navItems, NavItem } from '../../../core/data/navigation.data'; // NavItem für toggleSubmenu
 
 @Component({
@@ -19,22 +19,18 @@ import { navItems, NavItem } from '../../../core/data/navigation.data'; // NavIt
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })
-export class HeaderComponent implements OnDestroy {
+export class HeaderComponent implements OnDestroy { // OnDestroy implementieren
   // --- Services ---
   public authService = inject(AuthService);
-  public cartService = inject(CartService); // CartService injizieren
-  private uiStateService = inject(UiStateService);
+  public cartService = inject(CartService); // CartService injiziert
+  private uiStateService = inject(UiStateService); // UiStateService injiziert
   private router = inject(Router);
   private renderer = inject(Renderer2);
   @Inject(PLATFORM_ID) private platformId = inject(PLATFORM_ID);
 
   // --- Observables & Signale ---
   currentUser$: Observable<User | null> = this.authService.authState$;
-
-  // --- HIER DIE ÄNDERUNG ---
-  // itemCount$ ist jetzt ein Signal<number> vom CartService
-  itemCount$: Signal<number> = this.cartService.cartItemCount;
-  // --- ENDE DER ÄNDERUNG ---
+  itemCount$: Signal<number> = this.cartService.cartItemCount; // Nutzt Signal vom CartService
 
   // --- Zustand ---
   isMobileMenuOpen = false;
@@ -49,17 +45,35 @@ export class HeaderComponent implements OnDestroy {
   // --- Methoden für Login Overlay (Hover) ---
   openLoginOverlayOnEnter(): void {
     console.log('Header: Mouse entered Login Icon - Opening Overlay');
-    this.uiStateService.openLoginOverlay();
+    this.uiStateService.openLoginOverlay(); // Ruft Service auf
+    // Ggf. andere Timeouts (z.B. Mini-Cart) abbrechen, falls nötig
+    this.uiStateService.cancelCloseTimeout();
   }
 
   closeLoginOverlayOnLeave(): void {
+    // Aktuell keine Aktion hier, Overlay schließt nur bei Klick daneben, etc.
     console.log('Header: Mouse left Login Icon - (Overlay remains open)');
   }
-  // --- ENDE NEU ---
+  // --- ENDE Methoden für Login Overlay ---
+
+
+  // --- Methoden für Mini-Cart (Hover mit Timeout) ---
+  onCartIconMouseEnter(): void {
+    console.log('Header: Cart mouse enter - Opening Mini Cart');
+    this.uiStateService.openMiniCart(); // Ruft Service auf
+     // Schließe Login-Overlay, wenn Warenkorb geöffnet wird
+     this.uiStateService.closeLoginOverlay();
+  }
+
+  onCartIconMouseLeave(): void {
+    console.log('Header: Cart mouse leave - Starting close timeout');
+    this.uiStateService.startCloseTimeout(); // Startet Timeout zum Schließen im Service
+  }
+  // --- ENDE Mini-Cart Methoden ---
 
 
   async performLogout(): Promise<void> {
-    this.closeMobileMenu();
+    this.closeMobileMenu(); // Mobile Menü schließen
     try {
       await this.authService.logout();
       this.router.navigate(['/']);
@@ -69,19 +83,6 @@ export class HeaderComponent implements OnDestroy {
     }
   }
 
-  onCartIconMouseEnter(): void {
-    // Dummy oder echte Implementierung
-    // this.uiStateService.cancelCloseTimeout();
-    // this.uiStateService.openMiniCart();
-    console.log('UiStateService: Cart mouse enter (Dummy)');
-  }
-
-  onCartIconMouseLeave(): void {
-    // Dummy oder echte Implementierung
-    // this.uiStateService.startCloseTimeout();
-     console.log('UiStateService: Cart mouse leave (Dummy)');
-  }
-
   toggleMobileMenu(): void {
     this.isMobileMenuOpen = !this.isMobileMenuOpen;
     if (isPlatformBrowser(this.platformId)) {
@@ -89,7 +90,7 @@ export class HeaderComponent implements OnDestroy {
             this.renderer.addClass(document.body, 'body-no-scroll');
         } else {
             this.renderer.removeClass(document.body, 'body-no-scroll');
-            this.navItems.forEach(item => item.isExpanded = false);
+            this.navItems.forEach(item => item.isExpanded = false); // Submenüs schließen
         }
     }
     console.log('Mobile menu toggled:', this.isMobileMenuOpen);
@@ -101,7 +102,7 @@ export class HeaderComponent implements OnDestroy {
        if (isPlatformBrowser(this.platformId)) {
           this.renderer.removeClass(document.body, 'body-no-scroll');
        }
-       this.navItems.forEach(item => item.isExpanded = false);
+       this.navItems.forEach(item => item.isExpanded = false); // Submenüs schließen
        console.log('Mobile menu closed');
     }
   }
@@ -110,8 +111,10 @@ export class HeaderComponent implements OnDestroy {
     item.isExpanded = !item.isExpanded;
   }
 
+  // --- ngOnDestroy für Aufräumarbeiten ---
   ngOnDestroy(): void {
-     this.uiStateSubscription?.unsubscribe();
+     this.uiStateSubscription?.unsubscribe(); // Beispielhaft
      console.log('HeaderComponent destroyed.');
   }
+  // --- ENDE ngOnDestroy ---
 }

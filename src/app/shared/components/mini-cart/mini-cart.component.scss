@@ -1,0 +1,126 @@
+// /src/app/shared/components/mini-cart/mini-cart.component.scss
+
+// Variablen (ggf. global definieren oder hier anpassen)
+$mini-cart-bg: #ffffff;
+$mini-cart-border: #e0e0e0;
+$mini-cart-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+$mini-cart-max-width: 360px;
+$mini-cart-max-height: 70vh;
+$item-border-bottom: #f0f0f0;
+// Hole Farbwerte aus CSS Variablen oder setze Fallbacks
+$text-color-light: var(--text-color-light, #666);
+$primary-color: var(--primary-color, #28a745);
+$primary-color-hover: var(--primary-color-hover, #218838);
+$error-color: var(--error-color, #dc3545);
+// --- NEU: Variablen für Button definieren ---
+$button-primary-bg: var(--primary-color, #28a745);
+$button-primary-hover-bg: var(--primary-color-hover, #218838);
+$disabled-color: var(--disabled-color, #cccccc);
+// --- ENDE NEU ---
+
+
+:host {
+  display: block;
+  position: fixed;
+  top: 60px; // Anpassen an Header
+  right: 20px; // Anpassen
+  z-index: 1050;
+  width: 100%;
+  max-width: $mini-cart-max-width;
+  pointer-events: none;
+}
+
+// Container für den sichtbaren Inhalt
+.mini-cart-container {
+  background-color: $mini-cart-bg;
+  border: 1px solid $mini-cart-border;
+  border-radius: 8px;
+  box-shadow: $mini-cart-shadow;
+  max-height: $mini-cart-max-height;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  pointer-events: auto;
+}
+
+// Header-Bereich
+.mini-cart-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 15px; border-bottom: 1px solid $mini-cart-border;
+  h3 { margin: 0; font-size: 1.1rem; font-weight: 600; }
+  .close-button { background: none; border: none; padding: 0; cursor: pointer; color: #999; line-height: 1; &:hover { color: #333; } .material-symbols-outlined { font-size: 24px; } }
+}
+
+// Laden/Fehler/Leer-Meldungen
+.loading-indicator,
+.error-message,
+.empty-cart-message {
+  padding: 20px 15px; text-align: center; color: $text-color-light; font-size: 0.9rem;
+}
+.error-message { color: $error-color; background-color: rgba($error-color, 0.1); border-top: 1px solid $mini-cart-border; border-bottom: 1px solid $mini-cart-border; margin: 0; }
+
+// Hauptinhaltsbereich (scrollbar)
+.mini-cart-content {
+  overflow-y: auto; flex-grow: 1; padding: 0;
+}
+
+// Artikelliste
+.cart-item-list { list-style: none; padding: 0; margin: 0; }
+
+// Einzelner Artikel
+.cart-item {
+  display: flex; align-items: flex-start; gap: 15px;
+  padding: 15px; border-bottom: 1px solid $item-border-bottom;
+  &:last-child { border-bottom: none; }
+}
+
+// Artikelbild
+.item-image {
+  flex-shrink: 0; width: 65px; height: 65px; background-color: #f8f8f8;
+  border-radius: 4px; overflow: hidden; display: flex; align-items: center; justify-content: center;
+  a { display: block; width: 100%; height: 100%; }
+  img { display: block; width: 100%; height: 100%; object-fit: contain; }
+  .no-image-placeholder.small .material-symbols-outlined { font-size: 2rem; color: #ccc; }
+}
+
+// Artikeldetails (Titel, Preis)
+.item-details {
+  flex-grow: 1; display: flex; flex-direction: column; gap: 4px;
+  .item-title { font-size: 0.9rem; font-weight: 600; color: var(--text-color-main, #333); text-decoration: none; &:hover { color: $primary-color; } }
+  .item-variant-title { display: block; font-size: 0.8rem; color: $text-color-light; }
+  .item-price { font-size: 0.9rem; font-weight: 500; }
+}
+
+// Aktionen (Mengensteuerung)
+.item-actions {
+  flex-shrink: 0; display: flex; align-items: center; height: 65px;
+}
+.quantity-control {
+  display: flex; align-items: center; border: 1px solid $mini-cart-border; border-radius: 4px;
+  .quantity-btn { background: none; border: none; cursor: pointer; padding: 5px 8px; color: $text-color-light; line-height: 1;
+    &:hover:not(:disabled) { color: #333; background-color: #f5f5f5; }
+    &:disabled { cursor: not-allowed; opacity: 0.5; }
+    .material-symbols-outlined { font-size: 16px; display: block; }
+  }
+  .quantity-value { padding: 0 8px; font-size: 0.9rem; font-weight: 600; min-width: 20px; text-align: center; }
+}
+
+// Footer-Bereich
+.mini-cart-footer {
+  padding: 15px; border-top: 1px solid $mini-cart-border; background-color: #f9f9f9;
+  .subtotal { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 1rem; font-weight: 600; }
+  .checkout-button {
+    display: block; width: 100%; text-align: center; padding: 10px 15px;
+    // --- Verwendet jetzt die definierten Variablen ---
+    background-color: $button-primary-bg;
+    color: white;
+    border: none; border-radius: 5px; font-size: 0.95rem; font-weight: 600; cursor: pointer;
+    transition: background-color 0.2s ease, opacity 0.2s ease; margin-bottom: 10px;
+    &:hover:not(:disabled) { background-color: $button-primary-hover-bg; }
+    &:disabled { background-color: $disabled-color; cursor: not-allowed; opacity: 0.7; }
+  }
+  .view-cart-link { display: block; text-align: center; font-size: 0.85rem; color: var(--text-color-light, #666); text-decoration: underline; &:hover { color: $primary-color; } }
+}
+
+// Keyframes (falls nicht global)
+@keyframes spin { to { transform: rotate(360deg); } }
