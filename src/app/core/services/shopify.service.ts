@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { GraphQLClient } from 'graphql-request';
 import { environment } from '../../../environments/environment';
+import { Observable, from, throwError } from 'rxjs'; // Observable, from, throwError hinzugefügt
+import { catchError, map } from 'rxjs/operators'; // catchError, map hinzugefügt
 
 export interface ShopifyImage { url: string; altText?: string | null; }
 export interface ShopifyPrice { amount: string; currencyCode: string; }
@@ -217,6 +219,46 @@ export class ShopifyService {
       console.error(`ShopifyService: Fehler beim Abrufen der Bestseller-Produkte:`, error);
       return null;
     }
+  }
+
+  // HINZUGEFÜGTE SUCHE METHODE (Observable zurückgeben)
+  searchProducts(query: string, limit: number = 10): Observable<Product[] | null> {
+    const searchQuery = `
+      query searchProducts($query: String!, $limit: Int!) {
+        products(first: $limit, query: $query) {
+          edges {
+            node {
+              id
+              title
+              handle
+              vendor
+              availableForSale
+              priceRange { minVariantPrice { amount currencyCode } }
+              images(first: 1) {
+                edges {
+                  node {
+                    url(transform: {maxWidth: 80, maxHeight: 80, preferredContentType: WEBP})
+                    altText
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    `;
+    const variables = { query, limit };
+    type ShopifySearchResponse = { products: { edges: { node: Product }[] } | null; };
+
+    // Konvertiere das Promise von graphql-request in ein Observable
+    return from(this.storefrontClient.request<ShopifySearchResponse>(searchQuery, variables)).pipe(
+      map(data => data?.products?.edges?.map(edge => edge.node) ?? null), // Extrahiere die Produkte
+      catchError(error => { // Fange Fehler ab
+        console.error(`ShopifyService: Fehler bei der Produktsuche für "${query}":`, error);
+        return throwError(() => new Error('Fehler bei der Produktsuche')); // Gebe einen Fehler im Observable zurück
+        // Alternative: return of(null); // Um null zurückzugeben statt Fehler
+      })
+    );
   }
 
 }

@@ -1,83 +1,148 @@
-// /src/app/shared/components/header/header.component.ts
-import { Component, inject, Renderer2, Inject, PLATFORM_ID, OnDestroy, Signal } from '@angular/core'; // Signal hinzugefügt, OnDestroy war schon da
-import { RouterModule, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { Component, inject, Renderer2, Inject, PLATFORM_ID, OnDestroy, Signal, OnInit, WritableSignal, signal, effect, ChangeDetectionStrategy } from '@angular/core';
+import { RouterModule, Router, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Observable, Subscription } from 'rxjs'; // Subscription hinzugefügt
+import { Observable, Subscription, Subject, debounceTime, distinctUntilChanged, switchMap, filter, tap, catchError, EMPTY } from 'rxjs';
 import { User } from '@angular/fire/auth';
+import { ReactiveFormsModule, FormControl } from '@angular/forms';
+
 import { AuthService } from '../../../shared/services/auth.service';
-import { CartService } from '../../../shared/services/cart.service'; // CartService importieren
-import { UiStateService } from '../../../shared/services/ui-state.service'; // UiStateService importieren
-import { navItems, NavItem } from '../../../core/data/navigation.data'; // NavItem für toggleSubmenu
+import { CartService } from '../../../shared/services/cart.service';
+import { UiStateService } from '../../../shared/services/ui-state.service';
+import { navItems, NavItem } from '../../../core/data/navigation.data';
+import { ShopifyService, Product } from '../../../core/services/shopify.service';
 
 @Component({
   selector: 'app-header',
   standalone: true,
   imports: [
     CommonModule,
-    RouterModule
+    RouterModule,
+    ReactiveFormsModule
    ],
   templateUrl: './header.component.html',
-  styleUrl: './header.component.scss'
+  styleUrl: './header.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class HeaderComponent implements OnDestroy { // OnDestroy implementieren
-  // --- Services ---
-  public authService = inject(AuthService);
-  public cartService = inject(CartService); // CartService injiziert
-  private uiStateService = inject(UiStateService); // UiStateService injiziert
+export class HeaderComponent implements OnInit, OnDestroy {
+  private authService = inject(AuthService);
+  public cartService = inject(CartService);
+  private uiStateService = inject(UiStateService);
   private router = inject(Router);
   private renderer = inject(Renderer2);
   @Inject(PLATFORM_ID) private platformId = inject(PLATFORM_ID);
+  private shopifyService = inject(ShopifyService);
 
-  // --- Observables & Signale ---
   currentUser$: Observable<User | null> = this.authService.authState$;
-  itemCount$: Signal<number> = this.cartService.cartItemCount; // Nutzt Signal vom CartService
-
-  // --- Zustand ---
+  itemCount$: Signal<number> = this.cartService.cartItemCount;
   isMobileMenuOpen = false;
-
-  // --- Navigation (Importiert) ---
   public navItems = navItems;
 
-  // --- Subscription für Aufräumarbeiten (optional) ---
-  private uiStateSubscription: Subscription | undefined; // Beispiel
+  searchControl = new FormControl('');
+  private destroy$ = new Subject<void>();
+  searchResults: WritableSignal<Product[]> = signal([]);
+  isSearchLoading: WritableSignal<boolean> = signal(false);
+  isSearchOverlayVisible: WritableSignal<boolean> = signal(false);
+  searchError: WritableSignal<string | null> = signal(null);
 
+  private subscriptions = new Subscription();
 
-  // --- Methoden für Login Overlay (Hover) ---
+  constructor() {
+    effect(() => {
+      if (this.searchControl.value === '') {
+        this.closeSearchOverlay();
+        this.searchResults.set([]);
+      }
+    });
+  }
+
+  ngOnInit(): void {
+    this.setupSearchDebounce();
+    this.setupRouteListener();
+  }
+
+  ngOnDestroy(): void {
+     this.subscriptions.unsubscribe();
+     this.destroy$.next();
+     this.destroy$.complete();
+  }
+
+  private setupSearchDebounce(): void {
+    this.subscriptions.add( // Füge die Subscription dem Container hinzu
+        this.searchControl.valueChanges.pipe(
+        debounceTime(400),
+        distinctUntilChanged(),
+        filter(term => !!term && term.length > 2),
+        tap(() => {
+          this.isSearchLoading.set(true);
+          this.isSearchOverlayVisible.set(true);
+          this.searchResults.set([]);
+          this.searchError.set(null);
+        }),
+        switchMap(term =>
+          this.shopifyService.searchProducts(term as string, 8)
+            .pipe(
+              catchError(err => {
+                console.error('Fehler bei Produktsuche:', err);
+                this.searchError.set('Fehler bei der Suche.');
+                return EMPTY;
+              })
+            )
+        )
+        ).subscribe(results => {
+        this.searchResults.set(results ?? []);
+        this.isSearchLoading.set(false);
+        if (!results || results.length === 0) {
+            this.searchError.set('Keine Produkte gefunden.');
+        }
+        })
+    ); // Ende add
+  }
+
+  clearSearch(): void {
+    this.searchControl.setValue('');
+  }
+
+  closeSearchOverlay(): void {
+    this.isSearchOverlayVisible.set(false);
+    this.isSearchLoading.set(false);
+    this.searchError.set(null);
+  }
+
+  onSearchResultClick(): void {
+    this.clearSearch();
+  }
+
+  private setupRouteListener(): void {
+    const routeSub = this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe(() => {
+      this.closeSearchOverlay();
+      this.closeMobileMenu();
+    });
+    this.subscriptions.add(routeSub);
+  }
+
   openLoginOverlayOnEnter(): void {
-    console.log('Header: Mouse entered Login Icon - Opening Overlay');
-    this.uiStateService.openLoginOverlay(); // Ruft Service auf
-    // Ggf. andere Timeouts (z.B. Mini-Cart) abbrechen, falls nötig
+    this.uiStateService.openLoginOverlay();
     this.uiStateService.cancelCloseTimeout();
   }
 
-  closeLoginOverlayOnLeave(): void {
-    // Aktuell keine Aktion hier, Overlay schließt nur bei Klick daneben, etc.
-    console.log('Header: Mouse left Login Icon - (Overlay remains open)');
-  }
-  // --- ENDE Methoden für Login Overlay ---
+  closeLoginOverlayOnLeave(): void { }
 
-
-  // --- Methoden für Mini-Cart (Hover mit Timeout) ---
   onCartIconMouseEnter(): void {
-    console.log('Header: Cart mouse enter - Opening Mini Cart');
-    this.uiStateService.openMiniCart(); // Ruft Service auf
-     // Schließe Login-Overlay, wenn Warenkorb geöffnet wird
-     this.uiStateService.closeLoginOverlay();
+    this.uiStateService.openMiniCart();
+    this.uiStateService.closeLoginOverlay();
   }
 
   onCartIconMouseLeave(): void {
-    console.log('Header: Cart mouse leave - Starting close timeout');
-    this.uiStateService.startCloseTimeout(); // Startet Timeout zum Schließen im Service
+    this.uiStateService.startCloseTimeout();
   }
-  // --- ENDE Mini-Cart Methoden ---
-
 
   async performLogout(): Promise<void> {
-    this.closeMobileMenu(); // Mobile Menü schließen
+    this.closeMobileMenu();
     try {
       await this.authService.logout();
       this.router.navigate(['/']);
-      console.log('Logout erfolgreich.');
     } catch (error) {
       console.error('Fehler beim Logout:', error);
     }
@@ -86,35 +151,24 @@ export class HeaderComponent implements OnDestroy { // OnDestroy implementieren
   toggleMobileMenu(): void {
     this.isMobileMenuOpen = !this.isMobileMenuOpen;
     if (isPlatformBrowser(this.platformId)) {
-        if (this.isMobileMenuOpen) {
-            this.renderer.addClass(document.body, 'body-no-scroll');
-        } else {
-            this.renderer.removeClass(document.body, 'body-no-scroll');
-            this.navItems.forEach(item => item.isExpanded = false); // Submenüs schließen
-        }
+        this.renderer.setProperty(document.body, 'style', this.isMobileMenuOpen ? 'overflow: hidden;' : '');
     }
-    console.log('Mobile menu toggled:', this.isMobileMenuOpen);
+    if (!this.isMobileMenuOpen) {
+      this.navItems.forEach(item => item.isExpanded = false);
+    }
   }
 
   closeMobileMenu(): void {
     if (this.isMobileMenuOpen) {
       this.isMobileMenuOpen = false;
        if (isPlatformBrowser(this.platformId)) {
-          this.renderer.removeClass(document.body, 'body-no-scroll');
+          this.renderer.removeStyle(document.body, 'overflow');
        }
-       this.navItems.forEach(item => item.isExpanded = false); // Submenüs schließen
-       console.log('Mobile menu closed');
+       this.navItems.forEach(item => item.isExpanded = false);
     }
   }
 
   toggleSubmenu(item: NavItem): void {
     item.isExpanded = !item.isExpanded;
   }
-
-  // --- ngOnDestroy für Aufräumarbeiten ---
-  ngOnDestroy(): void {
-     this.uiStateSubscription?.unsubscribe(); // Beispielhaft
-     console.log('HeaderComponent destroyed.');
-  }
-  // --- ENDE ngOnDestroy ---
 }
