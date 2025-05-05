@@ -5,6 +5,27 @@
   </video>
 </section>
 
+<section class="weather-section content-container">
+  @if (isLoadingWeather()) {
+    <div class="loading-indicator small"><p>Lade Wetter...</p></div>
+  } @else if (errorWeather()) {
+    <div class="error-message small"><p>{{ errorWeather() }}</p></div>
+  } @else {
+    @if (weatherData(); as data) {
+      <div class="weather-display">
+        <img [src]="data.iconUrl" [alt]="data.description" class="weather-icon" width="50" height="50">
+        <div class="weather-info">
+          <span class="weather-temp">{{ data.tempCelsius | number:'1.0-0' }}°C</span>
+          <span class="weather-desc">{{ data.description }}</span>
+          <span class="weather-location">in {{ data.locationName }}</span>
+        </div>
+      </div>
+    } @else {
+       <p class="info-message small">Wetterdaten nicht verfügbar.</p>
+    }
+  }
+</section>
+
 <section class="bestseller-section content-container">
   <h2>Unsere Bestseller</h2>
   @if (isLoadingBestsellers()) {
@@ -49,7 +70,7 @@
                 <p class="news-description">{{ article.description }}</p>
               }
               <div class="news-meta">
-                 @if(article.source?.name) {
+                 @if(article.source.name) {
                     <span class="news-source">Quelle: {{ article.source.name }}</span>
                  }
                  <span class="news-date">{{ article.publishedAt | date:'shortDate' }}</span>
@@ -63,8 +84,4 @@
       <p class="info-message">Keine aktuellen Garten-Nachrichten gefunden.</p>
     }
   }
-</section>
-
-<section class="weather-section content-container">
-    <h2>Wetter Info (Demnächst hier)</h2>
 </section>
