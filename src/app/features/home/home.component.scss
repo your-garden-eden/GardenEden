@@ -1,12 +1,41 @@
-// Variablen
-$mobile-breakpoint: 768px;
+:host {
+  --card-border-radius: 8px;
+  --text-color-normal: #333;
+  --text-color-light: #555;
+  --text-color-lighter: #777;
+  --link-color: #0066cc;
+  --link-color-hover: #004c99;
+  --error-color: #d32f2f;
+  --background-light: #f8f9fa;
+  --card-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.content-container {
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
 
 .hero-section {
   position: relative;
   width: 100%;
-  height: 70vh; // Basis-Höhe Desktop
+  height: 70vh;
   min-height: 400px;
   overflow: hidden;
+  background-color: #e0e0e0;
 }
 
 .hero-video {
@@ -17,47 +46,180 @@ $mobile-breakpoint: 768px;
   height: 100%;
   object-fit: cover;
   transform: translate(-50%, -50%);
-  z-index: 0; // Kann jetzt auch -1 sein, wenn nichts drüber liegt
-}
-
-/*
-// Entfernt, da .hero-overlay nicht mehr existiert
-.hero-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.4);
   z-index: 1;
 }
-*/
 
-/*
-// Entfernt, da .hero-content nicht mehr verwendet wird
-.hero-content {
-  // ...
-}
-*/
+.bestseller-section, .news-section, .weather-section {
+  padding-top: 3rem;
+  padding-bottom: 3rem;
 
-/*
-// Entfernt, da .cta-button nicht mehr existiert
-.cta-button {
-  // ...
-}
-*/
-
-// Responsive Anpassungen für die Section-Höhe bleiben erhalten
-@media (max-width: $mobile-breakpoint) {
-  .hero-section {
-    height: 40vh;
-    min-height: 250px;
+  h2 {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--text-color-normal);
   }
 
-  /*
-  // Entfernt, da .hero-content nicht mehr verwendet wird
-  .hero-content {
-    // ...
+  .loading-indicator, .error-message, .info-message {
+    text-align: center;
+    padding: 3rem 1rem;
+    font-size: 1.1rem;
+    color: var(--text-color-light);
+    min-height: 150px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
-  */
+  .error-message {
+    color: var(--error-color);
+    font-weight: 500;
+  }
+}
+
+.bestseller-section {
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 2rem;
+    justify-content: center;
+
+    @media (max-width: 992px) { gap: 1.5rem; }
+    @media (max-width: 768px) { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+    @media (max-width: 480px) { grid-template-columns: repeat(2, 1fr); gap: 0.8rem; }
+  }
+}
+
+.news-section {
+  background-color: var(--background-light);
+  border-top: 1px solid #eee;
+
+  .news-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+
+    @media (min-width: 768px) { grid-template-columns: repeat(2, 1fr); }
+    @media (min-width: 1024px) { grid-template-columns: repeat(3, 1fr); gap: 2.5rem; }
+  }
+
+  .news-article-card {
+    background-color: #ffffff;
+    border-radius: var(--card-border-radius);
+    box-shadow: var(--card-shadow);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .news-image-link {
+      display: block;
+      aspect-ratio: 16 / 9;
+      background-color: #f0f0f0;
+      overflow: hidden;
+    }
+
+    .news-image {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+    &:hover .news-image {
+      transform: scale(1.05);
+    }
+
+    .news-content {
+      padding: 1rem 1.25rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+
+      h3 {
+        font-size: 1.1rem;
+        margin: 0 0 0.5rem 0;
+        line-height: 1.4;
+        color: var(--text-color-normal);
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-height: calc(1.1rem * 1.4 * 3);
+
+        a {
+          text-decoration: none;
+          color: inherit;
+          transition: color 0.2s ease;
+          &:hover { color: var(--link-color-hover); }
+        }
+      }
+
+      .news-description {
+        font-size: 0.9rem;
+        color: var(--text-color-light);
+        line-height: 1.5;
+        margin-bottom: 1rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex-grow: 1;
+      }
+
+      .news-meta {
+        font-size: 0.8rem;
+        color: var(--text-color-lighter);
+        margin-bottom: 0.75rem;
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        border-top: 1px dashed #eee;
+        padding-top: 0.75rem;
+        margin-top: auto;
+
+        .news-source { font-weight: 500; }
+      }
+
+      .read-more-link {
+          font-size: 0.9rem;
+          font-weight: 500;
+          color: var(--link-color);
+          text-decoration: none;
+          align-self: flex-start;
+          padding: 0.25rem 0;
+
+          &:hover {
+              text-decoration: underline;
+              color: var(--link-color-hover);
+          }
+      }
+    }
+  }
+}
+
+.weather-section {
+  border-top: 1px solid #eee;
+  min-height: 200px;
+}
+
+@media (max-width: 768px) {
+  .bestseller-section h2, .news-section h2, .weather-section h2 {
+    font-size: 1.8rem;
+    margin-bottom: 2rem;
+  }
+}
+@media (max-width: 480px) {
+  .bestseller-section h2, .news-section h2, .weather-section h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
 }

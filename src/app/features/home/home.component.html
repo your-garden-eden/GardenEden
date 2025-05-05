@@ -1,14 +1,70 @@
 <section class="hero-section">
-    <video class="hero-video" autoplay loop muted playsinline>
-      <source src="assets/videos/SchleifenVideo.mp4" type="video/mp4">
-      <!-- <source src="assets/videos/SchleifenVideo.webm" type="video/webm"> -->
-      Dein Browser unterstützt leider keine HTML5 Videos.
-    </video>
-    <!-- Das .hero-overlay div wurde hier entfernt -->
-    <!-- Das .hero-content div wurde bereits vorher entfernt -->
-  </section>
-  
-  <!-- Hier kann später weitedadarer Inhalt der Homepage folgen -->
-  <div style="padding: 2rem; text-align: center;">
-      <h2>Weitere Inhalte der Startseite...</h2>
-  </div>
+  <video class="hero-video" autoplay loop muted playsinline>
+    <source src="assets/videos/SchleifenVideo.mp4" type="video/mp4">
+    Dein Browser unterstützt leider keine HTML5 Videos.
+  </video>
+</section>
+
+<section class="bestseller-section content-container">
+  <h2>Unsere Bestseller</h2>
+  @if (isLoadingBestsellers()) {
+    <div class="loading-indicator"><p>Lade Bestseller...</p></div>
+  } @else if (errorBestsellers()) {
+    <div class="error-message"><p>{{ errorBestsellers() }}</p></div>
+  } @else {
+    @if (bestsellerProducts().length > 0) {
+      <div class="product-grid">
+        @for (product of bestsellerProducts(); track product.id) {
+          <app-product-card [product]="product"></app-product-card>
+        }
+      </div>
+    } @else {
+      <p class="info-message">Momentan sind keine Bestseller verfügbar.</p>
+    }
+  }
+</section>
+
+<section class="news-section content-container">
+  <h2>Aktuelles aus dem Garten</h2>
+  @if (isLoadingNews()) {
+    <div class="loading-indicator"><p>Lade Nachrichten...</p></div>
+  } @else if (errorNews()) {
+    <div class="error-message"><p>{{ errorNews() }}</p></div>
+  } @else {
+    @if (newsArticles().length > 0) {
+      <div class="news-list">
+        @for (article of newsArticles(); track article.url) {
+          <article class="news-article-card">
+            @if (article.urlToImage) {
+              <a [href]="article.url" target="_blank" rel="noopener noreferrer" class="news-image-link" aria-label="Artikelbild">
+                <img [src]="article.urlToImage" [alt]="article.title || 'Nachrichtenbild'" loading="lazy" class="news-image"
+                     onerror="this.style.display='none'; this.parentElement.style.display='none'">
+              </a>
+            }
+            <div class="news-content">
+              <h3>
+                <a [href]="article.url" target="_blank" rel="noopener noreferrer">{{ article.title }}</a>
+              </h3>
+              @if (article.description) {
+                <p class="news-description">{{ article.description }}</p>
+              }
+              <div class="news-meta">
+                 @if(article.source?.name) {
+                    <span class="news-source">Quelle: {{ article.source.name }}</span>
+                 }
+                 <span class="news-date">{{ article.publishedAt | date:'shortDate' }}</span>
+              </div>
+              <a [href]="article.url" target="_blank" rel="noopener noreferrer" class="read-more-link">Weiterlesen<span class="visually-hidden"> über {{article.title}}</span></a>
+            </div>
+          </article>
+        }
+      </div>
+    } @else {
+      <p class="info-message">Keine aktuellen Garten-Nachrichten gefunden.</p>
+    }
+  }
+</section>
+
+<section class="weather-section content-container">
+    <h2>Wetter Info (Demnächst hier)</h2>
+</section>

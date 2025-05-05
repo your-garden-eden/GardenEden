@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { GraphQLClient } from 'graphql-request';
 import { environment } from '../../../environments/environment';
 
-// --- Basis-Interfaces ---
 export interface ShopifyImage { url: string; altText?: string | null; }
 export interface ShopifyPrice { amount: string; currencyCode: string; }
 export interface ShopifyProductVariant { id: string; title: string; sku?: string | null; availableForSale: boolean; quantityAvailable?: number | null; price: ShopifyPrice; image?: ShopifyImage | null; selectedOptions?: { name: string; value: string; }[] | null; }
@@ -22,7 +21,7 @@ export interface Product {
   images: { edges: { node: ShopifyImage }[] };
   variants: { edges: { node: ShopifyProductVariant }[] };
   options?: ShopifyProductOption[] | null;
-  cursor?: string; // Nur für interne Zwecke, falls gebraucht
+  cursor?: string;
 }
 
 export interface PageInfo { hasNextPage: boolean; endCursor?: string | null; }
@@ -38,7 +37,6 @@ export interface CollectionQueryResult {
   }
 }
 
-// --- Cart Typen ---
 export interface CartLineInput { merchandiseId: string; quantity: number; }
 export interface CartLineUpdateInput { id: string; merchandiseId?: string; quantity?: number; }
 export interface CartLineEdgeNode { id: string; quantity: number; merchandise: { id: string; title: string; price: ShopifyPrice; image?: ShopifyImage | null; product: { handle: string; title: string; }; }; }
@@ -51,7 +49,6 @@ interface CartLinesUpdatePayload { cartLinesUpdate: CartResponse | null; }
 interface CartLinesRemovePayload { cartLinesRemove: CartResponse | null; }
 interface CartFetchPayload { cart: Cart | null; }
 
-// --- Cart GraphQL Operationen ---
 const CartFragment = `fragment CartFragment on Cart { id checkoutUrl cost { subtotalAmount { amount currencyCode } totalAmount { amount currencyCode } totalTaxAmount { amount currencyCode } } lines(first: 100) { edges { node { id quantity merchandise { ... on ProductVariant { id title price { amount currencyCode } image { url altText } product { handle title } } }}}} totalQuantity note }`;
 const CartCreateMutation = `mutation cartCreate($input: CartInput!) { cartCreate(input: $input) { cart { ...CartFragment } userErrors { field message } } } ${CartFragment}`;
 const CartLinesAddMutation = `mutation cartLinesAdd($cartId: ID!, $lines: [CartLineInput!]!) { cartLinesAdd(cartId: $cartId, lines: $lines) { cart { ...CartFragment } userErrors { field message } } } ${CartFragment}`;
@@ -63,26 +60,22 @@ const CartFetchQuery = `query cartFetch($id: ID!) { cart(id: $id) { ...CartFragm
   providedIn: 'root'
 })
 export class ShopifyService {
-  private storefrontEndpoint = environment.shopify.storefrontEndpoint; // Liest Wert aus Environment
+  private storefrontEndpoint = environment.shopify.storefrontEndpoint;
   private storefrontAccessToken = environment.shopify.storefrontAccessToken;
   private storefrontClient: GraphQLClient;
 
   constructor() {
-    // Prüft, ob BEIDE Werte aus der Environment vorhanden und gültig sind
     if (!this.storefrontEndpoint || !this.storefrontAccessToken || !this.isValidUrl(this.storefrontEndpoint)) {
       console.error('Shopify Storefront Endpoint is missing, invalid, or Access Token missing in environment variables!', { endpoint: this.storefrontEndpoint });
-      // Erzeuge einen Dummy-Client, um Laufzeitfehler zu vermeiden, aber er wird nicht funktionieren
-      this.storefrontClient = new GraphQLClient('http://invalid-endpoint'); // Muss ein gültiger String sein
+      this.storefrontClient = new GraphQLClient('http://invalid-endpoint');
       return;
     }
-     // Erstellt den Client mit der VOLLSTÄNDIGEN URL aus der Environment
      this.storefrontClient = new GraphQLClient(
-       this.storefrontEndpoint, // Hier wird die korrekte, vollständige URL übergeben
+       this.storefrontEndpoint,
        { headers: { 'X-Shopify-Storefront-Access-Token': this.storefrontAccessToken } }
      );
    }
 
-   // Hilfsfunktion zur URL-Validierung (optional, aber gut für Debugging)
    private isValidUrl(url: string): boolean {
        try {
            new URL(url);
@@ -92,7 +85,6 @@ export class ShopifyService {
        }
    }
 
-  // --- Produkt-Methoden ---
   async getProductByHandle(handle: string): Promise<Product | null> {
      const query = `
        query getProductByHandle($handle: String!) {
@@ -142,20 +134,17 @@ export class ShopifyService {
            const variables = { handle, limit, cursor };
            type ShopifyResponse = { collection: CollectionQueryResult | null };
            const data = await this.storefrontClient.request<ShopifyResponse>(query, variables);
-
            if (!data || !data.collection) {
               console.warn(`Collection ${handle} nicht gefunden.`);
               return null;
            }
            return data.collection;
-
        } catch (error) {
            console.error(`ShopifyService: Fehler beim Abrufen von Collection ${handle}:`, error);
            return null;
        }
     }
 
-  // === CART-METHODEN ===
    async createCart(lines?: CartLineInput[], note?: string): Promise<Cart | null> {
     const variables = { input: { lines: lines || [], note: note } };
     try {
@@ -204,4 +193,30 @@ export class ShopifyService {
     } catch (error) { console.error('ShopifyService: GraphQL Fehler bei fetchCart:', error); return null; }
   }
 
-} // Ende ShopifyService Klasse
+  async getProductsSortedByBestSelling(limit: number = 15): Promise<Product[] | null> {
+    const query = `
+      query getBestSellingProducts($limit: Int!) {
+        products(first: $limit, sortKey: BEST_SELLING) {
+          edges {
+            node {
+              id title handle vendor availableForSale
+              priceRange { minVariantPrice { amount currencyCode } }
+              images(first: 1) { edges { node { url(transform: {maxWidth: 400, maxHeight: 400, preferredContentType: WEBP}) altText } } }
+              variants(first: 5) { edges { node { id availableForSale } } }
+            }
+          }
+        }
+      }
+    `;
+    try {
+      const variables = { limit };
+      type ShopifyResponse = { products: { edges: { node: Product }[] } | null; };
+      const data = await this.storefrontClient.request<ShopifyResponse>(query, variables);
+      return data?.products?.edges?.map(edge => edge.node) ?? null;
+    } catch (error) {
+      console.error(`ShopifyService: Fehler beim Abrufen der Bestseller-Produkte:`, error);
+      return null;
+    }
+  }
+
+}
