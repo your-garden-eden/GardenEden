@@ -1,3 +1,4 @@
+<!-- /src/app/shared/components/header/header.component.html -->
 <header class="app-header two-rows">
   <div class="top-row">
     <button id="hamburger-button" class="icon-button hamburger-button"
@@ -21,6 +22,7 @@
       </div>
 
       @if(isSearchOverlayVisible()) {
+        <!-- KEINE clickOutside Direktive hier -->
         <div class="search-results-overlay">
           @if(isSearchLoading()) {
             <div class="search-loading">Suche läuft...</div>
@@ -31,7 +33,7 @@
               @for(product of searchResults(); track product.id) {
                 <li>
                   <a [routerLink]="['/product', product.handle]" (click)="onSearchResultClick()" class="search-result-item">
-                    @if(product.images?.edges?.[0]?.node?.url) {
+                    @if(product.images.edges?.[0]?.node?.url) { <!-- ?. entfernt -->
                       <img [src]="product.images.edges[0].node.url" [alt]="product.title" width="40" height="40">
                     } @else {
                       <div class="search-result-placeholder-img"></div>
@@ -41,7 +43,7 @@
                 </li>
               }
             </ul>
-          } @else if (searchControl.value && searchControl.value.length > 2 && !isSearchLoading()) {
+          } @else if (searchControl.value && searchControl.value.length > 2 && !isSearchLoading() && !searchError()) {
               <div class="search-no-results">Keine Produkte gefunden für "{{searchControl.value}}".</div>
           } @else if (searchControl.value && searchControl.value.length <= 2) {
               <div class="search-prompt">Bitte mindestens 3 Zeichen eingeben.</div>
@@ -54,6 +56,7 @@
       <a routerLink="/wunschliste" title="Wunschliste" class="icon-button wishlist-button">
         <span class="material-symbols-outlined">favorite_border</span>
       </a>
+      <!-- Warenkorb Icon + Mini Cart -->
       <a routerLink="/warenkorb" title="Warenkorb" class="icon-button cart-button"
          (mouseenter)="onCartIconMouseEnter()" (mouseleave)="onCartIconMouseLeave()">
         <span class="material-symbols-outlined">shopping_cart</span>
@@ -61,25 +64,28 @@
           <span class="cart-badge">{{ itemCount$() }}</span>
         }
       </a>
+      <!-- Mini-Cart Komponente hier, Sichtbarkeit via Signal -->
+      <app-mini-cart *ngIf="isMiniCartOpen$()"></app-mini-cart>
+
       @if (currentUser$ | async; as user) {
-        <!-- Bestehender Konto-Link -->
+        <!-- Eingeloggt: Konto & Logout -->
         <a routerLink="/mein-konto" title="Mein Konto" class="icon-button account-button">
           <span class="material-symbols-outlined">person</span>
         </a>
-        <!-- *** NEU: Logout Button für Desktop *** -->
         <button title="Abmelden" class="icon-button logout-button-desktop" (click)="performLogout()">
           <span class="material-symbols-outlined">logout</span>
         </button>
       } @else {
-        <!-- Bestehender Login-Link -->
-        <a routerLink="/login" title="Anmelden" class="icon-button login-button"
-           (mouseenter)="openLoginOverlayOnEnter()" (mouseleave)="closeLoginOverlayOnLeave()">
+        <!-- Ausgeloggt: Login Button öffnet Overlay per Klick -->
+        <button type="button" title="Anmelden / Registrieren" class="icon-button login-button"
+           (click)="toggleLoginOverlay($event)">
           <span class="material-symbols-outlined">person_outline</span>
-        </a>
+        </button>
       }
     </div>
   </div>
 
+  <!-- Navigation etc. -->
   <nav class="main-nav bottom-row" [class.mobile-menu-active]="isMobileMenuOpen">
     <div class="logo-container">
       <a routerLink="/" title="Zur Startseite" (click)="closeMobileMenu()">
@@ -110,7 +116,6 @@
           @for (item of navItems; track item.label) {
             <li class="mobile-nav-item">
               <div class="mobile-nav-item-content">
-                 <!-- Angepasst: Klassen und Click-Handler für Hauptlink -->
                  <a [routerLink]="item.link"
                     [class.main-category-link]="true"
                     routerLinkActive="active-link"
@@ -131,7 +136,6 @@
               }
             </li>
           }
-          <!-- Authentifizierungslinks im mobilen Menü -->
           @if (currentUser$ | async; as user) {
             <li class="mobile-nav-item auth-links-mobile">
               <div class="mobile-nav-item-content">
@@ -146,7 +150,7 @@
           } @else {
             <li class="mobile-nav-item auth-links-mobile">
               <div class="mobile-nav-item-content">
-                 <a routerLink="/login" (click)="closeMobileMenu()" class="main-category-link">Anmelden</a>
+                 <button class="main-category-link" (click)="toggleLoginOverlay(); closeMobileMenu()">Anmelden</button>
               </div>
             </li>
             <li class="mobile-nav-item auth-links-mobile">

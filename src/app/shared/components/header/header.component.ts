@@ -1,10 +1,17 @@
+// /src/app/shared/components/header/header.component.ts
 import { Component, inject, Renderer2, Inject, PLATFORM_ID, OnDestroy, Signal, OnInit, WritableSignal, signal, effect, ChangeDetectionStrategy } from '@angular/core';
 import { RouterModule, Router, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Observable, Subscription, Subject, debounceTime, distinctUntilChanged, switchMap, filter, tap, catchError, EMPTY } from 'rxjs';
+import { CommonModule, isPlatformBrowser, AsyncPipe } from '@angular/common';
+import { Observable, Subscription, Subject, EMPTY } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter, tap, switchMap, catchError } from 'rxjs/operators';
 import { User } from '@angular/fire/auth';
 import { ReactiveFormsModule, FormControl } from '@angular/forms';
 
+// Komponenten (MiniCart bleibt, LoginOverlay wird global)
+import { MiniCartComponent } from '../mini-cart/mini-cart.component';
+// LoginOverlayComponent wird hier nicht mehr benötigt
+
+// Services & Daten
 import { AuthService } from '../../../shared/services/auth.service';
 import { CartService } from '../../../shared/services/cart.service';
 import { UiStateService } from '../../../shared/services/ui-state.service';
@@ -16,8 +23,11 @@ import { ShopifyService, Product } from '../../../core/services/shopify.service'
   standalone: true,
   imports: [
     CommonModule,
-    RouterModule,
-    ReactiveFormsModule
+    RouterModule, // Enthält RouterLink, RouterLinkActive
+    ReactiveFormsModule,
+    AsyncPipe,
+    MiniCartComponent // MiniCart bleibt im Header
+    // LoginOverlayComponent // Entfernt, da global
    ],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',
@@ -37,13 +47,18 @@ export class HeaderComponent implements OnInit, OnDestroy {
   isMobileMenuOpen = false;
   public navItems = navItems;
 
+  // === Signale vom UiStateService holen (korrekte Namen!) ===
+  isMiniCartOpen$ = this.uiStateService.isMiniCartOpen$;
+  // isLoginOverlayOpen$ brauchen wir hier nicht unbedingt zum Lesen
+  // ========================================================
+
+  // Suche
   searchControl = new FormControl('');
   private destroy$ = new Subject<void>();
   searchResults: WritableSignal<Product[]> = signal([]);
   isSearchLoading: WritableSignal<boolean> = signal(false);
   isSearchOverlayVisible: WritableSignal<boolean> = signal(false);
   searchError: WritableSignal<string | null> = signal(null);
-
   private subscriptions = new Subscription();
 
   constructor() {
@@ -66,12 +81,20 @@ export class HeaderComponent implements OnInit, OnDestroy {
      this.destroy$.complete();
   }
 
+  // --- Suchlogik ---
   private setupSearchDebounce(): void {
-    this.subscriptions.add( // Füge die Subscription dem Container hinzu
+    this.subscriptions.add(
         this.searchControl.valueChanges.pipe(
+        filter(term => {
+            if (!term || term.length <= 2) {
+                this.searchResults.set([]);
+                this.closeSearchOverlay();
+                return false;
+            }
+            return true;
+        }),
         debounceTime(400),
         distinctUntilChanged(),
-        filter(term => !!term && term.length > 2),
         tap(() => {
           this.isSearchLoading.set(true);
           this.isSearchOverlayVisible.set(true);
@@ -81,21 +104,28 @@ export class HeaderComponent implements OnInit, OnDestroy {
         switchMap(term =>
           this.shopifyService.searchProducts(term as string, 8)
             .pipe(
+              tap(results => console.log('Search results:', results)),
               catchError(err => {
                 console.error('Fehler bei Produktsuche:', err);
                 this.searchError.set('Fehler bei der Suche.');
+                this.isSearchLoading.set(false);
+                this.searchResults.set([]);
                 return EMPTY;
               })
             )
         )
         ).subscribe(results => {
-        this.searchResults.set(results ?? []);
-        this.isSearchLoading.set(false);
-        if (!results || results.length === 0) {
-            this.searchError.set('Keine Produkte gefunden.');
-        }
+          this.searchResults.set(results ?? []);
+          this.isSearchLoading.set(false);
+          if (!results || results.length === 0) {
+            if (!this.searchError()) {
+                this.searchError.set('Keine Produkte gefunden.');
+            }
+          } else {
+             this.searchError.set(null);
+          }
         })
-    ); // Ende add
+    );
   }
 
   clearSearch(): void {
@@ -112,6 +142,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.clearSearch();
   }
 
+  // --- Routen Listener ---
   private setupRouteListener(): void {
     const routeSub = this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
@@ -122,22 +153,25 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.subscriptions.add(routeSub);
   }
 
-  openLoginOverlayOnEnter(): void {
-    this.uiStateService.openLoginOverlay();
-    this.uiStateService.cancelCloseTimeout();
+  // --- Login-Overlay Methoden (NUR CLICK) ---
+  /** Ruft die toggle-Methode im UiStateService auf. Das Event ist optional. */
+  toggleLoginOverlay(event?: MouseEvent): void { // <- HIER IST DIE ÄNDERUNG: event?
+    event?.preventDefault(); // Optional Chaining
+    event?.stopPropagation(); // Optional Chaining
+    console.log('Header: Toggling Login Overlay');
+    this.uiStateService.toggleLoginOverlay();
   }
 
-  closeLoginOverlayOnLeave(): void { }
-
+  // --- Mini-Cart Methoden ---
   onCartIconMouseEnter(): void {
     this.uiStateService.openMiniCart();
-    this.uiStateService.closeLoginOverlay();
   }
 
   onCartIconMouseLeave(): void {
     this.uiStateService.startCloseTimeout();
   }
 
+  // --- Logout ---
   async performLogout(): Promise<void> {
     this.closeMobileMenu();
     try {
@@ -148,6 +182,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     }
   }
 
+  // --- Mobile Menu Methoden ---
   toggleMobileMenu(): void {
     this.isMobileMenuOpen = !this.isMobileMenuOpen;
     if (isPlatformBrowser(this.platformId)) {

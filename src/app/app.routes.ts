@@ -6,8 +6,7 @@ import { ProductPageComponent } from './features/product-page/product-page.compo
 import { CategoryOverviewComponent } from './features/category-overview/category-overview.component';
 import { StaticPageComponent } from './features/static-page/static-page.component';
 import { RegisterPageComponent } from './features/auth/register-page/register-page.component';
-import { LoginPageComponent } from './features/auth/login-page/login-page.component';
-// --- NEU: Imports für Profilseite und Guard ---
+// import { LoginPageComponent } from './features/auth/login-page/login-page.component'; // <-- Import nicht mehr benötigt
 import { ProfilePageComponent } from './features/account/profile-page/profile-page.component'; // Pfad prüfen!
 import { authGuard } from './core/guards/auth.guard'; // Pfad prüfen!
 
@@ -30,17 +29,23 @@ export const routes: Routes = [
 
   // --- Auth Routen ---
   { path: 'register', component: RegisterPageComponent, title: 'Registrieren - Your Garden Eden' },
-  { path: 'login', component: LoginPageComponent, title: 'Anmelden - Your Garden Eden' },
+  // { path: 'login', component: LoginPageComponent, title: 'Anmelden - Your Garden Eden' }, // <-- ROUTE ENTFERNT/AUSKOMMENTIERT
 
-  // --- NEU: Geschützte Route für Profilseite ---
+  // --- Geschützte Route für Profilseite ---
   {
-    path: 'mein-konto', // Oder /account/profile etc.
-    component: ProfilePageComponent,
+    path: 'mein-konto',
+    component: ProfilePageComponent, // Ggf. Lazy Loading verwenden: loadComponent: () => ...
     title: 'Mein Konto - Your Garden Eden',
-    canActivate: [authGuard] // Wendet den Auth Guard an
+    canActivate: [authGuard]
   },
-  // --- ENDE Profil-Route ---
 
-  // Wildcard-Route am Ende (optional)
+  // --- Warenkorb-Route ---
+  {
+    path: 'warenkorb',
+    loadComponent: () => import('./features/cart/cart-page/cart-page.component').then(m => m.CartPageComponent),
+    title: 'Warenkorb - Your Garden Eden'
+  },
+
+  // Wildcard-Route am Ende (optional, falls du eine 404-Seite hast)
   // { path: '**', component: NotFoundComponent, title: 'Seite nicht gefunden' }
 ];

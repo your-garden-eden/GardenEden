@@ -1,80 +1,83 @@
 // /src/app/shared/components/mini-cart/mini-cart.component.ts
-import { Component, inject, signal, computed, Signal, ChangeDetectionStrategy } from '@angular/core';
-import { CommonModule, CurrencyPipe } from '@angular/common'; // CurrencyPipe für Template importieren
-import { Router, RouterModule } from '@angular/router';
-import { CartService } from '../../services/cart.service';
+import { Component, inject, Signal, ChangeDetectionStrategy, computed } from '@angular/core'; // computed hinzugefügt
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { UiStateService } from '../../services/ui-state.service';
-import { Cart, CartLineEdgeNode, ShopifyPrice } from '../../../core/services/shopify.service'; // ShopifyPrice importieren
-import { FormatPricePipe } from '../../pipes/format-price.pipe'; // FormatPricePipe für Template importieren
+import { CartService } from '../../services/cart.service';
+import { CartLineEdgeNode, Cart } from '../../../core/services/shopify.service';
+import { FormatPricePipe } from '../../pipes/format-price.pipe';
+// CurrencyPipe wird nicht direkt importiert
+
+// Typ für Subtotal Daten
+type SubtotalData = Cart['cost']['subtotalAmount'] | null;
 
 @Component({
   selector: 'app-mini-cart',
   standalone: true,
-  // FormatPricePipe und CurrencyPipe bleiben hier für die Template-Nutzung!
-  imports: [CommonModule, RouterModule, FormatPricePipe, CurrencyPipe],
+  imports: [
+    CommonModule,
+    RouterModule,
+    FormatPricePipe // Nur die eigene Pipe importieren
+  ],
   templateUrl: './mini-cart.component.html',
-  styleUrl: './mini-cart.component.scss',
+  styleUrls: ['./mini-cart.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MiniCartComponent {
-  private cartService = inject(CartService);
   private uiStateService = inject(UiStateService);
-  private router = inject(Router);
-  // Pipe wird NICHT mehr injiziert:
-  // private formatPricePipe = inject(FormatPricePipe);
+  private cartService = inject(CartService);
 
-  // --- Signale vom CartService ---
-  readonly cart: Signal<Cart | null> = this.cartService.cart;
-  readonly isLoading: Signal<boolean> = this.cartService.isLoading;
-  readonly error: Signal<string | null> = this.cartService.error;
+  // Signale vom CartService
+  cart$: Signal<Cart | null> = this.cartService.cart;
+  isLoading: Signal<boolean> = this.cartService.isLoading;
+  error: Signal<string | null> = this.cartService.error;
 
-  // Computed Signal für die Artikel
-  readonly items: Signal<CartLineEdgeNode[]> = computed(() => {
-    return this.cart()?.lines?.edges?.map(edge => edge.node) ?? [];
-  });
+  // Abgeleitetes Signal für die Items
+  items: Signal<CartLineEdgeNode[]> = computed(() => this.cart$()?.lines?.edges?.map(edge => edge.node) ?? []);
 
-  // --- Computed Signal für die Zwischensumme (Rohdaten) ---
-  // Gibt jetzt das ShopifyPrice-Objekt oder null zurück
-  readonly subtotalData: Signal<ShopifyPrice | null> = computed(() => {
-    return this.cart()?.cost?.subtotalAmount ?? null;
-  });
-  // --- ENDE Änderung ---
+  // Abgeleitetes Signal für Subtotal
+  subtotalData: Signal<SubtotalData> = computed(() => this.cart$()?.cost?.subtotalAmount ?? null);
 
-  // Computed Signal für die Gesamtanzahl
-   readonly totalQuantity: Signal<number> = computed(() => this.cart()?.totalQuantity ?? 0);
-
-  /** Erhöht die Menge eines Artikels um 1 */
-  increaseQuantity(lineId: string, currentQuantity: number): void {
-    console.log(`MiniCart: Increasing qty for line ${lineId}`);
-    this.cartService.updateLineQuantity(lineId, currentQuantity + 1);
+  // --- Methoden für UI-Interaktion ---
+  closeCart(): void {
+    this.uiStateService.closeMiniCart();
   }
 
-  /** Verringert die Menge eines Artikels um 1 (Service entfernt bei 0) */
-  decreaseQuantity(lineId: string, currentQuantity: number): void {
-     console.log(`MiniCart: Decreasing qty for line ${lineId}`);
-     this.cartService.updateLineQuantity(lineId, currentQuantity - 1);
-  }
-
-  /** Navigiert zum Checkout (Placeholder) */
-  goToCheckout(): void {
-    console.log('MiniCart: Navigating to checkout...');
-    this.closeCart();
-    // TODO: Später zum echten Checkout oder Guard navigieren
-    this.router.navigate(['/checkout']); // Beispielroute
-  }
-
-  /** Bricht den Timeout zum Schließen ab (bei MouseEnter auf Mini-Cart) */
   cancelTimeout(): void {
     this.uiStateService.cancelCloseTimeout();
   }
 
-  /** Startet den Timeout zum Schließen (bei MouseLeave vom Mini-Cart) */
   startTimeout(): void {
     this.uiStateService.startCloseTimeout();
   }
 
-   /** Schließt den Mini-Cart explizit (z.B. über einen Button) */
-   closeCart(): void {
-      this.uiStateService.closeMiniCart();
-   }
+  // --- Methoden für Cart-Aktionen ---
+  increaseQuantity(lineId: string, currentQuantity: number): void {
+    this.cartService.updateLineQuantity(lineId, currentQuantity + 1);
+  }
+
+  decreaseQuantity(lineId: string, currentQuantity: number): void {
+    this.cartService.updateLineQuantity(lineId, currentQuantity - 1);
+  }
+
+  /**
+   * Leitet den Benutzer zur externen Shopify Checkout URL weiter.
+   * Schließt den Mini-Warenkorb vor der Weiterleitung.
+   */
+  goToCheckout(): void {
+    const checkoutUrl = this.cart$()?.checkoutUrl; // Hole URL aus dem Signal
+    if (checkoutUrl) {
+      this.closeCart(); // Schließe den Mini-Warenkorb ZUERST
+      // Kurze Verzögerung vor Weiterleitung (optional, kann UI-Sprung verhindern)
+      setTimeout(() => {
+        window.location.href = checkoutUrl; // Externe Weiterleitung
+      }, 50); // 50ms Verzögerung
+    } else {
+      console.error("MiniCart: Checkout URL not available!");
+      // Setze einen Fehler im CartService, damit er ggf. global angezeigt wird
+      this.cartService.error.set("Checkout nicht möglich. Bitte Warenkorb prüfen.");
+      // Optional: Schließe den Mini-Cart trotzdem oder lasse ihn offen, um den Fehler anzuzeigen?
+      // this.closeCart();
+    }
+  }
 }

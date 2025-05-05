@@ -1,0 +1,129 @@
+<div class="cart-page-container">
+    <h1>Warenkorb</h1>
+  
+    <!-- === Lade- & Fehlerzustände === -->
+    @if(isLoadingCart()) {
+      <div class="loading-overlay">
+        <div class="spinner"></div>
+        <span>Warenkorb wird geladen...</span>
+      </div>
+    }
+    @if(cartError(); as errorMsg) {
+       <p class="error-message global-cart-error">{{ errorMsg }}</p>
+    }
+    <!-- ============================== -->
+  
+  
+    <!-- === Warenkorb Inhalt (wenn Cart existiert und nicht lädt) === -->
+    <!-- NEU: @if mit 'as cartData' -->
+    @if (cart(); as cartData) {
+      @if (itemCount() > 0 && !isLoadingCart()) {
+        <div class="cart-content">
+          <!-- Linke Seite: Artikelliste -->
+          <div class="cart-items-list">
+            <h2>Artikel</h2>
+            @if(updateLineError(); as lineErrorMsg) {
+              <p class="error-message line-update-error">{{ lineErrorMsg }}</p>
+            }
+            <table>
+              <thead>
+                <tr>
+                  <th colspan="2">Produkt</th><th>Preis</th><th>Menge</th><th>Gesamt</th><th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Verwende cartLines() -->
+                @for (line of cartLines; track line.id) {
+                  <tr class="cart-item" [class.updating]="isUpdatingLine() === line.id">
+                    <!-- Bild -->
+                    <td class="item-image">
+                      <!-- NEU: @if mit 'as img' für sicheren Zugriff -->
+                      @if (line.merchandise.image; as img) {
+                        <a [routerLink]="['/product', line.merchandise.product.handle]" title="Zum Produkt: {{line.merchandise.product.title}}">
+                          <img [src]="img.url" [alt]="line.merchandise.product.title" width="80" height="80">
+                        </a>
+                      } @else {
+                        <div class="placeholder-image"><span class="material-symbols-outlined">image</span></div>
+                      }
+                    </td>
+                    <!-- Details -->
+                    <td class="item-details">
+                       <a [routerLink]="['/product', line.merchandise.product.handle]" class="product-title">{{ line.merchandise.product.title }}</a>
+                       @if (line.merchandise.title !== 'Default Title') { <span class="variant-title">{{ line.merchandise.title }}</span> }
+                    </td>
+                    <!-- Einzelpreis -->
+                    <td class="item-price">
+                      {{ line.merchandise.price.amount | currency:'EUR':'symbol':'1.2-2':'de-DE' }}
+                    </td>
+                    <!-- Menge -->
+                    <td class="item-quantity">
+                      <div class="quantity-control">
+                        <button class="quantity-button" (click)="decrementQuantity(line)" [disabled]="isUpdatingLine() === line.id" aria-label="Menge verringern"><span class="material-symbols-outlined">remove</span></button>
+                        <span class="quantity-value">{{ line.quantity }}</span>
+                        <button class="quantity-button" (click)="incrementQuantity(line)" [disabled]="isUpdatingLine() === line.id" aria-label="Menge erhöhen"><span class="material-symbols-outlined">add</span></button>
+                      </div>
+                      @if(isUpdatingLine() === line.id) { <span class="loading-indicator">Aktualisiere...</span> }
+                    </td>
+                    <!-- Zeilengesamtpreis -->
+                    <td class="item-total-price">
+                      {{ calculateLineTotal(line) | currency:'EUR':'symbol':'1.2-2':'de-DE' }}
+                    </td>
+                    <!-- Entfernen -->
+                    <td class="item-remove">
+                      <button class="remove-button icon-button" (click)="removeItem(line.id)" [disabled]="isUpdatingLine() === line.id" title="Artikel entfernen" aria-label="Artikel entfernen"><span class="material-symbols-outlined">delete</span></button>
+                    </td>
+                  </tr>
+                } <!-- Ende @for -->
+              </tbody>
+            </table>
+          </div> <!-- Ende .cart-items-list -->
+  
+          <!-- Rechte Seite: Warenkorb-Zusammenfassung -->
+          <div class="cart-summary">
+            <h2>Übersicht</h2>
+            <!-- Verwende 'cartData' statt 'cart()?' -->
+            <div class="summary-row">
+              <span>Zwischensumme</span>
+              <span>{{ cartData.cost.subtotalAmount.amount | currency:'EUR':'symbol':'1.2-2':'de-DE' }}</span>
+            </div>
+            <div class="summary-row">
+              <span>Versand</span>
+              <span>Wird im nächsten Schritt berechnet</span>
+            </div>
+            <!-- NEU: @if mit 'as tax' und Zugriff auf 'cartData' -->
+            @if(cartData.cost.totalTaxAmount; as tax) {
+              <div class="summary-row">
+                <span>Steuern</span>
+                <span>{{ tax.amount | currency:'EUR':'symbol':'1.2-2':'de-DE' }}</span>
+              </div>
+            }
+            <div class="summary-total summary-row">
+              <span>Gesamtsumme</span>
+              <!-- totalPrice() ist ein computed Signal, das okay sein sollte -->
+              <span>{{ totalPrice() | currency:'EUR':'symbol':'1.2-2':'de-DE' }}</span>
+            </div>
+            <p class="vat-info">Inkl. MwSt.</p>
+            <button
+              class="checkout-button primary-button"
+              (click)="goToCheckout()"
+              [disabled]="isUpdatingLine() !== null || isLoadingCart() || !cartData.checkoutUrl"> <!-- Verwende cartData -->
+              Zur Kasse gehen
+            </button>
+             @if(cartData.note; as note) {
+                 <div class="cart-note"><strong>Hinweis:</strong> {{ note }}</div>
+             }
+          </div> <!-- Ende .cart-summary -->
+        </div> <!-- Ende .cart-content -->
+      }
+      <!-- === Meldung für leeren Warenkorb (innerhalb von @if cartData) === -->
+      @else if (!isLoadingCart() && itemCount() === 0) {
+        <div class="empty-cart-message">
+          <h2>Ihr Warenkorb ist leer.</h2>
+          <p>Fügen Sie Produkte hinzu, um sie hier zu sehen.</p>
+          <a routerLink="/" class="primary-button">Weiter einkaufen</a>
+        </div>
+      }
+    }
+    <!-- ================================================================= -->
+  
+  </div> <!-- Ende .cart-page-container -->

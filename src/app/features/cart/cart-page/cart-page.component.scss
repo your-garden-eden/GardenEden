@@ -1,0 +1,528 @@
+@use "sass:color";
+
+// --- Lokale Variablen für Cart Page (Beispielwerte!) ---
+$page-max-width: 1200px;
+$spacing-xs: 4px;
+$spacing-small: 8px;
+$spacing-medium: 16px;
+$spacing-large: 24px;
+$spacing-xl: 32px;
+$breakpoint-large: 1024px;
+$breakpoint-medium: 768px;
+$breakpoint-small: 600px;
+
+// --- Farbdefinitionen ---
+// 1. Echte Sass-Variablen für Sass-Funktionen (color.adjust)
+$primary-color-sass: #A1B48A; // Beispiel
+$primary-color-dark-sass: #798C67; // Beispiel
+$error-color-sass: #dc3545; // Fester Wert für Sass
+$warning-color-sass: #ffc107; // Fester Wert für Sass
+$background-color-light-sass: #f8f9fa; // Fester Wert für Sass
+
+// 2. CSS Custom Properties (mit Fallback) für direkte Zuweisungen
+$primary-color: var(--primary-color, $primary-color-sass);
+$primary-color-dark: var(--primary-color-dark, $primary-color-dark-sass);
+$text-color: var(--text-color, #333333);
+$text-color-light: var(--text-color-light, #6c757d);
+$border-color: var(--border-color, #dee2e6);
+$border-color-light: var(--border-color-light, #eeeeee);
+$background-color-light: var(--background-color-light, $background-color-light-sass);
+$error-color: var(--error-color, $error-color-sass);
+$error-color-dark: var(--error-color-dark, #a71d2a); // Kann var bleiben, da nicht in color.adjust
+$warning-color: var(--warning-color, $warning-color-sass);
+$warning-color-dark: var(--warning-color-dark, #cc9a06); // Kann var bleiben, da nicht in color.adjust
+$border-radius: var(--border-radius, 6px);
+$border-radius-small: var(--border-radius-small, 4px);
+
+// --- Basiskomponente ---
+:host {
+  display: block;
+  padding: $spacing-large;
+  max-width: $page-max-width;
+  margin: 0 auto;
+  position: relative;
+}
+
+// --- Allgemeine Styles ---
+h1, h2 {
+  color: $primary-color-dark; // var() ist ok
+  margin-bottom: $spacing-medium;
+  font-weight: 600;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: $spacing-large;
+  font-size: 2.2em;
+}
+
+h2 {
+  font-size: 1.5em;
+  border-bottom: 1px solid $border-color-light; // var() ist ok
+  padding-bottom: $spacing-small;
+}
+
+a {
+  color: $primary-color; // var() ist ok
+  text-decoration: none;
+  &:hover {
+    color: $primary-color-dark; // var() ist ok
+    text-decoration: underline;
+  }
+}
+
+// --- Lade- & Fehler-Styles ---
+.loading-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(255, 255, 255, 0.8); // Direkter Wert ok
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  border-radius: $border-radius; // var() ist ok
+  backdrop-filter: blur(2px);
+
+  .spinner {
+    border: 4px solid rgba(0, 0, 0, 0.1); // Direkter Wert ok
+    width: 36px;
+    height: 36px;
+    border-radius: 50%; // Direkter Wert ok
+    border-left-color: $primary-color; // var() ist ok
+    margin-bottom: $spacing-medium;
+    animation: spin 1s ease infinite;
+  }
+
+  span {
+    font-weight: 500;
+    color: $text-color-light; // var() ist ok
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-message {
+  padding: $spacing-small $spacing-medium;
+  border-radius: $border-radius; // var() ist ok
+  margin-bottom: $spacing-medium;
+  border: 1px solid transparent; // Direkter Wert ok
+  font-size: 0.95em;
+
+  &.global-cart-error {
+    // HIER color.adjust ANPASSEN -> Sass-Variable verwenden
+    background-color: color.adjust($error-color-sass, $alpha: -0.85);
+    border-color: color.adjust($error-color-sass, $alpha: -0.7);
+    color: $error-color-dark; // var() ist ok
+    text-align: center;
+  }
+
+  &.line-update-error {
+    // HIER color.adjust ANPASSEN -> Sass-Variable verwenden
+    background-color: color.adjust($warning-color-sass, $alpha: -0.85);
+    border-color: color.adjust($warning-color-sass, $alpha: -0.7);
+    color: $warning-color-dark; // var() ist ok
+    text-align: center;
+    margin-top: $spacing-small;
+  }
+}
+
+// --- Warenkorb-Layout ---
+.cart-content {
+  display: grid;
+  grid-template-columns: minmax(0, 2.5fr) minmax(0, 1fr);
+  gap: $spacing-xl;
+
+  @media (max-width: $breakpoint-large) {
+     gap: $spacing-large;
+  }
+
+  @media (max-width: $breakpoint-medium) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// --- Artikelliste (Links) ---
+.cart-items-list {
+  h2 { margin-top: 0; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+
+    thead th {
+      text-align: left;
+      padding-bottom: $spacing-medium;
+      color: $text-color-light; // var() ist ok
+      font-weight: 500;
+      font-size: 0.9em;
+      text-transform: uppercase;
+      border-bottom: 2px solid $border-color; // var() ist ok
+
+      &:nth-child(1) { width: 90px; }
+      &:nth-child(2) { padding-left: $spacing-small; }
+      &:nth-child(3), &:nth-child(5) { text-align: right; width: 15%; }
+      &:nth-child(4) { text-align: center; width: 18%; }
+      &:nth-child(6) { text-align: center; width: 8%; }
+    }
+
+    tbody tr.cart-item {
+      border-bottom: 1px solid $border-color-light; // var() ist ok
+      transition: opacity 0.3s ease;
+
+      &.updating {
+        opacity: 0.6;
+        pointer-events: none;
+      }
+
+      td {
+        padding: $spacing-medium 0;
+        vertical-align: middle;
+
+        &:first-child { padding-right: $spacing-small; }
+        &:not(:first-child):not(:last-child) { padding-left: $spacing-small; padding-right: $spacing-small; }
+        &:last-child { padding-left: $spacing-small; }
+      }
+    }
+  }
+}
+
+// --- Styles für Tabellenzellen ---
+.item-image {
+  a { display: block; }
+  img {
+    display: block;
+    width: 80px;
+    height: auto;
+    max-height: 80px;
+    object-fit: contain;
+    border: 1px solid $border-color-light; // var() ist ok
+    border-radius: $border-radius-small; // var() ist ok
+    background-color: white; // Direkter Wert ok
+  }
+  .placeholder-image {
+    width: 80px;
+    height: 80px;
+    background-color: $background-color-light; // var() ist ok
+    border-radius: $border-radius-small; // var() ist ok
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $border-color; // var() ist ok
+    border: 1px solid $border-color-light; // var() ist ok
+    .material-symbols-outlined { font-size: 40px; }
+  }
+}
+
+.item-details {
+  vertical-align: top;
+  .product-title {
+    display: block;
+    font-weight: 500;
+    color: $text-color; // var() ist ok
+    margin-bottom: $spacing-xs;
+    &:hover { color: $primary-color; } // var() ist ok
+  }
+  .variant-title {
+    display: block;
+    font-size: 0.9em;
+    color: $text-color-light; // var() ist ok
+  }
+}
+
+.item-price, .item-total-price {
+  text-align: right;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.item-quantity {
+  text-align: center;
+  .quantity-control {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid $border-color; // var() ist ok
+    border-radius: $border-radius; // var() ist ok
+    overflow: hidden;
+
+    .quantity-button {
+      background: none;
+      border: none;
+      padding: $spacing-xs;
+      margin: 0;
+      color: $text-color-light; // var() ist ok
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      background-color: $background-color-light; // var() ist ok
+      transition: background-color 0.2s ease, color 0.2s ease;
+
+      &:first-of-type { border-right: 1px solid $border-color; } // var() ist ok
+      &:last-of-type { border-left: 1px solid $border-color; } // var() ist ok
+
+      &:hover:not(:disabled) {
+        // HIER color.adjust ANPASSEN -> Sass-Variable verwenden
+        background-color: color.adjust($background-color-light-sass, $lightness: -5%);
+        color: $primary-color; // var() ist ok
+      }
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background-color: transparent; // Direkter Wert ok
+      }
+      .material-symbols-outlined {
+        font-size: 20px;
+        display: block;
+        vertical-align: middle;
+      }
+    }
+
+    .quantity-value {
+      padding: 0 $spacing-medium;
+      font-weight: 500;
+      min-width: 2.5em;
+      text-align: center;
+      line-height: calc(20px + 2 * #{$spacing-xs});
+      display: inline-block;
+      vertical-align: middle;
+    }
+  }
+
+  .loading-indicator {
+     display: block;
+     font-size: 0.8em;
+     color: $text-color-light; // var() ist ok
+     margin-top: $spacing-xs;
+     text-align: center;
+     min-height: 1.2em;
+  }
+}
+
+.item-remove {
+  text-align: center;
+  .remove-button {
+    background: none;
+    border: none;
+    padding: $spacing-xs;
+    margin: 0;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    color: $text-color-light; // var() ist ok
+    border-radius: 50%; // Direkter Wert ok
+    transition: background-color 0.2s ease, color 0.2s ease;
+
+    &:hover:not(:disabled) {
+      color: $error-color-dark; // var() ist ok
+      // HIER color.adjust ANPASSEN -> Sass-Variable verwenden
+      background-color: color.adjust($error-color-sass, $alpha: -0.8);
+    }
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      background-color: transparent !important; // Direkter Wert ok
+    }
+    .material-symbols-outlined { font-size: 22px; display: block; }
+  }
+}
+
+
+// --- Warenkorb-Zusammenfassung (Rechts) ---
+.cart-summary {
+  background-color: $background-color-light; // var() ist ok
+  padding: $spacing-large;
+  border-radius: $border-radius; // var() ist ok
+  border: 1px solid $border-color-light; // var() ist ok
+  height: fit-content;
+  position: sticky;
+  top: $spacing-large;
+
+  h2 { margin-top: 0; }
+
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: $spacing-medium;
+    font-size: 1em;
+
+    span:first-child { color: $text-color-light; } // var() ist ok
+    span:last-child { font-weight: 500; }
+  }
+
+  .summary-total {
+    font-weight: 600;
+    font-size: 1.2em;
+    margin-top: $spacing-large;
+    padding-top: $spacing-large;
+    border-top: 2px solid $border-color; // var() ist ok
+  }
+
+  .vat-info {
+    font-size: 0.9em;
+    color: $text-color-light; // var() ist ok
+    text-align: center;
+    margin-top: $spacing-small;
+    margin-bottom: $spacing-large;
+  }
+
+  .checkout-button {
+    display: inline-block;
+    font-weight: 600;
+    line-height: 1.5;
+    color: #fff; // Direkter Wert ok
+    text-align: center;
+    text-decoration: none;
+    vertical-align: middle;
+    cursor: pointer;
+    user-select: none;
+    background-color: $primary-color; // var() ist ok
+    border: 1px solid $primary-color; // var() ist ok
+    padding: $spacing-medium;
+    font-size: 1.1em;
+    border-radius: $border-radius; // var() ist ok
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    width: 100%;
+    text-transform: uppercase;
+
+    &:hover:not(:disabled) {
+      color: #fff; // Direkter Wert ok
+      background-color: $primary-color-dark; // var() ist ok
+      border-color: $primary-color-dark; // var() ist ok
+    }
+
+    &:disabled {
+       color: #fff; // Direkter Wert ok
+       background-color: $primary-color; // var() ist ok
+       border-color: $primary-color; // var() ist ok
+       opacity: 0.65;
+       cursor: not-allowed;
+    }
+  }
+
+  .cart-note {
+      margin-top: $spacing-large;
+      padding-top: $spacing-medium;
+      border-top: 1px dashed $border-color-light; // var() ist ok
+      font-size: 0.9em;
+      color: $text-color-light; // var() ist ok
+      strong { color: $text-color; } // var() ist ok
+  }
+}
+
+// --- Meldung für leeren Warenkorb ---
+.empty-cart-message {
+  text-align: center;
+  padding: $spacing-xl * 2 $spacing-xl;
+  border: 1px dashed $border-color-light; // var() ist ok
+  border-radius: $border-radius; // var() ist ok
+  background-color: $background-color-light; // var() ist ok
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+
+  h2 {
+    margin-bottom: $spacing-medium;
+    color: $text-color; // var() ist ok
+  }
+  p {
+    margin-bottom: $spacing-large;
+    color: $text-color-light; // var() ist ok
+    max-width: 400px;
+  }
+  .primary-button {
+     display: inline-block;
+     font-weight: 400;
+     line-height: 1.5;
+     color: #fff; // Direkter Wert ok
+     text-align: center;
+     text-decoration: none;
+     vertical-align: middle;
+     cursor: pointer;
+     user-select: none;
+     background-color: $primary-color; // var() ist ok
+     border: 1px solid $primary-color; // var() ist ok
+     padding: $spacing-small $spacing-large;
+     font-size: 1rem;
+     border-radius: $border-radius; // var() ist ok
+     transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+
+     &:hover {
+       color: #fff; // Direkter Wert ok
+       background-color: $primary-color-dark; // var() ist ok
+       border-color: $primary-color-dark; // var() ist ok
+     }
+  }
+}
+
+// --- Responsive Anpassungen ---
+@media (max-width: $breakpoint-medium) {
+  .cart-content { gap: $spacing-large; }
+  .cart-summary { position: static; top: auto; }
+}
+
+@media (max-width: $breakpoint-small) {
+  .cart-items-list table {
+    thead { display: none; }
+
+    tbody tr.cart-item {
+      display: grid;
+      grid-template-columns: 80px 1fr auto auto;
+      grid-template-rows: auto auto;
+      grid-template-areas:
+        "image details   quantity remove"
+        "image price     total    remove";
+      gap: $spacing-xs $spacing-medium;
+      padding: $spacing-medium 0;
+
+      td { padding: 0 !important; border: none; vertical-align: middle !important; text-align: left !important; }
+
+      .item-image { grid-area: image; align-self: stretch; padding-right: $spacing-medium !important; }
+      .item-details { grid-area: details; align-self: end; }
+      .item-price { grid-area: price; align-self: start; font-size: 0.9em; color: $text-color-light; // var() ist ok
+         &::before { content: "Einzelpreis: "; font-weight: normal; color: $text-color-light; margin-right: 5px; display: none; } // var() ist ok
+      }
+       .item-total-price { display: none; }
+      .item-quantity {
+          grid-area: quantity;
+          text-align: center !important;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          min-width: auto;
+          .quantity-control { border: none; }
+          .loading-indicator { text-align: center; }
+       }
+      .item-remove {
+          grid-area: remove;
+          text-align: right !important;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          justify-content: center;
+       }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+   h1 { font-size: 1.8em; }
+   :host { padding: $spacing-medium; }
+   .cart-items-list table tbody tr.cart-item {
+     grid-template-columns: 65px 1fr auto auto;
+     .item-image { width: 65px; img { width: 60px; max-height: 60px;} .placeholder-image { width: 60px; height: 60px; .material-symbols-outlined { font-size: 30px;} } }
+     .item-details .product-title { font-size: 0.95em; }
+     .item-quantity .quantity-control {}
+   }
+    .cart-summary { padding: $spacing-medium; }
+    .empty-cart-message { padding: $spacing-large; }
+}
