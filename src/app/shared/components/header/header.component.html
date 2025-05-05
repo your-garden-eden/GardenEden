@@ -1,122 +1,145 @@
-<!-- /src/app/shared/components/header/header.component.html -->
 <header class="app-header two-rows">
-
-  <!-- Obere Reihe -->
   <div class="top-row">
-    <!-- Hamburger Button (initial nur mobil sichtbar) -->
-    <button id="hamburger-button" class="icon-button hamburger-button" (click)="toggleMobileMenu()" aria-label="Menü öffnen/schließen">
-      <span class="material-symbols-outlined">{{ isMobileMenuOpen ? 'close' : 'menu' }}</span> <!-- Icon dynamisch ändern -->
+    <button id="hamburger-button" class="icon-button hamburger-button"
+            (click)="toggleMobileMenu()" [class.active]="isMobileMenuOpen"
+            aria-label="Menü öffnen/schließen" [attr.aria-expanded]="isMobileMenuOpen">
+      <span class="material-symbols-outlined">menu</span>
     </button>
 
-    <!-- User Actions (Rest bleibt gleich) -->
-    <div class="user-actions">
-      <button class="icon-button search-button" title="Suche" i18n-title="Tooltip Search@@header.tooltip.search">
-        <span class="material-symbols-outlined">search</span>
-      </button>
-      <a routerLink="/wunschliste" class="icon-button wishlist-button" title="Wunschliste" i18n-title="Tooltip Wishlist@@header.tooltip.wishlist">
-        <span class="material-symbols-outlined">favorite_border</span>
-      </a>
-      <!-- Warenkorb-Icon -->
-      <a routerLink="/warenkorb" (mouseenter)="onCartIconMouseEnter()" (mouseleave)="onCartIconMouseLeave()" class="icon-button cart-button" title="Warenkorb" i18n-title="Tooltip Cart@@header.tooltip.cart">
-        <span class="material-symbols-outlined">shopping_cart</span>
-        <!-- === HIER DIE ÄNDERUNG: Signal-Aufruf statt Async Pipe === -->
-        <ng-container *ngIf="itemCount$() as count"> <!-- Signal wird direkt aufgerufen -->
-          <span class="cart-badge" *ngIf="count > 0">{{ count }}</span>
-        </ng-container>
-        <!-- === ENDE DER ÄNDERUNG === -->
-      </a>
-      <!-- Auth Status: Ausgeloggt -->
-      <ng-container *ngIf="!(currentUser$ | async)"> <!-- currentUser$ ist noch Observable -> async pipe bleibt -->
-        <a routerLink="/login"
-           class="icon-button login-button"
-           title="Anmelden" i18n-title="Tooltip Login@@header.tooltip.login"
-           (mouseenter)="openLoginOverlayOnEnter()"
-           (mouseleave)="closeLoginOverlayOnLeave()">
-          <span class="material-symbols-outlined">person_outline</span>
-        </a>
-      </ng-container>
-      <!-- Auth Status: Eingeloggt -->
-      <ng-container *ngIf="currentUser$ | async as user"> <!-- currentUser$ ist noch Observable -> async pipe bleibt -->
-        <a routerLink="/mein-konto" class="icon-button profile-button" title="Mein Konto" i18n-title="Tooltip Profile@@header.tooltip.profile">
-          <span class="material-symbols-outlined">account_circle</span>
-        </a>
-        <button (click)="performLogout()" class="icon-button logout-button" title="Abmelden" i18n-title="Tooltip Logout@@header.tooltip.logout">
-          <span class="material-symbols-outlined">logout</span>
-        </button>
-      </ng-container>
-    </div> <!-- Ende .user-actions -->
-  </div> <!-- Ende .top-row -->
+    <div class="search-bar-container">
+      <div class="search-input-wrapper">
+        <span class="material-symbols-outlined search-icon-prefix">search</span>
+        <input type="text" id="search-query" placeholder="Produkte suchen..."
+               [formControl]="searchControl"
+               (focus)="isSearchOverlayVisible.set(true)"
+               autocomplete="off">
+        @if(searchControl.value) {
+          <button class="icon-button clear-button" (click)="clearSearch()" aria-label="Suche leeren">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        }
+      </div>
 
-  <!-- Hauptnavigation & Mobile Menu Container -->
-  <nav class="main-nav bottom-row" [class.mobile-menu-active]="isMobileMenuOpen">
-    <!-- Logo Container -->
-    <div class="logo-container">
-      <a routerLink="/" title="Zur Startseite" i18n-title="Tooltip Logo Link@@header.tooltip.logoLink">
-        <img src="assets/icons/Logo.png" alt="Your Garden Eden Logo" class="logo" i18n-alt="Logo Alt Text@@header.logoAltText">
-      </a>
+      @if(isSearchOverlayVisible()) {
+        <div class="search-results-overlay">
+          @if(isSearchLoading()) {
+            <div class="search-loading">Suche läuft...</div>
+          } @else if (searchError()) {
+              <div class="search-error">{{searchError()}}</div>
+          } @else if (searchResults().length > 0) {
+            <ul>
+              @for(product of searchResults(); track product.id) {
+                <li>
+                  <a [routerLink]="['/product', product.handle]" (click)="onSearchResultClick()" class="search-result-item">
+                    @if(product.images?.edges?.[0]?.node?.url) {
+                      <img [src]="product.images.edges[0].node.url" [alt]="product.title" width="40" height="40">
+                    } @else {
+                      <div class="search-result-placeholder-img"></div>
+                    }
+                    <span class="search-result-title">{{ product.title }}</span>
+                  </a>
+                </li>
+              }
+            </ul>
+          } @else if (searchControl.value && searchControl.value.length > 2 && !isSearchLoading()) {
+              <div class="search-no-results">Keine Produkte gefunden für "{{searchControl.value}}".</div>
+          } @else if (searchControl.value && searchControl.value.length <= 2) {
+              <div class="search-prompt">Bitte mindestens 3 Zeichen eingeben.</div>
+          }
+        </div>
+      }
     </div>
 
-    <!-- Desktop Navigationsliste -->
+    <div class="user-actions">
+      <a routerLink="/wunschliste" title="Wunschliste" class="icon-button wishlist-button">
+        <span class="material-symbols-outlined">favorite_border</span>
+      </a>
+      <a routerLink="/warenkorb" title="Warenkorb" class="icon-button cart-button"
+         (mouseenter)="onCartIconMouseEnter()" (mouseleave)="onCartIconMouseLeave()">
+        <span class="material-symbols-outlined">shopping_cart</span>
+        @if (itemCount$() > 0) {
+          <span class="cart-badge">{{ itemCount$() }}</span>
+        }
+      </a>
+      @if (currentUser$ | async; as user) {
+        <a routerLink="/mein-konto" title="Mein Konto" class="icon-button account-button">
+          <span class="material-symbols-outlined">person</span>
+        </a>
+      } @else {
+        <a routerLink="/login" title="Anmelden" class="icon-button login-button"
+           (mouseenter)="openLoginOverlayOnEnter()" (mouseleave)="closeLoginOverlayOnLeave()">
+          <span class="material-symbols-outlined">person_outline</span>
+        </a>
+      }
+    </div>
+  </div>
+
+  <nav class="main-nav bottom-row" [class.mobile-menu-active]="isMobileMenuOpen">
+    <div class="logo-container">
+      <a routerLink="/" title="Zur Startseite" (click)="closeMobileMenu()">
+        <img src="assets/icons/Logo.png" alt="Your Garden Eden Logo" class="logo">
+      </a>
+    </div>
     <ul class="desktop-nav-list">
-      <li *ngFor="let item of navItems" class="nav-item" [class.has-submenu]="item.subItems">
-        <a [routerLink]="item.link" routerLinkActive="active-link" [attr.i18n]="item.i18nId">{{ item.label }}</a>
-        <ul *ngIf="item.subItems" class="submenu">
-          <li *ngFor="let subItem of item.subItems">
-            <a [routerLink]="subItem.link" routerLinkActive="active-link" [attr.i18n]="subItem.i18nId">{{ subItem.label }}</a>
-          </li>
-        </ul>
-      </li>
-    </ul> <!-- Ende Desktop Navigationsliste -->
-
-    <!-- === MOBILES MENÜ - Overlay & Panel === -->
-    <div class="mobile-menu-overlay" *ngIf="isMobileMenuOpen" (click)="closeMobileMenu()"></div>
-
-    <div class="mobile-menu-panel" [class.is-open]="isMobileMenuOpen">
-      <button class="icon-button close-mobile-menu-button" (click)="closeMobileMenu()" aria-label="Menü schließen">
-        <span class="material-symbols-outlined">close</span>
-      </button>
-
-      <ul class="mobile-nav-list">
-        <li *ngFor="let item of navItems" class="mobile-nav-item">
-          <div class="mobile-nav-item-content">
-            <a [routerLink]="item.link" (click)="!item.subItems ? closeMobileMenu() : null" [class.main-category-link]="!item.subItems" routerLinkActive="active-link" [attr.i18n]="item.i18nId">{{ item.label }}</a>
-            <button *ngIf="item.subItems && item.subItems.length > 0"
-                    (click)="toggleSubmenu(item)"
-                    class="icon-button expand-button"
-                    [attr.aria-expanded]="item.isExpanded">
-              <span class="material-symbols-outlined">
-                {{ item.isExpanded ? 'expand_less' : 'expand_more' }}
-              </span>
-            </button>
-          </div>
-          <ul class="mobile-submenu" *ngIf="item.isExpanded">
-            <li *ngFor="let subItem of item.subItems">
-              <a [routerLink]="subItem.link" (click)="closeMobileMenu()" routerLinkActive="active-link" [attr.i18n]="subItem.i18nId">{{ subItem.label }}</a>
-            </li>
-          </ul>
+      @for (item of navItems; track item.label) {
+        <li class="nav-item" [class.has-submenu]="item.subItems && item.subItems.length > 0">
+          <a [routerLink]="item.link" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: item.link === '/'}">{{ item.label }}</a>
+          @if (item.subItems && item.subItems.length > 0) {
+            <ul class="submenu">
+              @for (child of item.subItems; track child.label) {
+                <li><a [routerLink]="child.link" routerLinkActive="active-link">{{ child.label }}</a></li>
+              }
+            </ul>
+          }
         </li>
-         <!-- Mobile Auth Links/Buttons -->
-         <li class="mobile-nav-item auth-links-mobile">
-            <ng-container *ngIf="!(currentUser$ | async)">
+      }
+    </ul>
+
+    <div class="mobile-menu-overlay" (click)="closeMobileMenu()"></div>
+    <div class="mobile-menu-panel">
+       <button class="icon-button close-mobile-menu-button" (click)="closeMobileMenu()" aria-label="Menü schließen">
+         <span class="material-symbols-outlined">close</span>
+       </button>
+       <ul class="mobile-nav-list">
+          @for (item of navItems; track item.label) {
+            <li class="mobile-nav-item">
+              <div class="mobile-nav-item-content">
+                 <a [routerLink]="item.link" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: item.link === '/'}" (click)="!item.subItems ? closeMobileMenu() : null">{{ item.label }}</a>
+                 @if (item.subItems && item.subItems.length > 0) {
+                    <button class="icon-button expand-button" (click)="toggleSubmenu(item)" [attr.aria-expanded]="item.isExpanded">
+                      <span class="material-symbols-outlined"> {{ item.isExpanded ? 'expand_less' : 'expand_more' }} </span>
+                    </button>
+                 }
+              </div>
+              @if (item.subItems && item.subItems.length > 0 && item.isExpanded) {
+                <ul class="mobile-submenu">
+                   @for (child of item.subItems; track child.label) {
+                     <li><a [routerLink]="child.link" routerLinkActive="active-link" (click)="closeMobileMenu()">{{ child.label }}</a></li>
+                   }
+                </ul>
+              }
+            </li>
+          }
+          @if (currentUser$ | async; as user) {
+            <li class="mobile-nav-item auth-links-mobile">
+              <div class="mobile-nav-item-content">
+                <a routerLink="/mein-konto" (click)="closeMobileMenu()">Mein Konto</a>
+              </div>
+              <div class="mobile-nav-item-content">
+                 <button class="logout-button-mobile" (click)="performLogout()">Abmelden</button>
+              </div>
+            </li>
+          } @else {
+            <li class="mobile-nav-item auth-links-mobile">
               <div class="mobile-nav-item-content">
                  <a routerLink="/login" (click)="closeMobileMenu()">Anmelden</a>
               </div>
               <div class="mobile-nav-item-content">
                  <a routerLink="/register" (click)="closeMobileMenu()">Registrieren</a>
               </div>
-            </ng-container>
-            <ng-container *ngIf="currentUser$ | async as user">
-               <div class="mobile-nav-item-content">
-                 <a routerLink="/mein-konto" (click)="closeMobileMenu()">Mein Konto</a>
-               </div>
-               <div class="mobile-nav-item-content">
-                  <button (click)="performLogout()">Abmelden</button>
-               </div>
-            </ng-container>
-         </li>
-      </ul>
+            </li>
+          }
+       </ul>
     </div>
-    <!-- === ENDE MOBILES MENÜ === -->
-
-  </nav> <!-- Ende .main-nav.bottom-row -->
+  </nav>
 </header>
