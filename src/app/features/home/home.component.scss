@@ -70,6 +70,11 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    &.small {
+      min-height: 60px;
+      padding: 1rem;
+      font-size: 0.9rem;
+    }
   }
   .error-message {
     color: var(--error-color);
@@ -77,13 +82,62 @@
   }
 }
 
+
+.weather-section {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  background-color: var(--background-light);
+  border-bottom: 1px solid #eee;
+  margin-bottom: 2rem;
+
+  .weather-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+  }
+
+  .weather-icon {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+  }
+
+  .weather-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .weather-temp {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-color-normal);
+    line-height: 1.1;
+  }
+
+  .weather-desc {
+    font-size: 0.95rem;
+    color: var(--text-color-light);
+    line-height: 1.2;
+    text-transform: capitalize;
+  }
+  .weather-location {
+      font-size: 0.8rem;
+      color: var(--text-color-lighter);
+      line-height: 1.2;
+  }
+}
+
+
 .bestseller-section {
   .product-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 2rem;
     justify-content: center;
-
     @media (max-width: 992px) { gap: 1.5rem; }
     @media (max-width: 768px) { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
     @media (max-width: 480px) { grid-template-columns: repeat(2, 1fr); gap: 0.8rem; }
@@ -91,18 +145,14 @@
 }
 
 .news-section {
-  background-color: var(--background-light);
   border-top: 1px solid #eee;
-
   .news-list {
     display: grid;
     grid-template-columns: 1fr;
     gap: 2rem;
-
     @media (min-width: 768px) { grid-template-columns: repeat(2, 1fr); }
     @media (min-width: 1024px) { grid-template-columns: repeat(3, 1fr); gap: 2.5rem; }
   }
-
   .news-article-card {
     background-color: #ffffff;
     border-radius: var(--card-border-radius);
@@ -111,19 +161,16 @@
     display: flex;
     flex-direction: column;
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-
     &:hover {
       transform: translateY(-5px);
       box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
     }
-
     .news-image-link {
       display: block;
       aspect-ratio: 16 / 9;
       background-color: #f0f0f0;
       overflow: hidden;
     }
-
     .news-image {
       display: block;
       width: 100%;
@@ -134,13 +181,11 @@
     &:hover .news-image {
       transform: scale(1.05);
     }
-
     .news-content {
       padding: 1rem 1.25rem 1.25rem;
       display: flex;
       flex-direction: column;
       flex-grow: 1;
-
       h3 {
         font-size: 1.1rem;
         margin: 0 0 0.5rem 0;
@@ -152,7 +197,6 @@
         overflow: hidden;
         text-overflow: ellipsis;
         min-height: calc(1.1rem * 1.4 * 3);
-
         a {
           text-decoration: none;
           color: inherit;
@@ -160,7 +204,6 @@
           &:hover { color: var(--link-color-hover); }
         }
       }
-
       .news-description {
         font-size: 0.9rem;
         color: var(--text-color-light);
@@ -173,7 +216,6 @@
         text-overflow: ellipsis;
         flex-grow: 1;
       }
-
       .news-meta {
         font-size: 0.8rem;
         color: var(--text-color-lighter);
@@ -185,10 +227,8 @@
         border-top: 1px dashed #eee;
         padding-top: 0.75rem;
         margin-top: auto;
-
         .news-source { font-weight: 500; }
       }
-
       .read-more-link {
           font-size: 0.9rem;
           font-weight: 500;
@@ -196,7 +236,6 @@
           text-decoration: none;
           align-self: flex-start;
           padding: 0.25rem 0;
-
           &:hover {
               text-decoration: underline;
               color: var(--link-color-hover);
@@ -204,11 +243,6 @@
       }
     }
   }
-}
-
-.weather-section {
-  border-top: 1px solid #eee;
-  min-height: 200px;
 }
 
 @media (max-width: 768px) {
