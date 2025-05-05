@@ -62,10 +62,16 @@
         }
       </a>
       @if (currentUser$ | async; as user) {
+        <!-- Bestehender Konto-Link -->
         <a routerLink="/mein-konto" title="Mein Konto" class="icon-button account-button">
           <span class="material-symbols-outlined">person</span>
         </a>
+        <!-- *** NEU: Logout Button für Desktop *** -->
+        <button title="Abmelden" class="icon-button logout-button-desktop" (click)="performLogout()">
+          <span class="material-symbols-outlined">logout</span>
+        </button>
       } @else {
+        <!-- Bestehender Login-Link -->
         <a routerLink="/login" title="Anmelden" class="icon-button login-button"
            (mouseenter)="openLoginOverlayOnEnter()" (mouseleave)="closeLoginOverlayOnLeave()">
           <span class="material-symbols-outlined">person_outline</span>
@@ -104,7 +110,12 @@
           @for (item of navItems; track item.label) {
             <li class="mobile-nav-item">
               <div class="mobile-nav-item-content">
-                 <a [routerLink]="item.link" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: item.link === '/'}" (click)="!item.subItems ? closeMobileMenu() : null">{{ item.label }}</a>
+                 <!-- Angepasst: Klassen und Click-Handler für Hauptlink -->
+                 <a [routerLink]="item.link"
+                    [class.main-category-link]="true"
+                    routerLinkActive="active-link"
+                    [routerLinkActiveOptions]="{exact: item.link === '/'}"
+                    (click)="!item.subItems ? closeMobileMenu() : null">{{ item.label }}</a>
                  @if (item.subItems && item.subItems.length > 0) {
                     <button class="icon-button expand-button" (click)="toggleSubmenu(item)" [attr.aria-expanded]="item.isExpanded">
                       <span class="material-symbols-outlined"> {{ item.isExpanded ? 'expand_less' : 'expand_more' }} </span>
@@ -120,22 +131,27 @@
               }
             </li>
           }
+          <!-- Authentifizierungslinks im mobilen Menü -->
           @if (currentUser$ | async; as user) {
             <li class="mobile-nav-item auth-links-mobile">
               <div class="mobile-nav-item-content">
-                <a routerLink="/mein-konto" (click)="closeMobileMenu()">Mein Konto</a>
+                <a routerLink="/mein-konto" (click)="closeMobileMenu()" class="main-category-link">Mein Konto</a>
               </div>
+            </li>
+            <li class="mobile-nav-item auth-links-mobile">
               <div class="mobile-nav-item-content">
-                 <button class="logout-button-mobile" (click)="performLogout()">Abmelden</button>
+                 <button class="logout-button-mobile main-category-link" (click)="performLogout()">Abmelden</button>
               </div>
             </li>
           } @else {
             <li class="mobile-nav-item auth-links-mobile">
               <div class="mobile-nav-item-content">
-                 <a routerLink="/login" (click)="closeMobileMenu()">Anmelden</a>
+                 <a routerLink="/login" (click)="closeMobileMenu()" class="main-category-link">Anmelden</a>
               </div>
+            </li>
+            <li class="mobile-nav-item auth-links-mobile">
               <div class="mobile-nav-item-content">
-                 <a routerLink="/register" (click)="closeMobileMenu()">Registrieren</a>
+                 <a routerLink="/register" (click)="closeMobileMenu()" class="main-category-link">Registrieren</a>
               </div>
             </li>
           }
