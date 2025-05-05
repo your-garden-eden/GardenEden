@@ -1,32 +1,30 @@
 // /src/app/shared/services/ui-state.service.ts
-import { Injectable, signal, WritableSignal, computed, Signal } from '@angular/core'; // signal, WritableSignal, computed, Signal importieren
+import { Injectable, signal, WritableSignal, computed, Signal, PLATFORM_ID, inject } from '@angular/core'; // PLATFORM_ID, inject hinzugefügt
+import { isPlatformBrowser } from '@angular/common'; // isPlatformBrowser importieren
 
 @Injectable({
   providedIn: 'root'
 })
 export class UiStateService {
+  private platformId = inject(PLATFORM_ID); // Platform ID für Browser-Check
 
-  // --- NEU: Zustand für Login-Overlay ---
-  // Privates beschreibbares Signal
+  // --- Zustand für Login-Overlay ---
   private _isLoginOverlayOpen: WritableSignal<boolean> = signal(false);
-  // Öffentliches readonly Signal (oder computed, falls komplexer)
   public readonly isLoginOverlayOpen$: Signal<boolean> = this._isLoginOverlayOpen.asReadonly();
-  // --- ENDE NEU ---
 
-  // --- Mini-Cart Zustand (Beispiel, falls benötigt) ---
-  // private _isMiniCartOpen = signal(false);
-  // public readonly isMiniCartOpen$ = this._isMiniCartOpen.asReadonly();
-  // private closeTimeoutId: any = null;
+  // --- Zustand für Mini-Cart (Aktiviert) ---
+  private _isMiniCartOpen: WritableSignal<boolean> = signal(false); // Signal für Mini-Cart
+  public readonly isMiniCartOpen$: Signal<boolean> = this._isMiniCartOpen.asReadonly(); // Öffentliches Signal
+  private closeTimeoutId: ReturnType<typeof setTimeout> | null = null; // Typ für Timeout-ID
   // --- Ende Mini-Cart ---
 
   constructor() { }
 
-  // --- NEU: Methoden für Login-Overlay ---
+  // --- Methoden für Login-Overlay ---
   openLoginOverlay(): void {
     console.log('UiStateService: Opening Login Overlay');
     this._isLoginOverlayOpen.set(true);
-    // Optional: Mini-Cart schließen, wenn Login geöffnet wird?
-    // this._isMiniCartOpen.set(false);
+    this.closeMiniCart(); // Schließe Mini-Cart, wenn Login geöffnet wird
   }
 
   closeLoginOverlay(): void {
@@ -37,39 +35,58 @@ export class UiStateService {
   toggleLoginOverlay(): void {
     console.log('UiStateService: Toggling Login Overlay');
     this._isLoginOverlayOpen.update(value => !value);
+     if (this._isLoginOverlayOpen()) { // Wenn es geöffnet wird
+         this.closeMiniCart(); // Schließe Mini-Cart
+     }
   }
-  // --- ENDE NEU ---
+  // --- ENDE Methoden für Login-Overlay ---
 
 
-  // --- Mini-Cart Methoden (Beispiele, angepasst an signal) ---
-  cancelCloseTimeout(): void {
-    // console.log('UiStateService: cancelCloseTimeout() called');
-    // if (this.closeTimeoutId) {
-    //   clearTimeout(this.closeTimeoutId);
-    //   this.closeTimeoutId = null;
-    // }
-  }
+  // --- Methoden für Mini-Cart (Implementiert) ---
 
+  /** Öffnet den Mini-Warenkorb und bricht den Schließen-Timeout ab. */
   openMiniCart(): void {
-    // console.log('UiStateService: openMiniCart() called');
-    // this.cancelCloseTimeout();
-    // this._isMiniCartOpen.set(true);
+    // Funktioniert nur im Browser sinnvoll wegen Timeout
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    console.log('UiStateService: Opening Mini Cart');
+    this.cancelCloseTimeout(); // Wichtig: Laufenden Timeout stoppen
+    this._isMiniCartOpen.set(true);
+    // Optional: Login-Overlay schließen, wenn Mini-Cart geöffnet wird?
+    // this.closeLoginOverlay();
   }
 
-  startCloseTimeout(delay: number = 500): void {
-    // console.log('UiStateService: startCloseTimeout() called');
-    // this.cancelCloseTimeout(); // Sicherstellen, dass kein alter Timeout läuft
-    // this.closeTimeoutId = setTimeout(() => {
-    //   this._isMiniCartOpen.set(false);
-    //   console.log('UiStateService: Mini-Cart closed via timeout');
-    //   this.closeTimeoutId = null;
-    // }, delay);
-  }
-
+  /** Schließt den Mini-Warenkorb und bricht den Schließen-Timeout ab. */
   closeMiniCart(): void {
-     // console.log('UiStateService: Closing Mini Cart');
-     // this.cancelCloseTimeout();
-     // this._isMiniCartOpen.set(false);
+     if (!isPlatformBrowser(this.platformId)) return;
+     // Prüfen ob überhaupt offen, um unnötige Logs zu vermeiden
+     if (!this._isMiniCartOpen()) return;
+
+     console.log('UiStateService: Closing Mini Cart');
+     this.cancelCloseTimeout(); // Sicherstellen, dass kein Timeout mehr läuft
+     this._isMiniCartOpen.set(false);
+  }
+
+  /** Startet einen Timeout, nach dessen Ablauf der Mini-Warenkorb geschlossen wird. */
+  startCloseTimeout(delay: number = 300): void { // Kürzere Verzögerung als Standard?
+     if (!isPlatformBrowser(this.platformId)) return;
+
+     this.cancelCloseTimeout(); // Alten Timeout löschen
+     console.log(`UiStateService: Starting close timeout (${delay}ms)`);
+     this.closeTimeoutId = setTimeout(() => {
+       console.log('UiStateService: Closing Mini Cart via timeout');
+       this._isMiniCartOpen.set(false);
+       this.closeTimeoutId = null; // Timeout-ID zurücksetzen
+     }, delay);
+  }
+
+  /** Bricht den laufenden Timeout zum Schließen des Mini-Warenkorbs ab. */
+  cancelCloseTimeout(): void {
+      if (this.closeTimeoutId) {
+        console.log('UiStateService: Cancelling close timeout');
+        clearTimeout(this.closeTimeoutId);
+        this.closeTimeoutId = null;
+      }
   }
   // --- Ende Mini-Cart Methoden ---
 }
