@@ -2,11 +2,11 @@
 import { Component, OnInit, inject, signal, WritableSignal, ViewChild, ElementRef, NgZone, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors, FormControl } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { AuthService } from '../../../shared/services/auth.service';
 import { Firestore, doc, setDoc, serverTimestamp } from '@angular/fire/firestore';
 import { GoogleMapsModule } from '@angular/google-maps';
-import { environment } from '../../../../environments/environment'; // Import environment
+import { environment } from '../../../../environments/environment';
 
 // Custom Validator für Passwort-Match
 export function passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
@@ -24,7 +24,7 @@ declare var google: any;
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterModule, GoogleMapsModule],
   templateUrl: './register-page.component.html',
-  styleUrl: './register-page.component.scss'
+  styleUrls: ['./register-page.component.scss']
 })
 export class RegisterPageComponent implements OnInit, AfterViewInit, OnDestroy {
   // Services injizieren
@@ -47,8 +47,7 @@ export class RegisterPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private autocomplete: google.maps.places.Autocomplete | undefined;
   private autocompleteListener: google.maps.MapsEventListener | undefined;
 
-  // Google Client ID und Autocomplete Optionen
-  private googleClientId = environment.googleClientId;
+  // Google Autocomplete Optionen
   autocompleteOptions: google.maps.places.AutocompleteOptions = {
     componentRestrictions: { country: 'de' },
     types: ['address'],
@@ -69,83 +68,77 @@ export class RegisterPageComponent implements OnInit, AfterViewInit, OnDestroy {
       newsletter: [false],
       acceptTerms: [false, Validators.requiredTrue]
     }, { validators: passwordMatchValidator });
-
-    // Prüfung auf Client ID
-    if (!this.googleClientId) {
-        console.error('RegisterPage: Google Client ID ist nicht in den Environment-Variablen konfiguriert!');
-    }
   }
 
   ngAfterViewInit(): void {
-    // Initialisiere Autocomplete, nachdem die View (und das Input-Element) initialisiert wurde
+    // Initialisiere Autocomplete, nachdem die View bereit ist
     this.initializeAutocomplete();
   }
 
   ngOnDestroy(): void {
-      // Listener sauber entfernen, um Memory Leaks zu vermeiden
+      // Entferne den Listener sicher, wenn er existiert
       if (this.autocompleteListener) {
-          this.autocompleteListener.remove();
+          google.maps.event.removeListener(this.autocompleteListener);
           console.log('Autocomplete listener removed.');
+          this.autocompleteListener = undefined;
       }
   }
 
-  // --- initializeAutocomplete ANGEPASST mit setTimeout und try-catch ---
   private initializeAutocomplete(): void {
-    // Prüfen, ob Google API Skript geladen ist
     if (typeof google !== 'undefined' && google.maps && google.maps.places) {
-        // Kurze Verzögerung, um sicherzustellen, dass das DOM-Element (#addressStreetInput) bereit ist
         setTimeout(() => {
-            // Erneute Prüfung, ob das ElementRef und das nativeElement existieren
             if (this.addressStreetInput && this.addressStreetInput.nativeElement) {
                 console.log('Attempting to initialize Autocomplete on element:', this.addressStreetInput.nativeElement);
                 try {
                     // Instanziiere Autocomplete
                     this.autocomplete = new google.maps.places.Autocomplete(
-                        this.addressStreetInput.nativeElement, // Direkt das native HTMLInputElement übergeben
+                        this.addressStreetInput.nativeElement,
                         this.autocompleteOptions
                     );
 
-                    // Füge den Listener hinzu, der auf Änderungen reagiert
-                    // Verwende '!' da wir sicher sind, dass autocomplete hier initialisiert wurde (innerhalb try)
-                    this.autocompleteListener = this.autocomplete!.addListener('place_changed', () => {
-                        // Führe die Verarbeitung innerhalb der Angular Zone aus, damit Änderungen erkannt werden
-                        this.ngZone.run(() => {
-                            this.onPlaceChanged();
+                    // === HIER DIE ÄNDERUNG: Zusätzliche if-Prüfung ===
+                    if (this.autocomplete) {
+                        // Listener hinzufügen und die Referenz speichern
+                        this.autocompleteListener = this.autocomplete.addListener('place_changed', () => {
+                            this.ngZone.run(() => {
+                                this.onPlaceChanged();
+                            });
                         });
-                    });
-                    console.log('Google Maps Autocomplete initialized successfully.');
+                        console.log('Google Maps Autocomplete initialized successfully.');
+                    } else {
+                        // Sollte nicht passieren, aber sicher ist sicher
+                        console.error('Autocomplete instance is unexpectedly undefined after instantiation.');
+                        this.errorMessage.set('Fehler bei der Initialisierung der Adresshilfe.');
+                    }
+                    // ===============================================
 
                 } catch (error) {
-                     // Fängt Fehler bei der Instanziierung ab (z.B. wenn element doch kein Input war)
                      console.error('Error during Autocomplete instantiation:', error);
                      this.errorMessage.set('Adress-Autovervollständigung konnte nicht initialisiert werden.');
                 }
             } else {
-                // Fall, falls das Element auch nach dem Timeout nicht gefunden wird
-                console.error('RegisterPage: Address input element (#addressStreetInput) not found AFTER timeout. Cannot initialize Autocomplete.');
+                console.error('RegisterPage: Address input element (#addressStreetInput) not found AFTER timeout.');
                 this.errorMessage.set('Adressfeld für Autovervollständigung nicht gefunden.');
             }
-        }, 100); // 100ms Verzögerung - kann angepasst werden, falls nötig
+        }, 150); // Leichte Verzögerung
 
     } else {
-       // Fall, falls das Google Maps Skript nicht geladen wurde
-       console.error('RegisterPage: Google Maps Places API script not loaded yet. Cannot initialize Autocomplete.');
+       console.error('RegisterPage: Google Maps Places API script not loaded yet.');
        this.errorMessage.set('Google Maps konnte nicht geladen werden. Adress-Autovervollständigung ist nicht verfügbar.');
-       // Optional: Erneut versuchen nach längerer Verzögerung
-       // setTimeout(() => this.initializeAutocomplete(), 1500);
     }
   }
-  // --- ENDE initializeAutocomplete ---
 
-  // Methode zur Verarbeitung der ausgewählten Adresse
   private onPlaceChanged(): void {
-    if (!this.autocomplete) return;
+    // Sicherstellen, dass Autocomplete initialisiert wurde
+    if (!this.autocomplete) {
+      console.warn('onPlaceChanged called but autocomplete instance is undefined.');
+      return;
+    }
     const place = this.autocomplete.getPlace();
 
     if (place?.address_components) {
         console.log('Place changed:', place);
         let street = '', streetNumber = '', zip = '', city = '';
-        // Extrahiere Adresskomponenten
         place.address_components.forEach(component => {
             const types = component.types;
             if (types.includes('street_number')) { streetNumber = component.long_name; }
@@ -153,13 +146,13 @@ export class RegisterPageComponent implements OnInit, AfterViewInit, OnDestroy {
             else if (types.includes('postal_code')) { zip = component.long_name; }
             else if (types.includes('locality') || types.includes('postal_town')) { city = component.long_name; }
         });
-        // Aktualisiere Formularfelder
+        // Formularfelder aktualisieren
         this.registerForm.patchValue({
           addressStreet: `${street} ${streetNumber}`.trim(),
           addressZip: zip,
           addressCity: city
         });
-        // Markiere Felder als berührt
+        // Felder als berührt markieren
         this.addressStreet?.markAsTouched();
         this.addressZip?.markAsTouched();
         this.addressCity?.markAsTouched();
@@ -185,29 +178,84 @@ export class RegisterPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.formSubmitted.set(true);
     this.errorMessage.set(null);
     this.registerForm.markAllAsTouched();
-    if (this.registerForm.invalid) { return; }
+
+    if (this.registerForm.invalid) {
+        console.log('Registration form is invalid:', this.registerForm.errors);
+        this.focusFirstInvalidField();
+        return;
+    }
+
     this.isLoading.set(true);
+
     try {
       const formValue = this.registerForm.value;
       const userCredential = await this.authService.register(formValue.email, formValue.password);
       const user = userCredential.user;
+
       if (user) {
         await this.saveAdditionalUserData(user.uid, formValue);
+        console.log('Registration and Firestore save successful. Navigating...');
         this.router.navigate(['/']);
-      } else { throw new Error('Benutzer konnte nicht abgerufen werden.'); }
+      } else {
+        throw new Error('Benutzer konnte nach der Registrierung nicht abgerufen werden.');
+      }
     } catch (error: any) {
-        console.error('Registrierungsfehler:', error);
-        let message = 'Ein unbekannter Fehler ist aufgetreten.';
-        switch (error.code) { /* ... */ }
-        if (this.errorMessage() === null) { this.errorMessage.set(message); }
-    } finally { this.isLoading.set(false); }
+        console.error('Registrierungsfehler im Component:', error);
+        this.errorMessage.set(error?.message || 'Registrierung fehlgeschlagen. Bitte versuchen Sie es erneut.');
+        if (error.code === 'auth/email-already-in-use') {
+            this.errorMessage.set('Diese E-Mail-Adresse wird bereits verwendet.');
+            this.email?.setErrors({ alreadyInUse: true });
+        }
+    } finally {
+      this.isLoading.set(false);
+    }
   }
 
   /** Speichert zusätzliche Benutzerdaten in Firestore */
   private async saveAdditionalUserData(userId: string, formData: any): Promise<void> {
-      const userDocRef = doc(this.firestore, `users/${userId}`);
-      const userData = { /* ... profileComplete: true ... */ };
-      try { await setDoc(userDocRef, userData); }
-      catch (error) { /* ... */ throw new Error('Firestore save failed'); }
+    if (!userId) {
+        console.error("Cannot save user data without userId");
+        throw new Error('Benutzer-ID fehlt.');
+    }
+    const userDocRef = doc(this.firestore, `users/${userId}`);
+    const userData = {
+      uid: userId,
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      address: {
+        street: formData.addressStreet,
+        zip: formData.addressZip,
+        city: formData.addressCity,
+        country: 'DE'
+      },
+      newsletterSubscribed: formData.newsletter,
+      createdAt: serverTimestamp(),
+      provider: 'password',
+      profileComplete: true
+    };
+    console.log('Saving additional user data to Firestore:', userData);
+    try {
+      await setDoc(userDocRef, userData);
+      console.log('User data successfully saved to Firestore for UID:', userId);
+    } catch (error) {
+      console.error('Error saving additional user data to Firestore:', error);
+      this.errorMessage.set("Zusätzliche Benutzerdaten konnten nicht gespeichert werden.");
+      throw new Error('Firestore save failed');
+    }
   }
-}
+
+  /** Fokussiert das erste invalide Formularfeld */
+  private focusFirstInvalidField(): void {
+    const controls = this.registerForm.controls;
+    for (const name in controls) {
+        if (controls[name].invalid) {
+            const element = document.querySelector(`[formControlName="${name}"]`);
+            if (element instanceof HTMLElement) {
+                element.focus();
+                break;
+            }
+        }
+    }
+  }
+} // Ende der Komponente
