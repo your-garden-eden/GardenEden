@@ -1,9 +1,11 @@
+// /src/app/core/services/shopify.service.ts
 import { Injectable } from '@angular/core';
 import { GraphQLClient } from 'graphql-request';
 import { environment } from '../../../environments/environment';
-import { Observable, from, throwError } from 'rxjs'; // Observable, from, throwError hinzugefügt
-import { catchError, map } from 'rxjs/operators'; // catchError, map hinzugefügt
+import { Observable, from, throwError } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 
+// --- INTERFACES ---
 export interface ShopifyImage { url: string; altText?: string | null; }
 export interface ShopifyPrice { amount: string; currencyCode: string; }
 export interface ShopifyProductVariant { id: string; title: string; sku?: string | null; availableForSale: boolean; quantityAvailable?: number | null; price: ShopifyPrice; image?: ShopifyImage | null; selectedOptions?: { name: string; value: string; }[] | null; }
@@ -39,24 +41,52 @@ export interface CollectionQueryResult {
   }
 }
 
+// Cart Related Interfaces
 export interface CartLineInput { merchandiseId: string; quantity: number; }
 export interface CartLineUpdateInput { id: string; merchandiseId?: string; quantity?: number; }
 export interface CartLineEdgeNode { id: string; quantity: number; merchandise: { id: string; title: string; price: ShopifyPrice; image?: ShopifyImage | null; product: { handle: string; title: string; }; }; }
 export interface Cart { id: string; checkoutUrl: string; cost: { subtotalAmount: ShopifyPrice; totalAmount: ShopifyPrice; totalTaxAmount?: ShopifyPrice | null; }; lines: { edges: { node: CartLineEdgeNode; }[]; }; totalQuantity: number; note?: string | null; }
 interface UserError { field: string[] | null; message: string; }
 interface CartResponse { cart: Cart | null; userErrors: UserError[]; }
+
+// Payload Interfaces
 interface CartCreatePayload { cartCreate: CartResponse | null; }
 interface CartLinesAddPayload { cartLinesAdd: CartResponse | null; }
 interface CartLinesUpdatePayload { cartLinesUpdate: CartResponse | null; }
 interface CartLinesRemovePayload { cartLinesRemove: CartResponse | null; }
 interface CartFetchPayload { cart: Cart | null; }
 
+// Buyer Identity Interfaces
+export interface CartBuyerIdentityInput {
+  email?: string | null;
+  phone?: string | null;
+  countryCode?: string | null;
+}
+interface CartBuyerIdentityUpdatePayload {
+    cartBuyerIdentityUpdate: CartResponse | null;
+}
+
+// --- GraphQL Definitions ---
 const CartFragment = `fragment CartFragment on Cart { id checkoutUrl cost { subtotalAmount { amount currencyCode } totalAmount { amount currencyCode } totalTaxAmount { amount currencyCode } } lines(first: 100) { edges { node { id quantity merchandise { ... on ProductVariant { id title price { amount currencyCode } image { url altText } product { handle title } } }}}} totalQuantity note }`;
 const CartCreateMutation = `mutation cartCreate($input: CartInput!) { cartCreate(input: $input) { cart { ...CartFragment } userErrors { field message } } } ${CartFragment}`;
 const CartLinesAddMutation = `mutation cartLinesAdd($cartId: ID!, $lines: [CartLineInput!]!) { cartLinesAdd(cartId: $cartId, lines: $lines) { cart { ...CartFragment } userErrors { field message } } } ${CartFragment}`;
 const CartLinesUpdateMutation = `mutation cartLinesUpdate($cartId: ID!, $lines: [CartLineUpdateInput!]!) { cartLinesUpdate(cartId: $cartId, lines: $lines) { cart { ...CartFragment } userErrors { field message } } } ${CartFragment}`;
 const CartLinesRemoveMutation = `mutation cartLinesRemove($cartId: ID!, $lineIds: [ID!]!) { cartLinesRemove(cartId: $cartId, lineIds: $lineIds) { cart { ...CartFragment } userErrors { field message } } } ${CartFragment}`;
 const CartFetchQuery = `query cartFetch($id: ID!) { cart(id: $id) { ...CartFragment } } ${CartFragment}`;
+const CartBuyerIdentityUpdateMutation = `
+  mutation cartBuyerIdentityUpdate($cartId: ID!, $buyerIdentity: CartBuyerIdentityInput!) {
+    cartBuyerIdentityUpdate(cartId: $cartId, buyerIdentity: $buyerIdentity) {
+      cart {
+        ...CartFragment
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+  ${CartFragment}
+`;
 
 @Injectable({
   providedIn: 'root'
@@ -69,7 +99,10 @@ export class ShopifyService {
   constructor() {
     if (!this.storefrontEndpoint || !this.storefrontAccessToken || !this.isValidUrl(this.storefrontEndpoint)) {
       console.error('Shopify Storefront Endpoint is missing, invalid, or Access Token missing in environment variables!', { endpoint: this.storefrontEndpoint });
-      this.storefrontClient = new GraphQLClient('http://invalid-endpoint');
+      // Erstellen Sie einen ungültigen Client, um weitere Fehler zu vermeiden, aber die App stürzt nicht ab.
+      this.storefrontClient = new GraphQLClient('http://invalid-endpoint', {
+          headers: { 'X-Shopify-Storefront-Access-Token': 'invalid-token' }
+      });
       return;
     }
      this.storefrontClient = new GraphQLClient(
@@ -221,7 +254,6 @@ export class ShopifyService {
     }
   }
 
-  // HINZUGEFÜGTE SUCHE METHODE (Observable zurückgeben)
   searchProducts(query: string, limit: number = 10): Observable<Product[] | null> {
     const searchQuery = `
       query searchProducts($query: String!, $limit: Int!) {
@@ -250,15 +282,30 @@ export class ShopifyService {
     const variables = { query, limit };
     type ShopifySearchResponse = { products: { edges: { node: Product }[] } | null; };
 
-    // Konvertiere das Promise von graphql-request in ein Observable
     return from(this.storefrontClient.request<ShopifySearchResponse>(searchQuery, variables)).pipe(
-      map(data => data?.products?.edges?.map(edge => edge.node) ?? null), // Extrahiere die Produkte
-      catchError(error => { // Fange Fehler ab
+      map(data => data?.products?.edges?.map(edge => edge.node) ?? null),
+      catchError(error => {
         console.error(`ShopifyService: Fehler bei der Produktsuche für "${query}":`, error);
-        return throwError(() => new Error('Fehler bei der Produktsuche')); // Gebe einen Fehler im Observable zurück
-        // Alternative: return of(null); // Um null zurückzugeben statt Fehler
+        return throwError(() => new Error('Fehler bei der Produktsuche'));
       })
     );
   }
 
+  async updateCartBuyerIdentity(cartId: string, buyerIdentity: CartBuyerIdentityInput): Promise<Cart | null> {
+    if (!cartId) {
+        console.error('ShopifyService: Cart ID is required for updateCartBuyerIdentity');
+        return null;
+    }
+    const variables = { cartId, buyerIdentity };
+    try {
+      const data = await this.storefrontClient.request<CartBuyerIdentityUpdatePayload>(CartBuyerIdentityUpdateMutation, variables);
+      if (data.cartBuyerIdentityUpdate?.userErrors?.length) {
+        console.error('ShopifyService: UserErrors bei cartBuyerIdentityUpdate:', data.cartBuyerIdentityUpdate.userErrors);
+      }
+      return data.cartBuyerIdentityUpdate?.cart ?? null;
+    } catch (error) {
+      console.error('ShopifyService: GraphQL Fehler bei cartBuyerIdentityUpdate:', error);
+      return null;
+    }
+  }
 }

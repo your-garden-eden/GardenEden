@@ -1,178 +1,165 @@
 // /src/app/shared/services/cart.service.ts
-import { Injectable, signal, computed, effect, inject, PLATFORM_ID, WritableSignal, Signal, untracked } from '@angular/core'; // untracked hinzugefügt
+import { Injectable, signal, computed, effect, inject, PLATFORM_ID, WritableSignal, Signal, untracked, OnDestroy } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { ShopifyService, Cart, CartLineInput, CartLineUpdateInput } from '../../core/services/shopify.service'; // Pfad prüfen!
+import { ShopifyService, Cart, CartLineInput, CartLineUpdateInput, CartLineEdgeNode } from '../../core/services/shopify.service'; // Pfad prüfen!
+import { AuthService } from './auth.service';
 import { User } from '@angular/fire/auth';
-import { AuthService } from './auth.service'; // AuthService importieren
-import { Firestore, doc, getDoc, setDoc, deleteDoc, DocumentReference, DocumentData } from '@angular/fire/firestore'; // Firestore Imports
-import { take } from 'rxjs/operators'; // take für authState$
+import { Firestore, doc, getDoc, setDoc, deleteDoc, DocumentReference, DocumentData } from '@angular/fire/firestore';
+import { Subscription, distinctUntilChanged, skip, tap } from 'rxjs';
 
-// Key für Local Storage
 const CART_ID_STORAGE_KEY = 'shopify_cart_id';
 
 @Injectable({
   providedIn: 'root'
 })
-export class CartService {
+export class CartService implements OnDestroy {
   private shopifyService = inject(ShopifyService);
   private platformId = inject(PLATFORM_ID);
-  private authService = inject(AuthService); // AuthService injizieren
-  private firestore = inject(Firestore);   // Firestore injizieren
+  private firestore = inject(Firestore);
+  private authService = inject(AuthService);
 
-  // --- Signale für den Warenkorb-Zustand ---
-  private _cartId: WritableSignal<string | null> = signal(null); // Private Cart ID
+  private _cartId: WritableSignal<string | null> = signal(null);
   readonly cart: WritableSignal<Cart | null> = signal(null);
   readonly isLoading: WritableSignal<boolean> = signal(false);
   readonly error: WritableSignal<string | null> = signal(null);
-
-  // --- Signal für die User ID ---
-  private userId: Signal<string | null> = computed(() => this.authService.getCurrentUser()?.uid ?? null); // Abgeleitet vom AuthService
-
-  // Computed Signal für die Artikelanzahl
   readonly cartItemCount: Signal<number> = computed(() => this.cart()?.totalQuantity ?? 0);
 
+  private currentUserId: WritableSignal<string | null> = signal(null);
+  private authSubscription: Subscription | null = null;
+
   constructor() {
-    // Effect, der auf Änderungen der UserID ODER _cartId reagiert
-    effect(async () => {
-      const uId = this.userId(); // Lese User ID
-      const cId = this._cartId(); // Lese Cart ID
-      console.log(`CartService Effect Triggered: userId=${uId}, _cartId=${cId}`);
+    effect(async (onCleanup) => {
+      const activeCartId = this._cartId();
+      console.log(`CartService Effect Triggered: Active _cartId changed to ${activeCartId}`);
 
-      // 1. Lade die korrekte Cart ID basierend auf Login-Status
-      // Wir müssen untracked verwenden, um Endlosschleifen zu vermeiden,
-      // da _loadCartId auch auf userId() zugreift.
-      const loadedCartId = await untracked(() => this._loadCartIdForCurrentUser());
-      console.log('Loaded Cart ID:', loadedCartId);
+      let abortController = new AbortController();
+      onCleanup(() => {
+          console.log(`CartService Effect Cleanup: Aborting fetch for ${activeCartId}`);
+          abortController.abort();
+      });
 
-      // 2. Wenn sich die geladene ID von der aktuellen _cartId unterscheidet, aktualisiere _cartId
-      // (Dies passiert z.B. beim Login/Logout)
-      if (untracked(this._cartId) !== loadedCartId) {
-          console.log(`Updating _cartId from ${untracked(this._cartId)} to ${loadedCartId}`);
-          // WICHTIG: Hier _cartId direkt setzen, ohne _saveCartId aufzurufen,
-          // um nicht sofort wieder zu speichern, bevor der Cart geladen wurde.
-          this._cartId.set(loadedCartId);
-          // Der nächste Durchlauf des Effects wird dann den Cart laden.
-          return; // Beende diesen Effect-Durchlauf
-      }
-
-
-      // 3. Lade den Cart, wenn eine ID vorhanden ist (entweder die alte oder die gerade geladene)
-      const finalCartId = this._cartId(); // Lese die (potenziell aktualisierte) Cart ID
-      console.log('Final Cart ID for fetching:', finalCartId);
-      if (finalCartId) {
-        await this.fetchCart(finalCartId);
+      if (activeCartId) {
+        await this.fetchCart(activeCartId);
       } else {
-        // Wenn keine ID vorhanden ist (weder von User noch LocalStorage)
-        if (untracked(this.cart) !== null) { // Nur setzen, wenn nicht schon null
-             this.cart.set(null);
+        if (untracked(this.cart) !== null) {
+            this.cart.set(null);
         }
         this.isLoading.set(false);
       }
-    }, { allowSignalWrites: true });
-  }
+    });
 
-  // --- Private Helfermethoden ---
-
-  /** Gibt die Firestore Document Referenz für die Cart ID des Users zurück */
-  private _getUserCartIdDocRef(userId: string): DocumentReference<DocumentData> | null {
-    if (!userId) return null;
-    // Speichere Cart ID in einer privaten Subcollection (Best Practice)
-    return doc(this.firestore, `users/${userId}/private/cart`);
-  }
-
-  /** Lädt die Cart ID für den aktuellen Benutzerstatus (Firestore oder Local Storage) */
-  private async _loadCartIdForCurrentUser(): Promise<string | null> {
-    const uId = this.userId(); // Aktuelle User ID holen
-    console.log(`_loadCartIdForCurrentUser: Checking for user ${uId}`);
-
-    if (uId) {
-      // --- Eingeloggter Benutzer ---
-      const docRef = this._getUserCartIdDocRef(uId);
-      if (!docRef) return null;
-      try {
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists() && docSnap.data()?.['cartId']) {
-          const firestoreCartId = docSnap.data()?.['cartId'] as string;
-          console.log(`CartService: Found Cart ID in Firestore for user ${uId}:`, firestoreCartId);
-          // Optional: Anonymen Cart aus Local Storage löschen (ohne Merge)
-          if (isPlatformBrowser(this.platformId)) {
-             localStorage.removeItem(CART_ID_STORAGE_KEY);
-          }
-          return firestoreCartId;
-        } else {
-          console.log(`CartService: No Cart ID found in Firestore for user ${uId}.`);
-          return null;
-        }
-      } catch (error) {
-        console.error(`CartService: Error loading Cart ID from Firestore for user ${uId}:`, error);
-        return null;
-      }
-    } else {
-      // --- Anonymer Benutzer ---
-      if (isPlatformBrowser(this.platformId)) {
-        const storedCartId = localStorage.getItem(CART_ID_STORAGE_KEY);
-        console.log(`CartService: User not logged in. Cart ID from Local Storage:`, storedCartId);
-        return storedCartId ?? null;
-      } else {
-        return null; // Kein Local Storage auf dem Server
-      }
+    if (isPlatformBrowser(this.platformId)) {
+        this.loadInitialAnonymousCart();
+        this.subscribeToAuthState();
     }
   }
 
-  /** Speichert die Cart ID (Firestore für eingeloggte, Local Storage für anonyme) */
-  private async _saveCartId(cartId: string | null): Promise<void> {
-     const uId = this.userId();
-     const previousCartId = untracked(this._cartId); // Vorherigen Wert lesen
-
-     // Nur speichern/löschen, wenn sich die ID tatsächlich ändert ODER
-     // wenn der User-Status sich geändert hat und wir explizit null speichern müssen
-     if (cartId === previousCartId && cartId !== null) {
-         console.log(`CartService: Cart ID ${cartId} is already saved.`);
-         // ID muss nicht neu gesetzt werden, da sie sich nicht geändert hat
-         // Der Effect wird dadurch nicht erneut getriggert.
-         return;
-     }
-
-     console.log(`CartService: Attempting to save Cart ID: ${cartId} for user: ${uId}`);
-
-     if (uId) {
-         // --- Eingeloggter Benutzer (Firestore) ---
-         const docRef = this._getUserCartIdDocRef(uId);
-         if (!docRef) return;
-         try {
-             if (cartId) {
-                 console.log(`CartService: Saving Cart ID ${cartId} to Firestore for user ${uId}.`);
-                 await setDoc(docRef, { cartId: cartId }, { merge: true }); // merge: true ist sicherer
-             } else {
-                 console.log(`CartService: Deleting Cart ID from Firestore for user ${uId}.`);
-                 await deleteDoc(docRef);
-             }
-             this._cartId.set(cartId); // Signal aktualisieren, löst Effect aus
-         } catch (error) {
-             console.error(`CartService: Error saving/deleting Cart ID in Firestore for user ${uId}:`, error);
-             // Fehler anzeigen? Was tun? Vorerst nur loggen.
-             this.error.set('Fehler beim Speichern des Warenkorbs für Ihr Konto.');
-         }
-     } else {
-         // --- Anonymer Benutzer (Local Storage) ---
-         if (isPlatformBrowser(this.platformId)) {
-             if (cartId) {
-                 console.log('CartService: Saving Cart ID to Local Storage:', cartId);
-                 localStorage.setItem(CART_ID_STORAGE_KEY, cartId);
-             } else {
-                 console.log('CartService: Removing Cart ID from Local Storage.');
-                 localStorage.removeItem(CART_ID_STORAGE_KEY);
-             }
-             this._cartId.set(cartId); // Signal aktualisieren, löst Effect aus
-         }
-     }
+  ngOnDestroy(): void {
+    this.authSubscription?.unsubscribe();
   }
 
+  private subscribeToAuthState(): void {
+    this.authSubscription = this.authService.authState$.pipe(
+        tap(user => console.log("CartService received auth state:", user?.uid ?? 'null')),
+    ).subscribe(async user => {
+        const previousUserId = untracked(this.currentUserId);
+        const newUserId = user?.uid ?? null;
 
-  // --- Öffentliche Methoden (bleiben strukturell gleich, nutzen aber _saveCartId) ---
+        if (newUserId !== previousUserId) {
+             this.currentUserId.set(newUserId);
+             console.log(`CartService: User changed from ${previousUserId} to ${newUserId}`);
+             if (newUserId) {
+                 await this.handleLogin(newUserId);
+             } else {
+                 await this.handleLogout();
+             }
+        } else {
+            console.log(`CartService: Auth state received, but user ID (${newUserId}) did not change.`);
+        }
+    });
+  }
 
-  /** Lädt den Warenkorb von Shopify anhand der ID */
-  async fetchCart(cartId: string): Promise<void> {
+  private async loadInitialAnonymousCart(): Promise<void> {
+      const storedCartId = localStorage.getItem(CART_ID_STORAGE_KEY);
+      console.log('CartService: Loading initial anonymous cartId from LS:', storedCartId);
+      if (storedCartId) {
+          this._cartId.set(storedCartId);
+      }
+  }
+
+  private _getUserCartIdDocRef(userId: string): DocumentReference<DocumentData> | null {
+      if (!userId) return null;
+      return doc(this.firestore, `users/${userId}/private/cart`);
+  }
+
+  private async _loadUserCartId(userId: string): Promise<string | null> {
+      const docRef = this._getUserCartIdDocRef(userId);
+      if (!docRef) return null;
+      try {
+          const docSnap = await getDoc(docRef);
+          const firestoreCartId = docSnap.exists() ? docSnap.data()?.['cartId'] as string : null;
+          console.log(`CartService: Loaded User Cart ID from Firestore for ${userId}:`, firestoreCartId);
+          return firestoreCartId;
+      } catch (error) {
+          console.error(`CartService: Error loading Cart ID from Firestore for user ${userId}:`, error);
+          return null;
+      }
+  }
+
+  private async _saveUserCartId(userId: string, cartId: string | null): Promise<void> {
+      const docRef = this._getUserCartIdDocRef(userId);
+      if (!docRef) return;
+      try {
+          if (cartId) {
+              console.log(`CartService: Saving Cart ID ${cartId} to Firestore for user ${userId}.`);
+              await setDoc(docRef, { cartId: cartId }, { merge: true });
+          } else {
+              console.log(`CartService: Deleting Cart ID from Firestore for user ${userId}.`);
+              await deleteDoc(docRef);
+          }
+      } catch (error) {
+          console.error(`CartService: Error saving/deleting Cart ID in Firestore for user ${userId}:`, error);
+          this.error.set('Fehler beim Speichern des Benutzer-Warenkorbs.');
+      }
+  }
+
+  private _loadAnonymousCartId(): string | null {
+      if (isPlatformBrowser(this.platformId)) {
+          const storedCartId = localStorage.getItem(CART_ID_STORAGE_KEY);
+          console.log(`CartService: Loaded Anonymous Cart ID from LS:`, storedCartId);
+          return storedCartId;
+      }
+      return null;
+  }
+
+  private async _saveAnonymousCartId(cartId: string | null): Promise<void> {
+      if (isPlatformBrowser(this.platformId)) {
+          if (cartId) {
+              console.log('CartService: Saving Anonymous Cart ID to Local Storage:', cartId);
+              localStorage.setItem(CART_ID_STORAGE_KEY, cartId);
+          } else {
+              await this._clearAnonymousCartId();
+          }
+      }
+  }
+
+  private async _clearAnonymousCartId(): Promise<void> {
+       if (isPlatformBrowser(this.platformId)) {
+            console.log('CartService: Removing Anonymous Cart ID from Local Storage.');
+            localStorage.removeItem(CART_ID_STORAGE_KEY);
+       }
+   }
+
+  async fetchCart(cartId: string): Promise<Cart | null> {
+    if (!cartId) {
+      if (untracked(this.cart) !== null) this.cart.set(null);
+      return null;
+    }
+    if (untracked(this.cart)?.id === cartId && !this.isLoading()) {
+        console.log(`CartService: Cart ${cartId} already in state. Skipping fetch.`);
+        return untracked(this.cart);
+    }
+
     console.log('CartService: Fetching cart with ID:', cartId);
     this.isLoading.set(true);
     this.error.set(null);
@@ -181,119 +168,258 @@ export class CartService {
       if (fetchedCart) {
         console.log('CartService: Cart fetched successfully:', fetchedCart);
         this.cart.set(fetchedCart);
-        // Sicherstellen, dass die verwendete ID auch gespeichert ist
         if (untracked(this._cartId) !== cartId) {
-           await this._saveCartId(cartId); // Speichere die ID, falls sie aus einem Link kam o.ä.
+             console.warn(`CartService: Fetched cart ID ${cartId} differs from active ID ${untracked(this._cartId)}. Updating active ID.`);
+             this._cartId.set(cartId);
         }
+        return fetchedCart;
       } else {
-        console.warn('CartService: Cart not found on Shopify or fetch failed, removing stored ID.');
-        await this._saveCartId(null); // Entfernt ID aus LS/Firestore und setzt Signal auf null
+        console.warn(`CartService: Cart ${cartId} not found on Shopify or fetch failed.`);
+        this.cart.set(null);
+        if (untracked(this._cartId) === cartId) {
+             console.log(`CartService: Clearing active cart ID ${cartId} because fetch failed.`);
+             this._cartId.set(null);
+        }
+        return null;
       }
     } catch (err) {
       console.error('CartService: Error fetching cart:', err);
       this.error.set('Warenkorb konnte nicht geladen werden.');
+      this.cart.set(null);
+      if (untracked(this._cartId) === cartId) {
+          this._cartId.set(null);
+      }
+      return null;
     } finally {
       this.isLoading.set(false);
     }
   }
 
-  /** Erstellt einen neuen Warenkorb bei Shopify UND speichert die ID */
-  private async _createCartAndSaveId(): Promise<string | null> {
-    console.log('CartService: Creating new cart...');
-    this.isLoading.set(true);
-    this.error.set(null);
-    try {
-      const newCart = await this.shopifyService.createCart();
-      if (newCart?.id) {
-        console.log('CartService: New cart created with ID:', newCart.id);
-        await this._saveCartId(newCart.id); // Speichert ID -> löst Effect aus für fetchCart
-        // Warten wir hier nicht auf fetchCart, der Effect kümmert sich darum
-        return newCart.id;
-      } else {
-        this.error.set('Neuer Warenkorb konnte nicht erstellt werden.');
-        return null;
-      }
-    } catch (err) {
-      console.error('CartService: Error creating cart:', err);
-      this.error.set('Neuer Warenkorb konnte nicht erstellt werden.');
-      return null;
-    } finally {
-       // isLoading wird im Effect nach fetchCart gesetzt
-    }
-  }
-
-  /** Fügt einen Artikel hinzu (erstellt Cart falls nötig) */
   async addLine(merchandiseId: string, quantity: number): Promise<void> {
     this.isLoading.set(true);
     this.error.set(null);
-    let currentCartId = untracked(this._cartId); // Aktuelle ID lesen ohne Effect zu triggern
+    let currentCartId = untracked(this._cartId);
+    const uId = untracked(this.currentUserId);
 
     try {
-        if (!currentCartId) {
-            currentCartId = await this._createCartAndSaveId(); // Erstellt & speichert -> löst Effect aus
-            if (!currentCartId) {
-                 this.isLoading.set(false); return; // Fehler in createCart
-            }
-            // Warten auf den Effect, der den Cart lädt? Eher nicht, addLine sollte direkt danach gehen.
-        }
-
-        console.log(`CartService: Adding line item ${merchandiseId} (Qty: ${quantity}) to cart ${currentCartId}`);
-        const line: CartLineInput = { merchandiseId, quantity };
-        const updatedCart = await this.shopifyService.addCartLines(currentCartId, [line]);
-
-        if (updatedCart) {
-            console.log('CartService: Line added, updated cart:', updatedCart);
-            this.cart.set(updatedCart); // Cart Signal aktualisieren
-            // Sicherstellen dass die ID gespeichert ist (sollte sie sein)
-             if (untracked(this._cartId) !== updatedCart.id) {
-                 await this._saveCartId(updatedCart.id);
-             }
+      let targetCart: Cart | null = null;
+      if (!currentCartId) {
+        console.log("CartService: No active cart, creating new one...");
+        targetCart = await this.shopifyService.createCart([{ merchandiseId, quantity }]);
+        if (targetCart?.id) {
+          this._cartId.set(targetCart.id);
+          if (uId) {
+            await this._saveUserCartId(uId, targetCart.id);
+            await this._clearAnonymousCartId();
+          } else {
+            await this._saveAnonymousCartId(targetCart.id);
+          }
+          console.log("CartService: New cart created and line added via effect:", targetCart);
         } else {
-            console.error('CartService: Failed to add line item.');
-            this.error.set('Artikel konnte nicht zum Warenkorb hinzugefügt werden.');
-            // Ggf. Cart neu laden zur Sicherheit?
-            // await this.fetchCart(currentCartId);
+          throw new Error("Failed to create cart.");
         }
+      } else {
+        console.log(`CartService: Adding line item ${merchandiseId} to cart ${currentCartId}`);
+        const line: CartLineInput = { merchandiseId, quantity };
+        targetCart = await this.shopifyService.addCartLines(currentCartId, [line]);
+        if (targetCart) {
+          console.log('CartService: Line added, updated cart:', targetCart);
+          this.cart.set(targetCart);
+          if (untracked(this._cartId) !== targetCart.id) {
+             console.warn(`Cart ID changed after addLine from ${currentCartId} to ${targetCart.id}`);
+             this._cartId.set(targetCart.id);
+             if (uId) {
+                await this._saveUserCartId(uId, targetCart.id);
+                await this._clearAnonymousCartId();
+             } else {
+                 await this._saveAnonymousCartId(targetCart.id);
+             }
+          }
+        } else {
+          throw new Error('Failed to add line item.');
+        }
+      }
+      // Update Buyer Identity after adding line if user is logged in
+       if (uId && targetCart?.id) {
+           const currentUser = this.authService.getCurrentUser(); // User holen
+           if (currentUser?.email) {
+               await this.updateBuyerIdentity(targetCart.id, { email: currentUser.email, countryCode: 'DE' });
+           }
+       }
     } catch (err) {
-        console.error('CartService: Error adding line:', err);
-        this.error.set('Fehler beim Hinzufügen zum Warenkorb.');
+      console.error('CartService: Error adding line:', err);
+      this.error.set('Fehler beim Hinzufügen zum Warenkorb.');
     } finally {
-        this.isLoading.set(false);
+      this.isLoading.set(false);
     }
   }
 
-
-  /** Entfernt einen Artikel */
   async removeLine(lineId: string): Promise<void> {
-    const currentCartId = untracked(this._cartId); // ID lesen
-    if (!currentCartId) { /* ... Fehler ... */ return; }
-    this.isLoading.set(true); /* ... */
+    const currentCartId = untracked(this._cartId);
+    if (!currentCartId) { this.error.set("Kein Warenkorb aktiv."); return; }
+    this.isLoading.set(true);
+    this.error.set(null);
     try {
       const updatedCart = await this.shopifyService.removeCartLines(currentCartId, [lineId]);
       if (updatedCart) {
-         this.cart.set(updatedCart);
-         if (updatedCart.totalQuantity === 0) {
-             // Optional: Leeren Cart und ID löschen? Oder behalten?
-             // await this._saveCartId(null); // Löscht ID & Cart aus State via Effect
-         }
-      } else { /* ... Fehler ... */ }
-    } catch (err) { /* ... Fehler ... */ }
-    finally { this.isLoading.set(false); }
+        this.cart.set(updatedCart);
+      } else { throw new Error("Failed to remove line."); }
+    } catch (err) {
+      console.error('CartService: Error removing line:', err);
+      this.error.set('Artikel konnte nicht entfernt werden.');
+    } finally { this.isLoading.set(false); }
   }
 
-  /** Aktualisiert Menge */
   async updateLineQuantity(lineId: string, quantity: number): Promise<void> {
-    const currentCartId = untracked(this._cartId); // ID lesen
-    if (!currentCartId) { /* ... Fehler ... */ return; }
-    if (quantity <= 0) { await this.removeLine(lineId); return; } // Bei 0 entfernen
-    this.isLoading.set(true); /* ... */
+    const currentCartId = untracked(this._cartId);
+    if (!currentCartId) { this.error.set("Kein Warenkorb aktiv."); return; }
+    if (quantity <= 0) { await this.removeLine(lineId); return; }
+    this.isLoading.set(true);
+    this.error.set(null);
     const line: CartLineUpdateInput = { id: lineId, quantity };
     try {
       const updatedCart = await this.shopifyService.updateCartLines(currentCartId, [line]);
-      if (updatedCart) { this.cart.set(updatedCart); }
-      else { /* ... Fehler ... */ }
-    } catch (err) { /* ... Fehler ... */ }
-    finally { this.isLoading.set(false); }
+      if (updatedCart) {
+        this.cart.set(updatedCart);
+      } else { throw new Error("Failed to update quantity."); }
+    } catch (err) {
+      console.error('CartService: Error updating quantity:', err);
+      this.error.set('Menge konnte nicht aktualisiert werden.');
+    } finally { this.isLoading.set(false); }
   }
 
+  private async handleLogin(userId: string): Promise<void> {
+    if (!userId) {
+        console.error("CartService: handleLogin called without userId!");
+        return;
+    }
+    console.log(`CartService: Handling login for user ${userId}`);
+    this.isLoading.set(true);
+    this.error.set(null);
+
+    const anonymousCartId = this._loadAnonymousCartId();
+    const userCartId = await this._loadUserCartId(userId);
+
+    console.log(`CartService: Anonymous Cart ID: ${anonymousCartId}`);
+    console.log(`CartService: User Cart ID: ${userCartId}`);
+
+    let finalCartIdToSetActive: string | null = null; // Merken, welche ID aktiv werden soll
+
+    if (!userCartId && anonymousCartId) {
+      console.log("CartService: Scenario A - Adopting anonymous cart.");
+      await this._saveUserCartId(userId, anonymousCartId);
+      await this._clearAnonymousCartId();
+      finalCartIdToSetActive = anonymousCartId;
+    } else if (userCartId && !anonymousCartId) {
+      console.log("CartService: Scenario B - Loading user cart.");
+      await this._clearAnonymousCartId();
+      finalCartIdToSetActive = userCartId;
+    } else if (userCartId && anonymousCartId) {
+      if (userCartId === anonymousCartId) {
+        console.log("CartService: Scenario C1 - User cart and anonymous cart are the same.");
+        await this._clearAnonymousCartId();
+        finalCartIdToSetActive = userCartId;
+      } else {
+        console.log("CartService: Scenario C2 - Merging anonymous cart into user cart.");
+        finalCartIdToSetActive = userCartId; // User-Cart ist Ziel
+
+        const anonCart = await this.shopifyService.fetchCart(anonymousCartId); // Holen statt fetchCart nutzen, um State nicht zu ändern
+
+        if (anonCart && anonCart.lines.edges.length > 0) {
+          const linesToAdd: CartLineInput[] = anonCart.lines.edges.map(edge => ({
+            merchandiseId: edge.node.merchandise.id,
+            quantity: edge.node.quantity
+          }));
+          console.log("CartService: Attempting to add lines to user cart:", linesToAdd);
+          try {
+            const updatedUserCart = await this.shopifyService.addCartLines(userCartId, linesToAdd);
+            if (updatedUserCart) {
+              console.log("CartService: Merge successful. Updating cart state manually.");
+              this.cart.set(updatedUserCart); // State manuell setzen, da fetchCart nicht getriggert wurde
+            } else {
+              console.error("CartService: Failed to add lines during merge. Cart may be incomplete.");
+              this.error.set("Fehler beim Zusammenführen der Warenkörbe.");
+              await this.fetchCart(userCartId); // Lade originalen User Cart
+            }
+          } catch (mergeError) {
+            console.error("CartService: Exception during addCartLines in merge:", mergeError);
+            this.error.set("Fehler beim Zusammenführen der Warenkörbe.");
+            await this.fetchCart(userCartId);
+          }
+        } else {
+          console.log("CartService: Anonymous cart was empty or fetch failed, no lines to merge.");
+          // User-Cart laden, falls nicht schon im State
+          if(untracked(this.cart)?.id !== userCartId) {
+              await this.fetchCart(userCartId);
+          }
+        }
+        await this._clearAnonymousCartId();
+      }
+    } else {
+      console.log("CartService: Scenario D - No carts found.");
+      finalCartIdToSetActive = null;
+      await this._clearAnonymousCartId();
+    }
+
+    // Setze die finale aktive ID -> Effekt lädt/aktualisiert
+    this._cartId.set(finalCartIdToSetActive);
+
+    // Buyer Identity nach dem Laden/Mergen aktualisieren
+    const finalActiveCartId = untracked(this._cartId); // Hole die gerade gesetzte ID
+    const currentUser = this.authService.getCurrentUser(); // User holen
+    if (finalActiveCartId && currentUser?.email) {
+       console.log(`Attempting to update buyer identity for cart ${finalActiveCartId}`);
+       await this.updateBuyerIdentity(finalActiveCartId, { email: currentUser.email, countryCode: 'DE' });
+    }
+
+    this.isLoading.set(false);
+  }
+
+  private async handleLogout(): Promise<void> {
+    console.log("CartService: Handling logout.");
+    const currentActiveCartId = untracked(this._cartId);
+    this.cart.set(null); // State direkt leeren
+
+    if (currentActiveCartId) {
+        await this._saveAnonymousCartId(currentActiveCartId); // User-Cart ID als anonym speichern
+        this._cartId.set(currentActiveCartId); // Behalte ID aktiv (wird von Effekt geladen)
+        console.log(`CartService: User logged out. Cart ${currentActiveCartId} is now treated as anonymous.`);
+    } else {
+        this._cartId.set(null); // Keine ID vorhanden, auf null setzen -> Effekt leert cart
+        await this._clearAnonymousCartId(); // Sicherstellen, dass LS leer ist
+        console.log("CartService: No active cart during logout.");
+    }
+  }
+
+  private async clearCartState(deleteUserCartIdInFirestore: boolean = false): Promise<void> {
+    const previousCartId = untracked(this._cartId);
+    this.cart.set(null);
+    this._cartId.set(null);
+    await this._clearAnonymousCartId();
+    if (deleteUserCartIdInFirestore) {
+        const userId = untracked(this.currentUserId); // Nutze internes Signal
+        if (userId) {
+           await this._saveUserCartId(userId, null);
+        }
+    }
+    console.log(`CartService: Cleared cart state. Previous active cart ID was ${previousCartId}`);
+  }
+
+  async updateBuyerIdentity(cartId: string, buyerIdentity: { email?: string, countryCode?: string }): Promise<void> {
+     console.log(`CartService: Updating buyer identity for cart ${cartId}`);
+     try {
+         // Rufe die Methode im ShopifyService auf
+         const updatedCart = await this.shopifyService.updateCartBuyerIdentity(cartId, buyerIdentity);
+         if (updatedCart) {
+             // Aktualisiere den lokalen Cart-State, falls sich etwas geändert hat
+             this.cart.set(updatedCart);
+             console.log("CartService: Buyer identity updated successfully.");
+         } else {
+             console.warn(`CartService: CartBuyerIdentity update for ${cartId} did not return an updated cart.`);
+         }
+     } catch (error) {
+         console.error(`CartService: Error updating buyer identity for cart ${cartId}:`, error);
+         this.error.set("Kundeninformation konnte nicht aktualisiert werden.");
+     }
+   }
 }
