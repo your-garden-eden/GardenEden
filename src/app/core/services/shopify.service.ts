@@ -1,6 +1,6 @@
 // /src/app/core/services/shopify.service.ts
 import { Injectable } from '@angular/core';
-import { GraphQLClient } from 'graphql-request';
+import { GraphQLClient, gql } from 'graphql-request'; // gql importiert
 import { environment } from '../../../environments/environment';
 import { Observable, from, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
@@ -12,7 +12,7 @@ export interface ShopifyProductVariant { id: string; title: string; sku?: string
 export interface ShopifyProductOption { id: string; name: string; values: string[]; }
 
 export interface Product {
-  id: string;
+  id: string; // Wichtig: Dies ist die GID (z.B. "gid://shopify/Product/123")
   title: string;
   handle: string;
   descriptionHtml?: string | null;
@@ -60,7 +60,8 @@ interface CartFetchPayload { cart: Cart | null; }
 export interface CartBuyerIdentityInput {
   email?: string | null;
   phone?: string | null;
-  countryCode?: string | null;
+  countryCode?: string | null; // Z.B. 'DE'
+  // deliveryAddressPreferences?: any[] | null; // Vorerst weglassen
 }
 interface CartBuyerIdentityUpdatePayload {
     cartBuyerIdentityUpdate: CartResponse | null;
@@ -88,6 +89,39 @@ const CartBuyerIdentityUpdateMutation = `
   ${CartFragment}
 `;
 
+// Query für Produkte nach Handles (Placeholder, nutzt aktuell getProductByHandle)
+const ProductsByHandlesQuery = gql`
+  query getProductsByIds($ids: [ID!]!) {
+    nodes(ids: $ids) {
+      ... on Product {
+        id
+        title
+        handle
+        vendor
+        availableForSale
+        priceRange {
+          minVariantPrice { amount currencyCode }
+          maxVariantPrice { amount currencyCode }
+        }
+        images(first: 1) {
+          edges {
+            node { url(transform: {maxWidth: 400, maxHeight: 400, preferredContentType: WEBP}) altText }
+          }
+        }
+        variants(first: 5) {
+          edges {
+            node {
+              id
+              availableForSale
+              price { amount currencyCode }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
 @Injectable({
   providedIn: 'root'
 })
@@ -99,7 +133,6 @@ export class ShopifyService {
   constructor() {
     if (!this.storefrontEndpoint || !this.storefrontAccessToken || !this.isValidUrl(this.storefrontEndpoint)) {
       console.error('Shopify Storefront Endpoint is missing, invalid, or Access Token missing in environment variables!', { endpoint: this.storefrontEndpoint });
-      // Erstellen Sie einen ungültigen Client, um weitere Fehler zu vermeiden, aber die App stürzt nicht ab.
       this.storefrontClient = new GraphQLClient('http://invalid-endpoint', {
           headers: { 'X-Shopify-Storefront-Access-Token': 'invalid-token' }
       });
@@ -228,6 +261,24 @@ export class ShopifyService {
     } catch (error) { console.error('ShopifyService: GraphQL Fehler bei fetchCart:', error); return null; }
   }
 
+  async updateCartBuyerIdentity(cartId: string, buyerIdentity: CartBuyerIdentityInput): Promise<Cart | null> {
+    if (!cartId) {
+        console.error('ShopifyService: Cart ID is required for updateCartBuyerIdentity');
+        return null;
+    }
+    const variables = { cartId, buyerIdentity };
+    try {
+      const data = await this.storefrontClient.request<CartBuyerIdentityUpdatePayload>(CartBuyerIdentityUpdateMutation, variables);
+      if (data.cartBuyerIdentityUpdate?.userErrors?.length) {
+        console.error('ShopifyService: UserErrors bei cartBuyerIdentityUpdate:', data.cartBuyerIdentityUpdate.userErrors);
+      }
+      return data.cartBuyerIdentityUpdate?.cart ?? null;
+    } catch (error) {
+      console.error('ShopifyService: GraphQL Fehler bei cartBuyerIdentityUpdate:', error);
+      return null;
+    }
+  }
+
   async getProductsSortedByBestSelling(limit: number = 15): Promise<Product[] | null> {
     const query = `
       query getBestSellingProducts($limit: Int!) {
@@ -291,21 +342,23 @@ export class ShopifyService {
     );
   }
 
-  async updateCartBuyerIdentity(cartId: string, buyerIdentity: CartBuyerIdentityInput): Promise<Cart | null> {
-    if (!cartId) {
-        console.error('ShopifyService: Cart ID is required for updateCartBuyerIdentity');
-        return null;
+  /**
+   * Holt Produktdaten für eine Liste von Produkt-Handles.
+   * HINWEIS: Diese Implementierung lädt Produkte einzeln. Für Performance optimieren.
+   */
+  async getProductsByHandles(handles: string[]): Promise<Product[]> {
+    if (!handles || handles.length === 0) {
+      return [];
     }
-    const variables = { cartId, buyerIdentity };
+    console.warn("ShopifyService.getProductsByHandles lädt Produkte einzeln - Performance prüfen!");
     try {
-      const data = await this.storefrontClient.request<CartBuyerIdentityUpdatePayload>(CartBuyerIdentityUpdateMutation, variables);
-      if (data.cartBuyerIdentityUpdate?.userErrors?.length) {
-        console.error('ShopifyService: UserErrors bei cartBuyerIdentityUpdate:', data.cartBuyerIdentityUpdate.userErrors);
-      }
-      return data.cartBuyerIdentityUpdate?.cart ?? null;
+      const productPromises = handles.map(handle => this.getProductByHandle(handle));
+      const products = await Promise.all(productPromises);
+      return products.filter(p => p !== null) as Product[];
     } catch (error) {
-      console.error('ShopifyService: GraphQL Fehler bei cartBuyerIdentityUpdate:', error);
-      return null;
+      console.error(`ShopifyService: Fehler beim Laden von Produkten für Handles: ${handles.join(', ')}`, error);
+      return [];
     }
   }
-}
+
+} // Ende ShopifyService Klasse

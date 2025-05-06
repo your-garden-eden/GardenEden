@@ -6,7 +6,6 @@ import { ProductPageComponent } from './features/product-page/product-page.compo
 import { CategoryOverviewComponent } from './features/category-overview/category-overview.component';
 import { StaticPageComponent } from './features/static-page/static-page.component';
 import { RegisterPageComponent } from './features/auth/register-page/register-page.component';
-// import { LoginPageComponent } from './features/auth/login-page/login-page.component'; // <-- Import nicht mehr benötigt
 import { ProfilePageComponent } from './features/account/profile-page/profile-page.component'; // Pfad prüfen!
 import { authGuard } from './core/guards/auth.guard'; // Pfad prüfen!
 
@@ -29,14 +28,15 @@ export const routes: Routes = [
 
   // --- Auth Routen ---
   { path: 'register', component: RegisterPageComponent, title: 'Registrieren - Your Garden Eden' },
-  // { path: 'login', component: LoginPageComponent, title: 'Anmelden - Your Garden Eden' }, // <-- ROUTE ENTFERNT/AUSKOMMENTIERT
+  // { path: 'login', ... } // Entfernt
 
-  // --- Geschützte Route für Profilseite ---
+  // --- Geschützte Routen ---
   {
     path: 'mein-konto',
-    component: ProfilePageComponent, // Ggf. Lazy Loading verwenden: loadComponent: () => ...
+    // Lazy Loading für Profilseite empfohlen
+    loadComponent: () => import('./features/account/profile-page/profile-page.component').then(m => m.ProfilePageComponent),
     title: 'Mein Konto - Your Garden Eden',
-    canActivate: [authGuard]
+    canActivate: [authGuard] // Schützt diese Route
   },
 
   // --- Warenkorb-Route ---
@@ -44,7 +44,19 @@ export const routes: Routes = [
     path: 'warenkorb',
     loadComponent: () => import('./features/cart/cart-page/cart-page.component').then(m => m.CartPageComponent),
     title: 'Warenkorb - Your Garden Eden'
+    // Warenkorb ist nicht geschützt
   },
+
+  // --- NEUE WUNSCHLISTE-ROUTE ---
+  {
+    path: 'wunschliste',
+    // Lazy Loading für die neue Komponente (Pfad prüfen!)
+    loadComponent: () => import('./features/wishlist/wishlist-page/wishlist-page.component').then(m => m.WishlistPageComponent),
+    title: 'Meine Wunschliste - Your Garden Eden',
+    canActivate: [authGuard] // Schützt die Wunschliste
+  },
+  // --- ENDE NEUE WUNSCHLISTE-ROUTE ---
+
 
   // Wildcard-Route am Ende (optional, falls du eine 404-Seite hast)
   // { path: '**', component: NotFoundComponent, title: 'Seite nicht gefunden' }

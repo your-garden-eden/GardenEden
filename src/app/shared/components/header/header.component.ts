@@ -1,5 +1,5 @@
 // /src/app/shared/components/header/header.component.ts
-import { Component, inject, Renderer2, Inject, PLATFORM_ID, OnDestroy, Signal, OnInit, WritableSignal, signal, effect, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, Renderer2, Inject, PLATFORM_ID, OnDestroy, Signal, OnInit, WritableSignal, signal, effect, ChangeDetectionStrategy, computed } from '@angular/core';
 import { RouterModule, Router, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
 import { CommonModule, isPlatformBrowser, AsyncPipe } from '@angular/common';
 import { Observable, Subscription, Subject, EMPTY } from 'rxjs';
@@ -7,14 +7,14 @@ import { debounceTime, distinctUntilChanged, filter, tap, switchMap, catchError 
 import { User } from '@angular/fire/auth';
 import { ReactiveFormsModule, FormControl } from '@angular/forms';
 
-// Komponenten (MiniCart bleibt, LoginOverlay wird global)
+// Komponenten
 import { MiniCartComponent } from '../mini-cart/mini-cart.component';
-// LoginOverlayComponent wird hier nicht mehr benötigt
 
 // Services & Daten
 import { AuthService } from '../../../shared/services/auth.service';
 import { CartService } from '../../../shared/services/cart.service';
 import { UiStateService } from '../../../shared/services/ui-state.service';
+import { WishlistService } from '../../../shared/services/wishlist.service'; // Importiert
 import { navItems, NavItem } from '../../../core/data/navigation.data';
 import { ShopifyService, Product } from '../../../core/services/shopify.service';
 
@@ -23,20 +23,20 @@ import { ShopifyService, Product } from '../../../core/services/shopify.service'
   standalone: true,
   imports: [
     CommonModule,
-    RouterModule, // Enthält RouterLink, RouterLinkActive
+    RouterModule,
     ReactiveFormsModule,
     AsyncPipe,
-    MiniCartComponent // MiniCart bleibt im Header
-    // LoginOverlayComponent // Entfernt, da global
+    MiniCartComponent
    ],
   templateUrl: './header.component.html',
-  styleUrl: './header.component.scss',
+  styleUrls: ['./header.component.scss'], // Korrigiert
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HeaderComponent implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   public cartService = inject(CartService);
   private uiStateService = inject(UiStateService);
+  private wishlistService = inject(WishlistService); // Injiziert
   private router = inject(Router);
   private renderer = inject(Renderer2);
   @Inject(PLATFORM_ID) private platformId = inject(PLATFORM_ID);
@@ -47,10 +47,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
   isMobileMenuOpen = false;
   public navItems = navItems;
 
-  // === Signale vom UiStateService holen (korrekte Namen!) ===
+  // Signale vom UiStateService
   isMiniCartOpen$ = this.uiStateService.isMiniCartOpen$;
-  // isLoginOverlayOpen$ brauchen wir hier nicht unbedingt zum Lesen
-  // ========================================================
+
+  // Signale für Wunschliste und Login-Status
+  isWishlistEmpty: Signal<boolean> = this.wishlistService.isEmpty;
+  isLoggedIn$: Observable<boolean> = this.authService.isLoggedIn();
 
   // Suche
   searchControl = new FormControl('');
@@ -81,7 +83,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
      this.destroy$.complete();
   }
 
-  // --- Suchlogik ---
   private setupSearchDebounce(): void {
     this.subscriptions.add(
         this.searchControl.valueChanges.pipe(
@@ -142,7 +143,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.clearSearch();
   }
 
-  // --- Routen Listener ---
   private setupRouteListener(): void {
     const routeSub = this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
@@ -153,16 +153,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.subscriptions.add(routeSub);
   }
 
-  // --- Login-Overlay Methoden (NUR CLICK) ---
-  /** Ruft die toggle-Methode im UiStateService auf. Das Event ist optional. */
-  toggleLoginOverlay(event?: MouseEvent): void { // <- HIER IST DIE ÄNDERUNG: event?
-    event?.preventDefault(); // Optional Chaining
-    event?.stopPropagation(); // Optional Chaining
-    console.log('Header: Toggling Login Overlay');
+  toggleLoginOverlay(event?: MouseEvent): void {
+    event?.preventDefault();
+    event?.stopPropagation();
     this.uiStateService.toggleLoginOverlay();
   }
 
-  // --- Mini-Cart Methoden ---
   onCartIconMouseEnter(): void {
     this.uiStateService.openMiniCart();
   }
@@ -171,7 +167,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.uiStateService.startCloseTimeout();
   }
 
-  // --- Logout ---
   async performLogout(): Promise<void> {
     this.closeMobileMenu();
     try {
@@ -182,7 +177,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
     }
   }
 
-  // --- Mobile Menu Methoden ---
   toggleMobileMenu(): void {
     this.isMobileMenuOpen = !this.isMobileMenuOpen;
     if (isPlatformBrowser(this.platformId)) {

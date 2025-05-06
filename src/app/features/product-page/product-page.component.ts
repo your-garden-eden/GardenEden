@@ -1,15 +1,15 @@
 // /src/app/features/product-page/product-page.component.ts
-// BASIEREND AUF DEINER FEHLERFREIEN VERSION + CART-LOGIK
-
-import { Component, OnInit, inject, signal, WritableSignal, ChangeDetectionStrategy, ChangeDetectorRef, OnDestroy } from '@angular/core';
+import { Component, OnInit, inject, signal, WritableSignal, ChangeDetectionStrategy, ChangeDetectorRef, OnDestroy, computed, Signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { CommonModule, CurrencyPipe, Location } from '@angular/common'; // Location importieren, CurrencyPipe behalten
+import { CommonModule, CurrencyPipe, Location } from '@angular/common';
 import { Title } from '@angular/platform-browser';
 import { Observable, of, from, Subscription } from 'rxjs';
-import { switchMap, tap, catchError, map } from 'rxjs/operators';
+import { switchMap, tap, catchError, map, filter } from 'rxjs/operators';
 
 import { ShopifyService, Product, ShopifyImage } from '../../core/services/shopify.service';
-import { CartService } from '../../shared/services/cart.service'; // CartService importieren
+import { CartService } from '../../shared/services/cart.service';
+import { WishlistService } from '../../shared/services/wishlist.service';
+import { AuthService } from '../../shared/services/auth.service';
 // Pipes importieren
 import { ImageTransformPipe } from '../../shared/pipes/image-transform.pipe';
 import { FormatPricePipe } from '../../shared/pipes/format-price.pipe';
@@ -18,18 +18,17 @@ import { SafeHtmlPipe } from '../../shared/pipes/safe-html.pipe';
 @Component({
   selector: 'app-product-page',
   standalone: true,
-  imports: [ // Imports aus deiner Version
+  imports: [
     CommonModule,
     RouterLink,
     ImageTransformPipe,
     FormatPricePipe,
     SafeHtmlPipe
-    // CurrencyPipe hier NICHT importiert
   ],
   templateUrl: './product-page.component.html',
-  styleUrl: './product-page.component.scss',
+  styleUrls: ['./product-page.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [CurrencyPipe] // CurrencyPipe über providers bereitgestellt (wie in deiner Version)
+  providers: [CurrencyPipe]
 })
 export class ProductPageComponent implements OnInit, OnDestroy {
   // Services injizieren
@@ -39,43 +38,70 @@ export class ProductPageComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
   private location = inject(Location);
-  private cartService = inject(CartService); // CartService hinzugefügt
+  private cartService = inject(CartService);
+  private wishlistService = inject(WishlistService);
+  private authService = inject(AuthService);
 
-  // Signals (wie in deiner Version)
+  // Signals für Produkt und UI-Zustand
   product: WritableSignal<Product | null> = signal(null);
   isLoading: WritableSignal<boolean> = signal(true);
   error: WritableSignal<string | null> = signal(null);
   selectedImage: WritableSignal<ShopifyImage | null | undefined> = signal(null);
   isAddingToCart: WritableSignal<boolean> = signal(false);
   addToCartError: WritableSignal<string | null> = signal(null);
-  isOnWishlist: WritableSignal<boolean> = signal(false);
+
+  // Computed Signal für Wishlist-Status
+  readonly isOnWishlist: Signal<boolean> = computed(() => {
+      const handle = this.product()?.handle;
+      return handle ? this.wishlistService.isOnWishlist(handle) : false;
+  });
+
+  // Signal für Login-Status (KORRIGIERT: WritableSignal)
+  isLoggedIn: WritableSignal<boolean> = signal(false);
+  private authSubscription: Subscription | null = null;
 
   private routeSubscription?: Subscription;
 
   ngOnInit(): void {
+    // Beobachte Login-Status
+    this.authSubscription = this.authService.isLoggedIn().subscribe(loggedIn => {
+        this.isLoggedIn.set(loggedIn); // Jetzt möglich, da WritableSignal
+        this.cdr.markForCheck();
+    });
+
+    // Lade Produktdaten
     this.routeSubscription?.unsubscribe();
     this.routeSubscription = this.route.paramMap.pipe(
       map(params => params.get('handle')),
       tap(handle => {
-         // Reset state
          this.isLoading.set(true);
          this.product.set(null);
          this.error.set(null);
          this.selectedImage.set(null);
-         this.addToCartError.set(null); // Fehler zurücksetzen
-         this.isAddingToCart.set(false); // Ladezustand zurücksetzen
+         this.addToCartError.set(null);
+         this.isAddingToCart.set(false);
          console.log(`ProductPage: Loading product with handle: ${handle}`);
        }),
-      switchMap(handle => {
-          if (!handle) { this.error.set('Kein Produkt-Handle angegeben.'); return of(null); }
-          return from(this.shopifyService.getProductByHandle(handle)).pipe(
-             catchError(err => { console.error(/*...*/); this.error.set('Fehler beim Laden des Produkts.'); return of(null); })
-          );
-      })
+      filter((handle): handle is string => {
+            if (!handle) {
+                this.error.set('Kein Produkt-Handle angegeben.');
+                this.isLoading.set(false);
+                return false;
+            }
+            return true;
+      }),
+      switchMap(handle => from(this.shopifyService.getProductByHandle(handle)).pipe(
+          catchError(err => {
+             console.error(`Error loading product ${handle}:`, err);
+             this.error.set('Fehler beim Laden des Produkts.');
+             return of(null);
+          })
+      ))
     ).subscribe((productData: Product | null) => {
         if (productData) {
             this.product.set(productData);
-            this.selectedImage.set(productData.images?.edges?.[0]?.node);
+            // Setze initial ausgewähltes Bild sicher
+            this.selectedImage.set(productData.images?.edges?.[0]?.node); // ?. hier beibehalten, da images optional sein *könnte*
             this.titleService.setTitle(`${productData.title} - Your Garden Eden`);
             this.error.set(null);
             console.log('Produktdaten geladen:', productData);
@@ -90,6 +116,7 @@ export class ProductPageComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
       this.routeSubscription?.unsubscribe();
+      this.authSubscription?.unsubscribe();
   }
 
   selectImage(imageNode: ShopifyImage | null | undefined): void {
@@ -98,16 +125,14 @@ export class ProductPageComponent implements OnInit, OnDestroy {
     }
   }
 
-  // --- NEU: Getter für erste verfügbare Variante ---
   get firstAvailableVariantId(): string | null {
     const productData = this.product();
+    // ?. hier sicherheitshalber beibehalten, falls product noch null ist
     if (!productData?.variants?.edges) { return null; }
     const availableVariant = productData.variants.edges.find(edge => edge.node.availableForSale);
     return availableVariant?.node?.id ?? null;
   }
-  // --- ENDE NEU ---
 
-  // --- NEU: addToCart Methode implementiert ---
   async addToCart(): Promise<void> {
     const variantId = this.firstAvailableVariantId;
     if (!variantId) {
@@ -119,24 +144,40 @@ export class ProductPageComponent implements OnInit, OnDestroy {
     try {
       await this.cartService.addLine(variantId, 1);
       console.log(`ProductPage: Variant ${variantId} added successfully.`);
-      // Optional: Erfolgsfeedback
     } catch (error) {
       console.error(`ProductPage: Error adding variant ${variantId} to cart:`, error);
       this.addToCartError.set('Fehler beim Hinzufügen zum Warenkorb.');
     } finally {
       this.isAddingToCart.set(false);
-      this.cdr.markForCheck(); // Wichtig für UI Update bei OnPush
+      this.cdr.markForCheck();
     }
   }
-  // --- ENDE NEU ---
 
-  // Dummy Wishlist-Logik (wie in deiner Version)
-  toggleWishlist(): void {
-    this.isOnWishlist.update(current => !current);
-    console.log('Wishlist getoggled (Dummy)');
-   }
+  async toggleWishlist(): Promise<void> {
+    const handle = this.product()?.handle;
+    if (!handle) {
+        console.error("Product handle not available for wishlist action.");
+        return;
+    }
+    if (!this.isLoggedIn()) {
+        console.warn("User not logged in. Cannot toggle wishlist.");
+        return;
+    }
+    try {
+      if (this.isOnWishlist()) {
+        await this.wishlistService.removeFromWishlist(handle);
+        console.log(`ProductPage: Removed ${handle} from wishlist.`);
+      } else {
+        await this.wishlistService.addToWishlist(handle);
+        console.log(`ProductPage: Added ${handle} to wishlist.`);
+      }
+    } catch (error) {
+        console.error("Error toggling wishlist:", error);
+    } finally {
+        // Kein explizites cdr.markForCheck nötig, da Signals die UI aktualisieren
+    }
+  }
 
-  // goBack Methode (wie in deiner Version)
   goBack(): void {
     this.location.back();
   }
