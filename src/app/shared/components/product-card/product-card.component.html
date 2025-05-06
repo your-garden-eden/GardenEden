@@ -3,7 +3,7 @@
   <!-- Produkt-Link Container -->
   <a [routerLink]="productLink" class="product-link">
     <div class="product-image-container">
-      <img *ngIf="imageUrl" [src]="imageUrl" [alt]="imageAlt" loading="lazy" class="product-image"> <!-- Klasse hinzugefügt -->
+      <img *ngIf="imageUrl" [src]="imageUrl" [alt]="imageAlt" loading="lazy" class="product-image">
       <div *ngIf="!imageUrl" class="no-image-placeholder">
         <span class="material-symbols-outlined">image</span>
       </div>
@@ -14,23 +14,6 @@
     </div>
   </a> <!-- Ende Produkt-Link Container -->
 
-  <!-- === NEU: Aktionen / Warenkorb-Button === -->
-  <div class="product-actions">
-    <button class="add-to-cart-button icon-button"
-            (click)="addToCart($event)"
-            [disabled]="!firstAvailableVariantId || isAdding()"
-            title="In den Warenkorb">
-      <!-- Zeige Icon oder Spinner basierend auf Ladezustand -->
-      <span *ngIf="!isAdding()" class="material-symbols-outlined">add_shopping_cart</span>
-      <span *ngIf="isAdding()" class="button-loading-spinner small"></span>
-      <!-- Optional: Text hinzufügen -->
-      <!-- <span *ngIf="!isAdding()">In den Warenkorb</span> -->
-    </button>
-    <!-- Optional: Wunschliste-Button -->
-    <!-- <button class="wishlist-button icon-button" title="Zur Wunschliste">
-         <span class="material-symbols-outlined">favorite_border</span>
-       </button> -->
-  </div>
-  <!-- === ENDE NEU === -->
+  <!-- === product-actions Block ENTFERNT === -->
 
 </div>
