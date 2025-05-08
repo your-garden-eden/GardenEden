@@ -4,89 +4,67 @@
 
   <!-- === Lade- & Fehlerzustände === -->
   @if (isLoadingWishlist() || isLoadingProducts()) {
-    <div class="loading-indicator wishlist-loading">
-      <p>Wunschliste wird geladen...</p>
-    </div>
+    <div class="loading-indicator wishlist-loading"><p>Wunschliste wird geladen...</p></div>
   }
-  @if (wishlistError(); as errorMsg) {
-    <p class="error-message global-wishlist-error">{{ errorMsg }}</p>
-  }
-  @if (productsError(); as errorMsg) {
-    <p class="error-message product-load-error">{{ errorMsg }}</p>
-  }
+  @if (wishlistError(); as errorMsg) { <p class="error-message global-wishlist-error">{{ errorMsg }}</p> }
+  @if (productsError(); as errorMsg) { <p class="error-message product-load-error">{{ errorMsg }}</p> }
   <!-- === Ende Lade- & Fehlerzustände === -->
 
   <!-- === Inhalt der Wunschliste === -->
   @if (!isLoadingWishlist() && !isLoadingProducts()) {
     @if (!isEmptyWishlist()) {
       <div class="wishlist-content">
-        <!-- Produktliste (Linke/Hauptseite) -->
+        <!-- Produktliste -->
         <div class="wishlist-items">
           <h2>Ihre gemerkten Produkte</h2>
           <div class="items-grid">
-            <!-- Iteriere über die geladenen Produkte -->
             @for (product of wishlistProducts(); track getProductIdentifier($index, product)) {
               <div class="wishlist-item-card">
-                <!-- Produktbild & Titel (klickbar) -->
                 <a [routerLink]="['/product', product.handle]" class="item-link">
                   <div class="item-image">
+                    <!-- KORRIGIERT: ?. nach edges entfernt -->
                     @if (product.images.edges?.[0]?.node?.url; as imgUrl) {
                       <img [src]="imgUrl" [alt]="product.title" loading="lazy">
                     } @else {
-                      <div class="placeholder-image small">
-                        <span class="material-symbols-outlined">image</span>
-                      </div>
+                      <div class="placeholder-image small"><span class="material-symbols-outlined">image</span></div>
                     }
                   </div>
                   <div class="item-info">
                     <h3 class="item-title">{{ product.title }}</h3>
+                    <!-- KORRIGIERT: ?. nach priceRange entfernt (Annahme: priceRange existiert immer, wenn product existiert) -->
                     @if (product.priceRange.minVariantPrice; as price) {
                       <span class="item-price">{{ price.amount | formatPrice : price.currencyCode }}</span>
                     }
                   </div>
                 </a>
-                <!-- Aktionen für dieses Produkt -->
                 <div class="item-actions">
-                  <button class="action-button remove-button"
-                          title="Von Wunschliste entfernen"
-                          (click)="removeFromWishlist(product.handle)"
-                          [disabled]="isLoadingWishlist()">
+                  <button class="action-button remove-button" title="Von Wunschliste entfernen" (click)="removeFromWishlist(product.handle)" [disabled]="isLoadingWishlist()">
                     <span class="material-symbols-outlined">delete</span>
                   </button>
-                  <button class="action-button add-to-cart-button"
-                          title="In den Warenkorb"
-                          (click)="moveFromWishlistToCart(product)"
+                  <button class="action-button add-to-cart-button" title="In den Warenkorb" (click)="moveFromWishlistToCart(product)"
+                          
                           [disabled]="isLoadingProducts() || !product.availableForSale">
                     <span class="material-symbols-outlined">add_shopping_cart</span>
                   </button>
                 </div>
-              </div> <!-- Ende .wishlist-item-card -->
+              </div>
             } <!-- Ende @for -->
           </div> <!-- Ende .items-grid -->
         </div> <!-- Ende .wishlist-items -->
 
-        <!-- Rechte Seite: Zusammenfassung -->
+        <!-- Zusammenfassung -->
         <div class="wishlist-summary">
           <h2>Übersicht</h2>
-          <div class="summary-row item-count">
-            <span>Anzahl Produkte:</span>
-            <span>{{ wishlistProducts().length }}</span>
-          </div>
-          <div class="summary-row total-price">
-            <span>Geschätzter Gesamtpreis:</span>
-            <span>{{ totalPrice() | currency:'EUR':'symbol':'1.2-2':'de-DE' }}</span>
-          </div>
+          <div class="summary-row item-count"><span>Anzahl Produkte:</span><span>{{ wishlistProducts().length }}</span></div>
+          <div class="summary-row total-price"><span>Geschätzter Gesamtpreis:</span><span>{{ totalPrice() | currency:'EUR':'symbol':'1.2-2':'de-DE' }}</span></div>
           <p class="vat-info">Alle Preise inkl. MwSt.</p>
-          <button class="add-all-to-cart-button primary-button"
-                  (click)="addAllToCart()"
-                  [disabled]="isAddAllDisabled()"> <!-- Nutzt das neue computed Signal -->
+          <button class="add-all-to-cart-button primary-button" (click)="addAllToCart()" [disabled]="isAddAllDisabled()">
             Alle in den Warenkorb
           </button>
         </div> <!-- Ende .wishlist-summary -->
       </div> <!-- Ende .wishlist-content -->
-
     } @else {
-      <!-- Meldung für leere Wunschliste -->
+      <!-- Leere Wunschliste -->
       <div class="empty-wishlist-message">
         <h2>Ihre Wunschliste ist leer.</h2>
         <p>Fügen Sie Produkte hinzu, indem Sie auf das Herz-Symbol klicken.</p>

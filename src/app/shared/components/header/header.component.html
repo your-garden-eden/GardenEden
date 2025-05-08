@@ -32,7 +32,7 @@
               @for(product of searchResults(); track product.id) {
                 <li>
                   <a [routerLink]="['/product', product.handle]" (click)="onSearchResultClick()" class="search-result-item">
-                    @if(product.images.edges?.[0]?.node?.url) { <!-- Optional Chaining hier angepasst -->
+                    @if(product.images.edges?.[0]?.node?.url) {
                       <img [src]="product.images.edges[0].node.url" [alt]="product.title" width="40" height="40">
                     } @else {
                       <div class="search-result-placeholder-img"></div>
@@ -71,7 +71,6 @@
           <span class="cart-badge">{{ itemCount$() }}</span>
         }
       </a>
-      <!-- Mini-Cart Komponente (wird durch isMiniCartOpen$ gesteuert) -->
       <app-mini-cart *ngIf="isMiniCartOpen$()"></app-mini-cart>
 
 

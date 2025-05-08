@@ -31,8 +31,7 @@
             <div class="main-image-container">
               <img [src]="mainImg.url" [alt]="mainImg.altText ?? productData.title">
             </div>
-          } @else if (!productData.images.edges?.[0]?.node) { <!-- Korrigiert -->
-            <!-- Placeholder wenn gar kein Bild da -->
+          } @else if (!productData.images.edges?.[0]?.node) {
             <div class="main-image-container">
                <div class="no-image-placeholder"><span class="material-symbols-outlined">image</span></div>
             </div>

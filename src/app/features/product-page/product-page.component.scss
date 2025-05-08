@@ -1,6 +1,6 @@
 // /src/app/features/product-page/product-page.component.scss
 
-@use "sass:color"; // Wird nur noch für color.adjust benötigt
+@use "sass:color"; // Wird für color.adjust benötigt
 
 // Definition aller Farben als CSS Variablen im Host-Element
 :host {
@@ -15,9 +15,9 @@
   --text-color-main: #333;
   --text-color-light: #666;
   --text-color-on-gradient: #4E342E;
-  // SCSS Berechnung für Fallback/Konsistenz
-  // TODO: Ersetzen von lighten() durch color.adjust() oder color.scale()
-  --text-color-light-on-gradient: #{lighten(#4E342E, 15%)};
+  // === KORRIGIERT: lighten() durch color.adjust() ersetzt ===
+  --text-color-light-on-gradient: #{color.adjust(#4E342E, $lightness: 15%)};
+  // ========================================================
 
   // Button/Akzentfarben
   --primary-color: #28a745;
@@ -50,13 +50,13 @@
 // --- Inhalts-Container mit Gradient ---
 .product-page-content {
   max-width: 1200px;
-  margin: 1rem auto; // Oben/unten Margin hinzugefügt
+  margin: 1rem auto;
   background-image: linear-gradient(to bottom, var(--gradient-start), var(--gradient-end));
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
   padding: 2rem;
   color: var(--text-color-on-gradient);
-  position: relative; // Für den Zurück-Button, falls absolut positioniert
+  position: relative;
 }
 
 // --- Zurück-Button ---
@@ -74,7 +74,7 @@
   text-decoration: none;
   cursor: pointer;
   transition: all 0.25s ease-out;
-  margin-bottom: 1.5rem; // Abstand nach unten
+  margin-bottom: 1.5rem;
 
   .material-symbols-outlined {
     font-size: 20px;
@@ -88,8 +88,8 @@
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
   }
   &:active {
-      transform: translateY(0);
-      box-shadow: none;
+    transform: translateY(0);
+    box-shadow: none;
   }
   &:focus-visible {
     outline: none;
@@ -137,8 +137,6 @@
     color: var(--error-color);
     font-weight: 500;
   }
-  // Optional: Style für Wishlist-Fehler
-  // &.wishlist-error { margin-top: 10px; color: var(--error-color); font-size: 0.9em; }
 }
 
 // --- Linke Spalte: Medien-Galerie ---
@@ -151,19 +149,19 @@
     margin-bottom: 1rem;
     position: relative;
     background-color: #fff;
-    min-height: 300px; // Mindesthöhe für Container
+    min-height: 300px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 4px;
     overflow: hidden;
-    aspect-ratio: 1 / 1; // Sicherstellen, dass es quadratisch bleibt
+    aspect-ratio: 1 / 1;
 
     img {
       display: block;
       width: 100%;
-      height: 100%; // Höhe anpassen
-      object-fit: contain; // Bild einpassen
+      height: 100%;
+      object-fit: contain;
     }
     .no-image-placeholder {
       width: 100%;
@@ -271,11 +269,10 @@
         font-size: 20px;
       }
 
-      // Gemeinsames Disabled Styling für beide Buttons
       &:disabled {
         background-color: var(--disabled-color) !important;
         border-color: var(--disabled-color) !important;
-        color: #fff !important; // Weißer Text auf grauem Grund
+        color: #fff !important;
         cursor: not-allowed;
         opacity: 0.7;
         filter: grayscale(50%);
@@ -294,7 +291,7 @@
 
       &:hover:not(:disabled) {
          filter: brightness(90%);
-         background-color: var(--primary-color); // Bleibt gleich beim Hover
+         background-color: var(--primary-color);
       }
 
       .button-loading-spinner {
@@ -312,41 +309,38 @@
       background-color: transparent;
       color: var(--text-color-light-on-gradient);
       border: none;
-      padding: 10px; // Klickfläche
-      border-radius: 50%; // Rund
+      padding: 10px;
+      border-radius: 50%;
       flex-shrink: 0;
       outline: none;
 
       &:focus-visible {
-        box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.5); // Fokus mit Primärfarbe
+        box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.5);
       }
 
       &:hover:not(:disabled) {
-        background-color: var(--wishlist-hover-bg); // Leichter roter Hintergrund
-        color: var(--wishlist-icon-color); // Icon wird rot
+        background-color: var(--wishlist-hover-bg);
+        color: var(--wishlist-icon-color);
       }
 
       .wishlist-icon {
-        color: inherit; // Standardfarbe vom Button erben
+        color: inherit;
         font-size: 24px;
-        transition: transform 0.2s ease, color 0.2s ease, font-variation-settings 0.1s ease; // Übergang für Füllung
-
+        transition: transform 0.2s ease, color 0.2s ease, font-variation-settings 0.1s ease;
         &.filled {
-          color: var(--wishlist-icon-color); // Rote Farbe
-          font-variation-settings: 'FILL' 1; // Füllen
+          color: var(--wishlist-icon-color);
+          font-variation-settings: 'FILL' 1;
         }
       }
 
-      // Spezifisches Disabled Styling für Wishlist Button
       &:disabled {
-        background-color: transparent !important; // Sicherstellen, dass kein BG
-        opacity: 0.9;
+        background-color: transparent !important;
+        opacity: 0.5;
         cursor: not-allowed;
-        filter: none; // Kein Grayscale
-
+        filter: none;
         .wishlist-icon {
-           color: var(--disabled-color) !important; // Explizites Grau
-           font-variation-settings: 'FILL' 1; // Nicht füllen
+           color: var(--disabled-color) !important;
+           font-variation-settings: 'FILL' 1 !important; // Sicherstellen, dass gefüllt
            background-color: transparent !important;
         }
       }
@@ -382,42 +376,22 @@
 
 // --- Responsive ---
 @media (max-width: 768px) {
-  .product-main-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
+  .product-main-grid { grid-template-columns: 1fr; gap: 1.5rem; }
   .product-media-gallery {
-    .main-image-container {
-      max-width: 85%;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    .thumbnail-container {
-      justify-content: flex-start;
-      grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-    }
+    .main-image-container { max-width: 85%; margin-left: auto; margin-right: auto; }
+    .thumbnail-container { justify-content: flex-start; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); }
   }
   .product-info {
     h1.product-title { font-size: 1.4em; }
     .price-section { font-size: 1.3em; }
     .action-buttons-section {
       flex-direction: column;
-      align-items: stretch; // Buttons volle Breite
-      .add-to-cart-btn {
-        width: 100%;
-        justify-content: center;
-      }
-      .add-to-wishlist-btn {
-        width: auto; // Nur so breit wie nötig
-        align-self: center; // Zentriert
-        margin-top: 10px;
-      }
+      align-items: stretch;
+      .add-to-cart-btn { width: 100%; justify-content: center; }
+      .add-to-wishlist-btn { width: auto; align-self: center; margin-top: 10px; }
     }
   }
-  .product-page-content {
-    padding: 1.5rem; // Etwas mehr Padding auf Mobile
-    margin: 1rem;
-  }
+  .product-page-content { padding: 1.5rem; margin: 1rem; }
 }
 
 // --- Keyframes ---
