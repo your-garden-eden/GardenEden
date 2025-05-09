@@ -1,0 +1,13 @@
+<!-- src/app/shared/components/cookie-consent-banner/cookie-consent-banner.component.html -->
+<div class="cookie-consent-banner" *ngIf="!showBanner()"> <!-- Negiert, da showBanner 'hasMadeChoice' ist -->
+    <div class="banner-content">
+      <p class="banner-text">
+        Wir verwenden Cookies, um Ihr Surferlebnis zu verbessern und die Nutzung unserer Website zu analysieren.
+        Weitere Informationen finden Sie in unserer <a routerLink="/datenschutz">Datenschutzerklärung</a>.
+      </p>
+      <div class="banner-actions">
+        <button (click)="acceptEssentialCookies()" class="btn btn-secondary">Nur notwendige</button>
+        <button (click)="acceptAllCookies()" class="btn btn-primary">Alle akzeptieren</button>
+      </div>
+    </div>
+  </div>
