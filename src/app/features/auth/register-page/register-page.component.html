@@ -1,10 +1,22 @@
 <!-- /src/app/features/auth/register-page/register-page.component.html -->
 <div class="auth-page-container register-page">
-    <h1>Neues Konto erstellen</h1>
+  <h1>Neues Konto erstellen</h1>
+
+  <!-- +++ NEU: Container für Erfolgsmeldung +++ -->
+  <div *ngIf="registrationSuccessMessage()" class="success-message registration-success">
+    <span class="material-symbols-outlined icon-large">mark_email_read</span>
+    <h2>Registrierung erfolgreich!</h2>
+    <p>{{ registrationSuccessMessage() }}</p>
+    <p>Sie werden in Kürze zur Startseite weitergeleitet. Alternativ können Sie auch <a routerLink="/">hier klicken</a>.</p>
+  </div>
+  <!-- +++ ENDE NEU +++ -->
+
+  <!-- Formular nur anzeigen, wenn keine Erfolgsmeldung da ist -->
+  <ng-container *ngIf="!registrationSuccessMessage()">
     <p>Erstelle dein persönliches Konto für Your Garden Eden.</p>
-  
+
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" novalidate class="auth-form">
-  
+
       <!-- Vorname -->
       <div class="form-field">
         <label for="firstName">Vorname</label>
@@ -16,7 +28,7 @@
           <small *ngIf="firstName?.errors?.['required']">Vorname ist erforderlich.</small>
         </div>
       </div>
-  
+
       <!-- Nachname -->
       <div class="form-field">
         <label for="lastName">Nachname</label>
@@ -28,23 +40,21 @@
           <small *ngIf="lastName?.errors?.['required']">Nachname ist erforderlich.</small>
         </div>
       </div>
-  
+
       <!-- Adresse - Straße (mit Template-Referenzvariable) -->
       <div class="form-field">
         <label for="addressStreet">Straße & Hausnummer</label>
-        <!-- === #addressStreetInput hinzugefügt === -->
         <input #addressStreetInput
                type="text" id="addressStreet" formControlName="addressStreet"
                placeholder="Adresse eingeben..." required
                [attr.aria-invalid]="addressStreet?.invalid && (addressStreet?.touched || formSubmitted())"
                aria-describedby="addressStreetError">
-         <!-- === ENDE === -->
         <div id="addressStreetError" class="error-container"
               *ngIf="addressStreet?.invalid && (addressStreet?.touched || formSubmitted())">
           <small *ngIf="addressStreet?.errors?.['required']">Straße und Hausnummer sind erforderlich.</small>
         </div>
       </div>
-  
+
       <!-- Adresse - PLZ & Ort (in einer Reihe) -->
       <div class="form-row">
         <div class="form-field zip-field">
@@ -69,7 +79,7 @@
           </div>
         </div>
       </div>
-  
+
       <!-- E-Mail -->
       <div class="form-field">
         <label for="email">E-Mail-Adresse</label>
@@ -80,9 +90,11 @@
              *ngIf="email?.invalid && (email?.touched || formSubmitted())">
           <small *ngIf="email?.errors?.['required']">E-Mail ist erforderlich.</small>
           <small *ngIf="email?.errors?.['email']">Ungültige E-Mail-Adresse.</small>
+          <!-- +++ NEU: Fehler für bereits verwendete E-Mail direkt hier anzeigen +++ -->
+          <small *ngIf="email?.errors?.['alreadyInUse']">Diese E-Mail-Adresse wird bereits verwendet.</small>
         </div>
       </div>
-  
+
       <!-- Passwort -->
       <div class="form-field">
         <label for="password">Passwort</label>
@@ -95,7 +107,7 @@
           <small *ngIf="password?.errors?.['minlength']">Passwort muss mindestens 6 Zeichen lang sein.</small>
         </div>
       </div>
-  
+
       <!-- Passwort bestätigen -->
       <div class="form-field">
         <label for="confirmPassword">Passwort bestätigen</label>
@@ -111,13 +123,13 @@
            <small>Die Passwörter stimmen nicht überein.</small>
          </div>
       </div>
-  
+
       <!-- Newsletter -->
       <div class="form-field checkbox-field">
          <input type="checkbox" id="newsletter" formControlName="newsletter">
          <label for="newsletter">Ja, ich möchte den Newsletter abonnieren...</label>
       </div>
-  
+
       <!-- AGB / Datenschutz Checkbox -->
       <div class="form-field checkbox-field terms-field">
          <input type="checkbox" id="acceptTerms" formControlName="acceptTerms" required
@@ -132,23 +144,22 @@
            <small *ngIf="acceptTerms?.errors?.['required']">Bitte akzeptiere die AGB und Datenschutzbestimmungen.</small>
          </div>
       </div>
-  
-      <!-- Allgemeine Fehlermeldung -->
-      <div *ngIf="errorMessage()" class="error-message general-error">
+
+      <!-- Allgemeine Fehlermeldung (wird jetzt unter dem Formular angezeigt, wenn keine Erfolgsmeldung da ist) -->
+      <div *ngIf="errorMessage() && !registrationSuccessMessage()" class="error-message general-error">
         {{ errorMessage() }}
       </div>
-  
+
       <!-- Absende-Button -->
       <button type="submit" class="submit-button" [disabled]="registerForm.invalid || isLoading()">
         <span *ngIf="!isLoading()">Konto erstellen</span>
         <span *ngIf="isLoading()" class="button-loading-spinner"></span>
         <span *ngIf="isLoading()">Konto wird erstellt...</span>
       </button>
-  
     </form>
-  
+
     <div class="auth-switch-link">
       <p>Du hast bereits ein Konto? <a routerLink="/login">Hier anmelden</a></p>
     </div>
-  
-  </div>
+  </ng-container> <!-- Ende ng-container für Formular -->
+</div>

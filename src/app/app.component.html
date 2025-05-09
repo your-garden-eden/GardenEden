@@ -17,9 +17,11 @@
       [class.visible]="isLoginOverlayOpen$()">
   </app-login-overlay>
 
-  <!-- === NEU: Mini Warenkorb === -->
-  <!-- Wird nur gerendert, wenn isMiniCartOpen$() true ist -->
+  <!-- Mini Warenkorb -->
   <app-mini-cart *ngIf="isMiniCartOpen$()"></app-mini-cart>
-  <!-- === ENDE NEU === -->
+
+  <!-- +++ NEU: Cookie Consent Banner +++ -->
+  <app-cookie-consent-banner></app-cookie-consent-banner>
+  <!-- +++ ENDE NEU +++ -->
 
 </ng-container>

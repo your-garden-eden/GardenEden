@@ -7,9 +7,11 @@ import { MaintenanceComponent } from './maintenance/maintenance.component';
 import { HeaderComponent } from './shared/components/header/header.component';
 import { FooterComponent } from './shared/components/footer/footer.component';
 import { LoginOverlayComponent } from './shared/components/login-overlay/login-overlay.component';
-// --- NEU: Import für MiniCart ---
-import { MiniCartComponent } from './shared/components/mini-cart/mini-cart.component'; // Pfad prüfen!
+import { MiniCartComponent } from './shared/components/mini-cart/mini-cart.component';
 import { UiStateService } from './shared/services/ui-state.service';
+
+// +++ NEU: Import für CookieConsentBannerComponent +++
+import { CookieConsentBannerComponent } from './shared/components/cookie-consent-banner/cookie-consent-banner.component';
 
 @Component({
   selector: 'app-root',
@@ -21,7 +23,8 @@ import { UiStateService } from './shared/services/ui-state.service';
     HeaderComponent,
     FooterComponent,
     LoginOverlayComponent,
-    MiniCartComponent // <<< Hinzugefügt
+    MiniCartComponent,
+    CookieConsentBannerComponent // +++ NEU: Hinzugefügt +++
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
@@ -30,10 +33,11 @@ export class AppComponent {
   maintenanceMode = environment.maintenanceMode;
   currentYear = new Date().getFullYear();
 
-  // --- UiStateService injizieren und Signale verfügbar machen ---
   private uiStateService = inject(UiStateService);
   isLoginOverlayOpen$: Signal<boolean> = this.uiStateService.isLoginOverlayOpen$;
-  // --- NEU: Signal für MiniCart ---
   isMiniCartOpen$: Signal<boolean> = this.uiStateService.isMiniCartOpen$;
 
+  // Es ist nicht nötig, den CookieConsentService hier zu injizieren,
+  // da die Logik komplett in der CookieConsentBannerComponent gekapselt ist,
+  // die ihren eigenen Service injiziert.
 }
