@@ -1,50 +1,29 @@
-import { Component, OnInit, inject, signal, ChangeDetectionStrategy, WritableSignal, OnDestroy } from '@angular/core';
-import { CommonModule, DatePipe, DecimalPipe } from '@angular/common'; // DecimalPipe hinzugefügt
-import { Subscription } from 'rxjs';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy, WritableSignal } from '@angular/core';
+import { CommonModule, DatePipe, DecimalPipe } from '@angular/common'; // DecimalPipe war schon da, DatePipe wird jetzt nicht mehr direkt benötigt
 
 import { ShopifyService, Product } from '../../core/services/shopify.service';
-import { NewsService, NewsArticle } from '../../core/services/news.service';
-import { WeatherService, WeatherData } from '../../core/services/weather.service';
 import { ProductCardComponent } from '../../shared/components/product-card/product-card.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, ProductCardComponent, DatePipe, DecimalPipe], // DecimalPipe hinzugefügt
+  // DatePipe wird nicht mehr benötigt, wenn News wegfallen, aber schadet nicht, wenn es drin bleibt.
+  // CommonModule wird für @if, @for etc. benötigt. DecimalPipe ggf. für Produktpreise.
+  imports: [CommonModule, ProductCardComponent, DatePipe, DecimalPipe],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class HomeComponent implements OnInit, OnDestroy {
+export class HomeComponent implements OnInit {
 
   private shopifyService = inject(ShopifyService);
-  private newsService = inject(NewsService);
-  private weatherService = inject(WeatherService);
 
   bestsellerProducts: WritableSignal<Product[]> = signal([]);
   isLoadingBestsellers: WritableSignal<boolean> = signal(false);
   errorBestsellers: WritableSignal<string | null> = signal(null);
 
-  newsArticles: WritableSignal<NewsArticle[]> = signal([]);
-  isLoadingNews: WritableSignal<boolean> = signal(false);
-  errorNews: WritableSignal<string | null> = signal(null);
-
-  weatherData: WritableSignal<WeatherData | null> = signal(null);
-  isLoadingWeather: WritableSignal<boolean> = signal(false);
-  errorWeather: WritableSignal<string | null> = signal(null);
-
-  private newsSubscription: Subscription | null = null;
-  private weatherSubscription: Subscription | null = null;
-
   ngOnInit(): void {
     this.loadBestsellers();
-    this.loadNews();
-    this.loadWeatherData();
-  }
-
-  ngOnDestroy(): void {
-      this.newsSubscription?.unsubscribe();
-      this.weatherSubscription?.unsubscribe();
   }
 
   async loadBestsellers(): Promise<void> {
@@ -52,7 +31,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.errorBestsellers.set(null);
     this.bestsellerProducts.set([]);
     try {
-      const products = await this.shopifyService.getProductsSortedByBestSelling(8);
+      const products = await this.shopifyService.getProductsSortedByBestSelling(10);
       this.bestsellerProducts.set(products ?? []);
     } catch (err) {
       console.error('HomeComponent: Bestseller Fehler:', err);
@@ -60,41 +39,5 @@ export class HomeComponent implements OnInit, OnDestroy {
     } finally {
       this.isLoadingBestsellers.set(false);
     }
-  }
-
-  loadNews(): void {
-    this.isLoadingNews.set(true);
-    this.errorNews.set(null);
-    this.newsArticles.set([]);
-    this.newsSubscription = this.newsService.getNews().subscribe({
-        next: (articles) => {
-            this.newsArticles.set(articles ?? []);
-            if (!articles) console.log('HomeComponent: Keine News erhalten.');
-            this.isLoadingNews.set(false);
-        },
-        error: (err) => {
-            console.error('HomeComponent: News Fehler:', err);
-            this.errorNews.set('Fehler beim Laden der Garten-News.');
-            this.isLoadingNews.set(false);
-        }
-    });
-  }
-
-  loadWeatherData(): void {
-    this.isLoadingWeather.set(true);
-    this.errorWeather.set(null);
-    this.weatherData.set(null);
-    this.weatherSubscription = this.weatherService.getCurrentWeather().subscribe({
-      next: (data) => {
-        this.weatherData.set(data);
-        if (!data) console.log('HomeComponent: Keine Wetterdaten erhalten.');
-        this.isLoadingWeather.set(false);
-      },
-      error: (err) => {
-        console.error('HomeComponent: Wetter Fehler:', err);
-        this.errorWeather.set('Fehler beim Laden der Wetterdaten.');
-        this.isLoadingWeather.set(false);
-      }
-    });
   }
 }
