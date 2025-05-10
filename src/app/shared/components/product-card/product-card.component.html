@@ -1,6 +1,5 @@
 <!-- /src/app/shared/components/product-card/product-card.component.html -->
-<div class="product-card">
-  <!-- Produkt-Link Container -->
+<div class="product-card" [class.is-unavailable]="!product.availableForSale">
   <a [routerLink]="productLink" class="product-link">
     <div class="product-image-container">
       <img *ngIf="imageUrl" [src]="imageUrl" [alt]="imageAlt" loading="lazy" class="product-image">
@@ -12,6 +11,5 @@
       <h3 class="product-title">{{ product.title }}</h3>
       <p class="product-price">{{ productPrice }}</p>
     </div>
-  </a> <!-- Ende Produkt-Link Container -->
-
+  </a>
 </div>

@@ -1,12 +1,9 @@
 // /src/app/shared/components/product-card/product-card.component.scss
 
-// Lokale Variablen, die sehr spezifisch für dieses Layout sind, können bleiben.
-// $card-border-radius: 8px; // Wird durch var(--border-radius-lg) ersetzt
-
 // Host-Styling
 :host {
   display: block;
-  height: 100%; // Stellt sicher, dass die Karte die Höhe des Grid-Cells füllt
+  height: 100%;
 }
 
 // Der Hauptcontainer der Karte
@@ -14,55 +11,74 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  border: 1px solid var(--border-color-light); // Globale Variable
-  border-radius: var(--border-radius-lg);    // Globale Variable
-  background-color: var(--background-color-component); // Globale Variable (Weiß)
+  border: 1px solid var(--border-color-light);
+  border-radius: var(--border-radius-lg);
+  background-color: var(--background-color-component);
   overflow: hidden;
   position: relative;
-  transition: box-shadow 0.3s ease;
+  transition: box-shadow 0.3s ease, opacity 0.3s ease, filter 0.3s ease; // Transitions für neue Effekte
 
   &:hover {
-    box-shadow: var(--box-shadow-md); // Globale Variable
+    box-shadow: var(--box-shadow-md);
   }
+
+  // +++ NEU: Styles für nicht verfügbare Produkte +++
+  &.is-unavailable {
+    opacity: 0.4; // Reduzierte Deckkraft
+    filter: grayscale(100%); // In Graustufen darstellen
+
+    // Optional: Hover-Effekte für nicht verfügbare Karten reduzieren oder entfernen
+    &:hover {
+      box-shadow: var(--box-shadow-sm); // Weniger prominenter Schatten oder `none`
+      // .product-image { // Verhindert Bild-Zoom beim Hover, falls aktiv
+      //   transform: none;
+      // }
+    }
+
+    // Der Link bleibt klickbar, daher keine pointer-events: none;
+    // Das visuelle Feedback (ausgegraut, blass) signalisiert die Nichtverfügbarkeit.
+  }
+  // +++ ENDE NEU +++
 }
 
 // Der klickbare Link-Bereich
 .product-link {
   display: flex;
   flex-direction: column;
-  text-decoration: none !important; // Wichtig, um Browser-Defaults zu überschreiben
-  color: var(--text-color-base) !important; // Globale Variable (war $product-link-color #4E342E)
+  text-decoration: none !important;
+  color: var(--text-color-base) !important;
   flex-grow: 1;
   height: 100%;
 
   &:hover {
-    // Farbe des Links ändert sich nicht direkt, da der Titel eine eigene Farbe hat.
-    // Der Hover-Effekt wird primär durch den Schatten auf .product-card und ggf. Bild-Zoom gesteuert.
-    // Wenn doch eine Farbänderung gewünscht ist:
-    // color: var(--primary-color) !important;
-
      .product-image {
-        // transform: scale(1.03); // Optionaler Bild-Zoom
+        // transform: scale(1.03); // Optionaler Bild-Zoom, nur wenn Karte verfügbar ist (siehe unten)
      }
   }
 }
 
+// Zusätzliche Regel, um Bild-Zoom nur für verfügbare Karten zu ermöglichen
+.product-card:not(.is-unavailable) .product-link:hover .product-image {
+  // transform: scale(1.03); // Aktiviere dies, wenn du den Zoom-Effekt möchtest
+}
+
+
 // Bild-Container
 .product-image-container {
   width: 100%;
-  aspect-ratio: 1 / 1; // Sorgt für quadratische Bilder
+  aspect-ratio: 1 / 1;
   overflow: hidden;
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: transparent; // Oder var(--background-color-component) wenn ein leichter Rahmen gewünscht ist
+  background-color: transparent;
   position: relative;
 
   .product-image {
     display: block;
     width: 100%;
     height: 100%;
-    object-fit: contain; // Stellt sicher, dass das ganze Bild sichtbar ist
+    object-fit: contain;
     transition: transform 0.3s ease;
   }
 
@@ -71,49 +87,41 @@
       top: 0; left: 0; width: 100%; height: 100%;
       display: flex; justify-content: center; align-items: center;
       .material-symbols-outlined {
-          font-size: 4rem; // Größe beibehalten
-          color: var(--border-color-base); // Globale Variable (war #ccc)
+          font-size: 4rem;
+          color: var(--border-color-base);
       }
   }
 }
 
 // Info-Bereich
 .product-info {
-  padding: var(--spacing-md); // Globale Variable (war 15px rundum)
+  padding: var(--spacing-md);
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  background-color: var(--background-color-light-gray); // Globale Variable für leichten Kontrast
-  // Die unteren Radien werden jetzt vom .product-card übernommen, da .product-info nicht mehr das letzte sichtbare Element sein muss
-  // border-bottom-left-radius: var(--border-radius-lg);
-  // border-bottom-right-radius: var(--border-radius-lg);
+  background-color: var(--background-color-light-gray);
 }
 
 // Titel im Info-Bereich
 .product-title {
-  font-size: 1rem; // Typo-Skala
-  font-weight: var(--font-weight-semibold); // Globale Variable
-  margin: 0 0 var(--spacing-sm) 0; // Globale Variable (war 8px)
+  font-size: 1rem;
+  font-weight: var(--font-weight-semibold);
+  margin: 0 0 var(--spacing-sm) 0;
   display: -webkit-box;
-  -webkit-line-clamp: 2; // Begrenzt auf 2 Zeilen
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  min-height: calc(1rem * var(--line-height-headings, 1.3) * 2); // Ca. Höhe für 2 Zeilen Titel
-  color: inherit; // Erbt Farbe vom .product-link (var(--text-color-base))
-                  // oder spezifisch: var(--text-color-headings) für Braun
-  // Wenn der Titel beim Hover eine andere Farbe bekommen soll:
-  // .product-link:hover & {
-  //   color: var(--primary-color);
-  // }
+  min-height: calc(1rem * var(--line-height-headings, 1.3) * 2);
+  color: inherit;
 }
 
 // Preis im Info-Bereich
 .product-price {
-  font-size: 1rem; // Typo-Skala
-  font-weight: var(--font-weight-bold); // Globale Variable
-  color: var(--price-color); // Globale Variable
-  margin: 0; // Zurücksetzen, da margin-top: auto
-  padding-top: var(--spacing-sm); // Globale Variable (war 8px)
-  margin-top: auto; // Drückt den Preis nach unten
+  font-size: 1rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--price-color);
+  margin: 0;
+  padding-top: var(--spacing-sm);
+  margin-top: auto;
 }

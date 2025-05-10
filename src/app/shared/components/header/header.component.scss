@@ -12,7 +12,7 @@ $mobile-breakpoint: 1024px;
 
 :host {
   display: block;
-  position: relative; 
+  position: relative;
 }
 
 .app-header.two-rows {
@@ -28,24 +28,64 @@ $mobile-breakpoint: 1024px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--spacing-md) var(--spacing-xl) var(--spacing-xs); // MEHR PADDING OBEN
-  min-height: 50px; // Ggf. leicht erhöht
+  padding: var(--spacing-md) var(--spacing-xl) var(--spacing-xs);
+  min-height: 50px;
   position: relative;
 }
 
+// --- Basis-Styling für Icon-Buttons im Header ---
+.icon-button {
+  background: none;
+  border: none;
+  padding: var(--spacing-xs); // Klickfläche / innerer Abstand
+  cursor: pointer;
+  color: var(--secondary-color); // Standard-Icon-Farbe
+  position: relative;
+  transition: color 0.2s ease, background-color 0.2s ease;
+  border-radius: var(--border-radius-circle); // Macht den Button-Bereich rund
+  outline: none; // Entfernt Standard-Fokusring
+
+  .material-symbols-outlined {
+    font-size: 28px; // Standard Icon-Größe
+    vertical-align: middle;
+    display: block; // Stellt sicher, dass das Icon den Platz korrekt einnimmt
+  }
+
+  &:focus-visible { // Eigenes, konsistentes Fokus-Styling
+    // background-color: rgba(var(--secondary-color-rgb, 78, 52, 46), 0.1); // Leichter Hintergrund
+    box-shadow: 0 0 0 2px var(--accent-color-vibrant-green-rgba-02); // Fokus-Schatten
+  }
+
+  &:hover:not([disabled]) {
+    color: var(--text-color-base); // Dunklere Farbe beim Hover
+    // background-color: rgba(var(--secondary-color-rgb, 78, 52, 46), 0.05); // Subtiler Hintergrund beim Hover
+  }
+
+  &[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    &:hover {
+      color: var(--secondary-color); // Keine Farbänderung im Disabled-Hover
+      background-color: transparent;   // Kein Hintergrund im Disabled-Hover
+    }
+  }
+}
+// --- Ende Basis-Styling für Icon-Buttons ---
+
+
 #hamburger-button {
-  display: none;
+  // Erbt .icon-button Styles
+  display: none; // Wird durch Media Query sichtbar
   margin-right: var(--spacing-lg);
-  &.active { /* Ggf. Styling */ }
+  &.active { /* Ggf. Styling für aktiven Zustand, z.B. andere Icon-Farbe */ }
 }
 
 .search-bar-container {
   position: relative;
   flex-grow: 1;
   max-width: 600px;
-  margin: 0 auto; 
+  margin: 0 auto;
   padding: 0 var(--spacing-xl);
-  // margin-top: var(--spacing-sm); // Alternative, wenn Padding der Top-Row nicht reicht
 
   .search-input-wrapper {
     display: flex;
@@ -55,7 +95,7 @@ $mobile-breakpoint: 1024px;
     border: 1px solid transparent;
     padding: 0 var(--spacing-sm) 0 var(--spacing-md);
     transition: background-color 0.2s ease, border-color 0.2s ease;
-    height: 36px; // Leicht reduziert
+    height: 36px;
 
     &:focus-within {
       background-color: var(--background-color-component);
@@ -85,9 +125,10 @@ $mobile-breakpoint: 1024px;
     }
 
     .clear-button {
-      margin-left: var(--spacing-xs);
+      // Erbt .icon-button Styles, aber mit kleinerem Padding
       padding: var(--spacing-xxs);
-      .material-symbols-outlined { font-size: 20px; display: block; }
+      margin-left: var(--spacing-xs);
+      .material-symbols-outlined { font-size: 20px; }
     }
   }
 
@@ -129,38 +170,25 @@ $mobile-breakpoint: 1024px;
   display: flex;
   align-items: center;
   gap: var(--spacing-lg);
-
-  .icon-button {
-    background: none; border: none; padding: var(--spacing-xs); cursor: pointer;
-    color: var(--secondary-color); position: relative; transition: color 0.2s ease;
-    .material-symbols-outlined { font-size: 28px; vertical-align: middle; display: block; }
-
-    &:hover:not([disabled]) {
-      color: var(--text-color-base);
-    }
-    &[disabled] {
-        opacity: 0.5; // BLASSERES GRAU
-        cursor: not-allowed;
-        &:hover { color: var(--secondary-color); }
-    }
-  }
+  // .icon-button Styles werden hier für die meisten Kinder vererbt
 
   .wishlist-button {
+    // Erbt .icon-button Styles
     .material-symbols-outlined {
       transition: color 0.2s ease, font-variation-settings 0.2s ease;
     }
-    &.active {
+    &.active { // Eingeloggt & Wunschliste gefüllt
       .material-symbols-outlined {
         color: var(--wishlist-icon-color);
         font-variation-settings: 'FILL' 1;
       }
     }
-    &.disabled {
+    &.disabled { // Nicht eingeloggt
+      // Opazität kommt von .icon-button[disabled]
       .material-symbols-outlined {
         color: var(--disabled-color) !important;
-        font-variation-settings: 'FILL' 1 !important; // GEFÜLLT
+        font-variation-settings: 'FILL' 1 !important;
       }
-      // Hover wird von .icon-button[disabled] geerbt
     }
   }
 
@@ -228,8 +256,14 @@ $mobile-breakpoint: 1024px;
 }
 
 .close-mobile-menu-button {
-  position: absolute; top: var(--spacing-md); right: var(--spacing-md); z-index: calc(var(--z-index-modal) + 1); color: var(--secondary-color);
-  &:hover { color: #{color.adjust($header-text-color-sass, $lightness: -15%)}; }
+  // Erbt .icon-button Styles
+  position: absolute;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
+  z-index: calc(var(--z-index-modal) + 1);
+  color: var(--secondary-color);
+  // Hover wird von .icon-button geerbt, es sei denn spezifischer Hover ist gewünscht
+  // &:hover { color: #{color.adjust($header-text-color-sass, $lightness: -15%)}; }
 }
 
 .mobile-nav-list {
@@ -243,7 +277,23 @@ $mobile-breakpoint: 1024px;
       &.active-link { color: var(--text-color-base); font-weight: var(--font-weight-bold); }
       &:hover { color: var(--text-color-base); }
     }
-    .expand-button { color: var(--secondary-color); margin-left: var(--spacing-sm); flex-shrink: 0; padding: var(--spacing-xs); &:hover { color: var(--text-color-base); } }
+    .expand-button {
+      // Erbt .icon-button Styles
+      color: var(--secondary-color);
+      margin-left: var(--spacing-sm);
+      flex-shrink: 0;
+      // padding: var(--spacing-xs); // Kommt von .icon-button
+      background-color: transparent !important; // Sicherstellen
+      border: none !important;                 // Sicherstellen
+      // outline: none;                        // Kommt von .icon-button
+      // &:focus-visible {                     // Kommt von .icon-button
+      //   box-shadow: 0 0 0 2px var(--accent-color-vibrant-green-rgba-02);
+      // }
+      // &:hover {                             // Kommt von .icon-button
+      //   color: var(--text-color-base);
+      //   background-color: transparent;
+      // }
+    }
   }
   .mobile-submenu {
     list-style: none; padding: var(--spacing-xs) 0 var(--spacing-sm) var(--spacing-xxl); margin: 0; background-color: rgba(255, 255, 255, 0.2);
@@ -256,7 +306,7 @@ $mobile-breakpoint: 1024px;
 }
 
 @media (max-width: $mobile-breakpoint) {
-  .top-row { padding: var(--spacing-md) var(--spacing-md) var(--spacing-xs); justify-content: space-between; } // Padding angepasst
+  .top-row { padding: var(--spacing-md) var(--spacing-md) var(--spacing-xs); justify-content: space-between; }
   #hamburger-button { display: block; }
   .search-bar-container { max-width: calc(100% - 150px); padding: 0 var(--spacing-xs); margin-left: var(--spacing-sm); margin-right: var(--spacing-sm); }
   .user-actions { gap: var(--spacing-xs); }
@@ -264,7 +314,7 @@ $mobile-breakpoint: 1024px;
 }
 
 @media (max-width: 768px) {
-   .top-row { min-height: 35px; padding: var(--spacing-sm) var(--spacing-xs) var(--spacing-xxs); } // Padding angepasst
+   .top-row { min-height: 35px; padding: var(--spacing-sm) var(--spacing-xs) var(--spacing-xxs); }
    .search-bar-container {
       max-width: calc(100% - 120px); margin-left: var(--spacing-xs); margin-right: var(--spacing-xs);
       .search-input-wrapper { height: 34px; padding: 0 var(--spacing-sm) 0 var(--spacing-md); }
