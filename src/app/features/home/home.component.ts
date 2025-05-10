@@ -52,7 +52,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.errorBestsellers.set(null);
     this.bestsellerProducts.set([]);
     try {
-      const products = await this.shopifyService.getProductsSortedByBestSelling(15);
+      const products = await this.shopifyService.getProductsSortedByBestSelling(8);
       this.bestsellerProducts.set(products ?? []);
     } catch (err) {
       console.error('HomeComponent: Bestseller Fehler:', err);
