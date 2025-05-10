@@ -2,16 +2,13 @@
 <div class="auth-page-container register-page">
   <h1>Neues Konto erstellen</h1>
 
-  <!-- +++ NEU: Container für Erfolgsmeldung +++ -->
   <div *ngIf="registrationSuccessMessage()" class="success-message registration-success">
     <span class="material-symbols-outlined icon-large">mark_email_read</span>
     <h2>Registrierung erfolgreich!</h2>
     <p>{{ registrationSuccessMessage() }}</p>
     <p>Sie werden in Kürze zur Startseite weitergeleitet. Alternativ können Sie auch <a routerLink="/">hier klicken</a>.</p>
   </div>
-  <!-- +++ ENDE NEU +++ -->
 
-  <!-- Formular nur anzeigen, wenn keine Erfolgsmeldung da ist -->
   <ng-container *ngIf="!registrationSuccessMessage()">
     <p>Erstelle dein persönliches Konto für Your Garden Eden.</p>
 
@@ -90,7 +87,6 @@
              *ngIf="email?.invalid && (email?.touched || formSubmitted())">
           <small *ngIf="email?.errors?.['required']">E-Mail ist erforderlich.</small>
           <small *ngIf="email?.errors?.['email']">Ungültige E-Mail-Adresse.</small>
-          <!-- +++ NEU: Fehler für bereits verwendete E-Mail direkt hier anzeigen +++ -->
           <small *ngIf="email?.errors?.['alreadyInUse']">Diese E-Mail-Adresse wird bereits verwendet.</small>
         </div>
       </div>
@@ -145,12 +141,10 @@
          </div>
       </div>
 
-      <!-- Allgemeine Fehlermeldung (wird jetzt unter dem Formular angezeigt, wenn keine Erfolgsmeldung da ist) -->
       <div *ngIf="errorMessage() && !registrationSuccessMessage()" class="error-message general-error">
         {{ errorMessage() }}
       </div>
 
-      <!-- Absende-Button -->
       <button type="submit" class="submit-button" [disabled]="registerForm.invalid || isLoading()">
         <span *ngIf="!isLoading()">Konto erstellen</span>
         <span *ngIf="isLoading()" class="button-loading-spinner"></span>
@@ -159,7 +153,9 @@
     </form>
 
     <div class="auth-switch-link">
-      <p>Du hast bereits ein Konto? <a routerLink="/login">Hier anmelden</a></p>
+      <p>Du hast bereits ein Konto?
+        <a href="#" (click)="openLoginOverlay($event)">Hier anmelden</a> <!-- +++ GEÄNDERT +++ -->
+      </p>
     </div>
-  </ng-container> <!-- Ende ng-container für Formular -->
+  </ng-container>
 </div>

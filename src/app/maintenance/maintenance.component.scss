@@ -1,76 +1,82 @@
+// /src/app/features/maintenance/maintenance.component.scss
+
 :host {
-    display: block; // Wichtig, damit Höhe/Breite wirken
-    width: 100%;
-    min-height: 100vh; // Mindestens die Höhe des Viewports
+  display: block;
+  width: 100%;
+  min-height: 100vh;
+}
+
+.maintenance-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: var(--background-color-component); // Globale Variable (Weiß)
+  color: var(--primary-color); // Globale Primärfarbe für den Haupttext
+  padding: var(--spacing-xl); // Globale Variable (war 2rem)
+  box-sizing: border-box;
+  text-align: center;
+
+  .logo {
+    width: 40%;
+    max-width: 400px;
+    height: auto;
+    margin-bottom: var(--spacing-xl); // Globale Variable (war 2rem)
   }
-  
-  .maintenance-container {
+
+  h1 {
+    font-size: 2.5rem; // Kann später durch globale Typo-Skala ersetzt werden
+    margin-bottom: var(--spacing-xl); // Globale Variable (war 2rem)
+    font-weight: var(--font-weight-light); // Globale Variable
+  }
+
+  .countdown {
     display: flex;
-    flex-direction: column;
     justify-content: center;
-    align-items: center;
-    min-height: 100vh; // Stellt sicher, dass der Container den Viewport füllt
-    background-color: rgb(255, 255, 255);
-    color: rgb(135, 220, 109);
-    padding: 2rem; // Etwas Innenabstand
-    box-sizing: border-box; // Padding wird in Höhe/Breite einberechnet
-    text-align: center;
-  
-    .logo {
-      width: 40%; // Macht das Logo groß - % ist relativ zum Container
-      max-width: 400px; // Maximale Breite, um Übergröße zu verhindern
-      height: auto; // Seitenverhältnis beibehalten
-      margin-bottom: 2rem; // Abstand nach unten
-    }
-  
-    h1 {
-      font-size: 2.5rem; // Große Schrift für den Haupttext
-      margin-bottom: 2rem; // Abstand nach unten
-      font-weight: 300; // Etwas leichtere Schrift
-    }
-  
-    .countdown {
+    align-items: baseline;
+    gap: var(--spacing-lg); // Globale Variable (war 1.5rem)
+    flex-wrap: wrap;
+
+    .time-unit {
       display: flex;
-      justify-content: center;
-      align-items: baseline; // Grundlinie ausrichten
-      gap: 1.5rem; // Abstand zwischen den Zeiteinheiten
-      flex-wrap: wrap; // Umbruch auf kleinen Bildschirmen
-  
-      .time-unit {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-  
-        .value {
-          font-size: 3rem; // Große Zahlen für den Countdown
-          font-weight: bold;
-          line-height: 1;
-        }
-  
-        .label {
-          font-size: 0.9rem; // Kleinere Beschriftung
-          text-transform: uppercase;
-          color: #ccc; // Etwas gedämpfte Farbe
-        }
+      flex-direction: column;
+      align-items: center;
+
+      .value {
+        font-size: 3rem; // Kann später durch globale Typo-Skala ersetzt werden
+        font-weight: var(--font-weight-bold); // Globale Variable
+        line-height: 1;
       }
-    }
-  
-    .countdown-ended {
-        h2 {
-          font-size: 2rem;
-          color: #4caf50; // Grüne Farbe z.B. für "Live"
-        }
-    }
-  }
-  
-  // Optional: Media Query für sehr kleine Bildschirme, um Schriftgrößen anzupassen
-  @media (max-width: 480px) {
-    .maintenance-container {
-      h1 {
-        font-size: 2rem;
-      }
-      .countdown .time-unit .value {
-        font-size: 2rem;
+
+      .label {
+        font-size: 0.9rem; // Kann später durch globale Typo-Skala ersetzt werden
+        text-transform: uppercase;
+        color: var(--text-color-muted); // Globale Variable (war #ccc)
       }
     }
   }
+
+  .countdown-ended {
+      h2 {
+        font-size: 2rem; // Kann später durch globale Typo-Skala ersetzt werden
+        color: var(--success-color); // Globale Variable (war #4caf50)
+        margin-top: var(--spacing-xl); // Etwas Abstand zum Rest
+      }
+  }
+}
+
+// Responsive Anpassungen
+@media (max-width: 480px) { // Breakpoint beibehalten
+  .maintenance-container {
+    h1 {
+      font-size: 2rem; // Typo-Skala
+    }
+    .countdown .time-unit .value {
+      font-size: 2rem; // Typo-Skala
+    }
+    .countdown-ended h2 {
+        font-size: 1.5rem; // Typo-Skala
+    }
+  }
+}

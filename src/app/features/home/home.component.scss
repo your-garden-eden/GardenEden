@@ -1,24 +1,22 @@
-:host {
-  --card-border-radius: 8px;
-  --text-color-normal: #333;
-  --text-color-light: #555;
-  --text-color-lighter: #777;
-  --link-color: #0066cc;
-  --link-color-hover: #004c99;
-  --error-color: #d32f2f;
-  --background-light: #f8f9fa;
-  --card-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
+// /src/app/features/home/home.component.scss
+
+// Lokale CSS Custom Properties im :host werden nicht mehr benötigt,
+// da wir globale Variablen aus styles.scss verwenden.
+// :host {
+//   --card-border-radius: 8px;
+//   --text-color-normal: #333;
+//   ...etc...
+// }
 
 .content-container {
-  max-width: 1400px;
+  max-width: 1400px; // Spezifischer Wert für diese Seite
   margin-left: auto;
   margin-right: auto;
-  padding-left: 1rem;
-  padding-right: 1rem;
+  padding-left: var(--spacing-lg);  // Globale Variable
+  padding-right: var(--spacing-lg); // Globale Variable
 }
 
-.visually-hidden {
+.visually-hidden { // Bleibt wie es ist, ist eine Utility-Klasse
   position: absolute;
   width: 1px;
   height: 1px;
@@ -35,7 +33,7 @@
   height: 70vh;
   min-height: 400px;
   overflow: hidden;
-  background-color: #e0e0e0;
+  background-color: var(--background-color-light-gray); // Globale Variable (oder eine spezifischere)
 }
 
 .hero-video {
@@ -50,51 +48,52 @@
 }
 
 .bestseller-section, .news-section, .weather-section {
-  padding-top: 3rem;
-  padding-bottom: 3rem;
+  padding-top: var(--spacing-xxxl);    // Globale Variable
+  padding-bottom: var(--spacing-xxxl); // Globale Variable
 
   h2 {
     text-align: center;
-    margin-bottom: 2.5rem;
-    font-size: 2rem;
-    font-weight: 600;
-    color: var(--text-color-normal);
+    margin-bottom: var(--spacing-xxl); // Globale Variable
+    font-size: 2rem; // Typo-Skala
+    font-weight: var(--font-weight-semibold); // Globale Variable
+    color: var(--text-color-headings); // Globale Variable
   }
 
   .loading-indicator, .error-message, .info-message {
     text-align: center;
-    padding: 3rem 1rem;
-    font-size: 1.1rem;
-    color: var(--text-color-light);
+    padding: var(--spacing-xxxl) var(--spacing-lg); // Globale Variablen
+    font-size: 1.1rem; // Typo-Skala
+    color: var(--text-color-muted); // Globale Variable
     min-height: 150px;
     display: flex;
     justify-content: center;
     align-items: center;
     &.small {
       min-height: 60px;
-      padding: 1rem;
-      font-size: 0.9rem;
+      padding: var(--spacing-lg); // Globale Variable
+      font-size: 0.9rem; // Typo-Skala
     }
   }
-  .error-message {
-    color: var(--error-color);
-    font-weight: 500;
+  .error-message { // Wird von der allgemeinen .error-message in category-overview abgedeckt, wenn globaler
+    color: var(--error-text-color); // Globale Variable
+    background-color: var(--error-background-color); // Für Konsistenz
+    border-radius: var(--border-radius-md);
+    font-weight: var(--font-weight-medium); // Globale Variable
   }
 }
 
-
 .weather-section {
-  padding-top: 1rem;
-  padding-bottom: 1rem;
-  background-color: var(--background-light);
-  border-bottom: 1px solid #eee;
-  margin-bottom: 2rem;
+  padding-top: var(--spacing-lg);    // Globale Variable
+  padding-bottom: var(--spacing-lg); // Globale Variable
+  background-color: var(--background-color-light-gray); // Globale Variable
+  border-bottom: 1px solid var(--border-color-light); // Globale Variable
+  margin-bottom: var(--spacing-xl); // Globale Variable
 
   .weather-display {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.8rem;
+    gap: var(--spacing-sm); // Globale Variable
     flex-wrap: wrap;
   }
 
@@ -112,63 +111,62 @@
   }
 
   .weather-temp {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: var(--text-color-normal);
+    font-size: 1.5rem; // Typo-Skala
+    font-weight: var(--font-weight-semibold); // Globale Variable
+    color: var(--text-color-base); // Globale Variable
     line-height: 1.1;
   }
 
   .weather-desc {
-    font-size: 0.95rem;
-    color: var(--text-color-light);
+    font-size: 0.95rem; // Typo-Skala
+    color: var(--text-color-muted); // Globale Variable
     line-height: 1.2;
     text-transform: capitalize;
   }
   .weather-location {
-      font-size: 0.8rem;
-      color: var(--text-color-lighter);
+      font-size: 0.8rem; // Typo-Skala
+      color: var(--text-color-muted); // Globale Variable (statt --text-color-lighter)
       line-height: 1.2;
   }
 }
-
 
 .bestseller-section {
   .product-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 2rem;
+    gap: var(--spacing-xl); // Globale Variable
     justify-content: center;
-    @media (max-width: 992px) { gap: 1.5rem; }
-    @media (max-width: 768px) { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
-    @media (max-width: 480px) { grid-template-columns: repeat(2, 1fr); gap: 0.8rem; }
+    @media (max-width: 992px) { gap: var(--spacing-lg); } // Globale Variable
+    @media (max-width: 768px) { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--spacing-lg); } // Globale Variable
+    @media (max-width: 480px) { grid-template-columns: repeat(2, 1fr); gap: var(--spacing-sm); } // Globale Variable
   }
 }
 
 .news-section {
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--border-color-light); // Globale Variable
   .news-list {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 2rem;
+    gap: var(--spacing-xl); // Globale Variable
     @media (min-width: 768px) { grid-template-columns: repeat(2, 1fr); }
-    @media (min-width: 1024px) { grid-template-columns: repeat(3, 1fr); gap: 2.5rem; }
+    @media (min-width: 1024px) { grid-template-columns: repeat(3, 1fr); gap: var(--spacing-xxl); } // Globale Variable
   }
   .news-article-card {
-    background-color: #ffffff;
-    border-radius: var(--card-border-radius);
-    box-shadow: var(--card-shadow);
+    background-color: var(--background-color-component); // Globale Variable
+    border-radius: var(--border-radius-lg); // Globale Variable (statt --card-border-radius)
+    box-shadow: var(--box-shadow-sm); // Globale Variable (statt --card-shadow)
     overflow: hidden;
     display: flex;
     flex-direction: column;
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
     &:hover {
       transform: translateY(-5px);
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+      box-shadow: var(--box-shadow-md); // Stärkerer Schatten beim Hover
     }
     .news-image-link {
       display: block;
       aspect-ratio: 16 / 9;
-      background-color: #f0f0f0;
+      background-color: var(--background-color-light-gray); // Globale Variable
       overflow: hidden;
     }
     .news-image {
@@ -182,33 +180,33 @@
       transform: scale(1.05);
     }
     .news-content {
-      padding: 1rem 1.25rem 1.25rem;
+      padding: var(--spacing-lg) var(--spacing-xl) var(--spacing-xl); // Globale Variablen
       display: flex;
       flex-direction: column;
       flex-grow: 1;
       h3 {
-        font-size: 1.1rem;
-        margin: 0 0 0.5rem 0;
+        font-size: 1.1rem; // Typo-Skala
+        margin: 0 0 var(--spacing-sm) 0; // Globale Variable
         line-height: 1.4;
-        color: var(--text-color-normal);
+        color: var(--text-color-base); // Globale Variable
         display: -webkit-box;
         -webkit-line-clamp: 3;
         -webkit-box-orient: vertical;
         overflow: hidden;
         text-overflow: ellipsis;
-        min-height: calc(1.1rem * 1.4 * 3);
+        min-height: calc(1.1rem * 1.4 * 3); // Berechnung beibehalten
         a {
           text-decoration: none;
-          color: inherit;
+          color: inherit; // Erbt Farbe von h3
           transition: color 0.2s ease;
-          &:hover { color: var(--link-color-hover); }
+          &:hover { color: var(--text-color-link-hover); } // Globale Variable
         }
       }
       .news-description {
-        font-size: 0.9rem;
-        color: var(--text-color-light);
+        font-size: 0.9rem; // Typo-Skala
+        color: var(--text-color-muted); // Globale Variable
         line-height: 1.5;
-        margin-bottom: 1rem;
+        margin-bottom: var(--spacing-lg); // Globale Variable
         display: -webkit-box;
         -webkit-line-clamp: 4;
         -webkit-box-orient: vertical;
@@ -217,28 +215,28 @@
         flex-grow: 1;
       }
       .news-meta {
-        font-size: 0.8rem;
-        color: var(--text-color-lighter);
-        margin-bottom: 0.75rem;
+        font-size: 0.8rem; // Typo-Skala
+        color: var(--text-color-muted); // Globale Variable (statt --text-color-lighter)
+        margin-bottom: var(--spacing-sm); // Globale Variable
         display: flex;
         justify-content: space-between;
         flex-wrap: wrap;
-        gap: 0.5rem;
-        border-top: 1px dashed #eee;
-        padding-top: 0.75rem;
+        gap: var(--spacing-xs); // Globale Variable
+        border-top: 1px dashed var(--border-color-light); // Globale Variable
+        padding-top: var(--spacing-sm); // Globale Variable
         margin-top: auto;
-        .news-source { font-weight: 500; }
+        .news-source { font-weight: var(--font-weight-medium); } // Globale Variable
       }
       .read-more-link {
-          font-size: 0.9rem;
-          font-weight: 500;
-          color: var(--link-color);
+          font-size: 0.9rem; // Typo-Skala
+          font-weight: var(--font-weight-medium); // Globale Variable
+          color: var(--text-color-link); // Globale Variable
           text-decoration: none;
           align-self: flex-start;
-          padding: 0.25rem 0;
+          padding: var(--spacing-xs) 0; // Globale Variable
           &:hover {
               text-decoration: underline;
-              color: var(--link-color-hover);
+              color: var(--text-color-link-hover); // Globale Variable
           }
       }
     }
@@ -247,13 +245,13 @@
 
 @media (max-width: 768px) {
   .bestseller-section h2, .news-section h2, .weather-section h2 {
-    font-size: 1.8rem;
-    margin-bottom: 2rem;
+    font-size: 1.8rem; // Typo-Skala
+    margin-bottom: var(--spacing-xl); // Globale Variable
   }
 }
 @media (max-width: 480px) {
   .bestseller-section h2, .news-section h2, .weather-section h2 {
-    font-size: 1.5rem;
-    margin-bottom: 1.5rem;
+    font-size: 1.5rem; // Typo-Skala
+    margin-bottom: var(--spacing-lg); // Globale Variable
   }
 }

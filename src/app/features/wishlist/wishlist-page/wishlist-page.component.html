@@ -1,4 +1,4 @@
-<!-- src/app/features/wishlist/wishlist-page/wishlist-page.component.html -->
+<!-- /src/app/features/wishlist/wishlist-page/wishlist-page.component.html -->
 <div class="wishlist-page-container">
   <h1>Meine Wunschliste</h1>
 
@@ -22,7 +22,6 @@
               <div class="wishlist-item-card">
                 <a [routerLink]="['/product', product.handle]" class="item-link">
                   <div class="item-image">
-                    <!-- KORRIGIERT: ?. nach edges entfernt -->
                     @if (product.images.edges?.[0]?.node?.url; as imgUrl) {
                       <img [src]="imgUrl" [alt]="product.title" loading="lazy">
                     } @else {
@@ -31,18 +30,29 @@
                   </div>
                   <div class="item-info">
                     <h3 class="item-title">{{ product.title }}</h3>
-                    <!-- KORRIGIERT: ?. nach priceRange entfernt (Annahme: priceRange existiert immer, wenn product existiert) -->
                     @if (product.priceRange.minVariantPrice; as price) {
                       <span class="item-price">{{ price.amount | formatPrice : price.currencyCode }}</span>
                     }
                   </div>
                 </a>
                 <div class="item-actions">
-                  <button class="action-button remove-button" title="Von Wunschliste entfernen" (click)="removeFromWishlist(product.handle)" [disabled]="isLoadingWishlist()">
-                    <span class="material-symbols-outlined">delete</span>
+                  <!-- +++ Button zum Entfernen ANPASSEN +++ -->
+                  <button class="action-button remove-button"
+                          title="Von Wunschliste entfernen"
+                          (click)="removeFromWishlist(product.handle)"
+                          [disabled]="isLoadingWishlist()"
+                          aria-label="Von Wunschliste entfernen">
+                    <span class="icon-stack">
+                      <span class="material-symbols-outlined base-icon">favorite</span> <!-- Das Herz -->
+                      <span class="material-symbols-outlined strikethrough-icon">horizontal_rule</span> <!-- Der Strich -->
+                      <!-- Alternative: <span class="strikethrough-line"></span> -->
+                    </span>
                   </button>
-                  <button class="action-button add-to-cart-button" title="In den Warenkorb" (click)="moveFromWishlistToCart(product)"
-                          
+                  <!-- +++ ENDE Anpassung +++ -->
+
+                  <button class="action-button add-to-cart-button"
+                          title="In den Warenkorb"
+                          (click)="moveFromWishlistToCart(product)"
                           [disabled]="isLoadingProducts() || !product.availableForSale">
                     <span class="material-symbols-outlined">add_shopping_cart</span>
                   </button>

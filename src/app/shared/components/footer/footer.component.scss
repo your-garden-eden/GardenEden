@@ -1,30 +1,29 @@
-@use "sass:color"; // Import hinzugefügt
+// /src/app/shared/components/footer/footer.component.scss
+@use "sass:color"; // Für color.adjust()
 
-// Variablen
-$footer-bg-color: #f8f8f8;
-$footer-text-color: #555; // Sass Variable
-$footer-link-color: #333;
-$footer-link-hover-color: #007bff;
-$footer-border-color: #e0e0e0;
-$footer-max-width: 1400px;
+// Lokale Breakpoint-Variable (bleibt vorerst)
+$mobile-breakpoint-medium: 768px;
+
+// Sass-Variable für color.adjust(), deren Wert dem globalen Äquivalent entsprechen sollte
+$footer-text-color-sass: #6c757d; // Entspricht var(--text-color-muted)
 
 :host {
   display: block;
-  background-color: $footer-bg-color;
-  color: $footer-text-color;
-  border-top: 1px solid $footer-border-color;
-  padding: 3rem 1rem 1rem 1rem;
-  font-size: 0.9rem;
+  background-color: var(--background-color-light-gray); // Globale Variable
+  color: var(--text-color-muted); // Globale Variable
+  border-top: 1px solid var(--border-color-light); // Globale Variable
+  padding: var(--spacing-xxxl) var(--spacing-lg) var(--spacing-lg); // Globale Variablen (war 3rem 1rem 1rem 1rem)
+  font-size: 0.9rem; // Typo-Skala
 }
 
 .footer-content {
-  max-width: $footer-max-width;
+  max-width: 1400px; // Spezifischer Wert
   margin: 0 auto;
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  gap: 2rem;
-  margin-bottom: 2rem;
+  gap: var(--spacing-xl); // Globale Variable (war 2rem)
+  margin-bottom: var(--spacing-xl); // Globale Variable (war 2rem)
 }
 
 .footer-column {
@@ -32,11 +31,11 @@ $footer-max-width: 1400px;
   min-width: 180px;
 
   h4 {
-    color: #333;
-    font-size: 1rem;
+    color: var(--text-color-base); // Globale Variable (war #333)
+    font-size: 1rem; // Typo-Skala
     margin-top: 0;
-    margin-bottom: 1rem;
-    font-weight: 600;
+    margin-bottom: var(--spacing-lg); // Globale Variable (war 1rem)
+    font-weight: var(--font-weight-semibold); // Globale Variable
   }
 
   ul {
@@ -45,15 +44,15 @@ $footer-max-width: 1400px;
     margin: 0;
 
     li {
-      margin-bottom: 0.6rem;
+      margin-bottom: var(--spacing-sm); // Globale Variable (war 0.6rem)
 
       a {
-        color: $footer-link-color;
+        color: var(--text-color-base); // Globale Variable (war $footer-link-color #333)
         text-decoration: none;
         transition: color 0.2s ease;
 
         &:hover {
-          color: $footer-link-hover-color;
+          color: var(--primary-color); // Globale Primärfarbe für Link-Hover
           text-decoration: underline;
         }
       }
@@ -64,13 +63,15 @@ $footer-max-width: 1400px;
 .social-column {
   .social-icons {
     display: flex;
-    gap: 1rem;
+    gap: var(--spacing-lg); // Globale Variable (war 1rem)
 
     a {
       display: inline-block;
       img {
+        width: 28px; // Beispielgröße, anpassen falls nötig
+        height: 28px;
         transition: opacity 0.2s ease;
-        opacity: 0.8;
+        opacity: 0.7; // Etwas transparenter im Normalzustand
       }
        &:hover img {
          opacity: 1;
@@ -81,25 +82,25 @@ $footer-max-width: 1400px;
 
 .footer-bottom {
   text-align: center;
-  margin-top: 2rem;
-  padding-top: 1rem;
-  border-top: 1px solid $footer-border-color;
-  font-size: 0.8rem;
-  color: color.adjust($footer-text-color, $lightness: 10%); // Sass Variable hier korrekt verwendet
+  margin-top: var(--spacing-xl); // Globale Variable (war 2rem)
+  padding-top: var(--spacing-lg); // Globale Variable (war 1rem)
+  border-top: 1px solid var(--border-color-light); // Globale Variable
+  font-size: 0.8rem; // Typo-Skala
+  color: #{color.adjust($footer-text-color-sass, $lightness: 10%)}; // Sass-Variable mit dem Hex-Wert von --text-color-muted
 }
 
-@media (max-width: 768px) {
+@media (max-width: $mobile-breakpoint-medium) { // Lokaler Breakpoint
   .footer-content {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 1.5rem;
+    align-items: flex-start; // Standard für mobile Footer
+    gap: var(--spacing-lg); // Globale Variable (war 1.5rem)
   }
   .footer-column {
     min-width: 100%;
-    margin-bottom: 1rem;
+    margin-bottom: var(--spacing-lg); // Globale Variable (war 1rem)
   }
   .footer-bottom {
-    margin-top: 1rem;
-    padding-top: 1rem;
+    margin-top: var(--spacing-lg); // Globale Variable (war 1rem)
+    padding-top: var(--spacing-lg); // Globale Variable
   }
 }

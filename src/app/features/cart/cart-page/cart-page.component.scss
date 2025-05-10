@@ -1,72 +1,51 @@
-@use "sass:color";
+// /src/app/features/cart/cart-page/cart-page.component.scss
+@use "sass:color"; // Wird für color.adjust() benötigt
 
-// --- Lokale Variablen für Cart Page (Beispielwerte!) ---
-$page-max-width: 1200px;
-$spacing-xs: 4px;
-$spacing-small: 8px;
-$spacing-medium: 16px;
-$spacing-large: 24px;
-$spacing-xl: 32px;
+// --- Breakpoint-Variablen (bleiben vorerst lokal) ---
 $breakpoint-large: 1024px;
 $breakpoint-medium: 768px;
 $breakpoint-small: 600px;
+$breakpoint-xs: 480px; // Hinzugefügt für Konsistenz mit Media Query am Ende
 
-// --- Farbdefinitionen ---
-// 1. Echte Sass-Variablen für Sass-Funktionen (color.adjust)
-$primary-color-sass: #A1B48A; // Beispiel
-$primary-color-dark-sass: #798C67; // Beispiel
-$error-color-sass: #dc3545; // Fester Wert für Sass
-$warning-color-sass: #ffc107; // Fester Wert für Sass
-$background-color-light-sass: #f8f9fa; // Fester Wert für Sass
-
-// 2. CSS Custom Properties (mit Fallback) für direkte Zuweisungen
-$primary-color: var(--primary-color, $primary-color-sass);
-$primary-color-dark: var(--primary-color-dark, $primary-color-dark-sass);
-$text-color: var(--text-color, #333333);
-$text-color-light: var(--text-color-light, #6c757d);
-$border-color: var(--border-color, #dee2e6);
-$border-color-light: var(--border-color-light, #eeeeee);
-$background-color-light: var(--background-color-light, $background-color-light-sass);
-$error-color: var(--error-color, $error-color-sass);
-$error-color-dark: var(--error-color-dark, #a71d2a); // Kann var bleiben, da nicht in color.adjust
-$warning-color: var(--warning-color, $warning-color-sass);
-$warning-color-dark: var(--warning-color-dark, #cc9a06); // Kann var bleiben, da nicht in color.adjust
-$border-radius: var(--border-radius, 6px);
-$border-radius-small: var(--border-radius-small, 4px);
+// --- Sass-Variablen, die explizit für color.adjust() benötigt werden ---
+// Ihre Werte sollten mit den globalen CSS Custom Properties in styles.scss übereinstimmen.
+$error-color-sass: #dc3545;     // Entspricht var(--error-color)
+$warning-color-sass: #ffc107;   // Entspricht var(--warning-color)
+$background-color-light-sass: #f8f9fa; // Entspricht var(--background-color-light-gray) oder var(--background-color-light)
 
 // --- Basiskomponente ---
 :host {
   display: block;
-  padding: $spacing-large;
-  max-width: $page-max-width;
+  padding: var(--spacing-lg); // Globale Variable
+  max-width: 1200px; // Beibehalten als spezifischer Wert für diese Seite
   margin: 0 auto;
   position: relative;
 }
 
 // --- Allgemeine Styles ---
 h1, h2 {
-  color: $primary-color-dark; // var() ist ok
-  margin-bottom: $spacing-medium;
-  font-weight: 600;
+  color: var(--primary-color-dark); // Globale Variable
+  margin-bottom: var(--spacing-md); // Globale Variable
+  font-weight: var(--font-weight-semibold); // Globale Variable
 }
 
 h1 {
   text-align: center;
-  margin-bottom: $spacing-large;
-  font-size: 2.2em;
+  margin-bottom: var(--spacing-lg); // Globale Variable
+  font-size: 2.2em; // Kann später durch globale Typo-Variable ersetzt werden
 }
 
 h2 {
-  font-size: 1.5em;
-  border-bottom: 1px solid $border-color-light; // var() ist ok
-  padding-bottom: $spacing-small;
+  font-size: 1.5em; // Kann später durch globale Typo-Variable ersetzt werden
+  border-bottom: 1px solid var(--border-color-light); // Globale Variable
+  padding-bottom: var(--spacing-sm); // Globale Variable
 }
 
-a {
-  color: $primary-color; // var() ist ok
+a { // Allgemeine Links auf dieser Seite, falls nicht spezifischer gestylt
+  color: var(--text-color-link); // Globale Variable
   text-decoration: none;
   &:hover {
-    color: $primary-color-dark; // var() ist ok
+    color: var(--text-color-link-hover); // Globale Variable
     text-decoration: underline;
   }
 }
@@ -75,28 +54,28 @@ a {
 .loading-overlay {
   position: absolute;
   inset: 0;
-  background-color: rgba(255, 255, 255, 0.8); // Direkter Wert ok
+  background-color: rgba(255, 255, 255, 0.8);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  z-index: 10;
-  border-radius: $border-radius; // var() ist ok
+  z-index: var(--z-index-modal-backdrop); // Globale Variable (oder spezifischer Wert)
+  border-radius: var(--border-radius-lg); // Globale Variable
   backdrop-filter: blur(2px);
 
   .spinner {
-    border: 4px solid rgba(0, 0, 0, 0.1); // Direkter Wert ok
+    border: 4px solid rgba(0, 0, 0, 0.1);
     width: 36px;
     height: 36px;
-    border-radius: 50%; // Direkter Wert ok
-    border-left-color: $primary-color; // var() ist ok
-    margin-bottom: $spacing-medium;
+    border-radius: var(--border-radius-circle); // Globale Variable
+    border-left-color: var(--primary-color); // Globale Variable
+    margin-bottom: var(--spacing-md); // Globale Variable
     animation: spin 1s ease infinite;
   }
 
   span {
-    font-weight: 500;
-    color: $text-color-light; // var() ist ok
+    font-weight: var(--font-weight-medium); // Globale Variable
+    color: var(--text-color-muted); // Globale Variable
   }
 }
 
@@ -106,27 +85,25 @@ a {
 }
 
 .error-message {
-  padding: $spacing-small $spacing-medium;
-  border-radius: $border-radius; // var() ist ok
-  margin-bottom: $spacing-medium;
-  border: 1px solid transparent; // Direkter Wert ok
+  padding: var(--spacing-sm) var(--spacing-md); // Globale Variablen
+  border-radius: var(--border-radius-md); // Globale Variable
+  margin-bottom: var(--spacing-md); // Globale Variable
+  border: 1px solid transparent;
   font-size: 0.95em;
 
   &.global-cart-error {
-    // HIER color.adjust ANPASSEN -> Sass-Variable verwenden
-    background-color: color.adjust($error-color-sass, $alpha: -0.85);
-    border-color: color.adjust($error-color-sass, $alpha: -0.7);
-    color: $error-color-dark; // var() ist ok
+    background-color: color.adjust($error-color-sass, $alpha: -0.85); // Sass-Variable für color.adjust
+    border-color: color.adjust($error-color-sass, $alpha: -0.7);   // Sass-Variable für color.adjust
+    color: var(--error-text-color); // Globale Variable
     text-align: center;
   }
 
   &.line-update-error {
-    // HIER color.adjust ANPASSEN -> Sass-Variable verwenden
-    background-color: color.adjust($warning-color-sass, $alpha: -0.85);
-    border-color: color.adjust($warning-color-sass, $alpha: -0.7);
-    color: $warning-color-dark; // var() ist ok
+    background-color: color.adjust($warning-color-sass, $alpha: -0.85); // Sass-Variable für color.adjust
+    border-color: color.adjust($warning-color-sass, $alpha: -0.7);   // Sass-Variable für color.adjust
+    color: var(--warning-text-color); // Globale Variable
     text-align: center;
-    margin-top: $spacing-small;
+    margin-top: var(--spacing-sm); // Globale Variable
   }
 }
 
@@ -134,13 +111,13 @@ a {
 .cart-content {
   display: grid;
   grid-template-columns: minmax(0, 2.5fr) minmax(0, 1fr);
-  gap: $spacing-xl;
+  gap: var(--spacing-xl); // Globale Variable
 
-  @media (max-width: $breakpoint-large) {
-     gap: $spacing-large;
+  @media (max-width: $breakpoint-large) { // Lokale Breakpoint-Variable
+     gap: var(--spacing-lg); // Globale Variable
   }
 
-  @media (max-width: $breakpoint-medium) {
+  @media (max-width: $breakpoint-medium) { // Lokale Breakpoint-Variable
     grid-template-columns: 1fr;
   }
 }
@@ -155,22 +132,22 @@ a {
 
     thead th {
       text-align: left;
-      padding-bottom: $spacing-medium;
-      color: $text-color-light; // var() ist ok
-      font-weight: 500;
+      padding-bottom: var(--spacing-md); // Globale Variable
+      color: var(--text-color-muted); // Globale Variable
+      font-weight: var(--font-weight-medium); // Globale Variable
       font-size: 0.9em;
       text-transform: uppercase;
-      border-bottom: 2px solid $border-color; // var() ist ok
+      border-bottom: 2px solid var(--border-color-base); // Globale Variable
 
       &:nth-child(1) { width: 90px; }
-      &:nth-child(2) { padding-left: $spacing-small; }
+      &:nth-child(2) { padding-left: var(--spacing-sm); } // Globale Variable
       &:nth-child(3), &:nth-child(5) { text-align: right; width: 15%; }
       &:nth-child(4) { text-align: center; width: 18%; }
       &:nth-child(6) { text-align: center; width: 8%; }
     }
 
     tbody tr.cart-item {
-      border-bottom: 1px solid $border-color-light; // var() ist ok
+      border-bottom: 1px solid var(--border-color-light); // Globale Variable
       transition: opacity 0.3s ease;
 
       &.updating {
@@ -179,12 +156,12 @@ a {
       }
 
       td {
-        padding: $spacing-medium 0;
+        padding: var(--spacing-md) 0; // Globale Variable
         vertical-align: middle;
 
-        &:first-child { padding-right: $spacing-small; }
-        &:not(:first-child):not(:last-child) { padding-left: $spacing-small; padding-right: $spacing-small; }
-        &:last-child { padding-left: $spacing-small; }
+        &:first-child { padding-right: var(--spacing-sm); } // Globale Variable
+        &:not(:first-child):not(:last-child) { padding-left: var(--spacing-sm); padding-right: var(--spacing-sm); } // Globale Variablen
+        &:last-child { padding-left: var(--spacing-sm); } // Globale Variable
       }
     }
   }
@@ -199,20 +176,20 @@ a {
     height: auto;
     max-height: 80px;
     object-fit: contain;
-    border: 1px solid $border-color-light; // var() ist ok
-    border-radius: $border-radius-small; // var() ist ok
-    background-color: white; // Direkter Wert ok
+    border: 1px solid var(--border-color-light); // Globale Variable
+    border-radius: var(--border-radius-sm); // Globale Variable
+    background-color: var(--background-color-component); // Globale Variable
   }
   .placeholder-image {
     width: 80px;
     height: 80px;
-    background-color: $background-color-light; // var() ist ok
-    border-radius: $border-radius-small; // var() ist ok
+    background-color: var(--background-color-light-gray); // Globale Variable
+    border-radius: var(--border-radius-sm); // Globale Variable
     display: flex;
     align-items: center;
     justify-content: center;
-    color: $border-color; // var() ist ok
-    border: 1px solid $border-color-light; // var() ist ok
+    color: var(--border-color-base); // Globale Variable
+    border: 1px solid var(--border-color-light); // Globale Variable
     .material-symbols-outlined { font-size: 40px; }
   }
 }
@@ -221,22 +198,23 @@ a {
   vertical-align: top;
   .product-title {
     display: block;
-    font-weight: 500;
-    color: $text-color; // var() ist ok
-    margin-bottom: $spacing-xs;
-    &:hover { color: $primary-color; } // var() ist ok
+    font-weight: var(--font-weight-medium); // Globale Variable
+    color: var(--text-color-base); // Globale Variable
+    margin-bottom: var(--spacing-xs); // Globale Variable
+    &:hover { color: var(--text-color-link); } // Globale Variable (oder --primary-color)
   }
   .variant-title {
     display: block;
     font-size: 0.9em;
-    color: $text-color-light; // var() ist ok
+    color: var(--text-color-muted); // Globale Variable
   }
 }
 
 .item-price, .item-total-price {
   text-align: right;
   white-space: nowrap;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium); // Globale Variable
+  color: var(--price-color); // Globale Variable für Preise
 }
 
 .item-quantity {
@@ -244,36 +222,35 @@ a {
   .quantity-control {
     display: inline-flex;
     align-items: center;
-    border: 1px solid $border-color; // var() ist ok
-    border-radius: $border-radius; // var() ist ok
+    border: 1px solid var(--border-color-base); // Globale Variable
+    border-radius: var(--border-radius-md); // Globale Variable
     overflow: hidden;
 
     .quantity-button {
       background: none;
       border: none;
-      padding: $spacing-xs;
+      padding: var(--spacing-xs); // Globale Variable
       margin: 0;
-      color: $text-color-light; // var() ist ok
+      color: var(--text-color-muted); // Globale Variable
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       line-height: 1;
-      background-color: $background-color-light; // var() ist ok
+      background-color: var(--background-color-light-gray); // Globale Variable
       transition: background-color 0.2s ease, color 0.2s ease;
 
-      &:first-of-type { border-right: 1px solid $border-color; } // var() ist ok
-      &:last-of-type { border-left: 1px solid $border-color; } // var() ist ok
+      &:first-of-type { border-right: 1px solid var(--border-color-base); } // Globale Variable
+      &:last-of-type { border-left: 1px solid var(--border-color-base); } // Globale Variable
 
       &:hover:not(:disabled) {
-        // HIER color.adjust ANPASSEN -> Sass-Variable verwenden
-        background-color: color.adjust($background-color-light-sass, $lightness: -5%);
-        color: $primary-color; // var() ist ok
+        background-color: color.adjust($background-color-light-sass, $lightness: -5%); // Sass-Variable für color.adjust
+        color: var(--primary-color); // Globale Variable
       }
       &:disabled {
         opacity: 0.5;
         cursor: not-allowed;
-        background-color: transparent; // Direkter Wert ok
+        background-color: transparent;
       }
       .material-symbols-outlined {
         font-size: 20px;
@@ -283,11 +260,12 @@ a {
     }
 
     .quantity-value {
-      padding: 0 $spacing-medium;
-      font-weight: 500;
+      padding: 0 var(--spacing-md); // Globale Variable
+      font-weight: var(--font-weight-medium); // Globale Variable
       min-width: 2.5em;
       text-align: center;
-      line-height: calc(20px + 2 * #{$spacing-xs});
+      // line-height: calc(20px + 2 * var(--spacing-xs)); // Berechnung mit globaler Variable
+      line-height: calc(20px + (2 * var(--spacing-xs, 4px)) ); // Expliziter Fallback für Berechnung, falls --spacing-xs nicht numerisch interpretierbar ist
       display: inline-block;
       vertical-align: middle;
     }
@@ -296,8 +274,8 @@ a {
   .loading-indicator {
      display: block;
      font-size: 0.8em;
-     color: $text-color-light; // var() ist ok
-     margin-top: $spacing-xs;
+     color: var(--text-color-muted); // Globale Variable
+     margin-top: var(--spacing-xs); // Globale Variable
      text-align: center;
      min-height: 1.2em;
   }
@@ -308,121 +286,119 @@ a {
   .remove-button {
     background: none;
     border: none;
-    padding: $spacing-xs;
+    padding: var(--spacing-xs); // Globale Variable
     margin: 0;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     line-height: 1;
-    color: $text-color-light; // var() ist ok
-    border-radius: 50%; // Direkter Wert ok
+    color: var(--text-color-muted); // Globale Variable
+    border-radius: var(--border-radius-circle); // Globale Variable
     transition: background-color 0.2s ease, color 0.2s ease;
 
     &:hover:not(:disabled) {
-      color: $error-color-dark; // var() ist ok
-      // HIER color.adjust ANPASSEN -> Sass-Variable verwenden
-      background-color: color.adjust($error-color-sass, $alpha: -0.8);
+      color: var(--error-color-dark); // Globale Variable
+      background-color: color.adjust($error-color-sass, $alpha: -0.8); // Sass-Variable für color.adjust
     }
     &:disabled {
       opacity: 0.5;
       cursor: not-allowed;
-      background-color: transparent !important; // Direkter Wert ok
+      background-color: transparent !important;
     }
     .material-symbols-outlined { font-size: 22px; display: block; }
   }
 }
 
-
 // --- Warenkorb-Zusammenfassung (Rechts) ---
 .cart-summary {
-  background-color: $background-color-light; // var() ist ok
-  padding: $spacing-large;
-  border-radius: $border-radius; // var() ist ok
-  border: 1px solid $border-color-light; // var() ist ok
+  background-color: var(--background-color-light-gray); // Globale Variable
+  padding: var(--spacing-lg); // Globale Variable
+  border-radius: var(--border-radius-lg); // Globale Variable
+  border: 1px solid var(--border-color-light); // Globale Variable
   height: fit-content;
   position: sticky;
-  top: $spacing-large;
+  top: var(--spacing-lg); // Globale Variable
 
   h2 { margin-top: 0; }
 
   .summary-row {
     display: flex;
     justify-content: space-between;
-    margin-bottom: $spacing-medium;
+    margin-bottom: var(--spacing-md); // Globale Variable
     font-size: 1em;
 
-    span:first-child { color: $text-color-light; } // var() ist ok
-    span:last-child { font-weight: 500; }
+    span:first-child { color: var(--text-color-muted); } // Globale Variable
+    span:last-child { font-weight: var(--font-weight-medium); } // Globale Variable
   }
 
   .summary-total {
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold); // Globale Variable
     font-size: 1.2em;
-    margin-top: $spacing-large;
-    padding-top: $spacing-large;
-    border-top: 2px solid $border-color; // var() ist ok
+    margin-top: var(--spacing-lg); // Globale Variable
+    padding-top: var(--spacing-lg); // Globale Variable
+    border-top: 2px solid var(--border-color-base); // Globale Variable
   }
 
   .vat-info {
     font-size: 0.9em;
-    color: $text-color-light; // var() ist ok
+    color: var(--text-color-muted); // Globale Variable
     text-align: center;
-    margin-top: $spacing-small;
-    margin-bottom: $spacing-large;
+    margin-top: var(--spacing-sm); // Globale Variable
+    margin-bottom: var(--spacing-lg); // Globale Variable
   }
 
   .checkout-button {
     display: inline-block;
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold); // Globale Variable
     line-height: 1.5;
-    color: #fff; // Direkter Wert ok
+    color: var(--primary-color-text); // Globale Variable
     text-align: center;
     text-decoration: none;
     vertical-align: middle;
     cursor: pointer;
     user-select: none;
-    background-color: $primary-color; // var() ist ok
-    border: 1px solid $primary-color; // var() ist ok
-    padding: $spacing-medium;
+    background-color: var(--primary-color); // Globale Variable
+    border: 1px solid var(--primary-color); // Globale Variable
+    padding: var(--spacing-md); // Globale Variable
     font-size: 1.1em;
-    border-radius: $border-radius; // var() ist ok
+    border-radius: var(--border-radius-md); // Globale Variable
     transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
     width: 100%;
     text-transform: uppercase;
 
     &:hover:not(:disabled) {
-      color: #fff; // Direkter Wert ok
-      background-color: $primary-color-dark; // var() ist ok
-      border-color: $primary-color-dark; // var() ist ok
+      color: var(--primary-color-text); // Globale Variable
+      background-color: var(--primary-color-dark); // Globale Variable
+      border-color: var(--primary-color-dark); // Globale Variable
     }
 
     &:disabled {
-       color: #fff; // Direkter Wert ok
-       background-color: $primary-color; // var() ist ok
-       border-color: $primary-color; // var() ist ok
+       color: var(--primary-color-text); // Globale Variable
+       background-color: var(--primary-color); // Globale Variable
+       border-color: var(--primary-color); // Globale Variable
        opacity: 0.65;
        cursor: not-allowed;
     }
   }
 
   .cart-note {
-      margin-top: $spacing-large;
-      padding-top: $spacing-medium;
-      border-top: 1px dashed $border-color-light; // var() ist ok
+      margin-top: var(--spacing-lg); // Globale Variable
+      padding-top: var(--spacing-md); // Globale Variable
+      border-top: 1px dashed var(--border-color-light); // Globale Variable
       font-size: 0.9em;
-      color: $text-color-light; // var() ist ok
-      strong { color: $text-color; } // var() ist ok
+      color: var(--text-color-muted); // Globale Variable
+      strong { color: var(--text-color-base); } // Globale Variable
   }
 }
 
 // --- Meldung für leeren Warenkorb ---
 .empty-cart-message {
   text-align: center;
-  padding: $spacing-xl * 2 $spacing-xl;
-  border: 1px dashed $border-color-light; // var() ist ok
-  border-radius: $border-radius; // var() ist ok
-  background-color: $background-color-light; // var() ist ok
+  padding: calc(var(--spacing-xl) * 2) var(--spacing-xl); // Berechnung mit globaler Variable
+  border: 1px dashed var(--border-color-light); // Globale Variable
+  border-radius: var(--border-radius-lg); // Globale Variable
+  background-color: var(--background-color-light-gray); // Globale Variable
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -430,49 +406,48 @@ a {
   min-height: 300px;
 
   h2 {
-    margin-bottom: $spacing-medium;
-    color: $text-color; // var() ist ok
+    margin-bottom: var(--spacing-md); // Globale Variable
+    color: var(--text-color-base); // Globale Variable
   }
   p {
-    margin-bottom: $spacing-large;
-    color: $text-color-light; // var() ist ok
+    margin-bottom: var(--spacing-lg); // Globale Variable
+    color: var(--text-color-muted); // Globale Variable
     max-width: 400px;
   }
-  .primary-button {
+  .primary-button { // Dieser Button sollte idealerweise eine globale Klasse wie .button-primary verwenden
      display: inline-block;
-     font-weight: 400;
+     font-weight: var(--font-weight-normal); // Globale Variable
      line-height: 1.5;
-     color: #fff; // Direkter Wert ok
+     color: var(--primary-color-text); // Globale Variable
      text-align: center;
      text-decoration: none;
      vertical-align: middle;
      cursor: pointer;
      user-select: none;
-     background-color: $primary-color; // var() ist ok
-     border: 1px solid $primary-color; // var() ist ok
-     padding: $spacing-small $spacing-large;
+     background-color: var(--primary-color); // Globale Variable
+     border: 1px solid var(--primary-color); // Globale Variable
+     padding: var(--spacing-sm) var(--spacing-lg); // Globale Variablen
      font-size: 1rem;
-     border-radius: $border-radius; // var() ist ok
+     border-radius: var(--border-radius-md); // Globale Variable
      transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 
      &:hover {
-       color: #fff; // Direkter Wert ok
-       background-color: $primary-color-dark; // var() ist ok
-       border-color: $primary-color-dark; // var() ist ok
+       color: var(--primary-color-text); // Globale Variable
+       background-color: var(--primary-color-dark); // Globale Variable
+       border-color: var(--primary-color-dark); // Globale Variable
      }
   }
 }
 
 // --- Responsive Anpassungen ---
-@media (max-width: $breakpoint-medium) {
-  .cart-content { gap: $spacing-large; }
+@media (max-width: $breakpoint-medium) { // Lokale Breakpoint-Variable
+  .cart-content { gap: var(--spacing-lg); } // Globale Variable
   .cart-summary { position: static; top: auto; }
 }
 
-@media (max-width: $breakpoint-small) {
+@media (max-width: $breakpoint-small) { // Lokale Breakpoint-Variable
   .cart-items-list table {
     thead { display: none; }
-
     tbody tr.cart-item {
       display: grid;
       grid-template-columns: 80px 1fr auto auto;
@@ -480,49 +455,40 @@ a {
       grid-template-areas:
         "image details   quantity remove"
         "image price     total    remove";
-      gap: $spacing-xs $spacing-medium;
-      padding: $spacing-medium 0;
+      gap: var(--spacing-xs) var(--spacing-md); // Globale Variablen
+      padding: var(--spacing-md) 0; // Globale Variable
 
       td { padding: 0 !important; border: none; vertical-align: middle !important; text-align: left !important; }
 
-      .item-image { grid-area: image; align-self: stretch; padding-right: $spacing-medium !important; }
+      .item-image { grid-area: image; align-self: stretch; padding-right: var(--spacing-md) !important; } // Globale Variable
       .item-details { grid-area: details; align-self: end; }
-      .item-price { grid-area: price; align-self: start; font-size: 0.9em; color: $text-color-light; // var() ist ok
-         &::before { content: "Einzelpreis: "; font-weight: normal; color: $text-color-light; margin-right: 5px; display: none; } // var() ist ok
+      .item-price {
+         grid-area: price; align-self: start; font-size: 0.9em; color: var(--text-color-muted);
+         &::before { content: "Einzelpreis: "; font-weight: normal; color: var(--text-color-muted); margin-right: 5px; display: none; }
       }
        .item-total-price { display: none; }
       .item-quantity {
-          grid-area: quantity;
-          text-align: center !important;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          min-width: auto;
+          grid-area: quantity; text-align: center !important; display: flex; flex-direction: column;
+          align-items: center; justify-content: center; min-width: auto;
           .quantity-control { border: none; }
           .loading-indicator { text-align: center; }
        }
       .item-remove {
-          grid-area: remove;
-          text-align: right !important;
-          display: flex;
-          flex-direction: column;
-          align-items: flex-end;
-          justify-content: center;
+          grid-area: remove; text-align: right !important; display: flex; flex-direction: column;
+          align-items: flex-end; justify-content: center;
        }
     }
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: $breakpoint-xs) { // Lokale Breakpoint-Variable (hinzugefügt)
    h1 { font-size: 1.8em; }
-   :host { padding: $spacing-medium; }
+   :host { padding: var(--spacing-md); } // Globale Variable
    .cart-items-list table tbody tr.cart-item {
      grid-template-columns: 65px 1fr auto auto;
      .item-image { width: 65px; img { width: 60px; max-height: 60px;} .placeholder-image { width: 60px; height: 60px; .material-symbols-outlined { font-size: 30px;} } }
      .item-details .product-title { font-size: 0.95em; }
-     .item-quantity .quantity-control {}
    }
-    .cart-summary { padding: $spacing-medium; }
-    .empty-cart-message { padding: $spacing-large; }
+    .cart-summary { padding: var(--spacing-md); } // Globale Variable
+    .empty-cart-message { padding: var(--spacing-lg); } // Globale Variable
 }

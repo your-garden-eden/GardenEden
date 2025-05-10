@@ -1,132 +1,124 @@
 // /src/app/features/static-page/static-page.component.scss
 
-// Importiere ggf. globale Variablen oder Mixins, falls vorhanden
-// @use '../../styles/variables' as vars;
-
 :host {
-    display: block;
-    // Hintergrundfarbe wird vom Body oder der App-Komponente geerbt
-    // oder hier setzen: background-color: #fff;
+  display: block;
+  // Hintergrundfarbe wird vom Body geerbt (var(--background-color-page))
+}
+
+.static-page-container {
+  max-width: 800px;
+  margin: var(--spacing-xxl) auto; // Globale Variable
+  padding: var(--spacing-xl) var(--spacing-xl); // Globale Variablen (angepasst von 1.5rem)
+  background-color: var(--background-color-component); // Globale Variable
+  border-radius: var(--border-radius-lg); // Globale Variable
+  box-shadow: var(--box-shadow-sm); // Globale Variable
+
+  .loading-indicator, .error-message {
+    text-align: center;
+    padding: var(--spacing-xxxl) var(--spacing-lg); // Globale Variablen
+    color: var(--text-color-muted); // Globale Variable
   }
-  
-  .static-page-container {
-    max-width: 800px; // Begrenzt die Breite für bessere Lesbarkeit
-    margin: 2rem auto; // Zentriert und fügt vertikalen Abstand hinzu
-    padding: 2rem 1.5rem; // Innenabstand
-    background-color: #ffffff; // Weißer Hintergrund für den Inhalt
-    border-radius: 8px; // Leicht abgerundete Ecken
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08); // Dezenter Schatten
-  
-    // Styling für Lade- und Fehleranzeige (optional)
-    .loading-indicator, .error-message {
-      text-align: center;
-      padding: 3rem 1rem;
-      color: #666;
-    }
-    .error-message {
-      color: var(--error-color, #dc3545);
-      a {
-        color: var(--error-text-dark, #a94442);
-        text-decoration: underline;
-        font-weight: bold;
-        margin-top: 0.5rem;
-        display: inline-block;
-      }
-    }
-  }
-  
-  // Styling für den von ngx-markdown generierten Inhalt
-  .static-page-content {
-    line-height: 1.7; // Gute Zeilenhöhe für Lesbarkeit
-    color: var(--text-color-main, #333); // Standard-Textfarbe
-  
-    // Überschriften
-    h1, h2, h3, h4, h5, h6 {
-      margin-top: 1.8em;
-      margin-bottom: 0.8em;
-      line-height: 1.3;
-      font-weight: 600;
-      color: var(--text-color-on-gradient, #4E342E); // Titel-Farbe von Produktdetail
-    }
-  
-    h1 { font-size: 2em; }
-    h2 { font-size: 1.6em; border-bottom: 1px solid #eee; padding-bottom: 0.3em;}
-    h3 { font-size: 1.3em; }
-    h4 { font-size: 1.1em; }
-  
-    // Absätze
-    p {
-      margin-bottom: 1.2em;
-    }
-  
-    // Listen
-    ul, ol {
-      margin-bottom: 1.2em;
-      padding-left: 2em; // Einrückung für Listenpunkte
-    }
-    li {
-      margin-bottom: 0.5em;
-    }
-  
-    // Links
+  .error-message {
+    color: var(--error-text-color); // Globale Variable
+    background-color: var(--error-background-color); // Für Konsistenz
+    border-radius: var(--border-radius-md); // Globale Variable
     a {
-      color: var(--primary-color, #28a745); // Primärfarbe für Links
+      color: var(--error-text-color); // Globale Variable
       text-decoration: underline;
-      transition: color 0.2s ease;
-  
-      &:hover {
-        color: var(--primary-color-hover, #218838); // Dunklere Primärfarbe
-      }
-    }
-  
-    // Fett und Kursiv
-    strong, b {
-      font-weight: 600;
-    }
-    em, i {
-      font-style: italic;
-    }
-  
-    // Zitate
-    blockquote {
-      margin: 1.5em 0;
-      padding: 0.5em 1.5em;
-      border-left: 4px solid #eee;
-      background-color: #f9f9f9;
-      color: #555;
-      p { margin-bottom: 0; } // Inneren Absatzabstand entfernen
-    }
-  
-    // Code
-    code { // Inline Code
-      background-color: #f0f0f0;
-      padding: 0.2em 0.4em;
-      border-radius: 4px;
-      font-size: 0.9em;
-      font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
-    }
-  
-    pre { // Code-Blöcke
-      background-color: #f5f5f5;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      padding: 1em;
-      overflow-x: auto; // Horizontales Scrollen für langen Code
-      margin-bottom: 1.2em;
-  
-      code { // Code innerhalb von pre
-        background-color: transparent; // Kein doppelter Hintergrund
-        padding: 0;
-        border-radius: 0;
-        font-size: 0.9em;
-        font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
-      }
-    }
-  
-    // Horizontale Linien
-    hr {
-        border: none;
-        border-top: 1px solid #eee;
-        margin: 2em 0;
+      font-weight: var(--font-weight-bold); // Globale Variable
+      margin-top: var(--spacing-sm); // Globale Variable
+      display: inline-block;
     }
   }
+}
+
+// Styling für den von ngx-markdown generierten Inhalt
+.static-page-content {
+  line-height: var(--line-height-base); // Globale Variable
+  color: var(--text-color-base); // Globale Variable
+
+  h1, h2, h3, h4, h5, h6 {
+    margin-top: var(--spacing-xl); // Angepasst von 1.8em
+    margin-bottom: var(--spacing-md); // Angepasst von 0.8em
+    line-height: var(--line-height-headings); // Globale Variable
+    font-weight: var(--font-weight-semibold); // Globale Variable
+    color: var(--text-color-headings); // Globale Variable (unser Braun)
+  }
+
+  h1 { font-size: 2em; } // Kann später durch globale Typo-Skala ersetzt werden
+  h2 { font-size: 1.6em; border-bottom: 1px solid var(--border-color-light); padding-bottom: var(--spacing-xs); } // Globale Variablen
+  h3 { font-size: 1.3em; }
+  h4 { font-size: 1.1em; }
+
+  p {
+    margin-bottom: var(--spacing-lg); // Angepasst von 1.2em
+  }
+
+  ul, ol {
+    margin-bottom: var(--spacing-lg); // Angepasst von 1.2em
+    padding-left: var(--spacing-xl); // Angepasst von 2em
+  }
+  li {
+    margin-bottom: var(--spacing-sm); // Angepasst von 0.5em
+  }
+
+  a {
+    color: var(--text-color-link); // Globale Variable (unser primäres Grün)
+    text-decoration: underline;
+    transition: color 0.2s ease;
+    &:hover {
+      color: var(--text-color-link-hover); // Globale Variable
+    }
+  }
+
+  strong, b {
+    font-weight: var(--font-weight-bold); // Globale Variable (oder semibold, je nach Design)
+  }
+  em, i {
+    font-style: italic;
+  }
+
+  blockquote {
+    margin: var(--spacing-lg) 0; // Globale Variable
+    padding: var(--spacing-sm) var(--spacing-lg); // Globale Variablen
+    border-left: 4px solid var(--border-color-light); // Globale Variable
+    background-color: var(--background-color-light-gray); // Globale Variable
+    color: var(--text-color-muted); // Globale Variable
+    border-radius: var(--border-radius-sm); // Globale Variable
+
+    p { margin-bottom: 0; }
+  }
+
+  code { // Inline Code
+    background-color: var(--background-color-light-gray); // Globale Variable (oder eine spezifischere Akzentfarbe)
+    padding: var(--spacing-xxs) var(--spacing-xs); // Globale Variablen
+    border-radius: var(--border-radius-sm); // Globale Variable
+    font-size: 0.9em;
+    font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace; // Spezifische Monospace-Schrift
+    color: var(--text-color-base); // Oder eine leicht abweichende Farbe für Code
+  }
+
+  pre { // Code-Blöcke
+    background-color: var(--background-color-light-gray); // Konsistent mit Inline-Code
+    border: 1px solid var(--border-color-base); // Globale Variable
+    border-radius: var(--border-radius-md); // Globale Variable
+    padding: var(--spacing-lg); // Globale Variable
+    overflow-x: auto;
+    margin-bottom: var(--spacing-lg); // Globale Variable
+
+    code { // Code innerhalb von pre
+      background-color: transparent;
+      padding: 0;
+      border-radius: 0;
+      font-size: 0.9em; // Behält die Größe vom Inline-Code
+      font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+      color: inherit; // Erbt Farbe von pre, falls pre eine spezifische Textfarbe hätte
+    }
+  }
+
+  hr {
+      border: none;
+      border-top: 1px solid var(--border-color-light); // Globale Variable
+      margin: var(--spacing-xl) 0; // Globale Variable
+  }
+}

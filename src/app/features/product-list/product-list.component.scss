@@ -1,78 +1,202 @@
 // /src/app/features/product-list/product-list.component.scss
 
-// Farbvariablen
-$title-color: #4E342E;
-$grid-gap: 20px;
-$card-min-width-list: 280px; // Desktop Mindestbreite
-$mobile-breakpoint-medium: 768px; // Mittlerer Breakpoint
-$mobile-breakpoint-small: 576px;  // Kleiner Breakpoint
+// Lokale Breakpoint-Variablen (bleiben vorerst)
+$mobile-breakpoint-medium: 768px;
+$mobile-breakpoint-small: 576px;
 
-.category-page-content { // Beachte: Diese Klasse wird im HTML verwendet.
-  padding: 2rem;
+// Spezifische Layout-Variablen für diese Seite
+$card-min-width-list-desktop: 280px;
+$card-min-width-list-medium: 200px;
+// Annahme für die ungefähre Breite des Zurück-Buttons,
+// um die Zentrierung des Titels zu unterstützen.
+// Diesen Wert an den längsten "Zurück zu..." Text anpassen oder
+// eine fixe Breite für den Button definieren und hier verwenden.
+$back-button-placeholder-width: 200px; // Beispielwert
+
+.category-page-content {
+  padding: var(--spacing-xl);
   max-width: 1400px;
   margin: 0 auto;
 }
 
-// --- HIER WURDE DER KLASSENNAME ANGEPASST ---
-.product-list-title { // <-- Umbenannt von .category-title
-  text-align: center; // <-- Zentrierung ist schon drin!
-  margin-bottom: 2rem;
-  font-size: 2.5rem;
-  color: $title-color;
-  font-weight: 600;
+// Wrapper für Titel und Zurück-Button
+.page-header-with-back-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; // Button links, Platzhalter rechts, Titel mittig
+  margin-bottom: var(--spacing-xl);
+  min-height: 40px; // Eine Mindesthöhe für die Zeile
+
+  .back-button.product-list-back-button,
+  .back-button-placeholder,
+  .title-align-placeholder {
+    // flex: 0 1 $back-button-placeholder-width; // Basis, kann wachsen, nicht schrumpfen
+    flex-basis: $back-button-placeholder-width; // Feste Basisbreite für die Platzhalter/Button-Bereiche
+    flex-shrink: 0; // Verhindert Schrumpfen
+    // Für Debugging kann man hier temporär einen Rand hinzufügen:
+    // border: 1px dashed red;
+  }
+
+  .back-button-placeholder,
+  .title-align-placeholder {
+    visibility: hidden; // Macht Platzhalter unsichtbar, aber sie nehmen Platz ein
+    // Wenn der Platzhalter leer ist (also kein Zurück-Button da),
+    // könnte der rechte Platzhalter eine geringere oder keine Breite haben,
+    // je nachdem, wie der Titel zentriert werden soll.
+    // Für eine echte Symmetrie sollte er dieselbe Basisbreite haben.
+  }
+
+  .product-list-title {
+    flex-grow: 1; // Nimmt den verfügbaren Platz in der Mitte
+    text-align: center;
+    margin: 0 var(--spacing-sm); // Kleiner horizontaler Abstand zu den seitlichen Elementen
+    padding: 0; // Zurücksetzen, falls h1 globale Paddings hat
+    // Um Überlappung bei sehr langen Titeln zu vermeiden:
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap; // Verhindert Umbruch, wenn Titel sehr lang ist und Platz knapp
+                         // Alternative: Mehrzeiligkeit erlauben und Höhe anpassen.
+  }
 }
-// --- ENDE ANPASSUNG KLASSENNAME ---
+
+// Styles für den Zurück-Button selbst
+.back-button.product-list-back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  background-color: transparent;
+  border: 1px solid var(--text-color-headings);
+  color: var(--text-color-headings);
+  padding: var(--spacing-xs) var(--spacing-lg);
+  border-radius: var(--border-radius-pill);
+  font-size: 0.9rem;
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.25s ease-out;
+  white-space: nowrap; // Verhindert Umbruch im Button-Text
+
+  .material-symbols-outlined {
+    font-size: 18px;
+    font-weight: normal; // Verhindert, dass Icon fett wird, wenn Button fett ist
+  }
+
+  &:hover {
+    background-color: var(--text-color-headings);
+    color: var(--background-color-page);
+    transform: translateY(-1px);
+    box-shadow: var(--box-shadow-sm);
+  }
+  &:active {
+    transform: translateY(0);
+    box-shadow: none;
+  }
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--accent-color-vibrant-green-rgba-02);
+  }
+}
+
+// Der Titel - Allgemeine Styles, Layout-spezifische im Wrapper
+.product-list-title {
+  font-size: 2.5rem;
+  color: var(--text-color-headings);
+  font-weight: var(--font-weight-semibold);
+}
 
 .loading-indicator,
-.error-message {
+.error-message,
+.no-products-message {
   text-align: center;
-  padding: 3rem;
-  color: #777;
+  padding: var(--spacing-xxxl);
+  color: var(--text-color-muted);
 }
+
 .error-message {
-    color: red;
-    font-weight: bold;
+    color: var(--error-text-color);
+    background-color: var(--error-background-color);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-lg);
+    font-weight: var(--font-weight-medium);
+}
+
+.no-products-message {
+    padding: var(--spacing-xxl);
+    font-style: italic;
 }
 
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax($card-min-width-list, 1fr)); // Standard für Desktop
-  gap: $grid-gap;
+  grid-template-columns: repeat(auto-fill, minmax($card-min-width-list-desktop, 1fr));
+  gap: var(--spacing-xl);
 }
 
 .load-more-trigger {
   height: 50px;
-  margin-top: $grid-gap;
+  margin-top: var(--spacing-xl);
 }
 
 .loading-indicator.more-loading {
-  padding: 1rem;
-  p { font-style: italic; }
+  padding: var(--spacing-lg);
+  p {
+    font-style: italic;
+    color: var(--text-color-muted);
+  }
 }
 
-// Responsive Anpassungen für mittlere Screens (optional)
+// Responsive Anpassungen
 @media (max-width: $mobile-breakpoint-medium) {
+    .category-page-content {
+        padding: var(--spacing-lg);
+    }
+
+    .page-header-with-back-button {
+        flex-direction: column; // Button und Titel untereinander
+        align-items: flex-start; // Linksbündig
+        gap: var(--spacing-md); // Abstand zwischen Button und Titel
+        margin-bottom: var(--spacing-lg); // Angepasster Abstand zum Grid
+
+        .back-button.product-list-back-button,
+        .back-button-placeholder,
+        .title-align-placeholder {
+            flex-basis: auto; // Breite automatisch
+            min-width: 0;     // Mindestbreite zurücksetzen
+        }
+
+        // Auf Mobile, wenn untereinander, sind die Platzhalter nicht unbedingt nötig
+        // oder sollten kein display: none haben, wenn der Titel linksbündig sein soll.
+        // Wenn der Button fehlt und der Titel linksbündig ist, ist .back-button-placeholder:empty nicht relevant.
+        .title-align-placeholder {
+             display: none; // Rechten Platzhalter auf Mobile ausblenden
+        }
+         .back-button-placeholder:not(:empty) { // Wenn der linke Button fehlt (also der Placeholder Inhalt hätte)
+             display: none; // Linken Platzhalter auch ausblenden, Titel ist dann einfach links
+         }
+
+
+        .product-list-title {
+            text-align: left; // Titel linksbündig
+            width: 100%;    // Volle Breite
+            font-size: 1.8rem; // Schriftgröße für Titel auf Mobile
+            margin: 0;      // Reset margin, da im Flex-column
+        }
+    }
+
     .product-grid {
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); // Etwas kleinere Kacheln
-        gap: 1rem;
+        grid-template-columns: repeat(auto-fill, minmax($card-min-width-list-medium, 1fr));
+        gap: var(--spacing-lg);
     }
-     .category-page-content {
-        padding: 1rem;
-    }
-    // Regel für den Titel auch hier anpassen
-    .product-list-title { // <-- Auch hier umbenannt
-        font-size: 1.8rem;
+    .load-more-trigger {
+      margin-top: var(--spacing-lg);
     }
 }
 
-// Responsive Anpassungen für kleine Screens (z.B. Handys)
 @media (max-width: $mobile-breakpoint-small) {
-    .product-grid {
-        grid-template-columns: repeat(2, 1fr); // 2 Spalten beibehalten
-        gap: 1rem; // Abstand beibehalten oder anpassen
+    .page-header-with-back-button .product-list-title {
+        font-size: 1.5rem; // Kleinere Schrift für Titel auf sehr kleinen Screens
     }
-     // Anpassungen für Titel auf kleinen Screens, falls gewünscht
-     // .product-list-title { // <-- Auch hier umbenannt
-     //    font-size: 1.5rem;
-     // }
+    .product-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-md);
+    }
 }

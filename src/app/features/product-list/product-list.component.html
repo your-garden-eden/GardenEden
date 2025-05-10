@@ -1,60 +1,52 @@
 <!-- /src/app/features/product-list/product-list.component.html -->
-<div class="category-page-content"> <!-- Klassennamen ggf. anpassen, falls nicht mehr 'category-page' -->
+<div class="category-page-content">
 
-  <!-- Ladeanzeige für initiales Laden -->
-  <div *ngIf="isLoading()" class="loading-indicator">
-    <p>Produkte werden geladen...</p>
-    <!-- Optional: Hier könnte ein Spinner platziert werden -->
+  <div class="page-header-with-back-button">
+    @if (mainCategoryLink(); as categoryLink) {
+      <a [routerLink]="categoryLink" class="back-button product-list-back-button">
+        <span class="material-symbols-outlined">arrow_back_ios</span>
+        Zurück zu {{ mainCategoryLabel() || 'Kategorieübersicht' }}
+      </a>
+    } @else {
+      <div class="back-button-placeholder"></div>
+    }
+
+    <h1 *ngIf="collectionTitle()" class="product-list-title">{{ collectionTitle() }}</h1>
+    <h1 *ngIf="!collectionTitle() && collectionHandle" class="product-list-title">Kategorie: {{ collectionHandle }}</h1>
+    <div class="title-align-placeholder"></div>
   </div>
 
-  <!-- Fehleranzeige -->
-   <div *ngIf="error()" class="error-message">
-     <p>{{ error() }}</p>
-     <!-- Optional: Link zurück oder Hilfestellung -->
-   </div>
+  @if (isLoading() && products().length === 0) {
+    <div class="loading-indicator">
+      <p>Produkte werden geladen...</p>
+    </div>
+  }
 
-  <!-- Inhalt, wenn nicht initial geladen wird und kein Fehler vorliegt -->
-  <ng-container *ngIf="!isLoading() && !error()">
+  @if (error() && products().length === 0) {
+     <div class="error-message">
+       <p>{{ error() }}</p>
+     </div>
+   }
 
-    <!-- Titel der Produktliste -->
-    <!-- Zeige Titel nur an, wenn er geladen wurde (aus navItems oder Shopify) -->
-    <h1 *ngIf="collectionTitle()" class="product-list-title">{{ collectionTitle() }}</h1>
-    <!-- Fallback, falls Titel null ist, aber Handle existiert (sollte durch neue Logik seltener vorkommen) -->
-     <h1 *ngIf="!collectionTitle() && collectionHandle" class="product-list-title">Kategorie: {{ collectionHandle }}</h1>
-
-    <!-- === HIER WURDE DIE PRODUKTANZAHL ENTFERNT === -->
-    <!-- <p *ngIf="products().length > 0">
-        Anzahl Produkte angezeigt: {{ products().length }}
-        <span *ngIf="pageInfo().hasNextPage"> (weitere verfügbar)</span>
-    </p> -->
-
-     <!-- Meldung, wenn keine Produkte gefunden wurden -->
-     <p *ngIf="products().length === 0 && !isLoadingMore()" class="no-products-message">
+  <ng-container *ngIf="!isLoading() || products().length > 0">
+     <p *ngIf="products().length === 0 && !isLoadingMore() && !error()" class="no-products-message">
         In dieser Kategorie wurden leider keine Produkte gefunden.
     </p>
 
-
-    <!-- Produkt Grid -->
     <div class="product-grid" *ngIf="products().length > 0">
       <app-product-card
           *ngFor="let product of products(); trackBy: trackByProductId"
-          [product]="product"> <!-- Hier wird kein displayMode übergeben -> 'full' wird verwendet -->
+          [product]="product">
       </app-product-card>
     </div>
 
-    <!-- Trigger-Element für Infinite Scroll -->
     <div #loadMoreTrigger
          *ngIf="pageInfo().hasNextPage && products().length > 0"
          class="load-more-trigger">
-         <!-- Dieses Element ist nur zum Beobachten da, meist unsichtbar -->
     </div>
 
-     <!-- Ladeanzeige für "Mehr laden" -->
      <div *ngIf="isLoadingMore()" class="loading-indicator more-loading">
        <p>Lade weitere Produkte...</p>
-       <!-- Optional: Hier könnte ein kleinerer Spinner platziert werden -->
      </div>
-
   </ng-container>
-
 </div>

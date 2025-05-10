@@ -1,276 +1,239 @@
 // /src/app/features/auth/register-page/register-page.component.scss
 
-// Basis-Styling für die Auth-Seiten (könnte ausgelagert werden)
+// Basis-Styling für die Auth-Seiten
 .auth-page-container {
-  max-width: 550px; // Begrenzte Breite für bessere Lesbarkeit
-  margin: 3rem auto; // Zentriert und vertikaler Abstand
-  padding: 2rem 2.5rem; // Innenabstand
-  background-color: #ffffff; // Weißer Hintergrund
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  max-width: 550px;
+  margin: var(--spacing-xxxl, 3rem) auto;
+  padding: var(--spacing-xl, 2rem) var(--spacing-xxl, 2.5rem);
+  background-color: var(--background-color-component);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--box-shadow-md);
 
   h1 {
     text-align: center;
     margin-top: 0;
-    margin-bottom: 0.5rem;
+    margin-bottom: var(--spacing-sm, 0.5rem);
     font-size: 1.8rem;
-    color: var(--text-color-on-gradient, #4E342E); // Nimmt Farbe aus globalen Vars
+    color: var(--text-color-headings);
   }
 
-  p { // Einleitender Text (wird ausgeblendet, wenn Erfolgsmeldung da ist)
+  p {
     text-align: center;
-    margin-bottom: 2rem;
-    color: var(--text-color-light, #666);
+    margin-bottom: var(--spacing-xl, 2rem);
+    color: var(--text-color-muted);
   }
 }
 
-// Styling für das Formular selbst
 .auth-form {
-display: flex;
-flex-direction: column;
-gap: 1.25rem; // Abstand zwischen den Formularfeldern
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg, 1.25rem);
 }
 
-// Styling für einzelne Formularfelder
 .form-field {
-display: flex;
-flex-direction: column;
-gap: 0.4rem; // Kleinerer Abstand zwischen Label, Input und Fehler
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs, 0.4rem);
 
-label {
-  font-weight: 600;
-  font-size: 0.9rem;
-  color: var(--text-color-main, #333);
-}
-
-input[type="text"],
-input[type="email"],
-input[type="password"] {
-  padding: 10px 12px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  font-size: 1rem;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-
-  &:focus {
-    outline: none;
-    border-color: var(--primary-color, #28a745); // Fokus-Farbe
-    box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.2); // Fokus-Schatten
+  label {
+    font-weight: var(--font-weight-semibold);
+    font-size: 0.9rem;
+    color: var(--text-color-base);
   }
 
-  // Styling für ungültige Felder
-  &[aria-invalid="true"] {
-    border-color: var(--error-color, #dc3545);
+  input[type="text"],
+  input[type="email"],
+  input[type="password"] {
+    padding: var(--spacing-sm, 10px) var(--spacing-md, 12px);
+    border: 1px solid var(--border-color-base);
+    border-radius: var(--border-radius-md);
+    font-size: 1rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    background-color: var(--background-color-component);
+
+    &:focus {
+      outline: none;
+      border-color: var(--accent-color-vibrant-green);
+      box-shadow: 0 0 0 2px var(--accent-color-vibrant-green-rgba-02);
+    }
+
+    &[aria-invalid="true"] {
+      border-color: var(--error-color);
+    }
   }
 }
-}
 
-// Styling für Felder in einer Reihe (PLZ / Ort)
 .form-row {
-display: flex;
-gap: 1rem; // Abstand zwischen den Feldern in der Reihe
-
-.zip-field {
-  flex: 1 1 120px; // Nimmt weniger Platz ein
-}
-.city-field {
-  flex: 2 1 auto; // Nimmt mehr Platz ein
-}
+  display: flex;
+  gap: var(--spacing-lg, 1rem);
+  .zip-field { flex: 1 1 120px; }
+  .city-field { flex: 2 1 auto; }
 }
 
-// Styling für Fehleranzeigen
 .error-container {
-min-height: 1.2em; // Verhindert Layout-Sprünge
-small {
-  color: var(--error-color, #dc3545);
-  font-size: 0.8rem;
-  display: block; // Stellt sicher, dass sie Platz einnimmt
-}
+  min-height: 1.2em;
+  small {
+    color: var(--error-color);
+    font-size: 0.8rem;
+    display: block;
+  }
 }
 
-// Styling für Checkbox-Felder (Newsletter & AGB)
 .checkbox-field {
-flex-direction: row;
-align-items: flex-start; // Label neben Checkbox ausrichten
-gap: 0.8rem;
-margin-top: 0.5rem; // Etwas mehr Abstand nach oben
+  flex-direction: row;
+  align-items: flex-start;
+  gap: var(--spacing-sm, 0.8rem);
+  margin-top: var(--spacing-sm, 0.5rem);
 
-input[type="checkbox"] {
-  margin-top: 0.2em; // Checkbox leicht nach unten schieben für bessere Ausrichtung
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
-  flex-shrink: 0; // Verhindert Schrumpfen
-}
-label {
-  font-weight: normal; // Normale Schriftstärke für Checkbox-Label
-  font-size: 0.9rem;
-  color: var(--text-color-light, #666);
-  cursor: pointer;
-  line-height: 1.4;
+  input[type="checkbox"] {
+    margin-top: 0.2em;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  label {
+    font-weight: var(--font-weight-normal);
+    font-size: 0.9rem;
+    color: var(--text-color-muted);
+    cursor: pointer;
+    line-height: 1.4;
 
-  // Links innerhalb des Labels stylen
-  a {
-      color: var(--primary-color, #28a745);
+    a {
+      color: var(--text-color-link);
       text-decoration: underline;
       &:hover {
-          color: var(--primary-color-hover, #218838);
+        color: var(--text-color-link-hover);
       }
+    }
+  }
+
+  &.terms-field {
+    margin-top: var(--spacing-lg, 1rem);
   }
 }
 
-// Speziell für AGB-Feld (optional, falls mehr Abstand nötig)
-&.terms-field {
-  margin-top: 1rem;
-}
-}
-
-// Styling für allgemeine Fehlermeldung (z.B. Firebase)
 .error-message.general-error {
-background-color: var(--error-background-light, #f8d7da);
-color: var(--error-text-dark, #721c24);
-border: 1px solid var(--error-border-light, #f5c6cb);
-border-radius: 5px;
-padding: 10px 15px;
-text-align: center;
-font-size: 0.9rem;
-margin-top: 0.5rem; // Abstand zum Formular
+  background-color: var(--error-background-color);
+  color: var(--error-text-color);
+  border: 1px solid var(--error-color);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-sm, 10px) var(--spacing-md, 15px);
+  text-align: center;
+  font-size: 0.9rem;
+  margin-top: var(--spacing-sm, 0.5rem);
 }
 
-// Styling für den Absende-Button
 .submit-button {
-display: inline-flex;
-align-items: center;
-justify-content: center;
-gap: 8px;
-padding: 12px 20px;
-background-color: var(--primary-color, #28a745);
-color: white;
-border: none;
-border-radius: 5px;
-font-size: 1rem;
-font-weight: 600;
-cursor: pointer;
-transition: background-color 0.2s ease, opacity 0.2s ease;
-margin-top: 1rem; // Abstand nach oben
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm, 8px);
+  padding: var(--spacing-md, 12px) var(--spacing-lg, 20px);
+  background-color: var(--primary-color);
+  color: var(--primary-color-text);
+  border: none;
+  border-radius: var(--border-radius-md);
+  font-size: 1rem;
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+  margin-top: var(--spacing-lg, 1rem);
 
-&:hover:not(:disabled) {
-  background-color: var(--primary-color-hover, #218838);
+  &:hover:not(:disabled) {
+    background-color: var(--primary-color-dark);
+  }
+
+  &:disabled {
+    background-color: var(--disabled-background-color);
+    color: var(--text-color-muted);
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+
+  .button-loading-spinner {
+    border: 2px solid var(--primary-color-text-rgba-03); // <<< KORRIGIERT
+    border-radius: var(--border-radius-circle);
+    border-top-color: var(--primary-color-text);
+    width: 16px;
+    height: 16px;
+    animation: spin 1s ease infinite;
+  }
 }
 
-&:disabled {
-  background-color: var(--disabled-color, #cccccc);
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-.button-loading-spinner { // Gleicher Spinner wie auf Produktdetailseite
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  border-top-color: #fff;
-  width: 16px;
-  height: 16px;
-  animation: spin 1s ease infinite;
-}
-}
-
-// Link zum Wechseln (Login)
 .auth-switch-link {
-text-align: center;
-margin-top: 2rem;
-font-size: 0.9rem;
-color: var(--text-color-light, #666);
+  text-align: center;
+  margin-top: var(--spacing-xl, 2rem);
+  font-size: 0.9rem;
+  color: var(--text-color-muted);
 
-a {
-  color: var(--primary-color, #28a745);
-  font-weight: 600;
-  text-decoration: underline;
-  &:hover {
-     color: var(--primary-color-hover, #218838);
+  a {
+    color: var(--text-color-link);
+    font-weight: var(--font-weight-semibold);
+    text-decoration: underline;
+    &:hover {
+      color: var(--text-color-link-hover);
+    }
   }
 }
-}
 
-// Keyframes für Spinner
 @keyframes spin {
-to {
-  transform: rotate(360deg);
-}
+  to { transform: rotate(360deg); }
 }
 
-// +++ NEU: Styles für die Erfolgsmeldung nach Registrierung +++
 .success-message.registration-success {
-background-color: var(--success-bg-color, #d4edda); // Fallback-Grün
-color: var(--success-text-color, #155724); // Fallback-Dunkelgrün
-border: 1px solid var(--success-border-color, #c3e6cb); // Fallback-Helles Grün
-padding: 20px;
-border-radius: 8px;
-text-align: center;
-margin-bottom: 20px; // Abstand zum "Login"-Link, falls das Formular ausgeblendet ist
+  background-color: var(--success-background-color);
+  color: var(--success-text-color);
+  border: 1px solid var(--success-color);
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius-lg);
+  text-align: center;
+  margin-bottom: var(--spacing-lg);
 
-.icon-large {
-  font-size: 48px; // Größe des Material Symbols (z.B. mark_email_read)
-  display: block;  // Damit margin-bottom wirkt und es zentriert ist
-  margin: 0 auto 10px auto; // Zentriert das Icon horizontal
-  color: var(--success-icon-color, var(--success-text-color, #155724)); // Icon-Farbe
-}
-
-h2 {
-  margin-top: 0;
-  margin-bottom: 10px;
-  font-size: 1.5rem; // Etwas kleiner als H1 der Seite
-  color: var(--success-heading-color, var(--success-text-color, #155724));
-}
-
-p { // Gilt für die Absätze in der Erfolgsmeldung
-  margin-bottom: 10px;
-  line-height: 1.6;
-  font-size: 1rem; // Normale Textgröße
-  color: var(--success-paragraph-color, var(--success-text-color, #155724));
-
-  &:last-of-type { // Letzter Absatz in der Erfolgsmeldung
-    margin-bottom: 0;
-  }
-}
-
-a { // Für den Link zur Startseite innerhalb der Erfolgsmeldung
-  color: var(--success-link-color, var(--primary-color, #28a745)); // Primärfarbe oder spezifische Erfolgs-Linkfarbe
-  font-weight: 600;
-  text-decoration: underline;
-  &:hover {
-    color: var(--success-link-hover-color, var(--primary-color-hover, #218838));
-  }
-}
-}
-// +++ ENDE NEUE STYLES +++
-
-
-// Responsive Anpassungen
-@media (max-width: 600px) {
-.auth-page-container {
-  margin: 1.5rem 1rem;
-  padding: 1.5rem;
-}
-.form-row {
-  flex-direction: column; // PLZ und Ort untereinander
-  gap: 1.25rem;
-  .zip-field, .city-field {
-    flex: 1 1 auto; // Volle Breite
-  }
-}
-
-// +++ NEU: Responsive Anpassung für Erfolgsmeldung (optional) +++
-.success-message.registration-success {
-  padding: 15px;
-  h2 {
-    font-size: 1.3rem;
-  }
   .icon-large {
-    font-size: 40px;
+    font-size: 48px;
+    display: block;
+    margin: 0 auto var(--spacing-md);
+    color: var(--success-text-color);
   }
-  p { // Gilt für die Absätze in der Erfolgsmeldung auf Mobilgeräten
-    font-size: 0.95rem;
+
+  h2 {
+    margin-top: 0;
+    margin-bottom: var(--spacing-md);
+    font-size: 1.5rem;
+    color: var(--success-text-color);
+  }
+
+  p {
+    margin-bottom: var(--spacing-md);
+    line-height: 1.6;
+    font-size: 1rem;
+    color: var(--success-text-color);
+    &:last-of-type { margin-bottom: 0; }
+  }
+
+  a {
+    color: var(--text-color-link);
+    font-weight: var(--font-weight-semibold);
+    text-decoration: underline;
+    &:hover { color: var(--text-color-link-hover); }
   }
 }
-// +++ ENDE NEU +++
+
+@media (max-width: 600px) {
+  .auth-page-container {
+    margin: var(--spacing-lg) var(--spacing-md);
+    padding: var(--spacing-lg);
+  }
+  .form-row {
+    flex-direction: column;
+    gap: var(--spacing-lg);
+    .zip-field, .city-field { flex: 1 1 auto; }
+  }
+  .success-message.registration-success {
+    padding: var(--spacing-md);
+    h2 { font-size: 1.3rem; }
+    .icon-large { font-size: 40px; }
+    p { font-size: 0.95rem; }
+  }
 }

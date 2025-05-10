@@ -1,89 +1,72 @@
 // /src/app/shared/components/header/header.component.scss
 @use "sass:color";
 
-// --- Bestehende Variablen ---
-$header-gradient-start: #e8f5e9;
-$header-gradient-end: #D2B48C;
-$header-text-color: #4E342E;
-$header-hover-text-color: #000000;
-$header-active-accent-color: #007bff;
-$header-border-color: rgba(78, 52, 46, 0.3);
-$submenu-opacity: 0.95;
-$submenu-border-color: $header-border-color;
-$submenu-hover-bg-color: rgba(78, 52, 46, 0.1);
-$logo-max-height: 80px;
-$logo-nav-gap: 40px;
-$mobile-breakpoint: 1024px;
-$search-overlay-bg: white;
-$search-overlay-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
-$search-result-hover-bg: #f0f0f0;
-// --- Ende Bestehende Variablen ---
+// Lokale Sass-Variablen für color.adjust() oder sehr spezifische Header-Elemente.
+$header-text-color-sass: #4E342E; // Entspricht var(--secondary-color)
+$header-gradient-start-sass: #e8f5e9; // Entspricht var(--gradient-end)
+$header-gradient-end-sass: #D2B48C;   // Entspricht var(--gradient-start) / var(--accent-color-beige)
 
-// --- NEUE Variablen für Wunschliste & Fehler (Werte anpassen!) ---
-$wishlist-active-color: var(--wishlist-icon-color, #d9534f); // Rot, wenn gefüllt
-$disabled-icon-color: var(--disabled-color, #bdbdbd);     // Grau, wenn User nicht eingeloggt
-$error-color: var(--error-color, red); // Fallback für Suchfehler, falls nicht global definiert
-// --- ENDE NEUE Variablen ---
+// Breakpoint-Variable (bleibt vorerst lokal)
+$mobile-breakpoint: 1024px;
+
 
 :host {
   display: block;
-  position: relative; // Für Mini-Cart
+  position: relative; 
 }
 
 .app-header.two-rows {
   position: relative;
   padding: 0;
-  background-image: linear-gradient(to right, $header-gradient-start, $header-gradient-end);
-  border-bottom: 1px solid $header-border-color;
-  color: $header-text-color;
-  z-index: 999;
+  background-image: linear-gradient(to right, var(--gradient-end), var(--gradient-start));
+  border-bottom: 1px solid rgba(var(--secondary-color-rgb, 78, 52, 46), 0.3);
+  color: var(--secondary-color);
+  z-index: var(--z-index-sticky);
 }
 
 .top-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 2px 20px 0 20px;
-  min-height: 40px;
+  padding: var(--spacing-md) var(--spacing-xl) var(--spacing-xs); // MEHR PADDING OBEN
+  min-height: 50px; // Ggf. leicht erhöht
   position: relative;
 }
 
 #hamburger-button {
   display: none;
-  margin-right: 15px;
-  // Basis-Styling für icon-button gilt auch hier
-  &.active {
-    // Ggf. spezielles Styling für aktiven Hamburger
-  }
+  margin-right: var(--spacing-lg);
+  &.active { /* Ggf. Styling */ }
 }
 
 .search-bar-container {
   position: relative;
   flex-grow: 1;
   max-width: 600px;
-  margin: 0 auto;
-  padding: 0 20px;
+  margin: 0 auto; 
+  padding: 0 var(--spacing-xl);
+  // margin-top: var(--spacing-sm); // Alternative, wenn Padding der Top-Row nicht reicht
 
   .search-input-wrapper {
     display: flex;
     align-items: center;
     background-color: rgba(255, 255, 255, 0.7);
-    border-radius: 20px;
+    border-radius: var(--border-radius-pill);
     border: 1px solid transparent;
-    padding: 0 10px 0 12px;
+    padding: 0 var(--spacing-sm) 0 var(--spacing-md);
     transition: background-color 0.2s ease, border-color 0.2s ease;
-    height: 38px;
+    height: 36px; // Leicht reduziert
 
     &:focus-within {
-      background-color: white;
-      border-color: $header-border-color;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      background-color: var(--background-color-component);
+      border-color: rgba(var(--secondary-color-rgb, 78, 52, 46), 0.3);
+      box-shadow: var(--box-shadow-sm);
     }
 
     .search-icon-prefix {
       font-size: 22px;
-      color: $header-text-color;
-      margin-right: 8px;
+      color: var(--secondary-color);
+      margin-right: var(--spacing-sm);
       opacity: 0.7;
     }
 
@@ -93,153 +76,133 @@ $error-color: var(--error-color, red); // Fallback für Suchfehler, falls nicht 
       outline: none;
       background: none;
       font-size: 0.95rem;
-      color: $header-text-color;
-      padding: 5px 0;
+      color: var(--secondary-color);
+      padding: var(--spacing-xs) 0;
       &::placeholder {
-        color: rgba(78, 52, 46, 0.6);
+        color: rgba(var(--secondary-color-rgb, 78, 52, 46), 0.6);
         opacity: 1;
       }
     }
 
     .clear-button {
-      // Erbt von .icon-button, aber spezifischer
-      margin-left: 5px;
-      padding: 3px;
-      .material-symbols-outlined {
-        font-size: 20px;
-        display: block;
-      }
+      margin-left: var(--spacing-xs);
+      padding: var(--spacing-xxs);
+      .material-symbols-outlined { font-size: 20px; display: block; }
     }
   }
 
   .search-results-overlay {
     position: absolute;
-    top: calc(100% + 5px);
+    top: calc(100% + var(--spacing-xs));
     left: 0;
     right: 0;
-    background-color: $search-overlay-bg;
-    border-radius: 0 0 8px 8px;
-    box-shadow: $search-overlay-shadow;
+    background-color: var(--background-color-component);
+    border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
+    box-shadow: var(--box-shadow-md);
     max-height: 400px;
     overflow-y: auto;
-    z-index: 1000;
-    border: 1px solid $header-border-color;
+    z-index: var(--z-index-dropdown);
+    border: 1px solid rgba(var(--secondary-color-rgb, 78, 52, 46), 0.3);
     border-top: none;
 
     ul { list-style: none; padding: 0; margin: 0; }
-    li { border-bottom: 1px solid #eee; &:last-child { border-bottom: none; } }
+    li { border-bottom: 1px solid var(--border-color-light); &:last-child { border-bottom: none; } }
 
     .search-result-item {
-      display: flex; align-items: center; padding: 10px 15px;
-      text-decoration: none; color: $header-text-color; transition: background-color 0.15s ease;
-      &:hover { background-color: $search-result-hover-bg; }
+      display: flex; align-items: center; padding: var(--spacing-sm) var(--spacing-md);
+      text-decoration: none; color: var(--text-color-base); transition: background-color 0.15s ease;
+      &:hover { background-color: var(--background-color-light-gray); }
       img, .search-result-placeholder-img {
-        width: 40px; height: 40px; object-fit: contain; margin-right: 12px;
-        flex-shrink: 0; background-color: #f0f0f0; border-radius: 3px;
+        width: 40px; height: 40px; object-fit: contain; margin-right: var(--spacing-md);
+        flex-shrink: 0; background-color: var(--background-color-light-gray); border-radius: var(--border-radius-sm);
       }
       .search-result-title { flex-grow: 1; font-size: 0.9rem; line-height: 1.3; }
     }
     .search-loading, .search-error, .search-no-results, .search-prompt {
-      padding: 15px; text-align: center; font-size: 0.9rem; color: #666;
+      padding: var(--spacing-lg); text-align: center; font-size: 0.9rem; color: var(--text-color-muted);
     }
-    .search-error { color: $error-color; } // Nutzt die definierte Variable
+    .search-error { color: var(--error-text-color); }
   }
 }
 
 .user-actions {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: var(--spacing-lg);
 
   .icon-button {
-    background: none; border: none; padding: 5px; cursor: pointer;
-    color: $header-text-color; position: relative; transition: color 0.2s ease;
+    background: none; border: none; padding: var(--spacing-xs); cursor: pointer;
+    color: var(--secondary-color); position: relative; transition: color 0.2s ease;
     .material-symbols-outlined { font-size: 28px; vertical-align: middle; display: block; }
 
     &:hover:not([disabled]) {
-      color: $header-hover-text-color;
+      color: var(--text-color-base);
     }
-    &[disabled] { // Allgemeines Styling für deaktivierte Icon-Buttons
-        opacity: 0.6;
+    &[disabled] {
+        opacity: 0.5; // BLASSERES GRAU
         cursor: not-allowed;
-        // Verhindere Hover-Effekte auf deaktivierten Buttons
-        &:hover {
-            color: $header-text-color; // Oder $disabled-icon-color, je nach Präferenz
-        }
+        &:hover { color: var(--secondary-color); }
     }
   }
 
-  // Spezifisches Styling für Wunschlisten-Button
   .wishlist-button {
-    // Standard-Styles werden von .icon-button geerbt
     .material-symbols-outlined {
       transition: color 0.2s ease, font-variation-settings 0.2s ease;
     }
-
-    // Aktiver Zustand (gefüllte Wunschliste & eingeloggt)
     &.active {
       .material-symbols-outlined {
-        color: $wishlist-active-color;
+        color: var(--wishlist-icon-color);
         font-variation-settings: 'FILL' 1;
-         // Rote Farbe
-        // Das 'favorite' Icon im HTML ist bereits gefüllt
       }
     }
-
-    // Deaktivierter Zustand (nicht eingeloggt)
-    // Nutzt .icon-button[disabled] für Opazität und Cursor.
-    // Die Klasse .disabled wird im HTML gesetzt.
     &.disabled {
-      // pointer-events: none; // Wird durch [disabled] am Link erreicht
       .material-symbols-outlined {
-        color: $disabled-icon-color !important; // Explizites Grau
-        font-variation-settings: 'FILL' 0; // Sicherstellen, dass Herz leer ist
+        color: var(--disabled-color) !important;
+        font-variation-settings: 'FILL' 1 !important; // GEFÜLLT
       }
-      // Überschreibe Hover-Effekt von .icon-button
-      &:hover {
-        color: $disabled-icon-color !important;
-      }
+      // Hover wird von .icon-button[disabled] geerbt
     }
   }
 
   .cart-badge {
-    position: absolute; top: -2px; right: -5px; background-color: red;
-    color: white; border-radius: 50%; width: 18px; height: 18px;
+    position: absolute; top: -2px; right: -5px; background-color: var(--error-color);
+    color: var(--primary-color-text); border-radius: var(--border-radius-circle); width: 18px; height: 18px;
     font-size: 0.7em; display: flex; align-items: center; justify-content: center;
-    line-height: 1; font-weight: bold;
+    line-height: 1; font-weight: var(--font-weight-bold);
   }
 }
 
 .main-nav.bottom-row {
-  padding: 0 20px 2px 20px; display: flex; align-items: center;
-  justify-content: flex-start; min-height: calc(#{$logo-max-height} + 2px);
+  padding: 0 var(--spacing-xl) var(--spacing-xxs);
+  display: flex; align-items: center;
+  justify-content: flex-start; min-height: calc(80px + 2px);
   .logo-container {
-    flex-shrink: 0; display: flex; align-items: center; padding-right: $logo-nav-gap;
+    flex-shrink: 0; display: flex; align-items: center; padding-right: 40px;
     a { display: inline-block; }
-    .logo { display: block; max-height: $logo-max-height; width: auto; max-width: 100%; vertical-align: middle; }
+    .logo { display: block; max-height: 80px; width: auto; max-width: 100%; vertical-align: middle; }
   }
   ul.desktop-nav-list {
     list-style: none; padding: 0; margin: 0; display: flex; align-items: center; gap: 30px;
     li.nav-item {
       position: relative; display: flex; align-items: center;
       a:not(.submenu a) {
-        text-decoration: none; color: $header-text-color; font-weight: 500; padding: 10px 0;
+        text-decoration: none; color: var(--secondary-color); font-weight: var(--font-weight-medium); padding: var(--spacing-sm) 0;
         display: block; position: relative; border-bottom: 2px solid transparent;
         transition: color 0.3s ease, border-color 0.3s ease;
-        &:hover, &.active-link { color: $header-hover-text-color; border-bottom-color: $header-hover-text-color; }
+        &:hover, &.active-link { color: var(--text-color-base); border-bottom-color: var(--text-color-base); }
       }
       .submenu {
          display: none; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
-         background-image: linear-gradient(to bottom right, rgba($header-gradient-start, $submenu-opacity), rgba($header-gradient-end, $submenu-opacity));
-         border: 1px solid $submenu-border-color; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-         padding: 10px 0; margin-top: 2px; min-width: 200px; z-index: 1001;
-         list-style: none; border-radius: 4px;
+         background-image: linear-gradient(to bottom right, rgba($header-gradient-start-sass, 0.95), rgba($header-gradient-end-sass, 0.95));
+         border: 1px solid rgba(var(--secondary-color-rgb, 78, 52, 46), 0.3);
+         box-shadow: var(--box-shadow-md); padding: var(--spacing-sm) 0; margin-top: 2px; min-width: 200px;
+         z-index: var(--z-index-dropdown); list-style: none; border-radius: var(--border-radius-md);
          li { display: block; }
          a {
-           padding: 8px 15px; display: block; white-space: nowrap; color: $header-text-color;
-           font-weight: 400; border-bottom: none; text-shadow: none;
+           padding: var(--spacing-sm) var(--spacing-lg); display: block; white-space: nowrap; color: var(--secondary-color);
+           font-weight: var(--font-weight-normal); border-bottom: none; text-shadow: none;
            transition: background-color 0.3s ease, color 0.3s ease;
-           &:hover, &.active-link { background-color: $submenu-hover-bg-color; color: $header-hover-text-color; }
+           &:hover, &.active-link { background-color: rgba(var(--secondary-color-rgb, 78, 52, 46), 0.1); color: var(--text-color-base); }
          }
       }
       &:hover > .submenu { @media (min-width: #{$mobile-breakpoint + 1px}) { display: block; } }
@@ -249,62 +212,62 @@ $error-color: var(--error-color, red); // Fallback für Suchfehler, falls nicht 
 
 .mobile-menu-overlay {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background-color: rgba(0, 0, 0, 0.5); z-index: 1000; opacity: 0; visibility: hidden;
+  background-color: var(--background-color-dark-overlay); z-index: var(--z-index-modal-backdrop);
+  opacity: 0; visibility: hidden;
   transition: opacity 0.3s ease, visibility 0s linear 0.3s;
   .main-nav.mobile-menu-active & { opacity: 1; visibility: visible; transition: opacity 0.3s ease, visibility 0s linear 0s; }
 }
 
 .mobile-menu-panel {
   position: fixed; top: 0; left: 0; width: 85%; max-width: 320px; height: 100%;
-  background-image: linear-gradient(to bottom right, $header-gradient-start, $header-gradient-end);
-  color: $header-text-color; box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
-  z-index: 1001; transform: translateX(-100%); transition: transform 0.3s ease;
+  background-image: linear-gradient(to bottom right, var(--gradient-end), var(--gradient-start));
+  color: var(--secondary-color); box-shadow: var(--box-shadow-lg);
+  z-index: var(--z-index-modal); transform: translateX(-100%); transition: transform 0.3s ease;
   overflow-y: auto; padding-top: 50px;
   .main-nav.mobile-menu-active & { transform: translateX(0); }
 }
 
 .close-mobile-menu-button {
-  position: absolute; top: 10px; right: 10px; z-index: 1002; color: $header-text-color;
-  &:hover { color: color.adjust($header-text-color, $lightness: -15%); }
+  position: absolute; top: var(--spacing-md); right: var(--spacing-md); z-index: calc(var(--z-index-modal) + 1); color: var(--secondary-color);
+  &:hover { color: #{color.adjust($header-text-color-sass, $lightness: -15%)}; }
 }
 
 .mobile-nav-list {
   list-style: none; padding: 0; margin: 0;
   .mobile-nav-item {
-    border-bottom: 1px solid $header-border-color;
-    .mobile-nav-item-content { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; }
-    a.main-category-link, button.main-category-link { // Gilt für a und button
-      text-decoration: none; color: $header-text-color; font-weight: 500; flex-grow: 1; padding: 5px 0;
-      // Button Reset
+    border-bottom: 1px solid rgba(var(--secondary-color-rgb, 78, 52, 46), 0.3);
+    .mobile-nav-item-content { display: flex; justify-content: space-between; align-items: center; padding: var(--spacing-sm) var(--spacing-lg); }
+    a.main-category-link, button.main-category-link {
+      text-decoration: none; color: var(--secondary-color); font-weight: var(--font-weight-medium); flex-grow: 1; padding: var(--spacing-xs) 0;
       background: none; border: none; text-align: left; font: inherit; cursor: pointer;
-      &.active-link { color: $header-hover-text-color; font-weight: bold; }
-      &:hover { color: $header-hover-text-color; }
+      &.active-link { color: var(--text-color-base); font-weight: var(--font-weight-bold); }
+      &:hover { color: var(--text-color-base); }
     }
-    .expand-button { color: $header-text-color; margin-left: 10px; flex-shrink: 0; padding: 5px; &:hover { color: $header-hover-text-color; } }
+    .expand-button { color: var(--secondary-color); margin-left: var(--spacing-sm); flex-shrink: 0; padding: var(--spacing-xs); &:hover { color: var(--text-color-base); } }
   }
   .mobile-submenu {
-    list-style: none; padding: 5px 0 10px 30px; margin: 0; background-color: rgba(255, 255, 255, 0.2);
-    li { padding: 8px 0; }
+    list-style: none; padding: var(--spacing-xs) 0 var(--spacing-sm) var(--spacing-xxl); margin: 0; background-color: rgba(255, 255, 255, 0.2);
+    li { padding: var(--spacing-sm) 0; }
     a {
-      text-decoration: none; color: color.adjust($header-text-color, $lightness: -5%);
-      font-size: 0.95em; &.active-link { color: $header-hover-text-color; font-weight: 500; } &:hover { color: $header-hover-text-color; }
+      text-decoration: none; color: #{color.adjust($header-text-color-sass, $lightness: -5%)};
+      font-size: 0.95em; &.active-link { color: var(--text-color-base); font-weight: var(--font-weight-medium); } &:hover { color: var(--text-color-base); }
     }
   }
 }
 
 @media (max-width: $mobile-breakpoint) {
-  .top-row { padding: 2px 10px 0 10px; justify-content: space-between; }
+  .top-row { padding: var(--spacing-md) var(--spacing-md) var(--spacing-xs); justify-content: space-between; } // Padding angepasst
   #hamburger-button { display: block; }
-  .search-bar-container { max-width: calc(100% - 150px); padding: 0 5px; margin-left: 10px; margin-right: 10px; }
-  .user-actions { gap: 5px; }
-  .main-nav.bottom-row { justify-content: center; padding: 0 10px 2px 10px; .logo-container { padding-right: 0; justify-content: center; flex-grow: 1; } ul.desktop-nav-list { display: none; } }
+  .search-bar-container { max-width: calc(100% - 150px); padding: 0 var(--spacing-xs); margin-left: var(--spacing-sm); margin-right: var(--spacing-sm); }
+  .user-actions { gap: var(--spacing-xs); }
+  .main-nav.bottom-row { justify-content: center; padding: 0 var(--spacing-md) var(--spacing-xxs); .logo-container { padding-right: 0; justify-content: center; flex-grow: 1; } ul.desktop-nav-list { display: none; } }
 }
 
 @media (max-width: 768px) {
-   .top-row { min-height: 35px; padding: 2px 5px 0 5px; }
+   .top-row { min-height: 35px; padding: var(--spacing-sm) var(--spacing-xs) var(--spacing-xxs); } // Padding angepasst
    .search-bar-container {
-      max-width: calc(100% - 120px); margin-left: 5px; margin-right: 5px;
-      .search-input-wrapper { height: 34px; padding: 0 8px 0 10px; }
+      max-width: calc(100% - 120px); margin-left: var(--spacing-xs); margin-right: var(--spacing-xs);
+      .search-input-wrapper { height: 34px; padding: 0 var(--spacing-sm) 0 var(--spacing-md); }
       input[type="text"] { font-size: 0.9rem; }
    }
    .user-actions { .icon-button .material-symbols-outlined { font-size: 24px; } .cart-badge { width: 16px; height: 16px; font-size: 0.6rem; top: -1px; right: -4px; } }

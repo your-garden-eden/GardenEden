@@ -1,20 +1,11 @@
 // /src/app/shared/components/login-overlay/login-overlay.component.scss
-
-// Variablen
-$overlay-z-index: 1000;
-$overlay-bg-color: rgba(0, 0, 0, 0.6);
-$modal-bg-color: #ffffff;
-$modal-max-width: 480px;
-$modal-border-radius: 8px;
-$modal-padding: 2rem 2.5rem;
-$close-button-color: #999;
-$close-button-hover-color: #333;
+$mobile-breakpoint-medium: 768px;
 $transition-duration: 0.3s;
 
-// Overlay-Container
 :host {
   display: block; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background-color: $overlay-bg-color; z-index: $overlay-z-index;
+  background-color: var(--background-color-dark-overlay);
+  z-index: var(--z-index-modal);
   display: flex; align-items: center; justify-content: center;
   opacity: 0; visibility: hidden;
   transition: opacity $transition-duration ease, visibility 0s linear $transition-duration;
@@ -26,90 +17,204 @@ $transition-duration: 0.3s;
   }
 }
 
-// Inhaltsbereich
 .overlay-content {
-  position: relative; background-color: $modal-bg-color; padding: $modal-padding;
-  border-radius: $modal-border-radius; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-  max-width: $modal-max-width; width: 90%; max-height: 90vh; overflow-y: auto;
-  transform: scale(0.95) translateY(10px); opacity: 0;
+  position: relative;
+  background-color: var(--background-color-component);
+  padding: var(--spacing-xl) var(--spacing-xxl);
+  border-radius: var(--border-radius-lg); // Radius für Desktop
+  box-shadow: var(--box-shadow-lg);
+
+  width: auto;
+  min-width: 300px;
+  max-width: 600px; // Passe diesen Wert für Desktop-Breite an
+  margin-left: var(--spacing-lg);
+  margin-right: var(--spacing-lg);
+
+  max-height: 90vh;
+  overflow-y: auto;
+
+  transform: scale(0.95) translateY(10px);
+  opacity: 0;
   transition: transform $transition-duration ease-out, opacity $transition-duration ease-out;
 }
 
-// Schließen-Button
 .close-button {
-  position: absolute; top: 10px; right: 10px; background: none; border: none;
-  padding: 5px; cursor: pointer; color: $close-button-color; line-height: 1; z-index: 10;
-  &:hover { color: $close-button-hover-color; }
+  position: absolute;
+  top: var(--spacing-md); right: var(--spacing-md);
+  background: none; border: none;
+  padding: var(--spacing-xs); cursor: pointer;
+  color: var(--text-color-muted);
+  line-height: 1;
+  z-index: 10;
+  &:hover { color: var(--text-color-base); }
   .material-symbols-outlined { font-size: 28px; }
 }
 
-// Header im Overlay
 .overlay-header {
-  text-align: center; margin-bottom: 1.5rem;
-  h1 { margin-top: 0; margin-bottom: 0.5rem; font-size: 1.6rem; color: var(--text-color-on-gradient, #4E342E); }
-  p { margin-bottom: 0; color: var(--text-color-light, #666); }
+  text-align: center;
+  margin-bottom: var(--spacing-lg);
+  h1 {
+    margin-top: 0;
+    margin-bottom: var(--spacing-sm);
+    font-size: 1.6rem;
+    color: var(--text-color-headings);
+  }
+  p {
+    margin-bottom: 0;
+    color: var(--text-color-muted);
+  }
 }
 
-// Formular-Styling
 .overlay-form {
-  display: flex; flex-direction: column; gap: 1rem;
+  display: flex; flex-direction: column;
+  gap: var(--spacing-lg);
+
   .form-field {
-    display: flex; flex-direction: column; gap: 0.3rem;
-    label { font-weight: 600; font-size: 0.85rem; color: var(--text-color-main, #333); }
-    input[type="email"], input[type="password"] {
-      padding: 9px 11px; border: 1px solid #ccc; border-radius: 5px; font-size: 0.95rem;
-      &:focus { outline: none; border-color: var(--primary-color, #28a745); box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.2); }
-      &[aria-invalid="true"] { border-color: var(--error-color, #dc3545); }
+    display: flex; flex-direction: column;
+    gap: var(--spacing-xs);
+    label {
+      font-weight: var(--font-weight-semibold);
+      font-size: 0.85rem;
+      color: var(--text-color-base);
     }
-    .forgot-password-link { text-align: right; margin-top: 0.2rem; }
+    input[type="email"], input[type="password"] {
+      padding: var(--spacing-sm) var(--spacing-md);
+      border: 1px solid var(--border-color-base);
+      border-radius: var(--border-radius-md);
+      font-size: 0.95rem;
+      background-color: var(--background-color-component);
+
+      &:focus {
+        outline: none;
+        border-color: var(--accent-color-vibrant-green);
+        box-shadow: 0 0 0 2px var(--accent-color-vibrant-green-rgba-02);
+      }
+      &[aria-invalid="true"] {
+        border-color: var(--error-color);
+      }
+    }
+    .forgot-password-link {
+      text-align: right;
+      margin-top: var(--spacing-xxs);
+    }
   }
-  .error-container { min-height: 1em; small { color: var(--error-color, #dc3545); font-size: 0.75rem; } }
-  .error-message.general-error { background-color: var(--error-background-light, #f8d7da); color: var(--error-text-dark, #721c24); border: 1px solid var(--error-border-light, #f5c6cb); border-radius: 5px; padding: 8px 12px; text-align: center; font-size: 0.85rem; margin-top: 0.3rem; }
-  .submit-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 18px; background-color: var(--primary-color, #28a745); color: white; border: none; border-radius: 5px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s ease, opacity 0.2s ease; margin-top: 0.8rem;
-    &:hover:not(:disabled) { background-color: var(--primary-color-hover, #218838); }
-    &:disabled { background-color: var(--disabled-color, #cccccc); cursor: not-allowed; opacity: 0.7; }
-    .button-loading-spinner { border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top-color: #fff; width: 16px; height: 16px; animation: spin 1s ease infinite; }
+  .error-container {
+    min-height: 1em;
+    small {
+      color: var(--error-color);
+      font-size: 0.75rem;
+    }
+  }
+  .error-message.general-error {
+    background-color: var(--error-background-color);
+    color: var(--error-text-color);
+    border: 1px solid var(--error-color);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+    text-align: center;
+    font-size: 0.85rem;
+    margin-top: var(--spacing-xs);
+  }
+  .submit-button {
+    display: inline-flex; align-items: center; justify-content: center; gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    background-color: var(--primary-color);
+    color: var(--primary-color-text);
+    border: none;
+    border-radius: var(--border-radius-md);
+    font-size: 0.95rem;
+    font-weight: var(--font-weight-semibold);
+    cursor: pointer;
+    transition: background-color 0.2s ease, opacity 0.2s ease;
+    margin-top: var(--spacing-sm);
+
+    &:hover:not(:disabled) { background-color: var(--primary-color-dark); }
+    &:disabled {
+      background-color: var(--disabled-background-color);
+      color: var(--text-color-muted);
+      cursor: not-allowed; opacity: 0.7;
+    }
+    .button-loading-spinner {
+      border: 2px solid var(--primary-color-text-rgba-03);
+      border-radius: var(--border-radius-circle);
+      border-top-color: var(--primary-color-text);
+      width: 16px; height: 16px;
+      animation: spin 1s ease infinite;
+    }
   }
 }
 
-// Styling für Link-Buttons
-.link-button { background: none; border: none; padding: 0; margin: 0; font-size: inherit; color: var(--primary-color, #28a745); text-decoration: underline; cursor: pointer; font-weight: 600; &:hover { color: var(--primary-color-hover, #218838); } }
+.link-button {
+  background: none; border: none; padding: 0; margin: 0;
+  font-size: inherit;
+  color: var(--text-color-link);
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: var(--font-weight-semibold);
+  &:hover { color: var(--text-color-link-hover); }
+}
 
-// --- Social Login Styling (Bereinigt) ---
 .social-login-divider {
   display: flex; align-items: center; text-align: center;
-  color: var(--text-color-light, #aaa); margin: 1.5rem 0;
-  font-size: 0.8rem; font-weight: 500;
-  &::before, &::after { content: ''; flex: 1; border-bottom: 1px solid #eee; }
-  span { padding: 0 1rem; }
+  color: var(--text-color-muted);
+  margin: var(--spacing-lg) 0;
+  font-size: 0.8rem;
+  font-weight: var(--font-weight-medium);
+  &::before, &::after { content: ''; flex: 1; border-bottom: 1px solid var(--border-color-light); }
+  span { padding: 0 var(--spacing-lg); }
 }
 
 .social-login-buttons {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-  align-items: center; // Zentriert den/die Social Button(s)
-  // Kein spezifisches Styling mehr für .social-button oder .google-button!
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+  align-items: center;
 }
-// --- Ende Social Login Styling ---
 
-// Link zum Registrieren
-.auth-switch-link.overlay-switch-link { text-align: center; margin-top: 1.5rem; font-size: 0.85rem; color: var(--text-color-light, #666); }
-.forgot-password-link { /* Styling schon oben */ }
+.auth-switch-link.overlay-switch-link {
+  text-align: center;
+  margin-top: var(--spacing-lg);
+  font-size: 0.85rem;
+  color: var(--text-color-muted);
+}
 
-// Keyframes
 @keyframes spin { to { transform: rotate(360deg); } }
 
-// Mobile Fullscreen Style
-@media (max-width: 768px) {
+// Mobile Style mit Radius
+@media (max-width: $mobile-breakpoint-medium) {
   .overlay-content {
-    width: 100%; height: 100%; max-width: none; max-height: none; border-radius: 0; box-shadow: none;
-    display: flex; flex-direction: column; padding: 1.5rem; overflow-y: auto;
-    // Animation ggf. anpassen
+    width: calc(100% - (2 * var(--spacing-lg))); // Nimmt nicht volle Breite, lässt Rand
+    min-width: 0;
+    height: auto; // Höhe passt sich Inhalt an
+    max-width: none; // Keine Desktop-max-width
+    max-height: calc(100% - (2 * var(--spacing-lg))); // Lässt Rand oben/unten
+
+    // border-radius: var(--border-radius-lg); // Erbt Radius von oben oder spezifisch:
+    // border-radius: var(--border-radius-md); // Kleinerer Radius für Mobile?
+
+    box-shadow: var(--box-shadow-lg); // Schatten beibehalten
+
+    margin-left: auto;   // Zentrierung
+    margin-right: auto;  // Zentrierung
+    margin-top: var(--spacing-lg);    // Abstand oben
+    margin-bottom: var(--spacing-lg); // Abstand unten
+
+    display: flex; flex-direction: column;
+    // padding: var(--spacing-lg); // Padding ist schon im Desktop-Style, wird geerbt
+    overflow-y: auto;
   }
-  .close-button { top: 15px; right: 15px; }
-  .overlay-header { margin-bottom: 1.5rem; h1 { font-size: 1.5rem; } }
-  .overlay-form { flex-grow: 1; gap: 0.8rem; }
-  .auth-switch-link.overlay-switch-link { margin-top: 1.5rem; padding-bottom: 1rem; }
+  .close-button { top: var(--spacing-lg); right: var(--spacing-lg); }
+  .overlay-header {
+    margin-bottom: var(--spacing-lg);
+    h1 { font-size: 1.5rem; }
+  }
+  .overlay-form {
+    flex-grow: 1;
+    gap: var(--spacing-sm);
+  }
+  .auth-switch-link.overlay-switch-link {
+    margin-top: var(--spacing-lg);
+    padding-bottom: var(--spacing-lg);
+  }
 }

@@ -1,61 +1,24 @@
 // /src/app/features/product-page/product-page.component.scss
+// @use "sass:color"; // Nicht mehr unbedingt hier nötig, wenn Berechnungen in styles.scss sind
 
-@use "sass:color"; // Wird für color.adjust benötigt
-
-// Definition aller Farben als CSS Variablen im Host-Element
+// Lokale CSS Custom Properties im :host sind jetzt idealerweise nicht mehr nötig,
+// da wir auf globale Variablen aus styles.scss zugreifen.
 :host {
-  // Seitenhintergrund
-  --page-background-color: #FAF8F0; // Hellbeige
-
-  // Gradientenfarben (aus Header)
-  --gradient-end: #e8f5e9;
-  --gradient-start: #D2B48C;
-
-  // Textfarben
-  --text-color-main: #333;
-  --text-color-light: #666;
-  --text-color-on-gradient: #4E342E;
-  // === KORRIGIERT: lighten() durch color.adjust() ersetzt ===
-  --text-color-light-on-gradient: #{color.adjust(#4E342E, $lightness: 15%)};
-  // ========================================================
-
-  // Button/Akzentfarben
-  --primary-color: #28a745;
-  --primary-color-hover: #{color.adjust(#28a745, $lightness: -10%)};
-  --price-color: #2e6b2e;
-  --instock-color: #5cb85c;
-  --instock-color-on-gradient: #{color.adjust(#5cb85c, $lightness: -15%)};
-  --outofstock-color-on-gradient: #{color.adjust(#dc3545, $lightness: -15%, $saturation: -10%)};
-
-  // Wunschliste/Fehler Farben
-  --wishlist-icon-color: #d9534f; // Rot für Wunschliste
-  --wishlist-hover-bg: rgba(217, 83, 79, 0.1);
-  --error-color: #dc3545;
-  --error-background-light: #{color.adjust(#dc3545, $lightness: 55%, $saturation: -20%)};
-  --error-border-light: #{color.adjust(#dc3545, $lightness: 40%, $saturation: -15%)};
-  --error-text-dark: #{color.adjust(#dc3545, $lightness: -10%)};
-
-  // Andere UI-Farben
-  --disabled-color: #bdbdbd; // Explizites Grau für disabled state
-  --thumbnail-border-color: #ddd;
-  --thumbnail-border-color-hover: #999;
-  --thumbnail-border-color-selected: #333;
-
   display: block;
-  background-color: var(--page-background-color);
+  background-color: var(--background-color-page); // Globale Variable
   min-height: 100vh;
-  padding: 2rem 0;
+  padding: var(--spacing-xl) 0; // Globale Variable
 }
 
 // --- Inhalts-Container mit Gradient ---
 .product-page-content {
   max-width: 1200px;
-  margin: 1rem auto;
-  background-image: linear-gradient(to bottom, var(--gradient-start), var(--gradient-end));
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-  padding: 2rem;
-  color: var(--text-color-on-gradient);
+  margin: var(--spacing-lg) auto; // Globale Variablen
+  background-image: linear-gradient(to bottom, var(--gradient-start), var(--gradient-end)); // Globale Farbvariablen
+  border-radius: var(--border-radius-lg); // Globale Variable
+  box-shadow: var(--box-shadow-md); // Globale Variable
+  padding: var(--spacing-xl); // Globale Variable
+  color: var(--text-color-on-gradient-base); // Globale Variable
   position: relative;
 }
 
@@ -63,29 +26,29 @@
 .back-button {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--spacing-sm); // Globale Variable
   background-color: transparent;
-  border: 1px solid var(--text-color-on-gradient);
-  color: var(--text-color-on-gradient);
-  padding: 8px 18px;
-  border-radius: 50px;
+  border: 1px solid var(--text-color-on-gradient-base); // Globale Variable
+  color: var(--text-color-on-gradient-base); // Globale Variable
+  padding: var(--spacing-sm) var(--spacing-lg); // Globale Variablen
+  border-radius: var(--border-radius-pill); // Globale Variable
   font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold); // Globale Variable
   text-decoration: none;
   cursor: pointer;
   transition: all 0.25s ease-out;
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--spacing-lg); // Globale Variable
 
   .material-symbols-outlined {
     font-size: 20px;
     transition: transform 0.25s ease-out;
   }
   &:hover {
-    background-color: var(--text-color-on-gradient);
-    color: var(--page-background-color);
-    border-color: var(--text-color-on-gradient);
+    background-color: var(--text-color-on-gradient-base);
+    color: var(--background-color-page); // Kontrastfarbe
+    // border-color: var(--text-color-on-gradient-base); // Ist schon so
     transform: translateY(-1px);
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--box-shadow-sm); // Globale Variable
   }
   &:active {
     transform: translateY(0);
@@ -93,49 +56,50 @@
   }
   &:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.4); // Fokus von primary-color
+    box-shadow: 0 0 0 3px var(--accent-color-vibrant-green-rgba-02); // Globale Variable für Fokus
   }
 }
 
-.product-detail-container { }
+.product-detail-container { /* Bleibt leer, falls nicht benötigt */ }
 
 .product-main-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 2rem;
+  gap: var(--spacing-xl); // Globale Variable
   align-items: start;
-  @media (max-width: 992px) {
+  @media (max-width: 992px) { // Breakpoint beibehalten
     grid-template-columns: 1fr;
-    gap: 2.5rem;
+    gap: var(--spacing-xl); // Kann auch --spacing-xxl sein, je nach Design
   }
 }
 
 // --- Lade- & Fehleranzeigen ---
 .loading-indicator {
   text-align: center;
-  padding: 50px;
-  color: var(--text-color-light-on-gradient);
+  padding: var(--spacing-xxxl); // Globale Variable
+  color: var(--text-color-on-gradient-light); // Globale Variable
 }
 .error-message {
   &.general-error {
-    margin: 20px 0;
-    padding: 15px;
-    background-color: rgba(255, 255, 255, 0.8);
-    border: 1px solid var(--error-border-light);
-    border-radius: 4px;
+    margin: var(--spacing-lg) 0; // Globale Variablen
+    padding: var(--spacing-lg);
+    background-color: rgba(255, 255, 255, 0.8); // Weiß mit Transparenz auf Gradient
+    border: 1px solid var(--error-color); // Globale Variable
+    border-radius: var(--border-radius-sm); // Globale Variable
     text-align: center;
-    font-weight: 500;
-    color: var(--error-text-dark);
+    font-weight: var(--font-weight-medium); // Globale Variable
+    color: var(--error-text-color); // Globale Variable
     a {
-      color: var(--error-text-dark);
+      color: var(--error-text-color);
       text-decoration: underline;
-      font-weight: bold;
+      font-weight: var(--font-weight-bold);
     }
   }
-  &.cart-error {
-    margin-top: 15px;
-    color: var(--error-color);
-    font-weight: 500;
+  &.cart-error { // Fehler direkt bei Buttons
+    margin-top: var(--spacing-md); // Globale Variable
+    color: var(--error-color); // Globale Variable
+    font-weight: var(--font-weight-medium);
+    font-size: 0.9rem;
   }
 }
 
@@ -145,41 +109,29 @@
   flex-direction: column;
 
   .main-image-container {
-    border: 1px solid rgba(0,0,0,0.1);
-    margin-bottom: 1rem;
+    border: 1px solid rgba(0,0,0,0.1); // Beibehalten oder an --border-color anlehnen
+    margin-bottom: var(--spacing-lg); // Globale Variable
     position: relative;
-    background-color: #fff;
+    background-color: var(--background-color-component); // Globale Variable
     min-height: 300px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 4px;
+    border-radius: var(--border-radius-sm); // Globale Variable
     overflow: hidden;
     aspect-ratio: 1 / 1;
 
-    img {
-      display: block;
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
+    img { display: block; width: 100%; height: 100%; object-fit: contain; }
     .no-image-placeholder {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      .material-symbols-outlined {
-        font-size: 5rem;
-        color: #ccc;
-      }
+      width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+      .material-symbols-outlined { font-size: 5rem; color: var(--border-color-base); } // Globale Variable
     }
   }
 
   .thumbnail-container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(65px, 1fr));
-    gap: 8px;
+    gap: var(--spacing-sm); // Globale Variable
 
     .thumbnail {
       border: 2px solid transparent;
@@ -191,21 +143,12 @@
       align-items: center;
       justify-content: center;
       overflow: hidden;
-      background-color: #fff;
-      border-radius: 4px;
+      background-color: var(--background-color-component); // Globale Variable
+      border-radius: var(--border-radius-sm); // Globale Variable
 
-      img {
-        max-width: 100%;
-        max-height: 100%;
-        display: block;
-        object-fit: contain;
-      }
-      &:hover {
-        border-color: var(--thumbnail-border-color-hover);
-      }
-      &.selected {
-        border-color: var(--thumbnail-border-color-selected);
-      }
+      img { max-width: 100%; max-height: 100%; display: block; object-fit: contain; }
+      &:hover { border-color: var(--thumbnail-border-color-hover); } // Globale Variable
+      &.selected { border-color: var(--thumbnail-border-color-selected); } // Globale Variable
     }
   }
 }
@@ -215,132 +158,111 @@
 
   h1.product-title {
     margin-top: 0;
-    margin-bottom: 0.75rem;
-    font-size: 1.8em;
+    margin-bottom: var(--spacing-sm); // Globale Variable
+    font-size: 1.8em; // Typo-Skala
     line-height: 1.3;
-    color: var(--text-color-on-gradient);
+    color: var(--text-color-on-gradient-base); // Globale Variable
   }
 
   .price-section {
-    margin-bottom: 0.75rem;
-    font-size: 1.6em;
-    font-weight: 600;
+    margin-bottom: var(--spacing-sm); // Globale Variable
+    font-size: 1.6em; // Typo-Skala
+    font-weight: var(--font-weight-semibold); // Globale Variable
     .current-price {
-      color: var(--price-color);
+      color: var(--price-color); // Globale Variable
     }
   }
 
   .availability-section {
-    margin-bottom: 1.5rem;
-    font-size: 0.95em;
-    font-weight: 500;
-    .in-stock {
-      color: var(--instock-color-on-gradient);
-    }
-    .out-of-stock {
-      color: var(--outofstock-color-on-gradient);
-      font-weight: bold;
-    }
+    margin-bottom: var(--spacing-lg); // Globale Variable
+    font-size: 0.95em; // Typo-Skala
+    font-weight: var(--font-weight-medium); // Globale Variable
+    .in-stock { color: var(--instock-color-on-gradient); } // Globale Variable
+    .out-of-stock { color: var(--outofstock-color-on-gradient); font-weight: var(--font-weight-bold); } // Globale Variablen
   }
 
   .action-buttons-section {
-    margin-top: 1.5rem;
-    margin-bottom: 1.5rem;
+    margin-top: var(--spacing-lg); // Globale Variable
+    margin-bottom: var(--spacing-lg);
     display: flex;
     flex-wrap: nowrap;
-    gap: 10px;
+    gap: var(--spacing-sm); // Globale Variable
     align-items: center;
 
     .action-button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      border-radius: 5px;
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: var(--spacing-sm);
+      border-radius: var(--border-radius-md); // Globale Variable
       font-size: 1rem;
-      font-weight: 600;
+      font-weight: var(--font-weight-semibold);
       cursor: pointer;
       transition: background-color 0.2s ease, color 0.2s ease, filter 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
       border: none;
       white-space: nowrap;
 
-      .material-symbols-outlined {
-        vertical-align: middle;
-        font-size: 20px;
-      }
+      .material-symbols-outlined { vertical-align: middle; font-size: 20px; }
 
       &:disabled {
-        background-color: var(--disabled-color) !important;
-        border-color: var(--disabled-color) !important;
-        color: #fff !important;
+        background-color: var(--disabled-background-color) !important; // Globale Variable
+        border-color: var(--disabled-background-color) !important;
+        color: var(--text-color-muted) !important; // Angepasst von #fff
         cursor: not-allowed;
         opacity: 0.7;
         filter: grayscale(50%);
-        &:hover {
-          transform: none;
-          filter: grayscale(50%);
-        }
+        &:hover { transform: none; filter: grayscale(50%); }
       }
     }
 
     .add-to-cart-btn {
-      background-color: var(--primary-color);
-      color: white;
+      background-color: var(--primary-color); // Globale Primärfarbe
+      color: var(--primary-color-text); // Globale Variable
       flex-grow: 1;
-      padding: 12px 15px;
+      padding: var(--spacing-md) var(--spacing-lg); // Globale Variablen
 
       &:hover:not(:disabled) {
-         filter: brightness(90%);
-         background-color: var(--primary-color);
+         background-color: var(--primary-color-dark); // Globale Primärfarbe dunkel
+         // filter: brightness(90%); // Alternative zum direkten Abdunkeln
       }
 
-      .button-loading-spinner {
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-radius: 50%;
-        border-top-color: #fff;
-        width: 16px;
-        height: 16px;
+      .button-loading-spinner { // Spinner-Styling kann globalisiert werden
+        border: 2px solid var(--primary-color-text-rgba-03); // Globale Variable
+        border-radius: var(--border-radius-circle);
+        border-top-color: var(--primary-color-text);
+        width: 16px; height: 16px;
         animation: spin 1s linear infinite;
-        margin-right: 8px;
+        margin-right: var(--spacing-sm);
       }
     }
 
     .add-to-wishlist-btn {
       background-color: transparent;
-      color: var(--text-color-light-on-gradient);
+      color: var(--text-color-on-gradient-light); // Globale Variable
       border: none;
-      padding: 10px;
-      border-radius: 50%;
+      padding: var(--spacing-sm); // Globale Variable
+      border-radius: var(--border-radius-circle); // Globale Variable
       flex-shrink: 0;
       outline: none;
 
-      &:focus-visible {
-        box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.5);
-      }
+      &:focus-visible { box-shadow: 0 0 0 2px var(--accent-color-vibrant-green-rgba-02); } // Globale Variable
 
       &:hover:not(:disabled) {
-        background-color: var(--wishlist-hover-bg);
-        color: var(--wishlist-icon-color);
+        background-color: var(--wishlist-hover-bg-color); // Globale Variable
+        color: var(--wishlist-icon-color); // Globale Variable
       }
 
       .wishlist-icon {
-        color: inherit;
-        font-size: 24px;
+        color: inherit; font-size: 24px;
         transition: transform 0.2s ease, color 0.2s ease, font-variation-settings 0.1s ease;
         &.filled {
-          color: var(--wishlist-icon-color);
+          color: var(--wishlist-icon-color); // Globale Variable
           font-variation-settings: 'FILL' 1;
         }
       }
-
       &:disabled {
-        background-color: transparent !important;
-        opacity: 0.5;
-        cursor: not-allowed;
-        filter: none;
+        background-color: transparent !important; opacity: 0.5; cursor: not-allowed; filter: none;
         .wishlist-icon {
-           color: var(--disabled-color) !important;
-           font-variation-settings: 'FILL' 1 !important; // Sicherstellen, dass gefüllt
+           color: var(--disabled-color) !important; // Globale Variable
+           font-variation-settings: 'FILL' 1 !important;
            background-color: transparent !important;
         }
       }
@@ -348,26 +270,26 @@
   }
 
   .description-section {
-     margin-top: 2rem;
+     margin-top: var(--spacing-xl); // Globale Variable
      h3 {
-       margin-bottom: 10px;
-       font-size: 1.1rem;
-       color: var(--text-color-on-gradient);
+       margin-bottom: var(--spacing-sm); // Globale Variable
+       font-size: 1.1rem; // Typo-Skala
+       color: var(--text-color-on-gradient-base); // Globale Variable
      }
-     div[innerHTML] {
+     div[innerHTML] { // Styling für ngx-markdown Output
          line-height: 1.6;
-         color: var(--text-color-light-on-gradient);
-         font-size: 0.95rem;
+         color: var(--text-color-on-gradient-light); // Globale Variable
+         font-size: 0.95rem; // Typo-Skala
          ul, ol { margin-left: 20px; margin-bottom: 1em; padding-left: 1em; }
          li { margin-bottom: 0.5em; }
          p { margin-bottom: 1em; }
-         strong { font-weight: bold; color: var(--text-color-on-gradient); }
-         a {
-           color: var(--primary-color);
+         strong { font-weight: var(--font-weight-bold); color: var(--text-color-on-gradient-base); } // Globale Variablen
+         a { // Links in der Beschreibung
+           color: var(--primary-color); // Globale Primärfarbe
            text-decoration: underline;
            &:hover {
-             color: var(--primary-color-hover);
-             filter: none;
+             color: var(--primary-color-dark); // Globale Primärfarbe dunkel
+             filter: none; // Sicherstellen, dass kein anderer Filter greift
            }
          }
      }
@@ -375,8 +297,8 @@
 }
 
 // --- Responsive ---
-@media (max-width: 768px) {
-  .product-main-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+@media (max-width: 768px) { // Breakpoint beibehalten
+  .product-main-grid { grid-template-columns: 1fr; gap: var(--spacing-lg); } // Globale Variable
   .product-media-gallery {
     .main-image-container { max-width: 85%; margin-left: auto; margin-right: auto; }
     .thumbnail-container { justify-content: flex-start; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); }
@@ -385,13 +307,12 @@
     h1.product-title { font-size: 1.4em; }
     .price-section { font-size: 1.3em; }
     .action-buttons-section {
-      flex-direction: column;
-      align-items: stretch;
+      flex-direction: column; align-items: stretch;
       .add-to-cart-btn { width: 100%; justify-content: center; }
-      .add-to-wishlist-btn { width: auto; align-self: center; margin-top: 10px; }
+      .add-to-wishlist-btn { width: auto; align-self: center; margin-top: var(--spacing-sm); } // Globale Variable
     }
   }
-  .product-page-content { padding: 1.5rem; margin: 1rem; }
+  .product-page-content { padding: var(--spacing-lg); margin: var(--spacing-lg); } // Globale Variablen
 }
 
 // --- Keyframes ---

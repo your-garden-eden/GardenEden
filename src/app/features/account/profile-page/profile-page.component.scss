@@ -1,262 +1,244 @@
 // /src/app/features/account/profile-page/profile-page.component.scss
 
-// Basis-Styling für die Seite
 .profile-page-container {
-    max-width: 750px; // Etwas breiter als Auth-Formulare
-    margin: 3rem auto;
-    padding: 2rem 2.5rem;
-    background-color: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  
-    h1 {
-      text-align: center;
-      margin-top: 0;
-      margin-bottom: 2rem;
-      font-size: 1.8rem;
-      color: var(--text-color-on-gradient, #4E342E);
-    }
-  }
-  
-  .profile-content {
-    position: relative; // Für den Edit-Button
-  }
-  
-  // Button zum Wechseln des Bearbeitungsmodus
-  .edit-button-container {
-    text-align: right;
-    margin-bottom: 1rem;
-  
-    .edit-toggle-button {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background-color: transparent;
-      border: 1px solid var(--primary-color, #28a745);
-      color: var(--primary-color, #28a745);
-      padding: 6px 12px;
-      border-radius: 5px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background-color 0.2s ease, color 0.2s ease;
-  
-      .material-symbols-outlined {
-        font-size: 18px;
-      }
-  
-      &:hover {
-        background-color: var(--primary-color, #28a745);
-        color: white;
-      }
-  
-      // Spezielles Aussehen im "Abbrechen"-Modus (optional)
-      // &.is-editing { // Wenn wir eine Klasse hinzufügen würden
-      //   border-color: var(--text-color-light, #666);
-      //   color: var(--text-color-light, #666);
-      //   &:hover { background-color: #eee; }
-      // }
-    }
-  }
-  
-  // Erfolgs- und Fehlermeldungen
-  .success-message,
-  .error-message.general-error {
-    padding: 10px 15px;
-    margin-bottom: 1.5rem;
-    border-radius: 5px;
-    font-size: 0.9rem;
+  max-width: 750px;
+  margin: var(--spacing-xxl) auto;
+  padding: var(--spacing-xl) var(--spacing-xxl);
+  background-color: var(--background-color-component);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--box-shadow-md);
+
+  h1 {
     text-align: center;
+    margin-top: 0;
+    margin-bottom: var(--spacing-xl);
+    font-size: 1.8rem;
+    color: var(--text-color-headings);
   }
-  
-  .success-message {
-    background-color: #d4edda; // Hellgrün
-    color: #155724;
-    border: 1px solid #c3e6cb;
-  }
-  
-  .error-message.general-error {
-    background-color: var(--error-background-light, #f8d7da);
-    color: var(--error-text-dark, #721c24);
-    border: 1px solid var(--error-border-light, #f5c6cb);
-    a { // Link in Fehlermeldung
-       color: var(--error-text-dark, #721c24);
-       font-weight: bold;
-       text-decoration: underline;
+}
+
+.profile-content {
+  position: relative;
+}
+
+.edit-button-container {
+  text-align: right;
+  margin-bottom: var(--spacing-lg);
+
+  .edit-toggle-button {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    background-color: transparent;
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    font-size: 0.9rem;
+    font-weight: var(--font-weight-semibold);
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+
+    .material-symbols-outlined { font-size: 18px; }
+    &:hover {
+      background-color: var(--primary-color);
+      color: var(--primary-color-text);
     }
   }
-  
-  // Styling für das Formular selbst
-  .profile-form {
+}
+
+.success-message,
+.error-message.general-error {
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+  border-radius: var(--border-radius-md);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.success-message {
+  background-color: var(--success-background-color);
+  color: var(--success-text-color);
+  border: 1px solid var(--success-color);
+}
+
+.error-message.general-error {
+  background-color: var(--error-background-color);
+  color: var(--error-text-color);
+  border: 1px solid var(--error-color);
+  a {
+     color: var(--error-text-color);
+     font-weight: var(--font-weight-bold);
+     text-decoration: underline;
+  }
+}
+
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+
+  h2 {
+    font-size: 1.3rem;
+    margin-bottom: var(--spacing-sm);
+    margin-top: var(--spacing-lg);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid var(--border-color-light);
+    color: var(--text-color-headings);
+    &:first-of-type { margin-top: 0; }
+  }
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+
+  label {
+    font-weight: var(--font-weight-semibold);
+    font-size: 0.9rem;
+    color: var(--text-color-base);
+    margin-bottom: 0.1rem;
+  }
+
+  .display-field {
+    font-size: 1rem;
+    padding: var(--spacing-sm) 0;
+    color: var(--text-color-base);
+    min-height: calc(1rem + 2 * var(--spacing-sm) + 2px);
     display: flex;
-    flex-direction: column;
-    gap: 1.5rem; // Abstand zwischen Feldern/Sektionen
-  
-    h2 { // Abschnittsüberschriften
-      font-size: 1.3rem;
-      margin-bottom: 0.5rem;
-      margin-top: 1rem; // Abstand zur vorherigen Sektion
-      padding-bottom: 0.5rem;
-      border-bottom: 1px solid #eee;
-      color: var(--text-color-on-gradient, #4E342E);
-      &:first-of-type {
-        margin-top: 0; // Kein extra Abstand vor der ersten Sektion
-      }
+    align-items: center;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="password"] {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--border-color-base);
+    border-radius: var(--border-radius-md);
+    font-size: 1rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    background-color: var(--background-color-component);
+
+    &:focus {
+      outline: none;
+      border-color: var(--accent-color-vibrant-green);
+      box-shadow: 0 0 0 2px var(--accent-color-vibrant-green-rgba-02); // <<< KORRIGIERT
+    }
+
+    &[aria-invalid="true"] { border-color: var(--error-color); }
+    &:read-only, &:disabled {
+      background-color: var(--background-color-light-gray);
+      cursor: not-allowed;
+      opacity: 0.8;
     }
   }
-  
-  // Styling für einzelne Formularfelder
-  .form-field {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  
-    label {
-      font-weight: 600;
-      font-size: 0.9rem;
-      color: var(--text-color-main, #333);
-      margin-bottom: 0.1rem;
-    }
-  
-    // Styling für den Anzeige-Modus
-    .display-field {
+
+  .change-password-button:disabled {
+      background-color: var(--disabled-background-color);
+      border: 1px solid var(--border-color-base);
+      color: var(--text-color-muted);
+      cursor: not-allowed;
+      padding: var(--spacing-sm) var(--spacing-md);
+      text-align: left;
       font-size: 1rem;
-      padding: 10px 0; // Vertikaler Abstand wie bei Input
-      color: var(--text-color-main, #333);
-      min-height: calc(1rem + 20px + 2px); // Ungefähre Höhe eines Inputs + Padding + Border
-      display: flex;
-      align-items: center;
-    }
-  
-    input[type="text"],
-    input[type="email"],
-    input[type="password"] {
-      padding: 10px 12px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      font-size: 1rem;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  
-      &:focus {
-        outline: none;
-        border-color: var(--primary-color, #28a745);
-        box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.2);
-      }
-  
-      &[aria-invalid="true"] {
-        border-color: var(--error-color, #dc3545);
-      }
-  
-      // Deaktivierte Felder (E-Mail)
-      &:read-only, // Für E-Mail mit readonly Attribut
-      &:disabled { // Generell für deaktivierte Felder
-        background-color: #f8f8f8; // Leichter grauer Hintergrund
-        cursor: not-allowed;
-        opacity: 0.8;
-      }
-    }
-  
-    // Speziell für den Passwort-Ändern-Button (wenn im Bearbeitungsmodus)
-    .change-password-button:disabled {
-        background-color: #e9ecef;
-        border: 1px solid #ced4da;
-        color: #6c757d;
-        cursor: not-allowed;
-        padding: 10px 12px;
-        text-align: left;
-        font-size: 1rem;
-        border-radius: 5px;
-        opacity: 0.7;
-     }
-  
-    // Kleiner Hinweistext unter Feldern
-    .field-hint {
-        font-size: 0.8rem;
-        color: var(--text-color-light, #666);
-        margin-top: 0.1rem;
-    }
-  
-    // Checkbox-Styling (ähnlich wie Register)
-    &.checkbox-field {
-      flex-direction: row;
-      align-items: center; // Vertikal zentrieren
-      gap: 0.8rem;
-      margin-top: 0.5rem;
-  
-      input[type="checkbox"] {
-        width: 16px;
-        height: 16px;
-        cursor: pointer;
-        flex-shrink: 0;
-        &:disabled { cursor: not-allowed; }
-      }
-      label {
-        font-weight: normal;
-        font-size: 0.9rem;
-        color: var(--text-color-main, #333);
-        cursor: pointer;
-        margin-bottom: 0; // Label ist neben Checkbox
-        .edit-hint { // Hinweis im Anzeigemodus
-            font-size: 0.8rem;
-            color: var(--text-color-light, #666);
-            margin-left: 5px;
-            font-style: italic;
-        }
-      }
-    }
-  }
-  
-  // Styling für Felder in einer Reihe (PLZ / Ort)
-  .form-row {
-    display: flex;
-    gap: 1rem;
-  
-    .zip-field { flex: 1 1 120px; }
-    .city-field { flex: 2 1 auto; }
-  }
-  
-  // Fehleranzeige unter Feldern
-  .error-container {
-    min-height: 1.2em;
-    small {
-      color: var(--error-color, #dc3545);
+      border-radius: var(--border-radius-md);
+      opacity: 0.7;
+   }
+
+  .field-hint {
       font-size: 0.8rem;
-      display: block;
+      color: var(--text-color-muted);
+      margin-top: 0.1rem;
+  }
+
+  &.checkbox-field {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-sm);
+
+    input[type="checkbox"] {
+      width: 16px; height: 16px; cursor: pointer; flex-shrink: 0;
+      &:disabled { cursor: not-allowed; }
+    }
+    label {
+      font-weight: var(--font-weight-normal);
+      font-size: 0.9rem;
+      color: var(--text-color-base);
+      cursor: pointer;
+      margin-bottom: 0;
+      .edit-hint {
+          font-size: 0.8rem;
+          color: var(--text-color-muted);
+          margin-left: var(--spacing-xs);
+          font-style: italic;
+      }
     }
   }
-  
-  // Container für den Speichern-Button
-  .action-button-container {
-    margin-top: 1.5rem;
-    text-align: right; // Button rechts ausrichten
+}
+
+.form-row {
+  display: flex;
+  gap: var(--spacing-lg);
+  .zip-field { flex: 1 1 120px; }
+  .city-field { flex: 2 1 auto; }
+}
+
+.error-container {
+  min-height: 1.2em;
+  small {
+    color: var(--error-color);
+    font-size: 0.8rem;
+    display: block;
   }
-  
-  // Speichern-Button (ähnlich Submit)
-  .submit-button {
-    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    padding: 12px 25px; background-color: var(--primary-color, #28a745); color: white;
-    border: none; border-radius: 5px; font-size: 1rem; font-weight: 600; cursor: pointer;
-    transition: background-color 0.2s ease, opacity 0.2s ease;
-  
-    &:hover:not(:disabled) { background-color: var(--primary-color-hover, #218838); }
-    &:disabled { background-color: var(--disabled-color, #cccccc); cursor: not-allowed; opacity: 0.7; }
-    .button-loading-spinner { border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top-color: #fff; width: 16px; height: 16px; animation: spin 1s ease infinite; }
+}
+
+.action-button-container {
+  margin-top: var(--spacing-lg);
+  text-align: right;
+}
+
+.submit-button {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-xl);
+  background-color: var(--primary-color);
+  color: var(--primary-color-text);
+  border: none;
+  border-radius: var(--border-radius-md);
+  font-size: 1rem;
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+
+  &:hover:not(:disabled) { background-color: var(--primary-color-dark); }
+  &:disabled {
+    background-color: var(--disabled-background-color);
+    color: var(--text-color-muted);
+    cursor: not-allowed;
+    opacity: 0.7;
   }
-  
-  // Keyframes für Spinner
-  @keyframes spin { to { transform: rotate(360deg); } }
-  
-  // Responsive Anpassungen
-  @media (max-width: 600px) {
-    .profile-page-container {
-      margin: 1.5rem 1rem;
-      padding: 1.5rem;
-    }
-    .form-row {
-      flex-direction: column;
-      gap: 1.5rem;
-      .zip-field, .city-field { flex: 1 1 auto; }
-    }
-    .action-button-container { text-align: center; }
-    .submit-button { width: 100%; } // Button volle Breite
+  .button-loading-spinner {
+    border: 2px solid rgba(255, 255, 255, 0.3); // Hier wäre var(--primary-color-text) mit Alpha gut
+    border-radius: var(--border-radius-circle);
+    border-top-color: var(--primary-color-text);
+    width: 16px; height: 16px;
+    animation: spin 1s ease infinite;
   }
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 600px) {
+  .profile-page-container {
+    margin: var(--spacing-lg) var(--spacing-md);
+    padding: var(--spacing-lg);
+  }
+  .form-row {
+    flex-direction: column;
+    gap: var(--spacing-lg);
+    .zip-field, .city-field { flex: 1 1 auto; }
+  }
+  .action-button-container { text-align: center; }
+  .submit-button { width: 100%; }
+}

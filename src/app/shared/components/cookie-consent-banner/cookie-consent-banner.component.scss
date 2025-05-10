@@ -1,19 +1,12 @@
 // src/app/shared/components/cookie-consent-banner/cookie-consent-banner.component.scss
+@use "sass:color"; // Für lighten/darken, falls noch benötigt
 
-// Lokale Variablen (ggf. an globale CSS Custom Properties anpassen, falls vorhanden)
-$banner-background: #333;
-$banner-text-color: #fff;
-$banner-link-color: #a1b48a; // Euer Primärgrün?
-$banner-button-primary-bg: #a1b48a; // Euer Primärgrün?
-$banner-button-primary-text: #fff;
-$banner-button-secondary-bg: #6c757d; // Grau
-$banner-button-secondary-text: #fff;
-$banner-border-radius: 8px; // Optional
-$banner-padding: 15px;
-$banner-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+// Sass-Variable für lighten(), falls die Basis-Farbe aus einer CSS-Variable kommt
+// und wir nicht schon eine passende -light Variante global haben.
+// $primary-color-sass: #A1B48A; // Entspricht var(--primary-color) - für den Link-Hover
 
 :host {
-  display: block; // Stellt sicher, dass die Komponente als Block gerendert wird
+  display: block;
 }
 
 .cookie-consent-banner {
@@ -21,25 +14,25 @@ $banner-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
   bottom: 0;
   left: 0;
   width: 100%;
-  background-color: $banner-background;
-  color: $banner-text-color;
-  padding: $banner-padding;
-  box-shadow: $banner-shadow;
-  z-index: 1050; // Über anderen Elementen, aber unter Modals etc.
+  background-color: var(--text-color-base); // Dunkler Hintergrund (ehemals #333)
+  color: var(--background-color-component);   // Heller Text (ehemals #fff)
+  padding: var(--spacing-lg);                // Globale Variable (war 15px)
+  box-shadow: var(--box-shadow-lg);          // Globale Variable (war 0 -2px 10px rgba(0,0,0,0.2))
+  z-index: var(--z-index-modal);             // Globale Variable (war 1050)
   box-sizing: border-box;
   animation: slideUp 0.5s ease-out forwards;
-  display: flex; // Für eine eventuelle maximale Breite des Inhalts
-  justify-content: center; // Zentriert den .banner-content, falls er eine max-width hat
+  display: flex;
+  justify-content: center;
 
   .banner-content {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 15px;
+    gap: var(--spacing-lg); // Globale Variable (war 15px)
     width: 100%;
-    max-width: 1200px; // Maximale Breite für den Inhalt, anpassbar
+    max-width: 1200px;
 
-    @media (min-width: 768px) {
+    @media (min-width: 768px) { // Breakpoint beibehalten
       flex-direction: row;
       justify-content: space-between;
       align-items: center;
@@ -48,53 +41,62 @@ $banner-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
 
   .banner-text {
     margin: 0;
-    font-size: 0.9rem;
-    line-height: 1.5;
+    font-size: 0.9rem; // Typo-Skala
+    line-height: var(--line-height-base); // Globale Variable
     text-align: center;
 
-    @media (min-width: 768px) {
+    @media (min-width: 768px) { // Breakpoint beibehalten
       text-align: left;
-      margin-right: 20px; // Abstand zu den Buttons
+      margin-right: var(--spacing-xl); // Globale Variable (war 20px)
     }
 
     a {
-      color: $banner-link-color;
+      color: var(--primary-color); // Globale Variable (war $banner-link-color)
       text-decoration: underline;
       &:hover {
-        color: lighten($banner-link-color, 10%);
+        // Verwende die globale --primary-color-light oder --primary-color-dark, je nach Kontrast
+        color: var(--primary-color-light); // Globale Variable (helleres Grün)
+        // Alternativ, wenn die Basis #A1B48A ist und heller werden soll:
+        // color: #{color.adjust(#A1B48A, $lightness: 15%)}; // Benötigt Hex-Wert
       }
     }
   }
 
   .banner-actions {
     display: flex;
-    gap: 10px;
-    flex-shrink: 0; // Verhindert, dass Buttons schrumpfen
+    gap: var(--spacing-md); // Globale Variable (war 10px)
+    flex-shrink: 0;
 
-    .btn {
-      padding: 8px 15px;
+    .btn { // Basis-Button-Styling (könnte auch von globalen .button- Klassen erben)
+      padding: var(--spacing-sm) var(--spacing-lg); // Globale Variablen (war 8px 15px)
       border: none;
-      border-radius: 5px;
+      border-radius: var(--border-radius-md); // Globale Variable (war 5px)
       cursor: pointer;
-      font-size: 0.9rem;
-      font-weight: 500;
+      font-size: 0.9rem; // Typo-Skala
+      font-weight: var(--font-weight-medium); // Globale Variable
       transition: background-color 0.2s ease, opacity 0.2s ease;
 
-      &:hover {
+      &:hover:not(:disabled) { // :disabled Zustand für Buttons hier nicht explizit behandelt, da sie immer aktiv sein sollten
         opacity: 0.9;
       }
     }
 
-    .btn-primary {
-      background-color: $banner-button-primary-bg;
-      color: $banner-button-primary-text;
+    .btn-primary { // "Alle akzeptieren"
+      background-color: var(--primary-color); // Globale Variable
+      color: var(--primary-color-text);   // Globale Variable
+       &:hover:not(:disabled) {
+         background-color: var(--primary-color-dark);
+       }
     }
 
-    .btn-secondary {
-      background-color: $banner-button-secondary-bg;
-      color: $banner-button-secondary-text;
-      // Optional: leichter Rand, wenn Hintergrund ähnlich zu Banner-BG ist
-      // border: 1px solid darken($banner-button-secondary-bg, 10%);
+    .btn-secondary { // "Nur notwendige"
+      background-color: var(--text-color-muted); // Globale Variable (war #6c757d)
+      color: var(--background-color-component);    // Globale Variable (war #fff)
+       &:hover:not(:disabled) {
+         background-color: var(--secondary-color); // Dunkleres Grau/Braun beim Hover
+       }
+      // Optional:
+      // border: 1px solid var(--border-color-base);
     }
   }
 }
