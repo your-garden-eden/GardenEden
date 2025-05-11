@@ -1,5 +1,5 @@
 // /src/app/app.config.ts
-import { ApplicationConfig, LOCALE_ID } from '@angular/core';
+import { ApplicationConfig, LOCALE_ID, isDevMode } from '@angular/core';
 import { provideRouter, withComponentInputBinding, withViewTransitions } from '@angular/router';
 import { provideClientHydration } from '@angular/platform-browser';
 import { provideHttpClient, withFetch } from '@angular/common/http';
@@ -26,6 +26,8 @@ import { routes } from './app.routes';
 import { registerLocaleData, CurrencyPipe } from '@angular/common';
 import localeDe from '@angular/common/locales/de';
 import localeDeExtra from '@angular/common/locales/extra/de';
+import { TranslocoHttpLoader } from './transloco-loader';
+import { provideTransloco } from '@ngneat/transloco';
 
 registerLocaleData(localeDe, 'de-DE', localeDeExtra);
 // --- ENDE LOCALE ---
@@ -35,13 +37,13 @@ export const appConfig: ApplicationConfig = {
     // --- Vorhandene Provider ---
     provideRouter(routes, withComponentInputBinding(), withViewTransitions()),
     provideClientHydration(),
-    provideHttpClient(withFetch()),
+    provideHttpClient(withFetch()), // Behalte diesen, er ist der korrekte mit withFetch()
 
     // --- STANDARD LOCALE SETZEN ---
     { provide: LOCALE_ID, useValue: 'de-DE' },
 
     // --- CurrencyPipe Provider hinzufügen ---
-    CurrencyPipe, // <-- DIESE ZEILE HINZUFÜGEN
+    CurrencyPipe,
 
     // --- Provider für ngx-markdown ---
     provideMarkdown(),
@@ -54,7 +56,18 @@ export const appConfig: ApplicationConfig = {
     provideStorage(() => getStorage()),
     provideAnalytics(() => getAnalytics()),
     ScreenTrackingService,
-    UserTrackingService
+    UserTrackingService,
+    // Der doppelte provideHttpClient() wurde hier entfernt
+    provideTransloco({
+        config: {
+          availableLangs: ['de', 'en', 'hr'], // 'de' hinzugefügt
+          defaultLang: 'de',                // Auf 'de' geändert
+          // Remove this option if your application doesn't support changing language in runtime.
+          reRenderOnLangChange: true,
+          prodMode: !isDevMode(),
+        },
+        loader: TranslocoHttpLoader
+      })
     // --- Ende Firebase Provider ---
   ]
 };

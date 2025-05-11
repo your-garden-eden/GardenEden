@@ -1,0 +1,27 @@
+{
+  "general": {
+    "empty": "leer",
+    "loading": "Wird geladen...",
+    "error": "Ein Fehler ist aufgetreten",
+    "noResults": "Keine Ergebnisse gefunden",
+    "searchPrompt": "Bitte mindestens 3 Zeichen eingeben."
+  },
+  "header": {
+    "searchPlaceholder": "Produkte suchen...",
+    "wishlist": "Wunschliste",
+    "cart": "Warenkorb",
+    "account": "Mein Konto",
+    "login": "Anmelden",
+    "logout": "Abmelden",
+    "register": "Registrieren",
+    "loginRegister": "Anmelden / Registrieren",
+    "loginForWishlist": "Bitte anmelden, um die Wunschliste zu nutzen",
+    "searchLoading": "Suche läuft...",
+    "searchError": "Fehler bei der Suche.",
+    "searchNoResults": "Keine Produkte gefunden für",
+    "menuOpenClose": "Menü öffnen/schließen",
+    "clearSearch": "Suche leeren",
+    "closeMenu": "Menü schließen",
+    "toHomepage": "Zur Startseite"
+  }
+}

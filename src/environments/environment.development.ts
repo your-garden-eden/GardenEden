@@ -1,4 +1,5 @@
 export const environment = {
+  baseUrl: "",
   production: false,
   maintenanceMode: false,
   firebase: {

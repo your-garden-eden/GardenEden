@@ -1,0 +1,27 @@
+{
+  "general": {
+    "empty": "empty",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "noResults": "No results found",
+    "searchPrompt": "Please enter at least 3 characters."
+  },
+  "header": {
+    "searchPlaceholder": "Search products...",
+    "wishlist": "Wishlist",
+    "cart": "Cart",
+    "account": "My Account",
+    "login": "Login",
+    "logout": "Logout",
+    "register": "Register",
+    "loginRegister": "Login / Register",
+    "loginForWishlist": "Please log in to use the wishlist",
+    "searchLoading": "Searching...",
+    "searchError": "Error during search.",
+    "searchNoResults": "No products found for",
+    "menuOpenClose": "Open/close menu",
+    "clearSearch": "Clear search",
+    "closeMenu": "Close menu",
+    "toHomepage": "To homepage"
+  }
+}

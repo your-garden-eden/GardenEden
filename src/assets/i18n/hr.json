@@ -1,0 +1,27 @@
+{
+  "general": {
+    "empty": "prazno",
+    "loading": "Učitavanje...",
+    "error": "Došlo je do pogreške",
+    "noResults": "Nema rezultata",
+    "searchPrompt": "Molimo unesite najmanje 3 znaka."
+  },
+  "header": {
+    "searchPlaceholder": "Pretražite proizvode...",
+    "wishlist": "Lista želja",
+    "cart": "Košarica",
+    "account": "Moj račun",
+    "login": "Prijava",
+    "logout": "Odjava",
+    "register": "Registracija",
+    "loginRegister": "Prijava / Registracija",
+    "loginForWishlist": "Molimo prijavite se kako biste koristili listu želja",
+    "searchLoading": "Traženje...",
+    "searchError": "Pogreška prilikom pretraživanja.",
+    "searchNoResults": "Nema pronađenih proizvoda za",
+    "menuOpenClose": "Otvori/zatvori izbornik",
+    "clearSearch": "Očisti pretragu",
+    "closeMenu": "Zatvori izbornik",
+    "toHomepage": "Na početnu stranicu"
+  }
+}

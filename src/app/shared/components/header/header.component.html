@@ -3,19 +3,19 @@
   <div class="top-row">
     <button id="hamburger-button" class="icon-button hamburger-button"
             (click)="toggleMobileMenu()" [class.active]="isMobileMenuOpen"
-            aria-label="Menü öffnen/schließen" [attr.aria-expanded]="isMobileMenuOpen">
+            [attr.aria-label]="'header.menuOpenClose' | transloco" [attr.aria-expanded]="isMobileMenuOpen">
       <span class="material-symbols-outlined">menu</span>
     </button>
 
     <div class="search-bar-container">
       <div class="search-input-wrapper">
         <span class="material-symbols-outlined search-icon-prefix">search</span>
-        <input type="text" id="search-query" placeholder="Produkte suchen..."
+        <input type="text" id="search-query" [placeholder]="'header.searchPlaceholder' | transloco"
                [formControl]="searchControl"
                (focus)="isSearchOverlayVisible.set(true)"
                autocomplete="off">
         @if(searchControl.value) {
-          <button class="icon-button clear-button" (click)="clearSearch()" aria-label="Suche leeren">
+          <button class="icon-button clear-button" (click)="clearSearch()" [attr.aria-label]="'header.clearSearch' | transloco">
             <span class="material-symbols-outlined">close</span>
           </button>
         }
@@ -24,8 +24,9 @@
       @if(isSearchOverlayVisible()) {
         <div class="search-results-overlay">
           @if(isSearchLoading()) {
-            <div class="search-loading">Suche läuft...</div>
+            <div class="search-loading">{{ 'header.searchLoading' | transloco }}</div>
           } @else if (searchError()) {
+              <!-- searchError() kommt aus dem TS und ist schon eine Meldung, ggf. später auch i18n key -->
               <div class="search-error">{{searchError()}}</div>
           } @else if (searchResults().length > 0) {
             <ul>
@@ -43,9 +44,9 @@
               }
             </ul>
           } @else if (searchControl.value && searchControl.value.length > 2 && !isSearchLoading() && !searchError()) {
-              <div class="search-no-results">Keine Produkte gefunden für "{{searchControl.value}}".</div>
+              <div class="search-no-results">{{ 'header.searchNoResults' | transloco }} "{{searchControl.value}}".</div>
           } @else if (searchControl.value && searchControl.value.length <= 2) {
-              <div class="search-prompt">Bitte mindestens 3 Zeichen eingeben.</div>
+              <div class="search-prompt">{{ 'general.searchPrompt' | transloco }}</div>
           }
         </div>
       }
@@ -54,7 +55,11 @@
     <div class="user-actions">
       <!-- WUNSCHLISTEN-BUTTON -->
       <a routerLink="/wunschliste"
-         [title]="(isLoggedIn$ | async) ? ((isWishlistEmpty() ? 'Zur Wunschliste (leer)' : 'Meine Wunschliste')) : 'Bitte anmelden, um Wunschliste zu nutzen'"
+         [title]="(isLoggedIn$ | async)
+                    ? ((isWishlistEmpty()
+                        ? ('header.wishlist' | transloco) + ' (' + ('general.empty' | transloco) + ')'
+                        : ('header.wishlist' | transloco)))
+                    : ('header.loginForWishlist' | transloco)"
          class="icon-button wishlist-button"
          [class.disabled]="!(isLoggedIn$ | async)"
          [class.active]="(isLoggedIn$ | async) && !isWishlistEmpty()">
@@ -64,7 +69,7 @@
       </a>
 
       <!-- WARENKORB-BUTTON -->
-      <a routerLink="/warenkorb" title="Warenkorb" class="icon-button cart-button"
+      <a routerLink="/warenkorb" [title]="'header.cart' | transloco" class="icon-button cart-button"
          (mouseenter)="onCartIconMouseEnter()" (mouseleave)="onCartIconMouseLeave()">
         <span class="material-symbols-outlined">shopping_cart</span>
         @if (itemCount$() > 0) {
@@ -76,14 +81,14 @@
 
       <!-- KONTO/LOGIN BUTTONS -->
       @if (currentUser$ | async; as user) {
-        <a routerLink="/mein-konto" title="Mein Konto" class="icon-button account-button">
+        <a routerLink="/mein-konto" [title]="'header.account' | transloco" class="icon-button account-button">
           <span class="material-symbols-outlined">person</span>
         </a>
-        <button title="Abmelden" class="icon-button logout-button-desktop" (click)="performLogout()">
+        <button [title]="'header.logout' | transloco" class="icon-button logout-button-desktop" (click)="performLogout()">
           <span class="material-symbols-outlined">logout</span>
         </button>
       } @else {
-        <button type="button" title="Anmelden / Registrieren" class="icon-button login-button"
+        <button type="button" [title]="'header.loginRegister' | transloco" class="icon-button login-button"
            (click)="toggleLoginOverlay($event)">
           <span class="material-symbols-outlined">person_outline</span>
         </button>
@@ -93,13 +98,14 @@
 
   <nav class="main-nav bottom-row" [class.mobile-menu-active]="isMobileMenuOpen">
     <div class="logo-container">
-      <a routerLink="/" title="Zur Startseite" (click)="closeMobileMenu()">
-        <img src="assets/icons/Logo.png" alt="Your Garden Eden Logo" class="logo">
+      <a routerLink="/" [title]="'header.toHomepage' | transloco" (click)="closeMobileMenu()">
+        <img src="assets/icons/Logo.png" alt="Your Garden Eden Logo" class="logo"> <!-- Alt-Text vom Logo müsste ggf. auch übersetzt werden, wenn dynamisch -->
       </a>
     </div>
     <ul class="desktop-nav-list">
       @for (item of navItems; track item.label) {
         <li class="nav-item" [class.has-submenu]="item.subItems && item.subItems.length > 0">
+          <!-- Navigations-Labels kommen aus navigation.data.ts - das ist ein separater Punkt -->
           <a [routerLink]="item.link" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: item.link === '/'}">{{ item.label }}</a>
           @if (item.subItems && item.subItems.length > 0) {
             <ul class="submenu">
@@ -114,13 +120,14 @@
 
     <div class="mobile-menu-overlay" (click)="closeMobileMenu()"></div>
     <div class="mobile-menu-panel">
-       <button class="icon-button close-mobile-menu-button" (click)="closeMobileMenu()" aria-label="Menü schließen">
+       <button class="icon-button close-mobile-menu-button" (click)="closeMobileMenu()" [attr.aria-label]="'header.closeMenu' | transloco">
          <span class="material-symbols-outlined">close</span>
        </button>
        <ul class="mobile-nav-list">
           @for (item of navItems; track item.label) {
             <li class="mobile-nav-item">
               <div class="mobile-nav-item-content">
+                 <!-- Navigations-Labels kommen aus navigation.data.ts -->
                  <a [routerLink]="item.link"
                     [class.main-category-link]="true"
                     routerLinkActive="active-link"
@@ -143,17 +150,17 @@
           }
           @if (currentUser$ | async; as user) {
             <li class="mobile-nav-item auth-links-mobile">
-              <div class="mobile-nav-item-content"> <a routerLink="/mein-konto" (click)="closeMobileMenu()" class="main-category-link">Mein Konto</a> </div>
+              <div class="mobile-nav-item-content"> <a routerLink="/mein-konto" (click)="closeMobileMenu()" class="main-category-link">{{ 'header.account' | transloco }}</a> </div>
             </li>
             <li class="mobile-nav-item auth-links-mobile">
-              <div class="mobile-nav-item-content"> <button class="logout-button-mobile main-category-link" (click)="performLogout()">Abmelden</button> </div>
+              <div class="mobile-nav-item-content"> <button class="logout-button-mobile main-category-link" (click)="performLogout()">{{ 'header.logout' | transloco }}</button> </div>
             </li>
           } @else {
             <li class="mobile-nav-item auth-links-mobile">
-              <div class="mobile-nav-item-content"> <button class="main-category-link" (click)="toggleLoginOverlay(); closeMobileMenu()">Anmelden</button> </div>
+              <div class="mobile-nav-item-content"> <button class="main-category-link" (click)="toggleLoginOverlay(); closeMobileMenu()">{{ 'header.login' | transloco }}</button> </div>
             </li>
             <li class="mobile-nav-item auth-links-mobile">
-              <div class="mobile-nav-item-content"> <a routerLink="/register" (click)="closeMobileMenu()" class="main-category-link">Registrieren</a> </div>
+              <div class="mobile-nav-item-content"> <a routerLink="/register" (click)="closeMobileMenu()" class="main-category-link">{{ 'header.register' | transloco }}</a> </div>
             </li>
           }
        </ul>

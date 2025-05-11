@@ -20,7 +20,9 @@ import { ShopifyService, Product } from '../../../core/services/shopify.service'
 
 // +++ NEU für Breakpoint-Erkennung +++
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
-// distinctUntilChanged und tap sind schon importiert
+
+// +++ NEU für Transloco +++
+import { TranslocoModule } from '@ngneat/transloco'; // <--- TRANSLOCO IMPORTIEREN
 
 @Component({
   selector: 'app-header',
@@ -30,7 +32,8 @@ import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
     RouterModule,
     ReactiveFormsModule,
     AsyncPipe,
-    MiniCartComponent
+    MiniCartComponent,
+    TranslocoModule // <--- TRANSLOCO HIER HINZUFÜGEN
    ],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss'],
@@ -64,7 +67,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   // Suche
   searchControl = new FormControl('');
-  // private destroy$ = new Subject<void>(); // Wird durch subscriptions ersetzt für einheitliches Handling
   searchResults: WritableSignal<Product[]> = signal([]);
   isSearchLoading: WritableSignal<boolean> = signal(false);
   isSearchOverlayVisible: WritableSignal<boolean> = signal(false);
@@ -95,25 +97,19 @@ export class HeaderComponent implements OnInit, OnDestroy {
       ).subscribe(result => {
         const wasMobile = this.isMobileScreen();
         this.isMobileScreen.set(result.matches);
-        // console.log('Mobile screen:', this.isMobileScreen());
         if (wasMobile && !this.isMobileScreen() && this.isMobileMenuOpen) {
-          // Wenn von Mobile zu Desktop gewechselt wird und Menü offen ist -> schließen
           this.closeMobileMenu();
         }
         if (this.isMobileScreen() && this.isMiniCartOpen$()) {
-            // Wenn zu Mobile gewechselt wird und Mini-Cart offen ist -> schließen
             this.uiStateService.closeMiniCart();
         }
-        this.cdr.detectChanges(); // Wichtig, damit das Template die Änderung von isMobileScreen mitbekommt
+        this.cdr.detectChanges();
       });
       this.subscriptions.add(breakpointSubscription);
     }
   }
 
-  // Hilfsmethode, um den SCSS Breakpoint-Wert zu bekommen
   private getMobileBreakpoint(): number {
-    // Dieser Wert sollte idealerweise aus einer globalen Konfiguration kommen.
-    // Für jetzt nehmen wir den Wert aus deiner header.component.scss
     return 1024;
   }
 
@@ -123,9 +119,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-     this.subscriptions.unsubscribe(); // Löst alle hinzugefügten Abos
-     // this.destroy$.next(); // Nicht mehr nötig, wenn subscriptions verwendet wird
-     // this.destroy$.complete();
+     this.subscriptions.unsubscribe();
   }
 
   private setupSearchDebounce(): void {
@@ -133,8 +127,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
       filter(term => {
           if (!term || term.length <= 2) {
               this.searchResults.set([]);
-              // this.closeSearchOverlay(); // Wird durch effect() oben gehandhabt
-              this.isSearchOverlayVisible.set(false); // Sicherstellen, dass es hier auch geschlossen wird
+              this.isSearchOverlayVisible.set(false);
               return false;
           }
           return true;
@@ -150,10 +143,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
       switchMap(term =>
         this.shopifyService.searchProducts(term as string, 8)
           .pipe(
-            // tap(results => console.log('Search results:', results)),
             catchError(err => {
               console.error('Fehler bei Produktsuche:', err);
-              this.searchError.set('Fehler bei der Suche.');
+              this.searchError.set('Fehler bei der Suche.'); // Hier könnten wir auch einen i18n Key setzen
               this.isSearchLoading.set(false);
               this.searchResults.set([]);
               return EMPTY;
@@ -165,7 +157,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
       this.isSearchLoading.set(false);
       if (!results || results.length === 0) {
         if (!this.searchError()) {
-            // this.searchError.set('Keine Produkte gefunden.'); // Redundand, da bereits im catchError
+            // Kein Fehlertext hier setzen, wenn erfolgreich aber leer
         }
       } else {
          this.searchError.set(null);
@@ -176,7 +168,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   clearSearch(): void {
     this.searchControl.setValue('');
-    this.searchResults.set([]); // Auch hier Ergebnisse leeren
+    this.searchResults.set([]);
     this.closeSearchOverlay();
   }
 
@@ -187,7 +179,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   onSearchResultClick(): void {
-    this.clearSearch(); // Schließt Overlay und leert Suche
+    this.clearSearch();
   }
 
   private setupRouteListener(): void {
@@ -196,8 +188,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
     ).subscribe(() => {
       this.closeSearchOverlay();
       this.closeMobileMenu();
-      this.uiStateService.closeLoginOverlay(); // Auch Login-Overlay bei Navigation schließen
-      this.uiStateService.closeMiniCart();    // Auch Mini-Cart bei Navigation schließen
+      this.uiStateService.closeLoginOverlay();
+      this.uiStateService.closeMiniCart();
     });
     this.subscriptions.add(routeSub);
   }
@@ -206,38 +198,28 @@ export class HeaderComponent implements OnInit, OnDestroy {
     event?.preventDefault();
     event?.stopPropagation();
     this.uiStateService.toggleLoginOverlay();
-    if (this.isMobileMenuOpen) this.closeMobileMenu(); // Mobile Menü schließen, wenn Login geöffnet wird
+    if (this.isMobileMenuOpen) this.closeMobileMenu();
   }
 
   onCartIconMouseEnter(): void {
-    if (!this.isMobileScreen()) { // +++ NUR auf Desktop ausführen +++
+    if (!this.isMobileScreen()) {
       this.uiStateService.openMiniCart();
     }
   }
 
   onCartIconMouseLeave(): void {
-    if (!this.isMobileScreen()) { // +++ NUR auf Desktop ausführen +++
-      this.uiStateService.startCloseTimeout(300); // Standard-Timeout, 500ms ist recht lang
+    if (!this.isMobileScreen()) {
+      this.uiStateService.startCloseTimeout(300);
     }
   }
 
-  // Klick auf Warenkorb-Icon:
-  // Das <a>-Tag im Template hat routerLink="/warenkorb".
-  // Für Mobile ist das das gewünschte Verhalten.
-  // Für Desktop öffnet der MouseEnter das Mini-Cart, der Klick führt dann auch zur Seite,
-  // was in Ordnung ist oder angepasst werden könnte, falls der Klick nur das Mini-Cart offen halten soll,
-  // ohne Navigation (dann müsste man den Klick-Handler hier anpassen und preventDefault).
-  // Für den Moment belassen wir es so, dass der Klick immer navigiert.
-
   async performLogout(): Promise<void> {
-    this.closeMobileMenu(); // Wichtig
+    this.closeMobileMenu();
     try {
       await this.authService.logout();
-      // Navigation zur Homepage nach Logout
       this.router.navigate(['/'], { queryParams: { loggedOut: 'true' } });
     } catch (error) {
       console.error('Fehler beim Logout:', error);
-      // Hier könnte man dem Nutzer eine Fehlermeldung anzeigen
     }
   }
 
@@ -250,8 +232,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
         this.renderer.removeStyle(document.body, 'overflow');
       }
     }
-    if (!this.isMobileMenuOpen) { // Wenn Menü geschlossen wird
-      this.navItems.forEach(item => item.isExpanded = false); // Alle Submenüs schließen
+    if (!this.isMobileMenuOpen) {
+      this.navItems.forEach(item => item.isExpanded = false);
     }
   }
 
@@ -261,13 +243,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
        if (isPlatformBrowser(this.platformId)) {
           this.renderer.removeStyle(document.body, 'overflow');
        }
-       this.navItems.forEach(item => item.isExpanded = false); // Alle Submenüs schließen
+       this.navItems.forEach(item => item.isExpanded = false);
     }
   }
 
   toggleSubmenu(item: NavItem): void {
-    // Schließe andere offene Submenüs, bevor ein neues geöffnet wird (optional)
-    // this.navItems.filter(i => i !== item).forEach(i => i.isExpanded = false);
     item.isExpanded = !item.isExpanded;
   }
 }

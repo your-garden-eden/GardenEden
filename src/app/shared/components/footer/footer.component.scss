@@ -93,11 +93,11 @@ $footer-text-color-sass: #6c757d; // Entspricht var(--text-color-muted)
     justify-content: center;
     align-items: center;
     flex-wrap: wrap;
-    gap: var(--spacing-sm, 8px); // 8px als Fallback, falls --spacing-sm nicht definiert ist
+    gap: var(--spacing-sm, 10px); // 8px als Fallback, falls --spacing-sm nicht definiert ist
     margin-bottom: var(--spacing-md, 16px); // 16px als Fallback
 
     img {
-      height: 28px; // Anpassen nach Bedarf (z.B. 24px, 30px)
+      height: 30px; // Anpassen nach Bedarf (z.B. 24px, 30px)
       width: auto;
     }
   }
