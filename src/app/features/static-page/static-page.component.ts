@@ -1,16 +1,17 @@
 // /src/app/features/static-page/static-page.component.ts
-import { Component, OnInit, inject, signal, WritableSignal, ChangeDetectionStrategy, OnDestroy, ChangeDetectorRef } from '@angular/core'; // OnDestroy, ChangeDetectorRef
+import { Component, OnInit, inject, signal, WritableSignal, ChangeDetectionStrategy, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Data } from '@angular/router'; // Data importieren
+import { ActivatedRoute, Data, RouterLink } from '@angular/router';
 import { Title } from '@angular/platform-browser';
 import { MarkdownModule } from 'ngx-markdown';
-import { TranslocoModule, TranslocoService } from '@ngneat/transloco'; // Transloco importieren
-import { Subscription } from 'rxjs'; // Subscription importieren
+import { TranslocoModule, TranslocoService } from '@ngneat/transloco';
+import { Subscription, combineLatest } from 'rxjs';
+import { distinctUntilChanged, map, filter, tap, startWith } from 'rxjs/operators';
 
 @Component({
   selector: 'app-static-page',
   standalone: true,
-  imports: [CommonModule, MarkdownModule, TranslocoModule], // TranslocoModule ist schon da
+  imports: [CommonModule, MarkdownModule, TranslocoModule, RouterLink],
   templateUrl: './static-page.component.html',
   styleUrl: './static-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -18,95 +19,94 @@ import { Subscription } from 'rxjs'; // Subscription importieren
 export class StaticPageComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private titleService = inject(Title);
-  private translocoService = inject(TranslocoService); // TranslocoService injizieren
-  private cdr = inject(ChangeDetectorRef); // ChangeDetectorRef injizieren
+  private translocoService = inject(TranslocoService);
+  private cdr = inject(ChangeDetectorRef);
 
   markdownSource: WritableSignal<string | null> = signal(null);
-  isLoading: WritableSignal<boolean> = signal(true); // Wird jetzt initial auf true gesetzt
+  isLoading: WritableSignal<boolean> = signal(true); // Bleibt true, bis onMarkdownLoad oder onMarkdownError
   error: WritableSignal<string | null> = signal(null);
 
   private baseContentFileName: string | null = null;
-  private langChangeSubscription: Subscription | undefined;
-  private routeDataSubscription: Subscription | undefined;
-
+  private subscriptions = new Subscription();
 
   ngOnInit(): void {
-    // Route-Daten und Sprachänderungen abonnieren
-    this.routeDataSubscription = this.route.data.subscribe((data: Data) => {
-      this.baseContentFileName = data['contentFile'];
-      this.loadContentForCurrentLanguage();
-    });
+    const routeData$ = this.route.data.pipe(
+        map((data: Data) => data['contentFile']),
+        filter(fileName => !!fileName),
+        distinctUntilChanged()
+    );
 
-    this.langChangeSubscription = this.translocoService.langChanges$.subscribe(() => {
-      this.loadContentForCurrentLanguage();
-    });
+    const lang$ = this.translocoService.langChanges$.pipe(
+        startWith(this.translocoService.getActiveLang()),
+        distinctUntilChanged()
+    );
+
+    this.subscriptions.add(
+      combineLatest([routeData$, lang$]).subscribe(([fileName, lang]) => {
+        this.baseContentFileName = fileName;
+        this.loadMarkdownContent(fileName, lang);
+      })
+    );
   }
 
-  ngOnDestroy(): void {
-    this.langChangeSubscription?.unsubscribe();
-    this.routeDataSubscription?.unsubscribe();
-  }
-
-  private loadContentForCurrentLanguage(): void {
-    this.isLoading.set(true);
-    this.markdownSource.set(null); // Quelle zurücksetzen, um Neuladen zu erzwingen
+  private loadMarkdownContent(baseFileName: string, lang: string): void {
+    this.isLoading.set(true); // Wichtig: Vor jedem Ladeversuch auf true setzen
     this.error.set(null);
-    this.cdr.detectChanges(); // Wichtig, damit ngx-markdown das src-Update mitbekommt
+    this.markdownSource.set(null); // Wichtig: Quelle zurücksetzen für Neurenderung
+    this.cdr.detectChanges(); // Sofort anwenden, damit @if im Template reagiert
 
-    if (this.baseContentFileName) {
-      const currentLang = this.translocoService.getActiveLang();
-      const filePath = `assets/content/${this.baseContentFileName}.${currentLang}.md`;
-      this.markdownSource.set(filePath); // ngx-markdown wird versuchen, dies zu laden
-      console.log(`StaticPageComponent: Versuche Inhalt zu laden von ${filePath}`);
+    if (baseFileName) {
+      const filePath = `assets/content/${baseFileName}.${lang}.md`;
+      console.log(`StaticPageComponent: Setting markdownSource to: ${filePath}`);
+      this.markdownSource.set(filePath); // Direkt setzen, das @if im Template sorgt für Neurenderung
 
-      // Seitentitel (könnte auch über i18n Keys pro Seite gehen, aber für jetzt aus Route oder Fallback)
-      // Die Titel werden idealerweise auch über die Routenkonfiguration via Transloco gesetzt.
-      // Hier nur ein Fallback, falls der Titel nicht über die Route kommt.
-      const pageTitleKey = this.route.snapshot.data['titleKey'] || `staticPage.${this.baseContentFileName}.title`;
+      const pageTitleKey = this.route.snapshot.data['titleKey'] || `staticPage.${baseFileName}.title`;
       const translatedTitle = this.translocoService.translate(pageTitleKey,
-        { page: this.baseContentFileName }, // Fallback, falls titleKey nicht existiert
-        this.translocoService.getDefaultLang() // Fallback-Sprache
+        { page: baseFileName },
+        this.translocoService.getDefaultLang()
       );
       this.titleService.setTitle(`${translatedTitle} - Your Garden Eden`);
-
     } else {
-      console.error('StaticPageComponent: Kein baseContentFileName verfügbar.');
+      console.error('StaticPageComponent: Kein baseContentFileName beim Laden des Inhalts.');
       this.error.set(this.translocoService.translate('staticPage.error.noContentFile'));
       this.titleService.setTitle(`${this.translocoService.translate('staticPage.error.genericTitle')} - Your Garden Eden`);
+      this.isLoading.set(false); // Ladevorgang hier beenden
     }
-    // Das eigentliche Laden des Markdown-Inhalts und das Setzen von isLoading = false
-    // geschieht nun implizit durch die ngx-markdown Komponente und ihre (load)/(error) Events.
-    // Wir setzen isLoading initial und es wird durch onMarkdownLoad oder onMarkdownError beeinflusst.
+    // isLoading wird durch onMarkdownLoad oder onMarkdownError auf false gesetzt
   }
 
-
-  onMarkdownLoad() {
-    console.log('StaticPageComponent: Markdown-Inhalt geladen für', this.markdownSource());
+  onMarkdownLoad(): void {
+    const source = this.markdownSource();
+    console.log(`StaticPageComponent: Markdown-Inhalt ERFOLGREICH geladen für ${source}`);
     this.isLoading.set(false);
-    this.error.set(null); // Fehler zurücksetzen bei Erfolg
+    this.error.set(null);
     this.cdr.detectChanges();
   }
 
-  onMarkdownError(errorEvent: any) {
-    const requestedFile = this.markdownSource();
-    console.error(`StaticPageComponent: Fehler beim Laden der Markdown-Datei: ${requestedFile}`, errorEvent);
+  onMarkdownError(errorEvent: any): void {
+    const requestedFile = this.markdownSource(); // Der Pfad, der den Fehler verursacht hat
+    console.error(`StaticPageComponent: FEHLER beim Laden der Markdown-Datei: ${requestedFile}`, errorEvent);
 
-    // Versuche Fallback zur Standardsprache, wenn nicht schon Standardsprache
     const currentLang = this.translocoService.getActiveLang();
     const defaultLang = this.translocoService.getDefaultLang();
 
     if (this.baseContentFileName && currentLang !== defaultLang) {
       const fallbackFilePath = `assets/content/${this.baseContentFileName}.${defaultLang}.md`;
-      if (requestedFile !== fallbackFilePath) { // Verhindere Endlosschleife, wenn auch Fallback fehlschlägt
-        console.warn(`StaticPageComponent: Versuche Fallback zu ${fallbackFilePath}`);
-        this.markdownSource.set(fallbackFilePath);
-        this.cdr.detectChanges(); // ngx-markdown erneut anstoßen
-        return; // onMarkdownLoad/Error wird erneut ausgelöst
+      if (requestedFile !== fallbackFilePath) {
+        console.warn(`StaticPageComponent: Fehler bei ${requestedFile}. Versuche Fallback zu ${fallbackFilePath}`);
+        this.loadMarkdownContent(this.baseContentFileName, defaultLang);
+        return;
+      } else {
+        console.error(`StaticPageComponent: Fallback zu ${fallbackFilePath} ebenfalls fehlgeschlagen.`);
       }
     }
-    // Wenn Fallback auch fehlschlägt oder nicht möglich war
-    this.error.set(this.translocoService.translate('staticPage.error.loadingFailed', { file: requestedFile }));
+
+    this.error.set(this.translocoService.translate('staticPage.error.loadingFailed', { file: requestedFile ?? 'unbekannte Datei' }));
     this.isLoading.set(false);
     this.cdr.detectChanges();
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
   }
 }

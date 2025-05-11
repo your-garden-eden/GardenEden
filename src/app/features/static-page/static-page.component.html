@@ -6,34 +6,27 @@
     </div>
 
     <div *ngIf="error()" class="error-message">
-      <p>{{ error() }}</p> <!-- error() kommt bereits übersetzt aus dem TS -->
+      <p>{{ error() }}</p>
       <a routerLink="/">{{ 'staticPage.backToHome' | transloco }}</a>
     </div>
 
     <!--
-      Wichtig: Das *ngIf hier prüft, ob markdownSource einen Wert hat.
-      Das erneute Setzen von markdownSource in loadContentForCurrentLanguage
-      (auch wenn der Pfad derselbe ist, aber die Sprache sich geändert hat)
-      sollte ngx-markdown dazu bringen, die Datei neu abzurufen, wenn
-      [src] sich ändert oder die Komponente durch ngOnChanges auf die Änderung reagiert.
-      Wenn ngx-markdown nicht automatisch neu lädt, wenn sich nur der Inhalt der Datei
-      unter demselben Pfad ändert (was hier nicht der Fall ist, da der Pfad sprachspezifisch ist),
-      müssten wir ngx-markdown evtl. expliziter neu laden (z.B. durch ngIf oder einen Key-Wechsel).
-      Aber da der 'src'-Pfad sich ändert (durch die Sprache), sollte es funktionieren.
+      Wir verwenden jetzt markdownSource() im @if, um die Komponente neu zu rendern,
+      wenn sich die Quelle ändert. Das ist ein gängiger Weg, um eine
+      Neuinitialisierung zu erzwingen.
     -->
-    <div *ngIf="!isLoading() && !error() && markdownSource()" class="static-page-content">
-      <markdown
-        [src]="markdownSource()!"
-        (load)="onMarkdownLoad()"
-        (error)="onMarkdownError($event)">
-          <!-- Optionaler Ladeplatzhalter für ngx-markdown selbst -->
-          <!-- <p>{{ 'staticPage.loadingContent' | transloco }}</p> -->
-      </markdown>
-    </div>
-
-     <!-- Zusätzliche Meldung, wenn kein Inhalt geladen werden konnte, aber kein Fehler von ngx-markdown kam (sollte selten sein) -->
-    <div *ngIf="!isLoading() && !error() && !markdownSource()" class="error-message">
-        <p>{{ 'staticPage.error.noSource' | transloco }}</p>
-    </div>
-
+    @if (!isLoading() && !error() && markdownSource(); as currentSource) {
+      <div class="static-page-content">
+        <markdown
+          [src]="currentSource"
+          (load)="onMarkdownLoad()"
+          (error)="onMarkdownError($event)">
+        </markdown>
+      </div>
+    } @else if (!isLoading() && !error() && !markdownSource()) {
+        <!-- Diese Meldung wird angezeigt, wenn markdownSource explizit null ist, aber kein Lade- oder Fehlerzustand vorliegt -->
+       <div class="error-message">
+           <p>{{ 'staticPage.error.noSource' | transloco }}</p>
+       </div>
+    }
   </div>
