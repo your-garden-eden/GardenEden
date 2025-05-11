@@ -177,7 +177,37 @@
     "title": "Košarica - Your Garden Eden"
   },
   "wishlistPage": {
-    "title": "Moja lista želja - Your Garden Eden"
+    "title": "Moja lista želja",
+    "loading": "Učitavanje liste želja...",
+    "yourProducts": "Vaši spremljeni proizvodi",
+    "actions": {
+      "remove": "Ukloni s liste želja",
+      "moveToCart": "Premjesti u košaricu"
+    },
+    "summary": {
+      "title": "Pregled",
+      "itemCount": "Broj proizvoda",
+      "totalPrice": "Procijenjena ukupna cijena",
+      "vatInfo": "Sve cijene uključuju PDV",
+      "addAllToCart": "Dodaj sve u košaricu"
+    },
+    "empty": {
+      "title": "Vaša lista želja je prazna.",
+      "message": "Dodajte proizvode klikom na ikonu srca.",
+      "continueShopping": "Nastavi s kupnjom"
+    },
+    "error": {
+      "loadingProducts": "Pogreška pri učitavanju proizvoda s liste želja.",
+      "productNotAvailable": "{{productName}} trenutno nije dostupan.",
+      "noVariantFound": "Nije pronađena varijanta za {{productName}} za dodavanje.",
+      "movingToCartError": "Pogreška pri premještanju {{productName}} u košaricu."
+    }
+  },
+  "cookieConsent": {
+    "bannerTextLine1": "Koristimo kolačiće kako bismo poboljšali vaše iskustvo pregledavanja i analizirali korištenje naše web stranice. Više informacija potražite u našim",
+    "privacyPolicyLink": "Pravilima o privatnosti",
+    "btnEssential": "Samo nužni",
+    "btnAcceptAll": "Prihvati sve"
   },
   "notFound": {
     "title": "Stranica nije pronađena - Your Garden Eden"

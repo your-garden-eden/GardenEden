@@ -1,22 +1,21 @@
 <!-- /src/app/features/wishlist/wishlist-page/wishlist-page.component.html -->
 <div class="wishlist-page-container">
-  <h1>Meine Wunschliste</h1>
+  <h1>{{ 'wishlistPage.title' | transloco }}</h1>
 
-  <!-- === Lade- & Fehlerzustände === -->
   @if (isLoadingWishlist() || isLoadingProducts()) {
-    <div class="loading-indicator wishlist-loading"><p>Wunschliste wird geladen...</p></div>
+    <div class="loading-indicator wishlist-loading"><p>{{ 'wishlistPage.loading' | transloco }}</p></div>
   }
+  <!-- Fehler vom WishlistService (sollte schon übersetzt sein, falls der Service das macht) -->
   @if (wishlistError(); as errorMsg) { <p class="error-message global-wishlist-error">{{ errorMsg }}</p> }
+  <!-- Fehler vom Product Laden (wird jetzt im TS übersetzt) -->
   @if (productsError(); as errorMsg) { <p class="error-message product-load-error">{{ errorMsg }}</p> }
-  <!-- === Ende Lade- & Fehlerzustände === -->
 
-  <!-- === Inhalt der Wunschliste === -->
+
   @if (!isLoadingWishlist() && !isLoadingProducts()) {
     @if (!isEmptyWishlist()) {
       <div class="wishlist-content">
-        <!-- Produktliste -->
         <div class="wishlist-items">
-          <h2>Ihre gemerkten Produkte</h2>
+          <h2>{{ 'wishlistPage.yourProducts' | transloco }}</h2>
           <div class="items-grid">
             @for (product of wishlistProducts(); track getProductIdentifier($index, product)) {
               <div class="wishlist-item-card">
@@ -25,7 +24,7 @@
                     @if (product.images.edges?.[0]?.node?.url; as imgUrl) {
                       <img [src]="imgUrl" [alt]="product.title" loading="lazy">
                     } @else {
-                      <div class="placeholder-image small"><span class="material-symbols-outlined">image</span></div>
+                      <div class="placeholder-image small"><span class="material-symbols-outlined" [title]="'productPage.noImageAvailable' | transloco">image</span></div>
                     }
                   </div>
                   <div class="item-info">
@@ -36,50 +35,52 @@
                   </div>
                 </a>
                 <div class="item-actions">
-                  <!-- +++ Button zum Entfernen ANPASSEN +++ -->
                   <button class="action-button remove-button"
-                          title="Von Wunschliste entfernen"
+                          [title]="'wishlistPage.actions.remove' | transloco"
                           (click)="removeFromWishlist(product.handle)"
                           [disabled]="isLoadingWishlist()"
-                          aria-label="Von Wunschliste entfernen">
+                          [attr.aria-label]="'wishlistPage.actions.remove' | transloco">
                     <span class="icon-stack">
-                      <span class="material-symbols-outlined base-icon">favorite</span> <!-- Das Herz -->
-                      <span class="material-symbols-outlined strikethrough-icon">horizontal_rule</span> <!-- Der Strich -->
-                      <!-- Alternative: <span class="strikethrough-line"></span> -->
+                      <span class="material-symbols-outlined base-icon">favorite</span>
+                      <span class="material-symbols-outlined strikethrough-icon">horizontal_rule</span>
                     </span>
                   </button>
-                  <!-- +++ ENDE Anpassung +++ -->
 
                   <button class="action-button add-to-cart-button"
-                          title="In den Warenkorb"
+                          [title]="'wishlistPage.actions.moveToCart' | transloco"
                           (click)="moveFromWishlistToCart(product)"
                           [disabled]="isLoadingProducts() || !product.availableForSale">
                     <span class="material-symbols-outlined">add_shopping_cart</span>
                   </button>
                 </div>
               </div>
-            } <!-- Ende @for -->
-          </div> <!-- Ende .items-grid -->
-        </div> <!-- Ende .wishlist-items -->
+            }
+          </div>
+        </div>
 
-        <!-- Zusammenfassung -->
         <div class="wishlist-summary">
-          <h2>Übersicht</h2>
-          <div class="summary-row item-count"><span>Anzahl Produkte:</span><span>{{ wishlistProducts().length }}</span></div>
-          <div class="summary-row total-price"><span>Geschätzter Gesamtpreis:</span><span>{{ totalPrice() | currency:'EUR':'symbol':'1.2-2':'de-DE' }}</span></div>
-          <p class="vat-info">Alle Preise inkl. MwSt.</p>
+          <h2>{{ 'wishlistPage.summary.title' | transloco }}</h2>
+          <div class="summary-row item-count">
+            <span>{{ 'wishlistPage.summary.itemCount' | transloco }}:</span>
+            <span>{{ wishlistProducts().length }}</span>
+          </div>
+          <div class="summary-row total-price">
+            <span>{{ 'wishlistPage.summary.totalPrice' | transloco }}:</span>
+            <span>{{ totalPrice() | currency:'EUR':'symbol':'1.2-2':'de-DE' }}</span>
+            <!-- Währung und Locale für CurrencyPipe müssten ggf. auch dynamisch sein -->
+          </div>
+          <p class="vat-info">{{ 'wishlistPage.summary.vatInfo' | transloco }}</p>
           <button class="add-all-to-cart-button primary-button" (click)="addAllToCart()" [disabled]="isAddAllDisabled()">
-            Alle in den Warenkorb
+            {{ 'wishlistPage.summary.addAllToCart' | transloco }}
           </button>
-        </div> <!-- Ende .wishlist-summary -->
-      </div> <!-- Ende .wishlist-content -->
+        </div>
+      </div>
     } @else {
-      <!-- Leere Wunschliste -->
       <div class="empty-wishlist-message">
-        <h2>Ihre Wunschliste ist leer.</h2>
-        <p>Fügen Sie Produkte hinzu, indem Sie auf das Herz-Symbol klicken.</p>
-        <a routerLink="/" class="primary-button">Weiter einkaufen</a>
+        <h2>{{ 'wishlistPage.empty.title' | transloco }}</h2>
+        <p>{{ 'wishlistPage.empty.message' | transloco }}</p>
+        <a routerLink="/" class="primary-button">{{ 'wishlistPage.empty.continueShopping' | transloco }}</a>
       </div>
     }
-  } <!-- Ende @if !isLoading... -->
-</div> <!-- Ende .wishlist-page-container -->
+  }
+</div>

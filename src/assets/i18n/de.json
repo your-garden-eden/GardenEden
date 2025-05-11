@@ -177,7 +177,37 @@
     "title": "Warenkorb - Your Garden Eden"
   },
   "wishlistPage": {
-    "title": "Meine Wunschliste - Your Garden Eden"
+    "title": "Meine Wunschliste",
+    "loading": "Wunschliste wird geladen...",
+    "yourProducts": "Ihre gemerkten Produkte",
+    "actions": {
+      "remove": "Von Wunschliste entfernen",
+      "moveToCart": "In den Warenkorb"
+    },
+    "summary": {
+      "title": "Übersicht",
+      "itemCount": "Anzahl Produkte",
+      "totalPrice": "Geschätzter Gesamtpreis",
+      "vatInfo": "Alle Preise inkl. MwSt.",
+      "addAllToCart": "Alle in den Warenkorb"
+    },
+    "empty": {
+      "title": "Ihre Wunschliste ist leer.",
+      "message": "Fügen Sie Produkte hinzu, indem Sie auf das Herz-Symbol klicken.",
+      "continueShopping": "Weiter einkaufen"
+    },
+    "error": {
+      "loadingProducts": "Fehler beim Laden der Wunschlisten-Produkte.",
+      "productNotAvailable": "{{productName}} ist derzeit nicht verfügbar.",
+      "noVariantFound": "Keine Variante für {{productName}} zum Hinzufügen gefunden.",
+      "movingToCartError": "Fehler beim Verschieben von {{productName}} in den Warenkorb."
+    }
+  },
+  "cookieConsent": {
+    "bannerTextLine1": "Wir verwenden Cookies, um Ihr Surferlebnis zu verbessern und die Nutzung unserer Website zu analysieren. Weitere Informationen finden Sie in unserer",
+    "privacyPolicyLink": "Datenschutzerklärung",
+    "btnEssential": "Nur notwendige",
+    "btnAcceptAll": "Alle akzeptieren"
   },
   "notFound": {
     "title": "Seite nicht gefunden - Your Garden Eden"

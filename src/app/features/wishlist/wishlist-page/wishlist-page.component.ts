@@ -5,35 +5,39 @@ import { RouterLink } from '@angular/router';
 import { WishlistService } from '../../../shared/services/wishlist.service';
 import { ShopifyService, Product, CartLineInput, ShopifyProductVariant } from '../../../core/services/shopify.service';
 import { CartService } from '../../../shared/services/cart.service';
-import { ProductCardComponent } from '../../../shared/components/product-card/product-card.component'; // Bleibt vorerst importiert
+import { ProductCardComponent } from '../../../shared/components/product-card/product-card.component';
 import { FormatPricePipe } from '../../../shared/pipes/format-price.pipe';
+
+// Transloco
+import { TranslocoModule, TranslocoService } from '@ngneat/transloco';
+import { Subscription } from 'rxjs'; // Subscription importieren
 
 @Component({
   selector: 'app-wishlist-page',
   standalone: true,
-  imports: [ CommonModule, RouterLink, FormatPricePipe, CurrencyPipe /* ProductCardComponent */ ],
+  imports: [ CommonModule, RouterLink, FormatPricePipe, CurrencyPipe, TranslocoModule ],
   templateUrl: './wishlist-page.component.html',
   styleUrls: ['./wishlist-page.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [CurrencyPipe]
 })
-export class WishlistPageComponent implements OnInit {
+export class WishlistPageComponent implements OnInit, OnDestroy { // OnDestroy hinzugefügt
   private wishlistService = inject(WishlistService);
   private shopifyService = inject(ShopifyService);
   private cartService = inject(CartService);
   private cdr = inject(ChangeDetectorRef);
+  private translocoService = inject(TranslocoService); // TranslocoService injiziert
 
-  // Signale vom WishlistService
   isLoadingWishlist = this.wishlistService.isLoading;
-  wishlistError = this.wishlistService.error;
+  wishlistError = this.wishlistService.error; // Wird ggf. vom Service schon übersetzt
   wishlistHandles = this.wishlistService.wishlistHandles$;
 
-  // Signale für diese Komponente
   isLoadingProducts: WritableSignal<boolean> = signal(false);
   productsError: WritableSignal<string | null> = signal(null);
   wishlistProducts: WritableSignal<Product[]> = signal([]);
 
-  // Computed Signal für Gesamtpreis
+  private langChangeSubscription?: Subscription; // Für Sprachwechsel
+
   totalPrice = computed(() => {
     let total = 0;
     for (const product of this.wishlistProducts()) {
@@ -45,44 +49,54 @@ export class WishlistPageComponent implements OnInit {
     return total;
   });
 
-  // Computed Signal, ob die Wunschliste leer ist
   isEmptyWishlist = computed(() => this.wishlistHandles().length === 0);
 
-  // NEUES Computed Signal für den Disabled-Status des "Alle hinzufügen"-Buttons
   readonly isAddAllDisabled: Signal<boolean> = computed(() => {
       const loadingProd = this.isLoadingProducts();
       const loadingWish = this.isLoadingWishlist();
       const emptyWish = this.isEmptyWishlist();
-      // console.log('Computed isAddAllDisabled:', {loadingProd, loadingWish, emptyWish, result: loadingProd || loadingWish || emptyWish});
       return loadingProd || loadingWish || emptyWish;
   });
 
   constructor() {
-    // Effekt zum Laden der Produkte bei Handle-Änderung
     effect(() => {
       const handles = this.wishlistHandles();
       console.log('WishlistPage EFFECT: Handles changed, checking handles:', handles);
-      // Verhindere Ausführung, wenn gerade Produkte geladen werden
       if (untracked(this.isLoadingProducts)) {
           console.log("WishlistPage EFFECT: Skipping because products are already loading.");
           return;
       }
       if (handles.length > 0) {
-        this.loadProductsByHandles(handles); // await ist hier nicht nötig, da der Effekt asynchron ist
+        this.loadProductsByHandles(handles);
       } else {
         if(untracked(this.wishlistProducts).length > 0) { this.wishlistProducts.set([]); }
         if(untracked(this.productsError)) { this.productsError.set(null); }
       }
-      this.cdr.markForCheck(); // Sicherstellen, dass die UI nach dem Effekt aktualisiert wird
+      this.cdr.markForCheck();
     });
   }
 
   ngOnInit(): void {
     console.log("WishlistPageComponent initialized.");
-    this.wishlistService.error.set(null); // Initiale Fehler vom Service löschen
+    this.wishlistService.error.set(null);
+
+    this.langChangeSubscription = this.translocoService.langChanges$.subscribe(() => {
+        // Wenn Fehlertexte direkt im Component gesetzt werden, hier neu übersetzen
+        if (this.productsError()) {
+            // Diese Logik hängt davon ab, wie die Fehler gesetzt werden.
+            // Einfacher Ansatz: Wenn ein Fehler da ist, versuche ihn neu zu setzen, falls er einem Key entspricht.
+            // Besser: Fehler als Key speichern und bei Anzeige übersetzen oder hier Key neu übersetzen.
+            // Für den Moment lassen wir das, da die meisten Fehler vom Service kommen könnten
+            // oder spezifische Produktnamen enthalten.
+        }
+        this.cdr.markForCheck();
+    });
   }
 
-  /** Lädt die Produktdetails für die gegebenen Handles */
+  ngOnDestroy(): void {
+      this.langChangeSubscription?.unsubscribe();
+  }
+
   private async loadProductsByHandles(handles: string[]): Promise<void> {
     if (this.isLoadingProducts()) {
         console.log("WishlistPage loadProductsByHandles: Already loading, skipping call.");
@@ -112,10 +126,11 @@ export class WishlistPageComponent implements OnInit {
       this.wishlistProducts.set(sortedProducts);
       if (sortedProducts.length !== handles.length) {
            console.warn("WishlistPage loadProductsByHandles: Some wishlist products could not be loaded.");
+           // Optional: eine nicht-blockierende Info für den Nutzer
       }
     } catch (error) {
       console.error("WishlistPage loadProductsByHandles: Error during Promise.all execution:", error);
-      this.productsError.set("Fehler beim Laden der Wunschlisten-Produkte.");
+      this.productsError.set(this.translocoService.translate('wishlistPage.error.loadingProducts'));
       this.wishlistProducts.set([]);
     } finally {
       console.log("WishlistPage loadProductsByHandles: Setting isLoadingProducts to false.");
@@ -125,53 +140,48 @@ export class WishlistPageComponent implements OnInit {
     }
   }
 
-  /** Entfernt ein Produkt von der Wunschliste */
   async removeFromWishlist(productHandle: string): Promise<void> {
       this.productsError.set(null);
       await this.wishlistService.removeFromWishlist(productHandle);
   }
 
-  /** Verschiebt ein Produkt von der Wunschliste in den Warenkorb */
   async moveFromWishlistToCart(product: Product): Promise<void> {
     if (!product.availableForSale) {
-        this.productsError.set(`${product.title} ist derzeit nicht verfügbar.`);
+        this.productsError.set(this.translocoService.translate('wishlistPage.error.productNotAvailable', { productName: product.title }));
         console.warn(`Product ${product.handle} is not available for sale.`);
         return;
     }
-    const availableVariant = product.variants?.edges?.find(edge => edge.node.availableForSale);
-    let variantId: string | null | undefined = availableVariant?.node?.id;
+    // ... (Rest der Logik bleibt gleich, aber Fehlermeldungen anpassen)
+    let variantId: string | null | undefined = product.variants?.edges?.find(edge => edge.node.availableForSale)?.node?.id;
+
     if (!variantId && product.variants?.edges?.[0]?.node?.id) {
-        console.warn(`Konnte keine explizit verfügbare Variante für ${product.handle} finden. Nehme erste Variante an.`);
         variantId = product.variants.edges[0].node.id;
     }
     if (!variantId) {
-        this.productsError.set(`Keine Variante für ${product.title} zum Hinzufügen gefunden.`);
+        this.productsError.set(this.translocoService.translate('wishlistPage.error.noVariantFound', { productName: product.title }));
         console.error(`No variant ID found for product handle: ${product.handle}`);
         return;
     }
     console.log(`Moving ${product.handle} (Variant: ${variantId}) from wishlist to cart.`);
-    this.isLoadingProducts.set(true);
+    this.isLoadingProducts.set(true); // oder ein spezifisches Loading-Signal für diese Aktion
     this.productsError.set(null);
     try {
         await this.cartService.addLine(variantId, 1);
         await this.wishlistService.removeFromWishlist(product.handle);
     } catch (error: any) {
         console.error(`Error moving ${product.handle} to cart:`, error);
-        this.productsError.set(error.message || `Fehler beim Verschieben von ${product.title}.`);
+        this.productsError.set(this.translocoService.translate('wishlistPage.error.movingToCartError', { productName: product.title }));
     } finally {
-        this.isLoadingProducts.set(false);
+        this.isLoadingProducts.set(false); // oder spezifisches Loading-Signal zurücksetzen
     }
   }
 
-  /** Fügt alle Produkte von der Wunschliste zum Warenkorb hinzu */
   async addAllToCart(): Promise<void> {
-      // Rufe die implementierte Methode im Service auf
       await this.wishlistService.addAllToCartAndClearWishlist();
+      // Der WishlistService sollte idealerweise auch Fehler behandeln und ggf. übersetzbare Fehler liefern
   }
 
-  /** TrackBy Funktion für die @for Schleife */
   getProductIdentifier(index: number, product: Product): string {
     return product.id;
   }
-
-} // Ende WishlistPageComponent Klasse
+}

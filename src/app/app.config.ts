@@ -22,12 +22,14 @@ import { provideMarkdown } from 'ngx-markdown';
 import { routes } from './app.routes';
 
 // --- LOCALE DATEN IMPORTIEREN UND REGISTRIEREN ---
-// CurrencyPipe importieren!
 import { registerLocaleData, CurrencyPipe } from '@angular/common';
 import localeDe from '@angular/common/locales/de';
 import localeDeExtra from '@angular/common/locales/extra/de';
+
+// --- TRANSLOCO IMPORTS ---
 import { TranslocoHttpLoader } from './transloco-loader';
 import { provideTransloco } from '@ngneat/transloco';
+import { provideTranslocoPersistLang, TRANSLOCO_PERSIST_LANG_STORAGE } from '@ngneat/transloco-persist-lang';
 
 registerLocaleData(localeDe, 'de-DE', localeDeExtra);
 // --- ENDE LOCALE ---
@@ -37,7 +39,7 @@ export const appConfig: ApplicationConfig = {
     // --- Vorhandene Provider ---
     provideRouter(routes, withComponentInputBinding(), withViewTransitions()),
     provideClientHydration(),
-    provideHttpClient(withFetch()), // Behalte diesen, er ist der korrekte mit withFetch()
+    provideHttpClient(withFetch()),
 
     // --- STANDARD LOCALE SETZEN ---
     { provide: LOCALE_ID, useValue: 'de-DE' },
@@ -52,22 +54,32 @@ export const appConfig: ApplicationConfig = {
     provideFirebaseApp(() => initializeApp(environment.firebase)),
     provideAuth(() => getAuth()),
     provideFirestore(() => getFirestore()),
-    provideFunctions(() => getFunctions(getApp(), 'europe-west3')), // Region angepasst
+    provideFunctions(() => getFunctions(getApp(), 'europe-west3')),
     provideStorage(() => getStorage()),
     provideAnalytics(() => getAnalytics()),
     ScreenTrackingService,
     UserTrackingService,
-    // Der doppelte provideHttpClient() wurde hier entfernt
+
+    // --- TRANSLOCO PROVIDER ---
     provideTransloco({
-        config: {
-          availableLangs: ['de', 'en', 'hr'], // 'de' hinzugefügt
-          defaultLang: 'de',                // Auf 'de' geändert
-          // Remove this option if your application doesn't support changing language in runtime.
-          reRenderOnLangChange: true,
-          prodMode: !isDevMode(),
+      config: {
+        availableLangs: ['de', 'en', 'hr'],
+        defaultLang: 'de',
+        reRenderOnLangChange: true,
+        prodMode: !isDevMode(),
+      },
+      loader: TranslocoHttpLoader
+    }),
+    // --- PROVIDER FÜR SPRACHPERSISTENZ (KORRIGIERT) ---
+    provideTranslocoPersistLang({
+        // Der Storage-Provider wird hier direkt übergeben,
+        // der Token TRANSLOCO_PERSIST_LANG_STORAGE wird intern verwendet
+        // um den hier bereitgestellten Storage zu injizieren.
+        storage: { // Dies ist der Schlüssel für die Storage-Konfiguration
+            useValue: localStorage // Der Wert, der für TRANSLOCO_PERSIST_LANG_STORAGE bereitgestellt wird
         },
-        loader: TranslocoHttpLoader
-      })
-    // --- Ende Firebase Provider ---
+        // Optional: Ein benutzerdefinierter Schlüsselname im Local Storage
+        // storageKey: 'user-lang', // Standard ist 'transloco-lang'
+    }),
   ]
 };
