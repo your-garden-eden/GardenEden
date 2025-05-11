@@ -1,13 +1,13 @@
 <!-- /src/app/features/category-overview/category-overview.component.html -->
 <div class="category-overview-page">
 
-  <!-- Titel der Hauptkategorie -->
+  <!-- Titel der Hauptkategorie (kommt bereits übersetzt aus dem TS) -->
   <h1 *ngIf="categoryTitle() && !error()">{{ categoryTitle() }}</h1>
 
-  <!-- Fehleranzeige für Hauptkategorie -->
+  <!-- Fehleranzeige für Hauptkategorie (error() wird bereits übersetzt aus dem TS) -->
   <div *ngIf="error()" class="error-message">
     <p>{{ error() }}</p>
-    <a routerLink="/">Zurück zur Startseite</a>
+    <a routerLink="/">{{ 'categoryOverview.backToHome' | transloco }}</a>
   </div>
 
   <!-- Container für Unterkategorien (Icons) -->
@@ -17,16 +17,17 @@
        class="subcategory-item">
       <img *ngIf="subItem.iconFilename"
            [src]="getIconPath(subItem.iconFilename)"
-           [alt]="subItem.label"
+           [alt]="subItem.i18nId | transloco" 
            class="subcategory-icon"
            loading="lazy">
-      <span class="subcategory-label">{{ subItem.label }}</span>
+      <span class="subcategory-label">{{ subItem.i18nId | transloco }}</span> <!-- Label übersetzen -->
     </a>
   </div>
 
   <!-- Meldung, wenn keine Unterkategorien gefunden wurden -->
   <div *ngIf="!error() && subCategories().length === 0 && categoryTitle()">
-    <p>Für die Kategorie "{{ categoryTitle() }}" gibt es aktuell keine Unterkategorien.</p>
+    <!-- categoryTitle() ist bereits übersetzt -->
+    <p>{{ 'categoryOverview.noSubcategories' | transloco:{ category: categoryTitle() } }}</p>
   </div>
 
   <!-- ======================================== -->
@@ -34,42 +35,29 @@
   <!-- ======================================== -->
   <section class="product-preview-section" *ngIf="!error()">
 
-    <!-- Optionale Überschrift für die Vorschau -->
     <h2 *ngIf="!isLoadingPreview() && !previewError() && productPreview().length > 0">
-      Beliebte Produkte aus dieser Kategorie
+      {{ 'categoryOverview.popularProducts' | transloco }}
     </h2>
 
-    <!-- Ladeanzeige für die Vorschau -->
     <div *ngIf="isLoadingPreview()" class="loading-indicator preview-loading">
-      <p>Lade Produktvorschau...</p>
+      <p>{{ 'categoryOverview.loadingPreview' | transloco }}</p>
     </div>
 
-    <!-- Fehleranzeige für die Vorschau -->
+    <!-- Fehleranzeige für die Vorschau (previewError() wird bereits übersetzt aus dem TS) -->
     <div *ngIf="previewError()" class="error-message preview-error">
       <p>{{ previewError() }}</p>
     </div>
 
-    <!-- Produkt-Grid für die Vorschau -->
     <div *ngIf="!isLoadingPreview() && !previewError() && productPreview().length > 0" class="product-preview-grid">
-      <!-- Einfache Schleife über productPreview() -->
       <app-product-card
           *ngFor="let product of productPreview(); trackBy: trackPreviewProductById"
           [product]="product">
-          <!-- Kein displayMode -->
       </app-product-card>
     </div>
 
-    <!-- === KORRIGIERTES *ngIf === -->
-    <!-- Meldung, wenn keine Vorschauprodukte geladen wurden (aber kein Fehler) -->
-    <!-- Prüft jetzt korrekt productPreview().length -->
      <div *ngIf="!isLoadingPreview() && !previewError() && productPreview().length === 0 && subCategories().length > 0" class="no-products-message">
-       <p>Keine Produkte für die Vorschau gefunden.</p>
+       <p>{{ 'categoryOverview.noPreviewProducts' | transloco }}</p>
      </div>
-    <!-- === ENDE KORREKTUR === -->
 
   </section>
-  <!-- ======================================== -->
-  <!-- Ende EINFACHE Produktvorschau-Sektion   -->
-  <!-- ======================================== -->
-
 </div>

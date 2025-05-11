@@ -22,6 +22,164 @@
     "menuOpenClose": "Open/close menu",
     "clearSearch": "Clear search",
     "closeMenu": "Close menu",
-    "toHomepage": "To homepage"
+    "toHomepage": "To homepage",
+    "selectLanguage": "Select language",
+    "nav": {
+      "home": "Home",
+      "furniture": "Garden Furniture",
+      "furniture.sofas": "Sofas & Lounges",
+      "furniture.chairs": "Chairs & Armchairs",
+      "furniture.tables": "Garden Tables",
+      "furniture.benches": "Benches",
+      "furniture.loungers": "Loungers & Beds",
+      "furniture.hammocks": "Hammocks & Swings",
+      "furniture.sets": "Furniture Sets",
+      "furniture.covers": "Protective Covers",
+      "sunprotection": "Sun Protection",
+      "sunprotection.pavilions": "Pavilions & Tents",
+      "sunprotection.umbrellas": "Parasols & Sails",
+      "sunprotection.awnings": "Awnings",
+      "water": "Water in the Garden",
+      "water.pools": "Pools & Accessories",
+      "water.ponds": "Ponds & Accessories",
+      "heating": "Heating & Fire",
+      "heating.fireplaces": "Fireplaces & Fire Bowls",
+      "heating.storage": "Firewood Storage",
+      "maintenance": "Garden Care & Tools",
+      "maintenance.tools": "Garden Tools",
+      "maintenance.storage": "Storage Boxes",
+      "maintenance.compost": "Composters & Water Butts",
+      "deco": "Decoration & Light",
+      "deco.deco": "Garden Decoration",
+      "deco.lighting": "Outdoor Lighting",
+      "deco.planters": "Planters & Stands",
+      "deco.rugs": "Garden Rugs",
+      "plants": "Plants & Cultivation",
+      "plants.artificial": "Artificial Plants",
+      "plants.real": "Lawn Seeds & Growing Aids",
+      "plants.greenhouses": "Greenhouses",
+      "plants.trellises": "Trellises",
+      "plants.protection": "Plant Protection",
+      "leisure": "Leisure & Wildlife",
+      "leisure.play": "Play Equipment",
+      "leisure.animal": "Animal Houses & Feeding Stations"
+    }
+  },
+  "footer": {
+    "legal": {
+      "title": "Legal",
+      "imprint": "Imprint",
+      "privacy": "Privacy Policy",
+      "terms": "Terms & Conditions",
+      "cancellation": "Cancellation Policy",
+      "allRightsReserved": "All rights reserved."
+    },
+    "customerService": {
+      "title": "Customer Service",
+      "contact": "Contact",
+      "shipping": "Shipping & Delivery",
+      "faq": "FAQ"
+    },
+    "aboutUs": {
+      "title": "About Us",
+      "whoWeAre": "Who we are"
+    },
+    "language": {
+      "title": "Language"
+    },
+    "social": {
+      "title": "Follow us",
+      "instagram": "Visit us on Instagram"
+    }
+  },
+  "categoryOverview": {
+    "pageTitleSuffix": "- Your Garden Eden",
+    "notFoundTitle": "Category Not Found",
+    "notFoundError": "The requested category could not be found.",
+    "backToHome": "Back to homepage",
+    "noSubcategories": "There are currently no subcategories for \"{{category}}\".",
+    "popularProducts": "Popular products from this category",
+    "loadingPreview": "Loading product preview...",
+    "previewLoadError": "Could not load products for the preview.",
+    "noPreviewProducts": "No products found for the preview."
+  },
+  "productList": {
+    "backTo": "Back to",
+    "categoryOverview": "Category Overview",
+    "categoryLabel": "Category",
+    "loadingProducts": "Loading products...",
+    "errorLoadingProducts": "Error loading products.",
+    "errorNoSlug": "No identifier specified for the product list.",
+    "errorPageTitle": "Error",
+    "defaultTitle": "Products",
+    "noProductsFound": "Unfortunately, no products were found in this category.",
+    "loadingMoreProducts": "Loading more products..."
+  },
+  "productPage": {
+    "backButton": "Back",
+    "loadingDetails": "Loading product details...",
+    "backToHome": "Back to homepage",
+    "errorTitle": "Error",
+    "errorNoHandle": "No product handle specified.",
+    "errorLoadingProduct": "Error loading product.",
+    "errorNotFound": "Product not found.",
+    "notFoundTitle": "Product not found",
+    "notFoundMessage": "The requested product could not be found.",
+    "noImageAvailable": "No image available",
+    "thumbnailAlt": "Thumbnail {{index}}",
+    "availability": {
+      "inStock": "In stock",
+      "outOfStock": "Not available"
+    },
+    "actions": {
+      "addToCart": "Add to cart",
+      "addingToCart": "Adding...",
+      "wishlistLogin": "Please log in to use the wishlist",
+      "addToWishlist": "Add to wishlist",
+      "removeFromWishlist": "Remove from wishlist"
+    },
+    "description": {
+      "title": "Description",
+      "none": "No description available."
+    },
+    "errorVariantNotAvailable": "Product variant not available or not selected.",
+    "errorAddingToCart": "Error adding to cart."
+  },
+  "staticPage": {
+    "loadingPage": "Loading page...",
+    "loadingContent": "Loading content...",
+    "backToHome": "Back to homepage",
+    "error": {
+      "noContentFile": "The content to display could not be determined.",
+      "loadingFailed": "Error loading content ({{file}}). Please try again later.",
+      "genericTitle": "Error",
+      "noSource": "No content available to display."
+    },
+    "impressum": { "title": "Imprint - Your Garden Eden" },
+    "datenschutz": { "title": "Privacy Policy - Your Garden Eden" },
+    "agb": { "title": "Terms & Conditions - Your Garden Eden" },
+    "widerrufsrecht": { "title": "Cancellation Policy - Your Garden Eden" },
+    "kontakt": { "title": "Contact - Your Garden Eden" },
+    "versand": { "title": "Shipping & Delivery - Your Garden Eden" },
+    "faq": { "title": "FAQ - Your Garden Eden" },
+    "ueberUns": { "title": "About Us - Your Garden Eden" }
+  },
+  "home": {
+    "title": "Your Garden Eden - Homepage"
+  },
+  "registerPage": {
+    "title": "Register - Your Garden Eden"
+  },
+  "profilePage": {
+    "title": "My Account - Your Garden Eden"
+  },
+  "cartPage": {
+    "title": "Shopping Cart - Your Garden Eden"
+  },
+  "wishlistPage": {
+    "title": "My Wishlist - Your Garden Eden"
+  },
+  "notFound": {
+    "title": "Page Not Found - Your Garden Eden"
   }
 }
