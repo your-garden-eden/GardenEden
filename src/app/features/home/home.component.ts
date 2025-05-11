@@ -1,5 +1,6 @@
 import { Component, OnInit, inject, signal, ChangeDetectionStrategy, WritableSignal } from '@angular/core';
-import { CommonModule, DatePipe, DecimalPipe } from '@angular/common'; // DecimalPipe war schon da, DatePipe wird jetzt nicht mehr direkt benötigt
+// DatePipe und DecimalPipe aus dem Import entfernt, nur noch CommonModule
+import { CommonModule } from '@angular/common';
 
 import { ShopifyService, Product } from '../../core/services/shopify.service';
 import { ProductCardComponent } from '../../shared/components/product-card/product-card.component';
@@ -7,9 +8,8 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
 @Component({
   selector: 'app-home',
   standalone: true,
-  // DatePipe wird nicht mehr benötigt, wenn News wegfallen, aber schadet nicht, wenn es drin bleibt.
-  // CommonModule wird für @if, @for etc. benötigt. DecimalPipe ggf. für Produktpreise.
-  imports: [CommonModule, ProductCardComponent, DatePipe, DecimalPipe],
+  // DatePipe und DecimalPipe aus dem imports-Array entfernt
+  imports: [CommonModule, ProductCardComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
