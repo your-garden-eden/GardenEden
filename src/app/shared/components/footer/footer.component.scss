@@ -1,5 +1,5 @@
-// /src/app/shared/components/footer/footer.component.scss
-@use "sass:color"; // Für color.adjust()
+// src/app/shared/components/footer/footer.component.scss
+@use "sass:color";
 
 // Lokale Breakpoint-Variable (bleibt vorerst)
 $mobile-breakpoint-medium: 768px;
@@ -9,21 +9,21 @@ $footer-text-color-sass: #6c757d; // Entspricht var(--text-color-muted)
 
 :host {
   display: block;
-  background-color: var(--background-color-light-gray); // Globale Variable
-  color: var(--text-color-muted); // Globale Variable
-  border-top: 1px solid var(--border-color-light); // Globale Variable
-  padding: var(--spacing-xxxl) var(--spacing-lg) var(--spacing-lg); // Globale Variablen (war 3rem 1rem 1rem 1rem)
-  font-size: 0.9rem; // Typo-Skala
+  background-color: var(--background-color-light-gray);
+  color: var(--text-color-muted);
+  border-top: 1px solid var(--border-color-light);
+  padding: var(--spacing-xxxl) var(--spacing-lg) var(--spacing-lg);
+  font-size: 0.9rem;
 }
 
 .footer-content {
-  max-width: 1400px; // Spezifischer Wert
+  max-width: 1400px;
   margin: 0 auto;
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  gap: var(--spacing-xl); // Globale Variable (war 2rem)
-  margin-bottom: var(--spacing-xl); // Globale Variable (war 2rem)
+  gap: var(--spacing-xl);
+  margin-bottom: var(--spacing-xl);
 }
 
 .footer-column {
@@ -31,11 +31,11 @@ $footer-text-color-sass: #6c757d; // Entspricht var(--text-color-muted)
   min-width: 180px;
 
   h4 {
-    color: var(--text-color-base); // Globale Variable (war #333)
-    font-size: 1rem; // Typo-Skala
+    color: var(--text-color-base);
+    font-size: 1rem;
     margin-top: 0;
-    margin-bottom: var(--spacing-lg); // Globale Variable (war 1rem)
-    font-weight: var(--font-weight-semibold); // Globale Variable
+    margin-bottom: var(--spacing-lg);
+    font-weight: var(--font-weight-semibold);
   }
 
   ul {
@@ -44,15 +44,15 @@ $footer-text-color-sass: #6c757d; // Entspricht var(--text-color-muted)
     margin: 0;
 
     li {
-      margin-bottom: var(--spacing-sm); // Globale Variable (war 0.6rem)
+      margin-bottom: var(--spacing-sm);
 
       a {
-        color: var(--text-color-base); // Globale Variable (war $footer-link-color #333)
+        color: var(--text-color-base);
         text-decoration: none;
         transition: color 0.2s ease;
 
         &:hover {
-          color: var(--primary-color); // Globale Primärfarbe für Link-Hover
+          color: var(--primary-color);
           text-decoration: underline;
         }
       }
@@ -63,15 +63,15 @@ $footer-text-color-sass: #6c757d; // Entspricht var(--text-color-muted)
 .social-column {
   .social-icons {
     display: flex;
-    gap: var(--spacing-lg); // Globale Variable (war 1rem)
+    gap: var(--spacing-lg);
 
     a {
       display: inline-block;
       img {
-        width: 28px; // Beispielgröße, anpassen falls nötig
+        width: 28px;
         height: 28px;
         transition: opacity 0.2s ease;
-        opacity: 0.7; // Etwas transparenter im Normalzustand
+        opacity: 0.7;
       }
        &:hover img {
          opacity: 1;
@@ -82,25 +82,51 @@ $footer-text-color-sass: #6c757d; // Entspricht var(--text-color-muted)
 
 .footer-bottom {
   text-align: center;
-  margin-top: var(--spacing-xl); // Globale Variable (war 2rem)
-  padding-top: var(--spacing-lg); // Globale Variable (war 1rem)
-  border-top: 1px solid var(--border-color-light); // Globale Variable
-  font-size: 0.8rem; // Typo-Skala
-  color: #{color.adjust($footer-text-color-sass, $lightness: 10%)}; // Sass-Variable mit dem Hex-Wert von --text-color-muted
+  margin-top: var(--spacing-xl);
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid var(--border-color-light);
+  font-size: 0.8rem;
+  color: #{color.adjust($footer-text-color-sass, $lightness: 10%)};
+
+  .payment-methods {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm, 8px); // 8px als Fallback, falls --spacing-sm nicht definiert ist
+    margin-bottom: var(--spacing-md, 16px); // 16px als Fallback
+
+    img {
+      height: 28px; // Anpassen nach Bedarf (z.B. 24px, 30px)
+      width: auto;
+    }
+  }
+
+  p {
+    margin-top: 0;
+  }
 }
 
-@media (max-width: $mobile-breakpoint-medium) { // Lokaler Breakpoint
+@media (max-width: $mobile-breakpoint-medium) {
   .footer-content {
     flex-direction: column;
-    align-items: flex-start; // Standard für mobile Footer
-    gap: var(--spacing-lg); // Globale Variable (war 1.5rem)
+    align-items: flex-start;
+    gap: var(--spacing-lg);
   }
   .footer-column {
     min-width: 100%;
-    margin-bottom: var(--spacing-lg); // Globale Variable (war 1rem)
+    margin-bottom: var(--spacing-lg);
   }
   .footer-bottom {
-    margin-top: var(--spacing-lg); // Globale Variable (war 1rem)
-    padding-top: var(--spacing-lg); // Globale Variable
+    margin-top: var(--spacing-lg);
+    padding-top: var(--spacing-lg);
+
+    .payment-methods {
+      gap: var(--spacing-xs, 6px); // 6px als Fallback
+
+      img {
+        height: 24px; // Ggf. Icons auf Mobilgeräten etwas kleiner
+      }
+    }
   }
 }
