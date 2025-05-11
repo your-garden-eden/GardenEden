@@ -1,132 +1,155 @@
 // /src/app/features/category-overview/category-overview.component.ts
-// Imports anpassen: computed, Signal entfernt
-import { Component, OnInit, OnDestroy, inject, signal, WritableSignal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, WritableSignal, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core'; // ChangeDetectorRef hinzugefügt
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Title } from '@angular/platform-browser';
-import { Subscription, from, of } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 
 // Daten und Typen
-import { navItems, NavSubItem } from '../../core/data/navigation.data';
+import { navItems, NavSubItem, NavItem } from '../../core/data/navigation.data'; // NavItem importiert
 import { ShopifyService, Product } from '../../core/services/shopify.service';
 
 // Komponenten
 import { ProductCardComponent } from '../../shared/components/product-card/product-card.component';
 
-// Interface für gruppierte Produkte wird NICHT MEHR BENÖTIGT
+// Transloco
+import { TranslocoModule, TranslocoService } from '@ngneat/transloco'; // Transloco importiert
 
 @Component({
   selector: 'app-category-overview',
   standalone: true,
-  imports: [CommonModule, RouterModule, ProductCardComponent],
+  imports: [
+    CommonModule,
+    RouterModule,
+    ProductCardComponent,
+    TranslocoModule // TranslocoModule hinzugefügt
+  ],
   templateUrl: './category-overview.component.html',
   styleUrl: './category-overview.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CategoryOverviewComponent implements OnInit, OnDestroy {
-  // Services und Signale für Kategorie-Info bleiben
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private titleService = inject(Title);
   private shopifyService = inject(ShopifyService);
+  private translocoService = inject(TranslocoService); // TranslocoService injiziert
+  private cdr = inject(ChangeDetectorRef); // ChangeDetectorRef injiziert
   private routeSubscription: Subscription | undefined;
+  private langChangeSubscription: Subscription | undefined; // Für Sprachwechsel
 
+  currentCategory: WritableSignal<NavItem | null> = signal(null); // Ganze Kategorie speichern
   categoryTitle: WritableSignal<string | null> = signal(null);
   subCategories: WritableSignal<NavSubItem[]> = signal([]);
-  error: WritableSignal<string | null> = signal(null);
+  error: WritableSignal<string | null> = signal(null); // Wird im Template genutzt, ggf. übersetzen
 
-  // --- ZURÜCK ZU: Zustand für EINE Liste von Vorschau-Produkten ---
-  productPreview: WritableSignal<Product[]> = signal([]); // Wieder productPreview
+  productPreview: WritableSignal<Product[]> = signal([]);
   isLoadingPreview: WritableSignal<boolean> = signal(false);
-  previewError: WritableSignal<string | null> = signal(null);
+  previewError: WritableSignal<string | null> = signal(null); // Wird im Template genutzt, ggf. übersetzen
 
-  // --- ZURÜCK ZU: Konstanten für die Shuffle-Logik ---
   private readonly TARGET_PREVIEW_COUNT = 32;
-  private readonly FETCH_PRODUCTS_PER_SUBCATEGORY = 4; // Wie viele pro Unterkat. holen?
-  private readonly FETCH_BUFFER = 60; // Wie viele mind. sammeln für Shuffle?
-
-  // Computed Signal wird NICHT MEHR BENÖTIGT
+  private readonly FETCH_PRODUCTS_PER_SUBCATEGORY = 4;
+  private readonly FETCH_BUFFER = 60;
 
   ngOnInit(): void {
     this.routeSubscription = this.route.paramMap.pipe(
       map(params => params.get('slug'))
     ).subscribe(slug => {
-      this.resetState(); // Zustand zurücksetzen
+      this.resetState();
       if (!slug) {
-        this.handleCategoryNotFound('Kein Kategorie-Slug angegeben.');
+        this.handleCategoryNotFound('Kein Kategorie-Slug angegeben.'); // Interner Fehler
         return;
       }
-      this.loadCategoryData(slug);
+      this.loadCategoryDataBySlug(slug);
+    });
+
+    // Auf Sprachänderungen hören, um Titel neu zu setzen
+    this.langChangeSubscription = this.translocoService.langChanges$.subscribe(() => {
+      const cat = this.currentCategory();
+      if (cat && cat.i18nId) {
+        const translatedTitle = this.translocoService.translate(cat.i18nId);
+        this.categoryTitle.set(translatedTitle);
+        this.titleService.setTitle(`${translatedTitle} - Your Garden Eden`);
+        // Subkategorien müssen nicht neu übersetzt werden, da die Pipe das im Template macht
+        this.cdr.detectChanges(); // UI aktualisieren
+      }
     });
   }
 
   ngOnDestroy(): void {
     this.routeSubscription?.unsubscribe();
+    this.langChangeSubscription?.unsubscribe();
   }
 
-  private loadCategoryData(slug: string): void {
+  // Umbenannt, um Verwechslung mit der alten Methode zu vermeiden
+  private loadCategoryDataBySlug(slug: string): void {
     const expectedLink = `/category/${slug}`;
-    const currentCategory = navItems.find(item => item.link === expectedLink);
+    const foundCategory = navItems.find(item => item.link === expectedLink);
 
-    if (currentCategory) {
-      const title = currentCategory.label;
-      this.categoryTitle.set(title);
-      const subs = currentCategory.subItems || [];
+    if (foundCategory) {
+      this.currentCategory.set(foundCategory); // Komplette Kategorie speichern
+      const translatedTitle = this.translocoService.translate(foundCategory.i18nId); // Übersetzten Titel holen
+      this.categoryTitle.set(translatedTitle);
+
+      const subs = foundCategory.subItems || [];
       this.subCategories.set(subs);
       this.error.set(null);
-      this.titleService.setTitle(`${title} - Your Garden Eden`);
-      console.log(`Kategorie gefunden: ${title}`, subs);
+      this.titleService.setTitle(`${translatedTitle} - Your Garden Eden`);
+      console.log(`Kategorie gefunden: ${translatedTitle}`, subs);
 
       if (subs.length > 0) {
-        this.loadProductPreview(subs); // Methode für Shuffle-Logik aufrufen
+        this.loadProductPreview(subs);
       } else {
         this.productPreview.set([]);
       }
     } else {
-      this.handleCategoryNotFound(`Kategorie "${slug}" nicht gefunden.`);
+      this.handleCategoryNotFound(`Kategorie "${slug}" nicht gefunden.`); // Interner Fehler
     }
   }
 
    private resetState(): void {
+     this.currentCategory.set(null);
      this.categoryTitle.set(null);
      this.subCategories.set([]);
      this.error.set(null);
-     this.productPreview.set([]); // productPreview zurücksetzen
+     this.productPreview.set([]);
      this.isLoadingPreview.set(false);
      this.previewError.set(null);
   }
 
-  private handleCategoryNotFound(errorMessage: string): void {
-    console.error(errorMessage);
-    this.error.set('Die gesuchte Kategorie konnte nicht gefunden werden.');
-    this.titleService.setTitle('Kategorie nicht gefunden - Your Garden Eden');
-    this.resetState();
+  private handleCategoryNotFound(internalErrorMessage: string): void {
+    console.error(internalErrorMessage);
+    // Übersetzbare Fehlermeldung für den Benutzer
+    const userErrorMessage = this.translocoService.translate('categoryOverview.notFoundError');
+    this.error.set(userErrorMessage);
+    this.titleService.setTitle(`${this.translocoService.translate('categoryOverview.notFoundTitle')} - Your Garden Eden`);
+    this.resetState(); // resetState sollte NACH dem Setzen der Fehlermeldung erfolgen
+    this.categoryTitle.set(null); // Sicherstellen, dass Titel auch null ist
+    this.subCategories.set([]); // Sicherstellen, dass subCategories auch leer ist
   }
 
   getIconPath(filename: string | undefined): string | null {
     return filename ? `assets/icons/categories/${filename}` : null;
   }
 
-  // --- ZURÜCK ZU: Methode zum Laden und Shuffeln der Produkte ---
   private async loadProductPreview(subItems: NavSubItem[]): Promise<void> {
     this.isLoadingPreview.set(true);
     this.previewError.set(null);
-    this.productPreview.set([]); // Vorschau zurücksetzen
+    this.productPreview.set([]);
     const allFetchedProducts: Product[] = [];
-    const uniqueProductIds = new Set<string>(); // Zum Vermeiden von Duplikaten
+    const uniqueProductIds = new Set<string>();
     const subCategoryHandles = subItems.map(sub => sub.link.split('/').pop()).filter(Boolean) as string[];
 
     if (subCategoryHandles.length === 0) {
         this.isLoadingPreview.set(false);
-        return; // Nichts zu laden
+        return;
     }
 
     console.log('Lade Produktvorschau (Shuffle-Modus) für Handles:', subCategoryHandles);
 
     try {
       for (const handle of subCategoryHandles) {
-        // Breche ab, wenn genug Produkte für den Puffer gesammelt wurden
         if (allFetchedProducts.length >= this.FETCH_BUFFER) {
           console.log(`Genug Produkte (${allFetchedProducts.length}) für Vorschau-Puffer gesammelt.`);
           break;
@@ -140,7 +163,6 @@ export class CategoryOverviewComponent implements OnInit, OnDestroy {
         if (result?.products?.edges) {
           const productsToAdd = result.products.edges.map(edge => edge.node);
           console.log(`  -> ${productsToAdd.length} Produkte von ${handle} erhalten.`);
-          // Füge nur Produkte hinzu, die noch nicht in der Liste sind
           productsToAdd.forEach(p => {
               if (!uniqueProductIds.has(p.id)) {
                   allFetchedProducts.push(p);
@@ -155,39 +177,34 @@ export class CategoryOverviewComponent implements OnInit, OnDestroy {
       console.log(`Insgesamt ${allFetchedProducts.length} eindeutige Produkte gesammelt.`);
 
       if (allFetchedProducts.length > 0) {
-        // Produkte shuffeln
         const shuffledProducts = this.shuffleArray(allFetchedProducts);
-        // Die gewünschte Anzahl auswählen
         const preview = shuffledProducts.slice(0, this.TARGET_PREVIEW_COUNT);
-        this.productPreview.set(preview); // Ergebnis in productPreview speichern
+        this.productPreview.set(preview);
         console.log('Zufällige Produktvorschau gesetzt:', preview.map(p => p.title));
       } else {
-         this.productPreview.set([]); // Keine Produkte gefunden
+         this.productPreview.set([]);
          console.log('Keine Produkte für Vorschau gefunden.');
       }
 
     } catch (error) {
       console.error('Fehler beim Laden der Produktvorschau:', error);
-      this.previewError.set('Produkte für die Vorschau konnten nicht geladen werden.');
+      // Übersetzbare Fehlermeldung
+      this.previewError.set(this.translocoService.translate('categoryOverview.previewLoadError'));
     } finally {
       this.isLoadingPreview.set(false);
     }
   }
 
-  // --- Methode zum Mischen eines Arrays (Fisher-Yates) - Bleibt gleich ---
   private shuffleArray<T>(array: T[]): T[] {
-    const shuffled = [...array]; // Kopie erstellen, um Original nicht zu ändern
+    const shuffled = [...array];
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]; // Elemente tauschen
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
     return shuffled;
   }
 
-  // --- trackBy Funktion für die Produkt-Schleife - Bleibt gleich ---
   trackPreviewProductById(index: number, product: Product): string {
     return product.id;
   }
-
-  // trackGroupByHandle wird NICHT MEHR BENÖTIGT
 }

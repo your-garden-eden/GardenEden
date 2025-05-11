@@ -22,6 +22,164 @@
     "menuOpenClose": "Otvori/zatvori izbornik",
     "clearSearch": "Očisti pretragu",
     "closeMenu": "Zatvori izbornik",
-    "toHomepage": "Na početnu stranicu"
+    "toHomepage": "Na početnu stranicu",
+    "selectLanguage": "Odaberite jezik",
+    "nav": {
+      "home": "Početna",
+      "furniture": "Vrtni Namještaj",
+      "furniture.sofas": "Sofe i Lounge Garniture",
+      "furniture.chairs": "Stolice i Fotelje",
+      "furniture.tables": "Vrtni Stolovi",
+      "furniture.benches": "Klupe",
+      "furniture.loungers": "Ležaljke i Kreveti",
+      "furniture.hammocks": "Visaljke i Ljuljačke",
+      "furniture.sets": "Setovi Namještaja",
+      "furniture.covers": "Zaštitne Navlake",
+      "sunprotection": "Zaštita od Sunca",
+      "sunprotection.pavilions": "Paviljoni i Šatori",
+      "sunprotection.umbrellas": "Suncobrani i Jedra",
+      "sunprotection.awnings": "Tende",
+      "water": "Voda u Vrtu",
+      "water.pools": "Bazeni i Pribor",
+      "water.ponds": "Ribnjaci i Pribor",
+      "heating": "Grijanje i Vatra",
+      "heating.fireplaces": "Kamini i Ložišta",
+      "heating.storage": "Spremišta za Drva",
+      "maintenance": "Njega Vrta i Alati",
+      "maintenance.tools": "Vrtni Alati",
+      "maintenance.storage": "Kutije za Pohranu",
+      "maintenance.compost": "Komposteri i Bačve za Kišnicu",
+      "deco": "Dekoracija i Svjetlo",
+      "deco.deco": "Vrtna Dekoracija",
+      "deco.lighting": "Vanjska Rasvjeta",
+      "deco.planters": "Posude za Biljke i Stalci",
+      "deco.rugs": "Vrtni Tepisi",
+      "plants": "Biljke i Uzgoj",
+      "plants.artificial": "Umjetne Biljke",
+      "plants.real": "Sjeme Trave i Pomoć pri Uzgoju",
+      "plants.greenhouses": "Staklenici",
+      "plants.trellises": "Potpore za Penjačice",
+      "plants.protection": "Zaštita Bilja",
+      "leisure": "Slobodno Vrijeme i Divljina",
+      "leisure.play": "Oprema za Igranje",
+      "leisure.animal": "Kućice za Životinje i Hranilice"
+    }
+  },
+  "footer": {
+    "legal": {
+      "title": "Pravne informacije",
+      "imprint": "Impresum",
+      "privacy": "Pravila o privatnosti",
+      "terms": "Uvjeti korištenja",
+      "cancellation": "Pravo na odustajanje",
+      "allRightsReserved": "Sva prava pridržana."
+    },
+    "customerService": {
+      "title": "Korisnička podrška",
+      "contact": "Kontakt",
+      "shipping": "Dostava i isporuka",
+      "faq": "Česta pitanja"
+    },
+    "aboutUs": {
+      "title": "O nama",
+      "whoWeAre": "Tko smo mi"
+    },
+    "language": {
+      "title": "Jezik"
+    },
+    "social": {
+      "title": "Pratite nas",
+      "instagram": "Posjetite nas na Instagramu"
+    }
+  },
+  "categoryOverview": {
+    "pageTitleSuffix": "- Your Garden Eden",
+    "notFoundTitle": "Kategorija nije pronađena",
+    "notFoundError": "Tražena kategorija nije mogla biti pronađena.",
+    "backToHome": "Natrag na početnu stranicu",
+    "noSubcategories": "Trenutno nema potkategorija za kategoriju \"{{category}}\".",
+    "popularProducts": "Popularni proizvodi iz ove kategorije",
+    "loadingPreview": "Učitavanje pregleda proizvoda...",
+    "previewLoadError": "Nije moguće učitati proizvode za pregled.",
+    "noPreviewProducts": "Nema proizvoda za pregled."
+  },
+  "productList": {
+    "backTo": "Natrag na",
+    "categoryOverview": "Pregled kategorije",
+    "categoryLabel": "Kategorija",
+    "loadingProducts": "Učitavanje proizvoda...",
+    "errorLoadingProducts": "Pogreška pri učitavanju proizvoda.",
+    "errorNoSlug": "Nije naveden identifikator za popis proizvoda.",
+    "errorPageTitle": "Pogreška",
+    "defaultTitle": "Proizvodi",
+    "noProductsFound": "Nažalost, u ovoj kategoriji nisu pronađeni proizvodi.",
+    "loadingMoreProducts": "Učitavanje dodatnih proizvoda..."
+  },
+  "productPage": {
+    "backButton": "Natrag",
+    "loadingDetails": "Učitavanje detalja o proizvodu...",
+    "backToHome": "Natrag na početnu stranicu",
+    "errorTitle": "Pogreška",
+    "errorNoHandle": "Nije naveden rukovatelj proizvoda.",
+    "errorLoadingProduct": "Pogreška pri učitavanju proizvoda.",
+    "errorNotFound": "Proizvod nije pronađen.",
+    "notFoundTitle": "Proizvod nije pronađen",
+    "notFoundMessage": "Traženi proizvod nije mogao biti pronađen.",
+    "noImageAvailable": "Slika nije dostupna",
+    "thumbnailAlt": "Minijatura {{index}}",
+    "availability": {
+      "inStock": "Na zalihi",
+      "outOfStock": "Nije dostupno"
+    },
+    "actions": {
+      "addToCart": "Dodaj u košaricu",
+      "addingToCart": "Dodavanje...",
+      "wishlistLogin": "Molimo prijavite se za korištenje liste želja",
+      "addToWishlist": "Dodaj na listu želja",
+      "removeFromWishlist": "Ukloni s liste želja"
+    },
+    "description": {
+      "title": "Opis",
+      "none": "Nema dostupnog opisa."
+    },
+    "errorVariantNotAvailable": "Varijanta proizvoda nije dostupna ili nije odabrana.",
+    "errorAddingToCart": "Pogreška pri dodavanju u košaricu."
+  },
+  "staticPage": {
+    "loadingPage": "Učitavanje stranice...",
+    "loadingContent": "Učitavanje sadržaja...",
+    "backToHome": "Natrag na početnu stranicu",
+    "error": {
+      "noContentFile": "Sadržaj za prikaz nije mogao biti utvrđen.",
+      "loadingFailed": "Pogreška pri učitavanju sadržaja ({{file}}). Molimo pokušajte kasnije.",
+      "genericTitle": "Pogreška",
+      "noSource": "Nema dostupnog sadržaja za prikaz."
+    },
+    "impressum": { "title": "Impresum - Your Garden Eden" },
+    "datenschutz": { "title": "Pravila o privatnosti - Your Garden Eden" },
+    "agb": { "title": "Uvjeti korištenja - Your Garden Eden" },
+    "widerrufsrecht": { "title": "Pravo na odustajanje - Your Garden Eden" },
+    "kontakt": { "title": "Kontakt - Your Garden Eden" },
+    "versand": { "title": "Dostava i isporuka - Your Garden Eden" },
+    "faq": { "title": "Česta pitanja - Your Garden Eden" },
+    "ueberUns": { "title": "O nama - Your Garden Eden" }
+  },
+  "home": {
+    "title": "Your Garden Eden - Početna stranica"
+  },
+  "registerPage": {
+    "title": "Registracija - Your Garden Eden"
+  },
+  "profilePage": {
+    "title": "Moj račun - Your Garden Eden"
+  },
+  "cartPage": {
+    "title": "Košarica - Your Garden Eden"
+  },
+  "wishlistPage": {
+    "title": "Moja lista želja - Your Garden Eden"
+  },
+  "notFound": {
+    "title": "Stranica nije pronađena - Your Garden Eden"
   }
 }

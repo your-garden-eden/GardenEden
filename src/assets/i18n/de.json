@@ -22,6 +22,164 @@
     "menuOpenClose": "Menü öffnen/schließen",
     "clearSearch": "Suche leeren",
     "closeMenu": "Menü schließen",
-    "toHomepage": "Zur Startseite"
+    "toHomepage": "Zur Startseite",
+    "selectLanguage": "Sprache auswählen",
+    "nav": {
+      "home": "Startseite",
+      "furniture": "Gartenmöbel",
+      "furniture.sofas": "Sofas & Lounges",
+      "furniture.chairs": "Stühle & Sessel",
+      "furniture.tables": "Gartentische",
+      "furniture.benches": "Bänke",
+      "furniture.loungers": "Liegen & Betten",
+      "furniture.hammocks": "Hängematten & Schaukeln",
+      "furniture.sets": "Möbel-Sets",
+      "furniture.covers": "Schutzhüllen",
+      "sunprotection": "Sonnenschutz",
+      "sunprotection.pavilions": "Pavillons & Zelte",
+      "sunprotection.umbrellas": "Sonnenschirme & Segel",
+      "sunprotection.awnings": "Markisen",
+      "water": "Wasser im Garten",
+      "water.pools": "Pools & Zubehör",
+      "water.ponds": "Teiche & Zubehör",
+      "heating": "Heizen & Feuer",
+      "heating.fireplaces": "Kamine & Feuerschalen",
+      "heating.storage": "Feuerholzaufbewahrung",
+      "maintenance": "Gartenpflege & Geräte",
+      "maintenance.tools": "Gartengeräte",
+      "maintenance.storage": "Aufbewahrungboxen",
+      "maintenance.compost": "Komposter & Regentonnen",
+      "deco": "Dekoration & Licht",
+      "deco.deco": "Gartendeko",
+      "deco.lighting": "Außenbeleuchtung",
+      "deco.planters": "Pflanzgefäße & Ständer",
+      "deco.rugs": "Gartenteppiche",
+      "plants": "Pflanzen & Anzucht",
+      "plants.artificial": "Kunstpflanzen",
+      "plants.real": "Rasensamen & Anzuchtshilfe",
+      "plants.greenhouses": "Gewächshäuser",
+      "plants.trellises": "Rankhilfen",
+      "plants.protection": "Pflanzenschutz",
+      "leisure": "Freizeit & Tierwelt",
+      "leisure.play": "Spielgeräte",
+      "leisure.animal": "Tierhäuser & Futterplätze"
+    }
+  },
+  "footer": {
+    "legal": {
+      "title": "Rechtliches",
+      "imprint": "Impressum",
+      "privacy": "Datenschutzerklärung",
+      "terms": "AGB",
+      "cancellation": "Widerrufsrecht",
+      "allRightsReserved": "Alle Rechte vorbehalten."
+    },
+    "customerService": {
+      "title": "Kundenservice",
+      "contact": "Kontakt",
+      "shipping": "Versand & Lieferung",
+      "faq": "FAQ"
+    },
+    "aboutUs": {
+      "title": "Über uns",
+      "whoWeAre": "Wer wir sind"
+    },
+    "language": {
+      "title": "Sprache"
+    },
+    "social": {
+      "title": "Folge uns",
+      "instagram": "Besuche uns auf Instagram"
+    }
+  },
+  "categoryOverview": {
+    "pageTitleSuffix": "- Your Garden Eden",
+    "notFoundTitle": "Kategorie nicht gefunden",
+    "notFoundError": "Die gesuchte Kategorie konnte nicht gefunden werden.",
+    "backToHome": "Zurück zur Startseite",
+    "noSubcategories": "Für die Kategorie \"{{category}}\" gibt es aktuell keine Unterkategorien.",
+    "popularProducts": "Beliebte Produkte aus dieser Kategorie",
+    "loadingPreview": "Lade Produktvorschau...",
+    "previewLoadError": "Produkte für die Vorschau konnten nicht geladen werden.",
+    "noPreviewProducts": "Keine Produkte für die Vorschau gefunden."
+  },
+  "productList": {
+    "backTo": "Zurück zu",
+    "categoryOverview": "Kategorieübersicht",
+    "categoryLabel": "Kategorie",
+    "loadingProducts": "Produkte werden geladen...",
+    "errorLoadingProducts": "Fehler beim Laden der Produkte.",
+    "errorNoSlug": "Keine Kennung für die Produktliste angegeben.",
+    "errorPageTitle": "Fehler",
+    "defaultTitle": "Produkte",
+    "noProductsFound": "In dieser Kategorie wurden leider keine Produkte gefunden.",
+    "loadingMoreProducts": "Lade weitere Produkte..."
+  },
+  "productPage": {
+    "backButton": "Zurück",
+    "loadingDetails": "Lade Produktdetails...",
+    "backToHome": "Zurück zur Startseite",
+    "errorTitle": "Fehler",
+    "errorNoHandle": "Kein Produkt-Handle angegeben.",
+    "errorLoadingProduct": "Fehler beim Laden des Produkts.",
+    "errorNotFound": "Produkt nicht gefunden.",
+    "notFoundTitle": "Produkt nicht gefunden",
+    "notFoundMessage": "Das angeforderte Produkt konnte nicht gefunden werden.",
+    "noImageAvailable": "Kein Bild verfügbar",
+    "thumbnailAlt": "Vorschaubild {{index}}",
+    "availability": {
+      "inStock": "Auf Lager",
+      "outOfStock": "Nicht verfügbar"
+    },
+    "actions": {
+      "addToCart": "In den Warenkorb",
+      "addingToCart": "Wird hinzugefügt...",
+      "wishlistLogin": "Bitte anmelden, um die Wunschliste zu nutzen",
+      "addToWishlist": "Zur Wunschliste hinzufügen",
+      "removeFromWishlist": "Von Wunschliste entfernen"
+    },
+    "description": {
+      "title": "Beschreibung",
+      "none": "Keine Beschreibung verfügbar."
+    },
+    "errorVariantNotAvailable": "Produktvariante nicht verfügbar oder nicht ausgewählt.",
+    "errorAddingToCart": "Fehler beim Hinzufügen zum Warenkorb."
+  },
+  "staticPage": {
+    "loadingPage": "Seite wird geladen...",
+    "loadingContent": "Inhalt wird geladen...",
+    "backToHome": "Zurück zur Startseite",
+    "error": {
+      "noContentFile": "Der anzuzeigende Inhalt konnte nicht ermittelt werden.",
+      "loadingFailed": "Fehler beim Laden des Inhalts ({{file}}). Bitte versuchen Sie es später erneut.",
+      "genericTitle": "Fehler",
+      "noSource": "Kein Inhalt zum Anzeigen vorhanden."
+    },
+    "impressum": { "title": "Impressum - Your Garden Eden" },
+    "datenschutz": { "title": "Datenschutzerklärung - Your Garden Eden" },
+    "agb": { "title": "AGB - Your Garden Eden" },
+    "widerrufsrecht": { "title": "Widerrufsrecht - Your Garden Eden" },
+    "kontakt": { "title": "Kontakt - Your Garden Eden" },
+    "versand": { "title": "Versand & Lieferung - Your Garden Eden" },
+    "faq": { "title": "FAQ - Your Garden Eden" },
+    "ueberUns": { "title": "Über Uns - Your Garden Eden" }
+  },
+  "home": {
+    "title": "Your Garden Eden - Startseite"
+  },
+  "registerPage": {
+    "title": "Registrieren - Your Garden Eden"
+  },
+  "profilePage": {
+    "title": "Mein Konto - Your Garden Eden"
+  },
+  "cartPage": {
+    "title": "Warenkorb - Your Garden Eden"
+  },
+  "wishlistPage": {
+    "title": "Meine Wunschliste - Your Garden Eden"
+  },
+  "notFound": {
+    "title": "Seite nicht gefunden - Your Garden Eden"
   }
 }

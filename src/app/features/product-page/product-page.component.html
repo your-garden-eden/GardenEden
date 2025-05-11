@@ -1,63 +1,54 @@
 <!-- /src/app/features/product-page/product-page.component.html -->
 <div class="product-page-content">
-  <!-- Zurück-Button -->
-  <button class="back-button icon-button" (click)="goBack()" title="Zurück">
+  <button class="back-button icon-button" (click)="goBack()" [title]="'productPage.backButton' | transloco">
     <span class="material-symbols-outlined">arrow_back</span>
-    <span>Zurück</span>
+    <span>{{ 'productPage.backButton' | transloco }}</span>
   </button>
 
-  <!-- Ladezustand -->
   @if (isLoading()) {
-    <div class="loading-indicator"><p>Lade Produktdetails...</p></div>
+    <div class="loading-indicator"><p>{{ 'productPage.loadingDetails' | transloco }}</p></div>
   }
 
-  <!-- Fehlerzustand -->
   @if (error(); as errorMsg) {
     <div class="error-message general-error product-load-error">
-      <p>{{ errorMsg }}</p>
-      <a routerLink="/">Zurück zur Startseite</a>
+      <p>{{ errorMsg }}</p> <!-- errorMsg kommt bereits übersetzt aus dem TS -->
+      <a routerLink="/">{{ 'productPage.backToHome' | transloco }}</a>
     </div>
   }
 
-  <!-- Hauptinhalt, wenn Produkt geladen wurde -->
   @if (product(); as productData) {
     <div class="product-detail-container">
       <div class="product-main-grid">
 
-        <!-- Bildergalerie (Links) -->
         <div class="product-media-gallery">
-          <!-- Hauptbild -->
           @if (selectedImage(); as mainImg) {
             <div class="main-image-container">
               <img [src]="mainImg.url" [alt]="mainImg.altText ?? productData.title">
             </div>
           } @else if (!productData.images.edges?.[0]?.node) {
             <div class="main-image-container">
-               <div class="no-image-placeholder"><span class="material-symbols-outlined">image</span></div>
+               <div class="no-image-placeholder"><span class="material-symbols-outlined" [title]="'productPage.noImageAvailable' | transloco">image</span></div>
             </div>
           }
 
-          <!-- Thumbnails (nur wenn mehr als 1 Bild) -->
-          @if (productData.images.edges && productData.images.edges.length > 1) { <!-- Korrigiert -->
+          @if (productData.images.edges && productData.images.edges.length > 1) {
             <div class="thumbnail-container">
-              @for (edge of productData.images.edges; track edge.node.url) { <!-- Korrigiert -->
+              @for (edge of productData.images.edges; track edge.node.url; let i = $index) {
                 <div class="thumbnail"
                      (click)="selectImage(edge.node)"
                      [class.selected]="selectedImage()?.url === edge.node.url">
                   <img [src]="edge.node.url | imageTransform : 100 : 100"
-                       [alt]="edge.node.altText || 'Thumbnail ' + ($index + 1)"> <!-- Korrigiert -->
+                       [alt]="edge.node.altText || ('productPage.thumbnailAlt' | transloco: { index: i + 1 })">
                 </div>
               }
             </div>
           }
         </div>
 
-        <!-- Produktinformationen (Rechts) -->
         <div class="product-info">
           <h1>{{ productData.title }}</h1>
 
-          <!-- Preis -->
-          @if (productData.variants.edges?.[0]?.node?.price; as variantPrice) { <!-- Korrigiert -->
+          @if (productData.variants.edges?.[0]?.node?.price; as variantPrice) {
             <div class="price-section">
               <span class="current-price">
                 {{ variantPrice.amount | formatPrice : variantPrice.currencyCode }}
@@ -65,66 +56,57 @@
             </div>
           }
 
-          <!-- Verfügbarkeit & Buttons -->
-          @if (productData.variants.edges?.[0]?.node; as firstVariant) { <!-- Korrigiert -->
+          @if (productData.variants.edges?.[0]?.node; as firstVariant) {
             <div class="availability-section">
               <span [class.in-stock]="firstVariant.availableForSale"
                     [class.out-of-stock]="!firstVariant.availableForSale">
-                {{ firstVariant.availableForSale ? 'Auf Lager' : 'Nicht verfügbar' }}
+                {{ firstVariant.availableForSale ? ('productPage.availability.inStock' | transloco) : ('productPage.availability.outOfStock' | transloco) }}
               </span>
             </div>
 
-            <!-- Aktionsbuttons -->
             <div class="action-buttons-section">
-              <!-- In den Warenkorb Button -->
               <button class="add-to-cart-btn action-button"
                       (click)="addToCart()"
                       [disabled]="!firstVariant.availableForSale || isAddingToCart()">
                 @if (!isAddingToCart()) {
                   <span class="material-symbols-outlined">add_shopping_cart</span>
-                  <span>In den Warenkorb</span>
+                  <span>{{ 'productPage.actions.addToCart' | transloco }}</span>
                 } @else {
                   <span class="button-loading-spinner"></span>
-                  <span>Wird hinzugefügt...</span>
+                  <span>{{ 'productPage.actions.addingToCart' | transloco }}</span>
                 }
               </button>
 
-              <!-- *** Wunschliste Button (HIER EINGEFÜGT) *** -->
               <button class="add-to-wishlist-btn action-button"
                       (click)="toggleWishlist()"
                       [disabled]="!isLoggedIn()"
-                      [title]="!isLoggedIn() ? 'Bitte anmelden' : (isOnWishlist() ? 'Von Wunschliste entfernen' : 'Zur Wunschliste hinzufügen')">
+                      [title]="!isLoggedIn() ? ('productPage.actions.wishlistLogin' | transloco) : (isOnWishlist() ? ('productPage.actions.removeFromWishlist' | transloco) : ('productPage.actions.addToWishlist' | transloco))">
                  <span class="material-symbols-outlined wishlist-icon" [class.filled]="isOnWishlist()">
                      {{ isOnWishlist() ? 'favorite' : 'favorite_border' }}
                  </span>
               </button>
-              <!-- *** ENDE WUNSCHLISTEN-BUTTON *** -->
 
-            </div> <!-- Ende action-buttons-section -->
+            </div>
 
-             <!-- Fehler beim Hinzufügen zum Warenkorb -->
-             @if (addToCartError()) {
+             @if (addToCartError()) { <!-- addToCartError kommt bereits übersetzt aus dem TS -->
                 <div class="error-message general-error cart-error">{{ addToCartError() }}</div>
              }
+          }
 
-          } <!-- Ende @if firstVariant für Buttons -->
-
-          <!-- Beschreibung -->
           <div class="description-section">
-            <h3>Beschreibung</h3>
+            <h3>{{ 'productPage.description.title' | transloco }}</h3>
             @if (productData.descriptionHtml) {
               <div [innerHTML]="productData.descriptionHtml | safeHtml"></div>
             } @else {
-              <p>Keine Beschreibung verfügbar.</p>
+              <p>{{ 'productPage.description.none' | transloco }}</p>
             }
           </div>
 
-        </div> <!-- Ende product-info -->
-      </div> <!-- Ende product-main-grid -->
-    </div> <!-- Ende product-detail-container -->
+        </div>
+      </div>
+    </div>
   }
-  <!-- Meldung, wenn Produkt nicht gefunden wurde -->
-  @else if (!isLoading() && !error()) {
-    <p class="not-found-message">Das angeforderte Produkt konnte nicht gefunden werden.</p>
+  @else if (!isLoading() && !error()) { <!-- error() kommt bereits übersetzt aus dem TS -->
+    <p class="not-found-message">{{ 'productPage.notFoundMessage' | transloco }}</p>
   }
-</div> <!-- Ende product-page-content -->
+</div>

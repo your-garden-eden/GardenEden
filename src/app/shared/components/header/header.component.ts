@@ -3,9 +3,9 @@ import { Component, inject, Renderer2, Inject, PLATFORM_ID, OnDestroy, Signal, O
 import { RouterModule, Router, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
 import { CommonModule, isPlatformBrowser, AsyncPipe } from '@angular/common';
 import { Observable, Subscription, Subject, EMPTY } from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter, tap, switchMap, catchError } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, tap, switchMap, catchError, startWith } from 'rxjs/operators';
 import { User } from '@angular/fire/auth';
-import { ReactiveFormsModule, FormControl } from '@angular/forms';
+import { ReactiveFormsModule, FormControl, FormsModule } from '@angular/forms'; // FormsModule hinzugefügt
 
 // Komponenten
 import { MiniCartComponent } from '../mini-cart/mini-cart.component';
@@ -18,11 +18,11 @@ import { WishlistService } from '../../../shared/services/wishlist.service';
 import { navItems, NavItem } from '../../../core/data/navigation.data';
 import { ShopifyService, Product } from '../../../core/services/shopify.service';
 
-// +++ NEU für Breakpoint-Erkennung +++
+// Breakpoint-Erkennung
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 
-// +++ NEU für Transloco +++
-import { TranslocoModule } from '@ngneat/transloco'; // <--- TRANSLOCO IMPORTIEREN
+// Transloco
+import { TranslocoModule, TranslocoService, LangDefinition } from '@ngneat/transloco';
 
 @Component({
   selector: 'app-header',
@@ -31,9 +31,10 @@ import { TranslocoModule } from '@ngneat/transloco'; // <--- TRANSLOCO IMPORTIER
     CommonModule,
     RouterModule,
     ReactiveFormsModule,
+    FormsModule, // FormsModule hier hinzugefügt
     AsyncPipe,
     MiniCartComponent,
-    TranslocoModule // <--- TRANSLOCO HIER HINZUFÜGEN
+    TranslocoModule
    ],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss'],
@@ -41,44 +42,40 @@ import { TranslocoModule } from '@ngneat/transloco'; // <--- TRANSLOCO IMPORTIER
 })
 export class HeaderComponent implements OnInit, OnDestroy {
   private authService = inject(AuthService);
-  public cartService = inject(CartService); // public, falls im Template direkt genutzt, sonst private
-  public uiStateService = inject(UiStateService); // public für Template-Zugriff (isMiniCartOpen$)
+  public cartService = inject(CartService);
+  public uiStateService = inject(UiStateService);
   private wishlistService = inject(WishlistService);
   private router = inject(Router);
   private renderer = inject(Renderer2);
   @Inject(PLATFORM_ID) private platformId = inject(PLATFORM_ID);
   private shopifyService = inject(ShopifyService);
-  // +++ NEU +++
   private breakpointObserver = inject(BreakpointObserver);
   private cdr = inject(ChangeDetectorRef);
-
+  public translocoService = inject(TranslocoService);
 
   currentUser$: Observable<User | null> = this.authService.authState$;
   itemCount$: Signal<number> = this.cartService.cartItemCount;
   isMobileMenuOpen = false;
-  public navItems = navItems; // public für @for im Template
+  public navItems = navItems;
 
-  // Signale vom UiStateService
   isMiniCartOpen$ = this.uiStateService.isMiniCartOpen$;
-
-  // Signale für Wunschliste und Login-Status
   isWishlistEmpty: Signal<boolean> = this.wishlistService.isEmpty;
   isLoggedIn$: Observable<boolean> = this.authService.isLoggedIn();
 
-  // Suche
   searchControl = new FormControl('');
   searchResults: WritableSignal<Product[]> = signal([]);
   isSearchLoading: WritableSignal<boolean> = signal(false);
   isSearchOverlayVisible: WritableSignal<boolean> = signal(false);
   searchError: WritableSignal<string | null> = signal(null);
-  private subscriptions = new Subscription(); // Für alle Abos dieser Komponente
+  private subscriptions = new Subscription();
 
-  // +++ NEU: Flag für mobilen Bildschirm +++
   isMobileScreen: WritableSignal<boolean> = signal(false);
 
+  // Für Sprachumschalter
+  availableLangsSignal: WritableSignal<{ id: string; label: string }[]> = signal([]); // Geänderter Name und Typ
+  activeLang: WritableSignal<string> = signal(this.translocoService.getActiveLang());
 
   constructor() {
-    // --- Effekt für leeres Suchfeld (bleibt) ---
     effect(() => {
       if (this.searchControl.value === '') {
         this.closeSearchOverlay();
@@ -86,15 +83,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
       }
     });
 
-    // --- Breakpoint Observer Logik ---
-    if (isPlatformBrowser(this.platformId)) { // BreakpointObserver nur im Browser sinnvoll
+    if (isPlatformBrowser(this.platformId)) {
       const breakpointSubscription = this.breakpointObserver.observe([
         Breakpoints.XSmall,
         Breakpoints.Small,
-        `(max-width: ${this.getMobileBreakpoint()}px)` // Dein SCSS Breakpoint
-      ]).pipe(
-        // distinctUntilChanged((prev, curr) => prev.matches === curr.matches) // Kann nützlich sein
-      ).subscribe(result => {
+        `(max-width: ${this.getMobileBreakpoint()}px)`
+      ]).subscribe(result => {
         const wasMobile = this.isMobileScreen();
         this.isMobileScreen.set(result.matches);
         if (wasMobile && !this.isMobileScreen() && this.isMobileMenuOpen) {
@@ -116,10 +110,45 @@ export class HeaderComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.setupSearchDebounce();
     this.setupRouteListener();
+
+    // Sprach-Setup
+    const rawLangs = this.translocoService.getAvailableLangs();
+    // Stelle sicher, dass rawLangs immer ein Array ist, auch wenn nur ein String zurückkommt (unwahrscheinlich, aber sicher ist sicher)
+    const langsArray = Array.isArray(rawLangs) ? rawLangs : [rawLangs as LangDefinition];
+
+    const formattedLangs = langsArray.map(lang => {
+      if (typeof lang === 'string') {
+        // Fallback: Wenn `getAvailableLangs` nur Strings liefert, erstelle Objekte
+        // Annahme: Die `label` soll der Sprachcode in Großbuchstaben sein.
+        // Besser wäre, wenn `getAvailableLangs` immer `LangDefinition[]` liefert
+        // oder du definierst die Labels explizit (z.B. in einer Konstante).
+        // Für den Moment: 'de' -> 'DE', 'en' -> 'EN'
+        return { id: lang, label: lang.toUpperCase() };
+      }
+      // Wenn lang ein Objekt ist (angenommen LangDefinition {id: string, label: string})
+      return lang;
+    });
+    this.availableLangsSignal.set(formattedLangs as {id: string; label: string}[]);
+
+
+    const langChangeSub = this.translocoService.langChanges$.subscribe(currentLang => {
+        this.activeLang.set(currentLang);
+        this.cdr.detectChanges();
+    });
+    this.subscriptions.add(langChangeSub);
   }
 
   ngOnDestroy(): void {
      this.subscriptions.unsubscribe();
+  }
+
+  changeLanguage(langId: string): void { // Parameter ist jetzt der string Wert der Option
+    if (langId) { // Sicherstellen, dass ein Wert vorhanden ist
+        this.translocoService.setActiveLang(langId);
+        if(this.isMobileMenuOpen) {
+          this.closeMobileMenu();
+        }
+    }
   }
 
   private setupSearchDebounce(): void {
@@ -145,7 +174,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
           .pipe(
             catchError(err => {
               console.error('Fehler bei Produktsuche:', err);
-              this.searchError.set('Fehler bei der Suche.'); // Hier könnten wir auch einen i18n Key setzen
+              this.searchError.set(this.translocoService.translate('header.searchError'));
               this.isSearchLoading.set(false);
               this.searchResults.set([]);
               return EMPTY;
@@ -157,7 +186,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
       this.isSearchLoading.set(false);
       if (!results || results.length === 0) {
         if (!this.searchError()) {
-            // Kein Fehlertext hier setzen, wenn erfolgreich aber leer
+            // Kein Fehlertext
         }
       } else {
          this.searchError.set(null);

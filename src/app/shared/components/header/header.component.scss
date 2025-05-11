@@ -4,7 +4,7 @@
 // Lokale Sass-Variablen für color.adjust() oder sehr spezifische Header-Elemente.
 $header-text-color-sass: #4E342E; // Entspricht var(--secondary-color)
 $header-gradient-start-sass: #e8f5e9; // Entspricht var(--gradient-end)
-$header-gradient-end-sass: #D2B48C;   // Entspricht var(--gradient-start) / var(--accent-color-beige)
+$header-gradient-end-sass: #D2B48C;   // Entspricht var(--accent-color-beige)
 
 // Breakpoint-Variable (bleibt vorerst lokal)
 $mobile-breakpoint: 1024px;
@@ -26,47 +26,99 @@ $mobile-breakpoint: 1024px;
 
 .top-row {
   display: flex;
-  justify-content: space-between;
+  // justify-content: space-between; // Wird durch die Elemente selbst gesteuert
   align-items: center;
   padding: var(--spacing-md) var(--spacing-xl) var(--spacing-xs);
   min-height: 50px;
   position: relative;
 }
 
+// --- Sprachauswahl Styling ---
+.language-selector-container {
+  display: flex;
+  align-items: center;
+  margin-right: var(--spacing-lg); // Abstand zum nächsten Element (Hamburger oder Suchleiste)
+
+  .language-icon {
+    font-size: 22px; // Passend zur search-icon-prefix Größe
+    color: var(--secondary-color);
+    margin-right: var(--spacing-xs);
+    opacity: 0.8;
+  }
+
+  .language-selector {
+    background-color: transparent;
+    border: 1px solid transparent; // Initial unsichtbarer Border
+    // border-bottom: 1px solid rgba(var(--secondary-color-rgb, 78, 52, 46), 0.3); // Subtile Linie unten
+    border-radius: var(--border-radius-sm);
+    padding: var(--spacing-xxs) var(--spacing-xs);
+    padding-right: var(--spacing-lg); // Platz für den Dropdown-Pfeil
+    color: var(--secondary-color);
+    font-size: 0.85rem; // Etwas kleiner als die Suche
+    font-weight: var(--font-weight-normal);
+    cursor: pointer;
+    outline: none;
+    -webkit-appearance: none; // Entfernt Standard-Styling in Webkit-Browsern
+    -moz-appearance: none;    // Entfernt Standard-Styling in Firefox
+    appearance: none;         // Entfernt Standard-Styling
+    // Hintergrund für den Pfeil, kann auch ein SVG-Icon sein
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23#{str-slice(inspect($header-text-color-sass), 2)}'%3e%3cpath d='M7 10l5 5 5-5H7z'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right var(--spacing-xs) center;
+    background-size: 1em;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+
+    &:hover {
+      border-color: rgba(var(--secondary-color-rgb, 78, 52, 46), 0.4);
+      // background-color: rgba(var(--secondary-color-rgb, 78, 52, 46), 0.05);
+    }
+
+    &:focus-visible {
+      border-color: var(--accent-color-vibrant-green);
+      box-shadow: 0 0 0 2px var(--accent-color-vibrant-green-rgba-02);
+    }
+
+    option {
+      background-color: var(--background-color-component); // Für bessere Lesbarkeit im Dropdown
+      color: var(--text-color-base);
+    }
+  }
+}
+// --- Ende Sprachauswahl Styling ---
+
+
 // --- Basis-Styling für Icon-Buttons im Header ---
 .icon-button {
   background: none;
   border: none;
-  padding: var(--spacing-xs); // Klickfläche / innerer Abstand
+  padding: var(--spacing-xs);
   cursor: pointer;
-  color: var(--secondary-color); // Standard-Icon-Farbe
+  color: var(--secondary-color);
   position: relative;
   transition: color 0.2s ease, background-color 0.2s ease;
-  border-radius: var(--border-radius-circle); // Macht den Button-Bereich rund
-  outline: none; // Entfernt Standard-Fokusring
+  border-radius: var(--border-radius-circle);
+  outline: none;
 
   .material-symbols-outlined {
-    font-size: 28px; // Standard Icon-Größe
+    font-size: 28px;
     vertical-align: middle;
-    display: block; // Stellt sicher, dass das Icon den Platz korrekt einnimmt
+    display: block;
   }
 
-  &:focus-visible { // Eigenes, konsistentes Fokus-Styling
-    // background-color: rgba(var(--secondary-color-rgb, 78, 52, 46), 0.1); // Leichter Hintergrund
-    box-shadow: 0 0 0 2px var(--accent-color-vibrant-green-rgba-02); // Fokus-Schatten
+  &:focus-visible {
+    box-shadow: 0 0 0 2px var(--accent-color-vibrant-green-rgba-02);
   }
 
   &:hover:not([disabled]) {
-    color: var(--text-color-base); // Dunklere Farbe beim Hover
-    // background-color: rgba(var(--secondary-color-rgb, 78, 52, 46), 0.05); // Subtiler Hintergrund beim Hover
+    color: var(--text-color-base);
   }
 
   &[disabled] {
     opacity: 0.5;
     cursor: not-allowed;
     &:hover {
-      color: var(--secondary-color); // Keine Farbänderung im Disabled-Hover
-      background-color: transparent;   // Kein Hintergrund im Disabled-Hover
+      color: var(--secondary-color);
+      background-color: transparent;
     }
   }
 }
@@ -74,18 +126,18 @@ $mobile-breakpoint: 1024px;
 
 
 #hamburger-button {
-  // Erbt .icon-button Styles
-  display: none; // Wird durch Media Query sichtbar
-  margin-right: var(--spacing-lg);
-  &.active { /* Ggf. Styling für aktiven Zustand, z.B. andere Icon-Farbe */ }
+  display: none;
+  // margin-right: var(--spacing-lg); // Wird vom Language Selector übernommen oder ganz entfernt, wenn er davor ist
+  order: 2; // Stellt sicher, dass es nach der Sprachauswahl kommt, falls beide sichtbar
 }
 
 .search-bar-container {
   position: relative;
   flex-grow: 1;
   max-width: 600px;
-  margin: 0 auto;
-  padding: 0 var(--spacing-xl);
+  margin: 0 auto; // Zentriert die Suchleiste
+  padding: 0 var(--spacing-sm); // Reduziertes Padding, da Sprachauswahl Platz braucht
+  order: 3; // Nach Hamburger
 
   .search-input-wrapper {
     display: flex;
@@ -125,7 +177,6 @@ $mobile-breakpoint: 1024px;
     }
 
     .clear-button {
-      // Erbt .icon-button Styles, aber mit kleinerem Padding
       padding: var(--spacing-xxs);
       margin-left: var(--spacing-xs);
       .material-symbols-outlined { font-size: 20px; }
@@ -170,21 +221,20 @@ $mobile-breakpoint: 1024px;
   display: flex;
   align-items: center;
   gap: var(--spacing-lg);
-  // .icon-button Styles werden hier für die meisten Kinder vererbt
+  margin-left: auto; // Schiebt User Actions nach rechts
+  order: 4; // Nach Suchleiste
 
   .wishlist-button {
-    // Erbt .icon-button Styles
     .material-symbols-outlined {
       transition: color 0.2s ease, font-variation-settings 0.2s ease;
     }
-    &.active { // Eingeloggt & Wunschliste gefüllt
+    &.active {
       .material-symbols-outlined {
         color: var(--wishlist-icon-color);
         font-variation-settings: 'FILL' 1;
       }
     }
-    &.disabled { // Nicht eingeloggt
-      // Opazität kommt von .icon-button[disabled]
+    &.disabled {
       .material-symbols-outlined {
         color: var(--disabled-color) !important;
         font-variation-settings: 'FILL' 1 !important;
@@ -256,14 +306,11 @@ $mobile-breakpoint: 1024px;
 }
 
 .close-mobile-menu-button {
-  // Erbt .icon-button Styles
   position: absolute;
   top: var(--spacing-md);
   right: var(--spacing-md);
   z-index: calc(var(--z-index-modal) + 1);
   color: var(--secondary-color);
-  // Hover wird von .icon-button geerbt, es sei denn spezifischer Hover ist gewünscht
-  // &:hover { color: #{color.adjust($header-text-color-sass, $lightness: -15%)}; }
 }
 
 .mobile-nav-list {
@@ -278,21 +325,9 @@ $mobile-breakpoint: 1024px;
       &:hover { color: var(--text-color-base); }
     }
     .expand-button {
-      // Erbt .icon-button Styles
       color: var(--secondary-color);
       margin-left: var(--spacing-sm);
       flex-shrink: 0;
-      // padding: var(--spacing-xs); // Kommt von .icon-button
-      background-color: transparent !important; // Sicherstellen
-      border: none !important;                 // Sicherstellen
-      // outline: none;                        // Kommt von .icon-button
-      // &:focus-visible {                     // Kommt von .icon-button
-      //   box-shadow: 0 0 0 2px var(--accent-color-vibrant-green-rgba-02);
-      // }
-      // &:hover {                             // Kommt von .icon-button
-      //   color: var(--text-color-base);
-      //   background-color: transparent;
-      // }
     }
   }
   .mobile-submenu {
@@ -305,22 +340,87 @@ $mobile-breakpoint: 1024px;
   }
 }
 
+
+// --- Anpassungen für Flexbox-Layout der top-row Elemente ---
+.top-row {
+  // Entferne justify-content: space-between; wenn Elemente ihre eigene Position/Reihenfolge steuern sollen
+  // Die Elemente (Sprachauswahl, Hamburger, Suche, User-Actions) bekommen eine `order` Property
+  // und ggf. margin-left: auto / margin-right: auto für die Positionierung
+  .language-selector-container {
+    order: 1; // Ganz links
+    // margin-right: var(--spacing-md); // Schon oben definiert, ggf. anpassen für Mobile
+  }
+  // #hamburger-button ist order: 2 (schon definiert)
+  // .search-bar-container ist order: 3 (schon definiert)
+  // .user-actions ist order: 4 (schon definiert)
+}
+
+
 @media (max-width: $mobile-breakpoint) {
-  .top-row { padding: var(--spacing-md) var(--spacing-md) var(--spacing-xs); justify-content: space-between; }
-  #hamburger-button { display: block; }
-  .search-bar-container { max-width: calc(100% - 150px); padding: 0 var(--spacing-xs); margin-left: var(--spacing-sm); margin-right: var(--spacing-sm); }
-  .user-actions { gap: var(--spacing-xs); }
-  .main-nav.bottom-row { justify-content: center; padding: 0 var(--spacing-md) var(--spacing-xxs); .logo-container { padding-right: 0; justify-content: center; flex-grow: 1; } ul.desktop-nav-list { display: none; } }
+  .top-row {
+    padding: var(--spacing-md) var(--spacing-md) var(--spacing-xs);
+    // justify-content: space-between; // Kann bleiben oder entfernt werden, da order greift
+    .language-selector-container {
+      margin-right: var(--spacing-sm); // Kleinerer Abstand auf Mobile
+      .language-icon { font-size: 20px; }
+      .language-selector { font-size: 0.8rem; padding: var(--spacing-xxs) var(--spacing-xs) var(--spacing-xxs) var(--spacing-xxs); background-position: right var(--spacing-xxs) center; }
+    }
+  }
+  #hamburger-button { display: block; } // Bleibt order: 2
+  .search-bar-container {
+    max-width: calc(100% - 100px); // Ggf. anpassen, um Platz für Sprache + Hamburger zu machen
+    padding: 0 var(--spacing-xs);
+    margin-left: 0; // Entferne auto margin, da order und flex-grow die Position steuern
+    margin-right: var(--spacing-sm);
+    order: 3;
+  }
+  .user-actions {
+    gap: var(--spacing-xs);
+    margin-left: 0; // Entferne auto margin
+    order: 4;
+  }
+  .main-nav.bottom-row {
+    justify-content: center; padding: 0 var(--spacing-md) var(--spacing-xxs);
+    .logo-container { padding-right: 0; justify-content: center; flex-grow: 1; }
+    ul.desktop-nav-list { display: none; }
+  }
 }
 
 @media (max-width: 768px) {
-   .top-row { min-height: 35px; padding: var(--spacing-sm) var(--spacing-xs) var(--spacing-xxs); }
+   .top-row {
+     min-height: 35px; padding: var(--spacing-sm) var(--spacing-xs) var(--spacing-xxs);
+     .language-selector-container {
+       margin-right: var(--spacing-xs);
+       .language-icon { display: none; } // Icon auf sehr kleinen Screens ausblenden
+       .language-selector { font-size: 0.75rem; padding: 1px var(--spacing-xs) 1px 1px; background-position: right 0 center; }
+     }
+   }
    .search-bar-container {
-      max-width: calc(100% - 120px); margin-left: var(--spacing-xs); margin-right: var(--spacing-xs);
+      // max-width: calc(100% - 120px); // Alte Berechnung
+      max-width: calc(100% - 80px); // Noch weniger Platz für Suche
+      margin-left: var(--spacing-xs);
+      margin-right: var(--spacing-xs);
       .search-input-wrapper { height: 34px; padding: 0 var(--spacing-sm) 0 var(--spacing-md); }
       input[type="text"] { font-size: 0.9rem; }
    }
-   .user-actions { .icon-button .material-symbols-outlined { font-size: 24px; } .cart-badge { width: 16px; height: 16px; font-size: 0.6rem; top: -1px; right: -4px; } }
+   .user-actions {
+     .icon-button .material-symbols-outlined { font-size: 24px; }
+     .cart-badge { width: 16px; height: 16px; font-size: 0.6rem; top: -1px; right: -4px; }
+   }
    .main-nav.bottom-row { min-height: 60px; .logo-container .logo { max-height: 60px; } }
    .mobile-menu-panel { max-width: 280px; }
+}
+
+// Anpassung für Desktop, um Suchleiste und User Actions korrekt zu positionieren,
+// wenn Sprachauswahl vorhanden ist.
+@media (min-width: #{$mobile-breakpoint + 1px}) {
+  .top-row {
+    .language-selector-container {
+      // margin-right: var(--spacing-xl); // Größerer Abstand zur Suchleiste
+    }
+    .search-bar-container {
+      margin-left: var(--spacing-xl); // Sicherstellen, dass es nicht am Sprachwähler klebt
+      // padding: 0 var(--spacing-xl); // Zurück zum ursprünglichen Desktop-Padding
+    }
+  }
 }

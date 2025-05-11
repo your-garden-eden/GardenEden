@@ -1,6 +1,22 @@
 <!-- /src/app/shared/components/header/header.component.html -->
 <header class="app-header two-rows">
   <div class="top-row">
+    <!-- Sprachauswahl -->
+    <div class="language-selector-container">
+      <span class="material-symbols-outlined language-icon" aria-hidden="true">language</span>
+      <select class="language-selector"
+              [ngModel]="activeLang()"
+              (ngModelChange)="changeLanguage($event)"
+              [attr.aria-label]="'header.selectLanguage' | transloco"
+              [title]="'header.selectLanguage' | transloco">
+        @for(lang of availableLangsSignal(); track lang.id) {
+          <option [value]="lang.id">
+            {{ lang.label }}
+          </option>
+        }
+      </select>
+    </div>
+
     <button id="hamburger-button" class="icon-button hamburger-button"
             (click)="toggleMobileMenu()" [class.active]="isMobileMenuOpen"
             [attr.aria-label]="'header.menuOpenClose' | transloco" [attr.aria-expanded]="isMobileMenuOpen">
@@ -26,7 +42,6 @@
           @if(isSearchLoading()) {
             <div class="search-loading">{{ 'header.searchLoading' | transloco }}</div>
           } @else if (searchError()) {
-              <!-- searchError() kommt aus dem TS und ist schon eine Meldung, ggf. später auch i18n key -->
               <div class="search-error">{{searchError()}}</div>
           } @else if (searchResults().length > 0) {
             <ul>
@@ -53,7 +68,6 @@
     </div>
 
     <div class="user-actions">
-      <!-- WUNSCHLISTEN-BUTTON -->
       <a routerLink="/wunschliste"
          [title]="(isLoggedIn$ | async)
                     ? ((isWishlistEmpty()
@@ -68,7 +82,6 @@
         </span>
       </a>
 
-      <!-- WARENKORB-BUTTON -->
       <a routerLink="/warenkorb" [title]="'header.cart' | transloco" class="icon-button cart-button"
          (mouseenter)="onCartIconMouseEnter()" (mouseleave)="onCartIconMouseLeave()">
         <span class="material-symbols-outlined">shopping_cart</span>
@@ -78,8 +91,6 @@
       </a>
       <app-mini-cart *ngIf="isMiniCartOpen$()"></app-mini-cart>
 
-
-      <!-- KONTO/LOGIN BUTTONS -->
       @if (currentUser$ | async; as user) {
         <a routerLink="/mein-konto" [title]="'header.account' | transloco" class="icon-button account-button">
           <span class="material-symbols-outlined">person</span>
@@ -99,18 +110,19 @@
   <nav class="main-nav bottom-row" [class.mobile-menu-active]="isMobileMenuOpen">
     <div class="logo-container">
       <a routerLink="/" [title]="'header.toHomepage' | transloco" (click)="closeMobileMenu()">
-        <img src="assets/icons/Logo.png" alt="Your Garden Eden Logo" class="logo"> <!-- Alt-Text vom Logo müsste ggf. auch übersetzt werden, wenn dynamisch -->
+        <img src="assets/icons/Logo.png" alt="Your Garden Eden Logo" class="logo">
       </a>
     </div>
     <ul class="desktop-nav-list">
+      <!-- HIER WIRD item.i18nId verwendet (item.label als track key ist ok, solange eindeutig) -->
       @for (item of navItems; track item.label) {
         <li class="nav-item" [class.has-submenu]="item.subItems && item.subItems.length > 0">
-          <!-- Navigations-Labels kommen aus navigation.data.ts - das ist ein separater Punkt -->
-          <a [routerLink]="item.link" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: item.link === '/'}">{{ item.label }}</a>
+          <a [routerLink]="item.link" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: item.link === '/'}">{{ item.i18nId | transloco }}</a>
           @if (item.subItems && item.subItems.length > 0) {
             <ul class="submenu">
+              <!-- HIER WIRD child.i18nId verwendet -->
               @for (child of item.subItems; track child.label) {
-                <li><a [routerLink]="child.link" routerLinkActive="active-link">{{ child.label }}</a></li>
+                <li><a [routerLink]="child.link" routerLinkActive="active-link">{{ child.i18nId | transloco }}</a></li>
               }
             </ul>
           }
@@ -124,15 +136,15 @@
          <span class="material-symbols-outlined">close</span>
        </button>
        <ul class="mobile-nav-list">
+          <!-- HIER WIRD item.i18nId verwendet -->
           @for (item of navItems; track item.label) {
             <li class="mobile-nav-item">
               <div class="mobile-nav-item-content">
-                 <!-- Navigations-Labels kommen aus navigation.data.ts -->
                  <a [routerLink]="item.link"
                     [class.main-category-link]="true"
                     routerLinkActive="active-link"
                     [routerLinkActiveOptions]="{exact: item.link === '/'}"
-                    (click)="!item.subItems ? closeMobileMenu() : null">{{ item.label }}</a>
+                    (click)="!item.subItems ? closeMobileMenu() : null">{{ item.i18nId | transloco }}</a>
                  @if (item.subItems && item.subItems.length > 0) {
                     <button class="icon-button expand-button" (click)="toggleSubmenu(item)" [attr.aria-expanded]="item.isExpanded">
                       <span class="material-symbols-outlined"> {{ item.isExpanded ? 'expand_less' : 'expand_more' }} </span>
@@ -141,8 +153,9 @@
               </div>
               @if (item.subItems && item.subItems.length > 0 && item.isExpanded) {
                 <ul class="mobile-submenu">
+                   <!-- HIER WIRD child.i18nId verwendet -->
                    @for (child of item.subItems; track child.label) {
-                     <li><a [routerLink]="child.link" routerLinkActive="active-link" (click)="closeMobileMenu()">{{ child.label }}</a></li>
+                     <li><a [routerLink]="child.link" routerLinkActive="active-link" (click)="closeMobileMenu()">{{ child.i18nId | transloco }}</a></li>
                    }
                 </ul>
               }
