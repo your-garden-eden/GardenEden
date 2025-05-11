@@ -11,13 +11,10 @@ import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   // --- Bestehende Routen ---
-  // Für dynamische Titel, die von Services/Komponenten gesetzt werden, ist der 'title' hier ein Fallback
-  // oder kann durch einen Transloco Key ersetzt werden, wenn der Angular Title Resolver Transloco nutzt.
-  // Für den Moment belassen wir die statischen Titel, wo sie nicht dynamisch von der Komponente gesetzt werden.
-  { path: '', component: HomeComponent, data: { titleKey: 'home.title' }, title: 'Your Garden Eden - Startseite' }, // titleKey hinzugefügt
-  { path: 'product-list/:slug', component: ProductListComponent, title: 'Produkte' }, // Titel wird von Komponente gesetzt
-  { path: 'product/:handle', component: ProductPageComponent, title: 'Produkt' }, // Titel wird von Komponente gesetzt
-  { path: 'category/:slug', component: CategoryOverviewComponent, title: 'Kategorie' }, // Titel wird von Komponente gesetzt
+  { path: '', component: HomeComponent, data: { titleKey: 'home.title' }, title: 'Your Garden Eden - Startseite' },
+  { path: 'product-list/:slug', component: ProductListComponent, title: 'Produkte' },
+  { path: 'product/:handle', component: ProductPageComponent, title: 'Produkt' },
+  { path: 'category/:slug', component: CategoryOverviewComponent, title: 'Kategorie' },
 
   // --- Statische Seiten Routen ---
   // contentFile: Nur Basisname, titleKey für Übersetzung
@@ -25,7 +22,7 @@ export const routes: Routes = [
     path: 'impressum',
     component: StaticPageComponent,
     data: { contentFile: 'impressum', titleKey: 'staticPage.impressum.title' },
-    title: 'Impressum' // Fallback, wird durch titleKey überschrieben, wenn Transloco im TitleStrategy genutzt wird
+    title: 'Impressum'
   },
   {
     path: 'datenschutz',
@@ -42,31 +39,31 @@ export const routes: Routes = [
   {
     path: 'widerrufsrecht',
     component: StaticPageComponent,
-    data: { contentFile: 'widerruf', titleKey: 'staticPage.widerrufsrecht.title' }, // contentFile angepasst
+    data: { contentFile: 'widerruf', titleKey: 'staticPage.widerrufsrecht.title' }, // Basisname 'widerruf'
     title: 'Widerrufsrecht'
   },
   {
     path: 'kontakt',
     component: StaticPageComponent,
-    data: { contentFile: 'kontakt', titleKey: 'staticPage.kontakt.title' }, // titleKey hinzugefügt
+    data: { contentFile: 'kontakt', titleKey: 'staticPage.kontakt.title' },
     title: 'Kontakt'
   },
   {
     path: 'versand',
     component: StaticPageComponent,
-    data: { contentFile: 'versand', titleKey: 'staticPage.versand.title' }, // titleKey hinzugefügt
+    data: { contentFile: 'versand', titleKey: 'staticPage.versand.title' },
     title: 'Versand & Lieferung'
   },
   {
     path: 'faq',
     component: StaticPageComponent,
-    data: { contentFile: 'faq', titleKey: 'staticPage.faq.title' }, // titleKey hinzugefügt
+    data: { contentFile: 'faq', titleKey: 'staticPage.faq.title' },
     title: 'FAQ'
   },
   {
     path: 'ueber-uns',
     component: StaticPageComponent,
-    data: { contentFile: 'ueber-uns', titleKey: 'staticPage.ueberUns.title' }, // titleKey hinzugefügt
+    data: { contentFile: 'ueber-uns', titleKey: 'staticPage.ueberUns.title' },
     title: 'Über Uns'
   },
 
@@ -74,7 +71,7 @@ export const routes: Routes = [
   {
     path: 'register',
     component: RegisterPageComponent,
-    data: { titleKey: 'registerPage.title' }, // titleKey hinzugefügt
+    data: { titleKey: 'registerPage.title' },
     title: 'Registrieren'
   },
 
@@ -82,7 +79,7 @@ export const routes: Routes = [
   {
     path: 'mein-konto',
     loadComponent: () => import('./features/account/profile-page/profile-page.component').then(m => m.ProfilePageComponent),
-    data: { titleKey: 'profilePage.title' }, // titleKey hinzugefügt
+    data: { titleKey: 'profilePage.title' },
     title: 'Mein Konto',
     canActivate: [authGuard]
   },
@@ -91,7 +88,7 @@ export const routes: Routes = [
   {
     path: 'warenkorb',
     loadComponent: () => import('./features/cart/cart-page/cart-page.component').then(m => m.CartPageComponent),
-    data: { titleKey: 'cartPage.title' }, // titleKey hinzugefügt
+    data: { titleKey: 'cartPage.title' },
     title: 'Warenkorb'
   },
 
@@ -99,7 +96,7 @@ export const routes: Routes = [
   {
     path: 'wunschliste',
     loadComponent: () => import('./features/wishlist/wishlist-page/wishlist-page.component').then(m => m.WishlistPageComponent),
-    data: { titleKey: 'wishlistPage.title' }, // titleKey hinzugefügt
+    data: { titleKey: 'wishlistPage.title' },
     title: 'Meine Wunschliste',
     canActivate: [authGuard]
   },

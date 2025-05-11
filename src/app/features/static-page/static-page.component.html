@@ -5,27 +5,23 @@
       <p>{{ 'staticPage.loadingPage' | transloco }}</p>
     </div>
 
-    <div *ngIf="error()" class="error-message">
-      <p>{{ error() }}</p>
-      <a routerLink="/">{{ 'staticPage.backToHome' | transloco }}</a>
-    </div>
+    @if (!isLoading() && error(); as errorMsg) {
+      <div class="error-message">
+        <p>{{ errorMsg }}</p>
+        <a routerLink="/">{{ 'staticPage.backToHome' | transloco }}</a>
+      </div>
+    }
 
-    <!--
-      Wir verwenden jetzt markdownSource() im @if, um die Komponente neu zu rendern,
-      wenn sich die Quelle ändert. Das ist ein gängiger Weg, um eine
-      Neuinitialisierung zu erzwingen.
-    -->
-    @if (!isLoading() && !error() && markdownSource(); as currentSource) {
+    @if (!isLoading() && !error() && markdownContent(); as mdContent) {
       <div class="static-page-content">
         <markdown
-          [src]="currentSource"
+          [data]="mdContent"
           (load)="onMarkdownLoad()"
           (error)="onMarkdownError($event)">
         </markdown>
       </div>
-    } @else if (!isLoading() && !error() && !markdownSource()) {
-        <!-- Diese Meldung wird angezeigt, wenn markdownSource explizit null ist, aber kein Lade- oder Fehlerzustand vorliegt -->
-       <div class="error-message">
+    } @else if (!isLoading() && !error() && !markdownContent()) {
+      <div class="error-message">
            <p>{{ 'staticPage.error.noSource' | transloco }}</p>
        </div>
     }
