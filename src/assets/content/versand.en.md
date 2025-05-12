@@ -1,94 +1,72 @@
-# Versandbedingungen
-
-Alle Bestellungen werden direkt von unserem Logistikpartner vidaXL versendet. Die folgenden Bedingungen gelten für den Versand Ihrer Bestellung.
-
-## 1. Versandgebiete
-
-Wir liefern grundsätzlich in die folgenden Länder, die von unserem Logistikpartner vidaXL beliefert werden:
-
-*   Vereinigte Arabische Emirate
-*   Australien
-*   Belgien
-*   Bulgarien
-*   Kanada
-*   Schweiz
-*   Tschechische Republik
-*   Deutschland
-*   Dänemark
-*   Estland
-*   Spanien
-*   Finnland
-*   Frankreich
-*   Griechenland
-*   Kroatien
-*   Ungarn
-*   Irland
-*   Italien
+# Shipping terms
+All orders are shipped directly by our logistics partner vidaXL. The following terms apply to the shipping of your order.
+## 1. Shipping areas
+We generally deliver to the following countries that are served by our logistics partner vidaXL:
+* United Arab Emirates
+* Australia
+* Belgium
+* Bulgaria
+* Canada
+* Switzerland
+* Czech Republic
+* Germany
+*   Denmark
+*   Estonia
+*   Spain
+*   Finland
+*   France
+*   Greece
+*   Croatia
+*   Hungary
+*   Ireland
+*   Italy
 *   Japan
-*   Litauen
-*   Luxemburg
-*   Lettland
-*   Niederlande
-*   Norwegen
-*   Österreich
-*   Polen
+*   Lithuania
+*   Luxembourg
+*   Latvia
+*   Netherlands
+*   Norway
+*   Austria
+*   Poland
 *   Portugal
-*   Rumänien
-*   Schweden
-*   Slowenien
-*   Slowakei
-*   Vereinigtes Königreich
-*   Vereinigte Staaten (Versand aus USA)
-*   Vereinigte Staaten (Versand aus NL)
-
-**Wichtiger Hinweis zu Lieferbeschränkungen:**
-Bitte beachten Sie, dass eine Lieferung nicht in alle Gebiete innerhalb der genannten Länder möglich ist. Der Versand ist auf Postleitzahlen beschränkt, die von vidaXL beliefert werden können. Bestimmte Postleitzahlenbereiche sind vom Versand ausgeschlossen.
-
-Ob Ihre spezifische Lieferadresse beliefert werden kann, wird **automatisch im Checkout-Bereich überprüft**, nachdem Sie Ihre Adresse eingegeben haben. Sollte eine Lieferung an Ihre Postleitzahl nicht möglich sein, werden Sie dort entsprechend informiert und können die Bestellung für diese Adresse leider nicht abschließen. Eine Liste aller ausgeschlossenen Postleitzahlen ist nicht öffentlich zugänglich; die Prüfung erfolgt automatisiert im System.
-
-## 2. Versandkosten
-
-Die Versandkosten variieren je nach Zielland und den bestellten Produkten.
-
-*   Für die meisten Länder, die wir beliefern (siehe Liste oben), ist der **Standardversand kostenlos**.
-*   Eine Ausnahme bildet der Versand nach **Australien**:
-    *   Der Versand ist **kostenlos** für Lieferadressen in den folgenden Metropolregionen: Sydney Metropolitan, Melbourne Metropolitan, Brisbane und Gold Coast.
-    *   Für alle **anderen** Lieferadressen in Australien werden die Versandkosten basierend auf dem Gewicht (dem logistischen Gewicht des Produkts) und Ihrer Postleitzahl berechnet.
-    *   **Bitte beachten Sie:** Für Lieferadressen in bestimmten abgelegenen Postleitzahlenbereichen Australiens können **zusätzliche Versandkosten** anfallen, die über die standardmäßig berechneten Kosten hinausgehen.
-*   Die **genauen Versandkosten** für Ihre gesamte Bestellung (inklusive eventuell anfallender Steuern sowie möglicher zusätzlicher Kosten für abgelegene Gebiete), werden Ihnen während des Bestellvorgangs im Checkout-Bereich transparent angezeigt, nachdem Sie Ihre Lieferadresse eingegeben haben und bevor Sie Ihre Bestellung abschließen. Sie sehen den Endpreis, bevor Sie verbindlich bestellen.
-*   Bei Bestellungen mit mehreren Produkten werden die Versandkosten für jedes Produkt separat berechnet und zum Gesamtversandpreis der Bestellung addiert. Die angezeigten Versandkosten beinhalten die anfallende Steuer.
-
-## 3. Lieferzeiten
-
-Die Lieferzeit setzt sich aus der **Bearbeitungszeit/Versandzeit** (Dispatch time) durch vidaXL und der anschließenden **Transportzeit** durch den Versanddienstleister zusammen. Bitte beachten Sie, dass alle angegebenen Lieferzeiten **Schätzungen** sind und variieren können.
-
-*   **Bearbeitungszeit:** Die Zeit, die vidaXL benötigt, um Ihre Bestellung zu bearbeiten und zu versenden (Dispatch time), beträgt je nach Land und Artikel in der Regel zwischen **1 und 8 Werktagen**.
-*   **Gesamte Lieferzeit:**
-    *   Für viele Länder, wie z.B. Deutschland (ca. 3 Werktage), Österreich (ca. 2 Werktage), Belgien (ca. 4 Werktage), Frankreich (ca. 4 Werktage), Niederlande (ca. 4 Werktage), Polen (ca. 3 Werktage) beträgt die geschätzte gesamte Lieferzeit (inkl. Bearbeitung und Transport) nach Bestelleingang in der Regel zwischen **2 und 7 Werktagen**.
-    *   Für andere Länder, bei denen in den uns vorliegenden Daten von vidaXL keine gesamte Lieferzeit explizit ausgewiesen ist (z.B. Schweiz, Spanien, Finnland, Griechenland, UK, etc.), setzt sich die Lieferzeit aus der oben genannten Bearbeitungszeit plus der Transportzeit des jeweiligen Carriers zusammen. Die gesamte Lieferzeit kann hier variieren und ist nicht pauschal bestimmbar.
-    *   **Spezielle Fälle:** Für bestimmte Lieferziele kann die Lieferzeit deutlich länger sein (z.B. Versand in die USA aus den Niederlanden mit geschätzten 60 Werktagen).
-*   **Palettenlieferungen:** Für Artikel, die per Spedition auf Paletten versendet werden, beträgt die Bearbeitungszeit bis zum Versand durch vidaXL bis zu **20 Werktage**. Die gesamte Lieferzeit für Palettenlieferungen ist in der Regel deutlich länger als für Paketlieferungen und wird Ihnen gesondert mitgeteilt oder im Bestellprozess angezeigt.
-
-Da der Versand direkt von vidaXL durchgeführt wird, haben wir keinen direkten Einfluss auf die genauen Transportzeiten oder mögliche Verzögerungen durch den Spediteur oder äußere Umstände.
-
-## 4. Versandprozess, Carrier und Sendungsverfolgung
-
-Der Versand erfolgt direkt von den vidaXL Lagern. vidaXL arbeitet je nach Zielland und Art des Produkts (Paket oder Palette) mit verschiedenen nationalen und internationalen Versanddienstleistern zusammen, wie z.B. DPD, GLS, Hermes, UPS, FedEx (ab 18. April 2025 in den USA schrittweise), Raben, Bpost, SEUR u.v.a. Welcher Carrier für Ihre spezifische Sendung zuständig ist, erfahren Sie mit der Versandbestätigung.
-
-Nach Bearbeitung Ihrer Bestellung durch vidaXL erhalten Sie von uns eine Versandbestätigung, die in der Regel eine Sendungsverfolgungsnummer (Tracking-ID) enthält, sofern für Ihre Sendung verfügbar. Mit dieser Nummer können Sie den Status Ihrer Lieferung auf der Website des zuständigen Versanddienstleisters verfolgen. Bitte beachten Sie, dass die Aktivierung der Tracking-Informationen einige Stunden in Anspruch nehmen kann.
-
-## 5. Teillieferungen
-
-Bitte beachten Sie, dass bei Bestellungen mehrerer Artikel der Versand in **separaten Paketen** erfolgen kann. Dies liegt daran, dass die Artikel möglicherweise aus verschiedenen vidaXL Lagern versendet werden oder unterschiedliche Verpackungsanforderungen haben. Die Lieferungen können daher zu unterschiedlichen Zeiten eintreffen. Ihnen entstehen dadurch keine zusätzlichen Versandkosten.
-
-## 6. Wichtige Hinweise zum Versand
-
-*   **Direktversand durch vidaXL:** Ihre Bestellung wird vollständig von unserem Partner vidaXL kommissioniert, verpackt und versendet.
-*   **Terminvereinbarung bei Palettenlieferungen:** Für Speditionssendungen (Palettenlieferungen) wird der beauftragte Spediteur direkt mit Ihnen Kontakt aufnehmen, um einen Liefertermin zu vereinbaren. Bitte stellen Sie sicher, dass die bei der Bestellung angegebene Telefonnummer korrekt ist und Sie unter dieser Nummer erreichbar sind.
-*   **Kein direkter Einfluss auf den Transport:** Wir haben keinen direkten Einfluss auf den Transportweg oder mögliche Verzögerungen, die durch den Versanddienstleister oder äußere Umstände verursacht werden.
-*   **Korrekte und gültige Lieferadresse:** Bitte stellen Sie sicher, dass Ihre Lieferadresse vollständig und korrekt ist. Dazu gehört auch, dass die Adresse keine speziellen Formulierungen oder Zeichen enthält, die vom System unseres Logistikpartners vidaXL als ungültig eingestuft und blockiert werden könnten. Adressen, die solche blockierten Phrasen enthalten oder andere Fehler aufweisen, können zu Lieferproblemen, Verzögerungen oder dazu führen, dass Ihre Bestellung nicht bearbeitet und nicht versendet werden kann. Bitte überprüfen Sie Ihre Adresse sorgfältig.
-*   **Lieferung an Packstationen/Postfilialen:** Die Lieferung an Packstationen oder Postfilialen ist über vidaXL in der Regel nicht möglich. Die Lieferung erfolgt an die angegebene Hausadresse.
-
-## 7. Probleme mit der Lieferung
-
-Sollte es wider Erwarten zu Problemen mit Ihrer Lieferung kommen (z.B. lange Verzögerung, Beschädigung, Falschlieferung), kontaktieren Sie bitte umgehend unseren Kundenservice unter info@your-garden-eden.de . Wir werden uns dann schnellstmöglich mit vidaXL in Verbindung setzen, um das Problem zu klären und eine Lösung für Sie zu finden.
+*   Romania
+*   Sweden
+*   Slovenia
+*   Slovakia
+*   United Kingdom
+*   United States (shipping from the US)
+*   United States (shipping from the Netherlands)
+**Important note about delivery restrictions:**
+Please note that delivery is not possible to all areas within the countries listed. Shipping is limited to postal codes that can be served by vidaXL. Certain postcode areas are excluded from delivery.
+Whether your specific delivery address can be delivered to will be **automatically checked in the checkout area** after you have entered your address. If delivery to your postcode is not possible, you will be informed accordingly and unfortunately you will not be able to complete the order for this address. A list of all excluded postcodes is not publicly available; the check is carried out automatically in the system.
+## 2. Shipping costs
+Shipping costs vary depending on the destination country and the products ordered.
+* For most countries we ship to (see list above), **standard shipping is free**.
+* An exception is shipping to **Australia**:
+* Shipping is **free** for delivery addresses in the following metropolitan areas: Sydney Metropolitan, Melbourne Metropolitan, Brisbane, and Gold Coast.
+    * For all **other** delivery addresses in Australia, shipping costs are calculated based on the weight (the logistical weight of the product) and your postal code.
+* **Please note:** For delivery addresses in certain remote postal code areas in Australia, **additional shipping costs** may apply in addition to the standard shipping costs.
+* The **exact shipping costs** for your entire order (including any applicable taxes and possible additional costs for remote areas) will be clearly displayed during the checkout process after you have entered your delivery address and before you complete your order. You will see the final price before you place your binding order.
+* For orders with multiple products, the shipping costs for each product will be calculated separately and added to the total shipping price of the order. The shipping costs displayed include the applicable tax.
+## 3. Delivery times
+The delivery time consists of the **processing time/shipping time** (dispatch time) by vidaXL and the subsequent **transport time** by the shipping service provider. Please note that all delivery times are **estimates** and may vary.
+*  **Processing time:** The time required by vidaXL to process and ship your order (dispatch time) is usually between **1 and 8 business days**, depending on the country and item.
+*  **Total delivery time:
+*  For many countries, such as Germany (approx. 3 business days), Austria (approx. 2 business days), Belgium (approx. 4 working days), France (approx. 4 working days), Netherlands (approx. 4 working days), Poland (approx. 3 working days), the estimated total delivery time (including processing and transport) after receipt of the order is usually between **2 and 7 working days**.
+    * For other countries for which vidaXL does not explicitly state a total delivery time in the data available to us (e.g. Switzerland, Spain, Finland, Greece, UK, etc.), the delivery time consists of the above-mentioned processing time plus the transport time of the respective carrier. The total delivery time may vary and cannot be determined in advance.
+    *  **Special cases:** For certain delivery destinations, the delivery time may be significantly longer (e.g., shipping to the US from the Netherlands with an estimated 60 business days).
+*  **Pallet deliveries: For items shipped on pallets by a freight forwarder, the processing time until shipment by vidaXL is up to **20 business days**. The total delivery time for pallet deliveries is usually significantly longer than for parcel deliveries and will be communicated to you separately or displayed during the ordering process.
+As shipping is handled directly by vidaXL, we have no direct influence on the exact transport times or possible delays caused by the carrier or external circumstances.
+## 4. Shipping process, carrier, and tracking
+Shipping is carried out directly from the vidaXL warehouses. Depending on the destination country and type of product (parcel or pallet), vidaXL works with various national and international shipping service providers, such as DPD, GLS, Hermes, UPS, FedEx (from April 18, 2025 in the US, phased in), Raben, Bpost, SEUR, and many more. You will find out which carrier is responsible for your specific shipment in the shipping confirmation.
+After your order has been processed by vidaXL, you will receive a shipping confirmation from us, which usually includes a tracking number (tracking ID) if available for your shipment. You can use this number to track the status of your delivery on the website of the responsible shipping service provider. Please note that it may take a few hours for the tracking information to become available.
+## 5. Partial deliveries
+Please note that if you order multiple items, they may be shipped in **separate packages**. This is because the items may be shipped from different vidaXL warehouses or have different packaging requirements. The deliveries may therefore arrive at different times. You will not incur any additional shipping costs.
+## 6. Important shipping information
+*  **Direct shipping by vidaXL:** Your order will be picked, packed, and shipped entirely by our partner vidaXL.
+*  **Appointment for pallet deliveries:** For freight shipments (pallet deliveries), the contracted carrier will contact you directly to arrange a delivery date. Please ensure that the telephone number provided when placing your order is correct and that you can be reached at this number.
+*  **No direct influence on transport: We have no direct influence on the transport route or possible delays caused by the shipping service provider or external circumstances.
+*  **Correct and valid delivery address: Please ensure that your delivery address is complete and correct. This also means that the address must not contain any special characters or symbols that could be considered invalid by our logistics partner vidaXL's system and blocked. Addresses containing such blocked phrases or other errors may result in delivery problems, delays, or your order not being processed and shipped. Please check your address carefully.
+*  **Delivery to packing stations/post offices:** Delivery to packing stations or post offices is generally not possible via vidaXL. Delivery will be made to the specified home address.
+## 7. Problems with delivery
+If, contrary to expectations, you experience problems with your delivery (e.g., long delays, damage, incorrect delivery), please contact our customer service team immediately at info@your-garden-eden.de. We will then contact vidaXL as soon as possible to resolve the issue and find a solution for you.

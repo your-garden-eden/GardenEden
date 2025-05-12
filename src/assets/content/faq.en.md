@@ -1,58 +1,47 @@
-# Häufig gestellte Fragen (FAQ)
-
-## Bestellung & Versand
-
-*   **Welche Zahlungsmethoden akzeptieren Sie?**
-    Wir akzeptieren eine Vielzahl von Zahlungsmethoden, darunter Kreditkarte (Visa, Mastercard, American Express), PayPal, Sofortüberweisung und Rechnung (gegebenenfalls mit Klarna oder ähnlichem Anbieter). Die genauen Optionen werden dir im Bestellprozess angezeigt.
-*   **Wie hoch sind die Versandkosten?**
-    Die Versandkosten variieren je nach Gewicht, Größe und Bestimmungsort deiner Bestellung. Die genauen Versandkosten werden dir im Warenkorb und während des Bestellvorgangs angezeigt. Ab einem bestimmten Bestellwert bieten wir möglicherweise kostenlosen Versand an.
-*   **Wie lange ist die Lieferzeit?**
-    Die Lieferzeit hängt vom Lagerbestand und dem Versanddienstleister ab. In der Regel beträgt die Lieferzeit innerhalb Deutschlands 2-5 Werktage. Für Lieferungen ins Ausland können die Zeiten abweichen. Genauere Angaben findest du auf der Produktseite und in deiner Bestellbestätigung.
-*   **Kann ich meine Bestellung verfolgen?**
-    Ja, sobald deine Bestellung versandt wurde, erhältst du eine Versandbestätigung per E-Mail mit einem Link zur Sendungsverfolgung. So kannst du jederzeit den aktuellen Status deiner Lieferung einsehen.
-*   **Was mache ich, wenn meine Bestellung beschädigt ankommt?**
-    Bitte kontaktiere unseren Kundenservice umgehend mit Fotos des beschädigten Pakets und der beschädigten Ware. Wir werden unser Bestes tun, um eine schnelle Lösung zu finden, entweder durch einen Ersatz oder eine Rückerstattung.
-*   **Kann ich meine Bestellung ändern oder stornieren?**
-    Eine Änderung oder Stornierung deiner Bestellung ist in der Regel möglich, solange sie noch nicht versandt wurde. Kontaktiere bitte so schnell wie möglich unseren Kundenservice.
-
-## Produkte & Sortiment
-
-*   **Sind alle Produkte auf Lager?**
-    Wir bemühen uns, unseren Lagerbestand stets aktuell zu halten. Sollte ein Produkt ausnahmsweise nicht verfügbar sein, wird dies auf der Produktseite angezeigt. Du kannst dich gegebenenfalls benachrichtigen lassen, sobald der Artikel wieder verfügbar ist.
-*   **Wie finde ich das richtige Produkt für meinen Garten?**
-    Wir bieten detaillierte Produktbeschreibungen, Bilder und gegebenenfalls Kundenbewertungen, um dir bei deiner Auswahl zu helfen. Nutze auch unsere Filterfunktionen und die Suchleiste, um gezielt nach bestimmten Produkten zu suchen. Bei spezifischen Fragen kannst du dich gerne an unseren Kundenservice wenden.
-*   **Gibt es eine Garantie auf Ihre Produkte?**
-    Die Garantiebedingungen variieren je nach Hersteller und Produkt. Die genauen Garantieinformationen findest du in der Produktbeschreibung oder in den beiliegenden Herstellerangaben.
-*   **Bieten Sie auch Pflanzen an und wie werden diese versendet?**
-    Ja, wir bieten eine Auswahl an Pflanzen an. Diese werden sorgfältig verpackt, um einen sicheren Transport zu gewährleisten. Bitte beachte, dass es je nach Jahreszeit und Pflanzenart zu Einschränkungen beim Versand kommen kann.
-*   **Wie pflege ich die bei Ihnen gekauften Pflanzen richtig?**
-    Zu vielen unserer Pflanzen bieten wir Pflegehinweise in der Produktbeschreibung an. Bei spezifischen Fragen zur Pflanzenpflege kannst du dich gerne an unseren Kundenservice wenden oder in unserem Blog nach Artikeln suchen.
-
-## Retouren & Umtausch
-
-*   **Wie kann ich einen Artikel zurücksenden?**
-    Informationen zu unserem Rückgaberecht und den genauen Schritten für eine Rücksendung findest du auf unserer Seite zum [Widerrufsrecht](/widerrufsrecht) oder kontaktiere unseren Kundenservice.
-*   **Wie lange habe ich Zeit, einen Artikel zurückzusenden?**
-    In der Regel hast du ein 14-tägiges Widerrufsrecht nach Erhalt der Ware. Die genaue Frist ist in unserer Widerrufsbelehrung aufgeführt.
-*   **Erhalte ich eine Rückerstattung des vollen Kaufpreises inklusive Versandkosten?**
-    Nach erfolgreicher Prüfung der Retoure erstatten wir dir den Kaufpreis des zurückgesendeten Artikels sowie die ursprünglichen Versandkosten (Standardversand). Die Kosten für die Rücksendung trägst du in der Regel, es sei denn, der Artikel war fehlerhaft oder wir haben einen falschen Artikel geliefert.
-*   **Kann ich einen Artikel umtauschen?**
-    Ein direkter Umtausch ist in der Regel nicht möglich. Bitte sende den unerwünschten Artikel zurück und gib eine neue Bestellung für den gewünschten Artikel auf.
-
-## Konto & Datenschutz
-
-*   **Muss ich ein Kundenkonto erstellen, um bestellen zu können?**
-    Nein, du kannst auch als Gast bestellen. Ein Kundenkonto bietet dir jedoch Vorteile wie die Speicherung deiner Daten, die Einsicht in deine Bestellhistorie und eine schnellere Abwicklung zukünftiger Bestellungen.
-*   **Wie sicher sind meine Daten?**
-    Der Schutz deiner persönlichen Daten ist uns sehr wichtig. Wir verwenden sichere Verschlüsselungstechnologien und halten uns an die geltenden Datenschutzbestimmungen. Weitere Informationen findest du in unser [Datenschutzerklärung](/datenschutz)
-*   **Ich habe mein Passwort vergessen. Was kann ich tun?**
-    Klicke auf der Anmeldeseite auf "Passwort vergessen" und folge den Anweisungen, um dein Passwort zurückzusetzen.
-
-## Kundenservice
-
-*   **Wie kann ich Sie kontaktieren?**
-    Du erreichst unseren Kundenservice per E-Mail unter info@your-garden-eden.de oder telefonisch/WhatsApp unter 01621858637 zu unseren Geschäftszeiten Mo-Fr 10-16 Uhr. Du findest unsere Kontaktdaten auch auf unserer [Kontaktseite](/kontakt) .
-*   **Wie schnell erhalte ich eine Antwort auf meine Anfrage?**
-    Wir bemühen uns, deine Anfragen so schnell wie möglich zu beantworten. In der Regel erhältst du innerhalb von 24 Stunden (an Werktagen) eine Rückmeldung.
-
-Ich hoffe, diese FAQ helfen dir weiter! Lass mich wissen, wenn du noch weitere Fragen hast oder spezifische Anpassungen wünschst.
+# Frequently asked questions (FAQ)
+## Ordering & shipping
+*  **What payment methods do you accept?**
+We accept a variety of payment methods, including credit card (Visa, Mastercard, American Express), PayPal, instant bank transfer, and invoice (with Klarna or a similar provider, if applicable). The exact options will be displayed during the ordering process.
+*  **How much are the shipping costs?**
+    Shipping costs vary depending on the weight, size, and destination of your order. The exact shipping costs will be displayed in your shopping cart and during the ordering process. We may offer free shipping for orders above a certain value.
+*  **How long is the delivery time?
+The delivery time depends on stock availability and the shipping service provider. Delivery within Germany usually takes 2-5 business days. Delivery times may vary for international shipments. You can find more detailed information on the product page and in your order confirmation.
+*  **Can I track my order?**
+Yes, as soon as your order has been shipped, you will receive a shipping confirmation by email with a link to track your order. This allows you to check the current status of your delivery at any time.
+*  **What should I do if my order arrives damaged?**
+Please contact our customer service immediately with photos of the damaged package and the damaged goods. We will do our best to find a quick solution, either by replacing the item or issuing a refund.
+*  **Can I change or cancel my order?**
+    You can usually change or cancel your order as long as it has not yet been shipped. Please contact our customer service as soon as possible.
+## Products & range
+*  **Are all products in stock?**
+We strive to keep our stock levels up to date. If a product is temporarily unavailable, this will be indicated on the product page. If you wish, you can be notified as soon as the item is available again.
+*  **How do I find the right product for my garden?**
+We provide detailed product descriptions, images, and customer reviews to help you make your selection. You can also use our filter functions and search bar to search for specific products. If you have any specific questions, please contact our customer service team.
+*  **Do your products come with a warranty?**
+The warranty conditions vary depending on the manufacturer and product. You can find the exact warranty information in the product description or in the enclosed manufacturer's instructions.
+*  **Do you also offer plants and how are they shipped?**
+Yes, we offer a selection of plants. These are carefully packaged to ensure safe transport. Please note that shipping restrictions may apply depending on the season and type of plant.
+*  **How do I properly care for the plants I purchased from you?**
+We provide care instructions for many of our plants in the product description. If you have specific questions about plant care, please contact our customer service or search for articles in our blog.
+## Returns & Exchanges
+*  **How can I return an item?**
+Information about our return policy and the exact steps for returning an item can be found on our [Right of Withdrawal](/widerrufsrecht) page or by contacting our customer service team.
+*  **How long do I have to return an item?**
+    You generally have a 14-day right of withdrawal after receiving the goods. The exact deadline is specified in our cancellation policy.
+*  **Will I receive a refund of the full purchase price including shipping costs?**
+After successfully checking the return, we will refund the purchase price of the returned item and the original shipping costs (standard shipping). You are usually responsible for the cost of the return shipment, unless the item was defective or we delivered the wrong item.
+*  **Can I exchange an item?**
+Direct exchanges are generally not possible. Please return the unwanted item and place a new order for the desired item.
+## Account & Data Protection
+*  **Do I have to create a customer account to place an order?**
+No, you can also order as a guest. However, a customer account offers you advantages such as saving your data, viewing your order history, and faster processing of future orders.
+*  **How secure is my data?**
+    The protection of your personal data is very important to us. We use secure encryption technologies and comply with applicable data protection regulations. For more information, please see our [Privacy Policy](/datenschutz).
+*  **I forgot my password. What can I do?**
+Click on “Forgot password” on the login page and follow the instructions to reset your password.
+## Customer service
+*  How can I contact you?
+You can reach our customer service by email at info@your-garden-eden.de or by phone/WhatsApp at 01621858637 during our business hours, Monday through Friday from 10 a.m. to 4 p.m. You can also find our contact information on our contact page.
+*  **How quickly will I receive a response to my inquiry?**
+We strive to respond to your inquiries as quickly as possible. You will usually receive a response within 24 hours (on business days).
+I hope these FAQs help you! Let me know if you have any further questions or would like specific adjustments.

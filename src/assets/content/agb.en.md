@@ -1,163 +1,87 @@
-# Allgemeine Geschäftsbedingungen (AGB)
-
-## ÜBERBLICK
-
-Diese Website wird betrieben von Your-Garden-Eden. Auf der gesamten Website beziehen sich die Begriffe „wir“, „uns“ und „unser“ auf Your-Garden-Eden. Your-Garden-Eden bietet Ihnen, dem Benutzer, diese Website einschließlich aller auf dieser Website verfügbaren Informationen, Tools und Dienste unter der Bedingung an, dass Sie alle hier aufgeführten Bedingungen, Richtlinien und Hinweise akzeptieren.
-
-Indem Sie unsere Site besuchen und/oder etwas von uns kaufen, nehmen Sie an unserem „Service“ teil und erklären sich mit den folgenden Geschäftsbedingungen („allgemeinen Geschäftsbedingungen“, „Bedingungen“) einverstanden, einschließlich der zusätzlichen Geschäftsbedingungen und Richtlinien, auf die hierin verwiesen wird und/oder die per Hyperlink verfügbar sind. Diese allgemeinen Geschäftsbedingungen gelten für alle Benutzer der Site, insbesondere für Browser, Anbieter, Kunden, Händler und/oder Inhaltsanbieter.
-
-Bitte lesen Sie diese allgemeinen Geschäftsbedingungen sorgfältig durch, bevor Sie auf unsere Website zugreifen oder sie nutzen. Indem Sie auf einen beliebigen Teil der Site zugreifen oder diesen verwenden, erklären Sie sich mit diesen allgemeinen Geschäftsbedingungen einverstanden. Wenn Sie nicht allen Geschäftsbedingungen dieser Vereinbarung zustimmen, dürfen Sie nicht auf die Website zugreifen oder Dienste nutzen. Sollten diese allgemeinen Geschäftsbedingungen als Angebot gelten, ist die Annahme ausdrücklich auf diese allgemeinen Geschäftsbedingungen beschränkt.
-
-Alle neuen Funktionen oder Tools, die dem aktuellen Store hinzugefügt werden, unterliegen ebenfalls den allgemeinen Geschäftsbedingungen. Sie können die aktuellste Version der allgemeinen Geschäftsbedingungen jederzeit auf dieser Seite einsehen. Wir behalten uns das Recht vor, Teile dieser allgemeinen Geschäftsbedingungen zu aktualisieren, zu ändern oder zu ersetzen, indem wir Aktualisierungen und/oder Änderungen auf unserer Website veröffentlichen. Es liegt in Ihrer Verantwortung, diese Seite regelmäßig auf Änderungen zu überprüfen. Ihre fortgesetzte Nutzung oder Ihr Zugriff auf die Website nach der Veröffentlichung von Änderungen gilt als Akzeptanz dieser Änderungen.
-
-Unser Shop wird von Shopify Inc. gehostet. Sie stellen uns die Online-E-Commerce-Plattform zur Verfügung, die es uns ermöglicht, Ihnen unsere Produkte und Dienstleistungen zu verkaufen.
-
-## ABSCHNITT 1 – ONLINE-SHOP-BEDINGUNGEN
-
-Indem Sie diesen allgemeinen Geschäftsbedingungen zustimmen, erklären Sie, dass Sie in Ihrem Wohnsitzstaat oder -provinz mindestens volljährig sind oder dass Sie in Ihrem Wohnsitzstaat oder -provinz volljährig sind und uns Ihr Einverständnis gegeben haben, dass Ihre minderjährigen Angehörigen diese Website nutzen dürfen.
-
-Sie dürfen unsere Produkte nicht für illegale oder nicht autorisierte Zwecke verwenden, noch dürfen Sie bei der Nutzung des Dienstes gegen die Gesetze Ihrer Gerichtsbarkeit (einschließlich, aber nicht beschränkt auf Urheberrechtsgesetze) verstoßen.
-
-Sie dürfen keine Würmer oder Viren oder sonstigen Code zerstörerischer Natur übertragen.
-
-Ein Verstoß oder eine Nichteinhaltung einer der Bedingungen führt zur sofortigen Kündigung Ihrer Dienste.
-
-## ABSCHNITT 2 – ALLGEMEINE BEDINGUNGEN
-
-Wir behalten uns das Recht vor, den Service jederzeit und aus beliebigem Grund zu verweigern.
-
-Sie verstehen, dass Ihre Inhalte (ohne Kreditkarteninformationen) unverschlüsselt übertragen werden können und (a) Übertragungen über verschiedene Netzwerke und (b) Änderungen zur Anpassung an die technischen Anforderungen der Verbindungsnetzwerke oder -geräte erforderlich sein können. Kreditkarteninformationen werden bei der Übertragung über Netzwerke immer verschlüsselt.
-
-Sie erklären sich damit einverstanden, ohne unsere ausdrückliche schriftliche Genehmigung keinen Teil des Dienstes, die Nutzung des Dienstes oder den Zugriff auf den Dienst oder einen Kontakt auf der Website, über die der Dienst bereitgestellt wird, zu reproduzieren, zu vervielfältigen, zu kopieren, zu verkaufen, weiterzuverkaufen oder zu nutzen.
-
-Die in dieser Vereinbarung verwendeten Überschriften dienen lediglich der Übersichtlichkeit und haben keine Einschränkung oder sonstige Auswirkung auf diese Bedingungen.
-
-## ABSCHNITT 3 – GENAUIGKEIT, VOLLSTÄNDIGKEIT UND AKTUALITÄT DER INFORMATIONEN
-
-Wir sind nicht verantwortlich für die Richtigkeit, Vollständigkeit oder Aktualität der auf dieser Site bereitgestellten Informationen. Die Materialien auf dieser Site dienen ausschließlich der allgemeinen Information und sollten nicht als alleinige Grundlage für Entscheidungen verwendet werden, ohne primäre, genauere, vollständigere oder aktuellere Informationsquellen zu konsultieren. Das Vertrauen auf die Materialien dieser Site erfolgt auf eigene Gefahr.
-
-Diese Site kann bestimmte historische Informationen enthalten. Historische Informationen sind nicht zwangsläufig aktuell und dienen ausschließlich zu Ihrer Information. Wir behalten uns das Recht vor, den Inhalt dieser Site jederzeit zu ändern, sind jedoch nicht verpflichtet, die Informationen auf unserer Site zu aktualisieren. Sie stimmen zu, dass es in Ihrer Verantwortung liegt, Änderungen an unserer Site zu überwachen.
-
-## ABSCHNITT 4 – ÄNDERUNGEN DES DIENSTES UND DER PREISE
-
-Die Preise unserer Produkte können ohne Vorankündigung geändert werden.
-
-Wir behalten uns das Recht vor, den Dienst (oder Teile bzw. Inhalte davon) jederzeit und ohne Vorankündigung zu ändern oder einzustellen.
-
-Wir haften weder Ihnen noch Dritten gegenüber für Modifikationen, Preisänderungen, Aussetzungen oder die Einstellung des Dienstes.
-
-## ABSCHNITT 5 – PRODUKTE ODER DIENSTLEISTUNGEN (falls zutreffend)
-
-Bestimmte Produkte oder Dienstleistungen sind möglicherweise ausschließlich online über die Website verfügbar. Diese Produkte oder Dienstleistungen sind möglicherweise nur in begrenzten Mengen verfügbar und können nur gemäß unserer Rückerstattungsrichtlinie zurückgegeben oder umgetauscht werden: [Rückerstattungsrichtlinie](/widerrufsrecht)
-
-Wir haben alle Anstrengungen unternommen, um die Farben und Bilder unserer Produkte, die im Geschäft erscheinen, so genau wie möglich darzustellen. Wir können nicht garantieren, dass die Farbdarstellung Ihres Computermonitors genau ist.
-
-Wir behalten uns das Recht vor, sind jedoch nicht verpflichtet, den Verkauf unserer Produkte oder Dienstleistungen auf bestimmte Personen, geografische Regionen oder Gerichtsbarkeiten zu beschränken. Wir können von diesem Recht in jedem Einzelfall Gebrauch machen. Wir behalten uns das Recht vor, die Menge aller von uns angebotenen Produkte oder Dienstleistungen zu begrenzen. Alle Produktbeschreibungen und Produktpreise können jederzeit und ohne Vorankündigung und nach unserem alleinigen Ermessen geändert werden. Wir behalten uns das Recht vor, die Produktion eines Produkts jederzeit einzustellen. Alle auf dieser Website bereitgestellten Angebote für Produkte oder Dienstleistungen sind ungültig, sofern sie nicht gesetzlich verboten sind.
-
-Wir übernehmen keine Garantie dafür, dass die Qualität der von Ihnen erworbenen oder erhaltenen Produkte, Dienste, Informationen oder sonstigen Materialien Ihren Erwartungen entspricht oder dass etwaige Fehler im Dienst behoben werden.
-
-## ABSCHNITT 6 – GENAUIGKEIT DER RECHNUNGS- UND KONTOINFORMATIONEN
-
-Wir behalten uns das Recht vor, jede von Ihnen bei uns aufgegebene Bestellung abzulehnen. Wir können nach eigenem Ermessen die pro Person, pro Haushalt oder pro Bestellung gekauften Mengen begrenzen oder stornieren. Zu diesen Einschränkungen können Bestellungen gehören, die mit oder über dasselbe Kundenkonto oder dieselbe Kreditkarte aufgegeben wurden und/oder für die dieselbe Rechnungs- und/oder Lieferadresse verwendet wird. Für den Fall, dass wir eine Bestellung ändern oder stornieren, versuchen wir, Sie ggf. per E-Mail und/oder über die Rechnungsadresse/Telefonnummer zu benachrichtigen, die Sie bei der Bestellung angegeben haben. Wir behalten uns das Recht vor, Bestellungen zu beschränken oder zu verbieten, die nach unserem alleinigen Ermessen von Händlern, Wiederverkäufern oder Distributoren aufgegeben zu werden scheinen.
-
-Sie verpflichten sich, für alle in unserem Shop getätigten Einkäufe aktuelle, vollständige und genaue Kauf- und Kontoinformationen anzugeben. Sie erklären sich damit einverstanden, Ihr Konto und andere Informationen, einschließlich Ihrer E-Mail-Adresse und Kreditkartennummern sowie deren Ablaufdaten, umgehend zu aktualisieren, damit wir Ihre Transaktionen abschließen und Sie bei Bedarf kontaktieren können.
-
-Weitere Einzelheiten finden Sie in unseren Rückerstattungsrichtlinien: [Rückerstattungsrichtlinie](/widerrufsrecht)
-
-## ABSCHNITT 7 – OPTIONALE TOOLS
-
-Wir gewähren Ihnen möglicherweise Zugriff auf Tools von Drittanbietern, die wir weder überwachen noch kontrollieren oder auf die wir Einfluss haben.
-
-Sie erkennen an und stimmen zu, dass wir Zugriff auf solche Tools „wie besehen“ und „wie verfügbar“ gewähren, ohne jegliche Garantien, Zusicherungen oder Bedingungen jeglicher Art und ohne jegliche Billigung. Wir übernehmen keinerlei Haftung, die sich aus Ihrer Nutzung optionaler Tools Dritter ergibt oder damit zusammenhängt.
-
-Die Nutzung der optionalen Tools, die über die Site angeboten werden, erfolgt auf Ihr eigenes Risiko und nach eigenem Ermessen. Sie sollten sicherstellen, dass Sie mit den Bedingungen, zu denen die Tools von den jeweiligen Drittanbietern bereitgestellt werden, vertraut sind und ihnen zustimmen. Wir können in Zukunft auch neue Dienste und/oder Funktionen über die Website anbieten (einschließlich der Veröffentlichung neuer Tools und Ressourcen). Diese neuen Funktionen und/oder Dienste unterliegen ebenfalls diesen allgemeinen Geschäftsbedingungen.
-
-## ABSCHNITT 8 – LINKS VON DRITTANBIETERN
-
-Bestimmte Inhalte, Produkte und Dienste, die über unseren Dienst verfügbar sind, können Materialien von Drittanbietern enthalten.
-
-Über Drittanbieter-Links auf dieser Site können Sie auf Websites von Drittanbietern weitergeleitet werden, die nicht mit uns verbunden sind. Wir sind nicht dafür verantwortlich, Inhalt oder Genauigkeit zu prüfen oder zu bewerten, und übernehmen keine Garantie und Haftung für Materialien oder Websites Dritter oder für sonstige Materialien, Produkte oder Dienstleistungen Dritter.
-
-Wir haften nicht für Schäden im Zusammenhang mit dem Kauf oder der Nutzung von Waren, Dienstleistungen, Ressourcen, Inhalten oder anderen Transaktionen im Zusammenhang mit Websites Dritter. Bitte lesen Sie die Richtlinien und Praktiken des Drittanbieters sorgfältig durch und stellen Sie sicher, dass Sie sie verstehen, bevor Sie Transaktionen durchführen. Beschwerden, Ansprüche, Bedenken oder Fragen bezüglich Produkten von Drittanbietern sollten direkt an den Drittanbieter gerichtet werden.
-
-## ABSCHNITT 9 – BENUTZERKOMMENTARE, FEEDBACK UND ANDERE EINREICHUNGEN
-
-Wenn Sie auf unsere Aufforderung hin bestimmte Einsendungen (beispielsweise Wettbewerbsbeiträge) oder ohne eine solche Aufforderung kreative Ideen, Anregungen, Vorschläge, Pläne oder andere Materialien einsenden, sei es online, per E-Mail, auf dem Postwege oder auf andere Weise (zusammen „Kommentare“), erklären Sie sich damit einverstanden, dass wir Kommentare, die Sie uns übermitteln, jederzeit ohne Einschränkung bearbeiten, kopieren, veröffentlichen, verteilen, übersetzen und anderweitig in jedem Medium verwenden können. Wir sind und bleiben nicht verpflichtet, (1) Kommentare vertraulich zu behandeln, (2) für Kommentare eine Entschädigung zu zahlen oder (3) auf Kommentare zu antworten.
-
-Wir können, sind jedoch nicht dazu verpflichtet, Inhalte zu überwachen, zu bearbeiten oder zu entfernen, die nach unserem alleinigen Ermessen rechtswidrig, beleidigend, bedrohlich, verleumderisch, diffamierend, pornografisch, obszön oder anderweitig anstößig sind oder das geistige Eigentum einer Partei oder diese Servicebedingungen verletzen.
-
-Sie erklären sich damit einverstanden, dass Ihre Kommentare keine Rechte Dritter verletzen, darunter Urheberrechte, Markenrechte, Datenschutzrechte, Persönlichkeitsrechte oder andere persönliche Rechte oder Eigentumsrechte. Sie erklären sich außerdem damit einverstanden, dass Ihre Kommentare kein verleumderisches oder anderweitig rechtswidriges, beleidigendes oder obszönes Material enthalten und auch keine Computerviren oder sonstige Schadsoftware enthalten, die den Betrieb des Dienstes oder einer damit verbundenen Website in irgendeiner Weise beeinträchtigen könnten. Sie dürfen keine falsche E-Mail-Adresse verwenden, sich für eine andere Person ausgeben oder uns oder Dritte in Bezug auf die Herkunft von Kommentaren auf andere Weise in die Irre führen. Sie sind allein für Ihre Kommentare und deren Richtigkeit verantwortlich. Wir übernehmen keine Verantwortung und Haftung für von Ihnen oder Dritten gepostete Kommentare.
-
-## ABSCHNITT 10 – PERSONENBEZOGENE DATEN
-
-Ihre Übermittlung personenbezogener Daten über den Shop unterliegt unserer Datenschutzrichtlinie, die Sie hier einsehen können: [Datenschutzrichtlinie](/datenschutz)
-
-## ABSCHNITT 11 – FEHLER, UNGENAUIGKEITEN UND AUSLASSUNGEN
-
-Gelegentlich kann es vorkommen, dass Informationen auf unserer Site oder im Service Tippfehler, Ungenauigkeiten oder Auslassungen enthalten, die sich auf Produktbeschreibungen, Preise, Werbeaktionen, Angebote, Produktversandkosten, Transportzeiten und Verfügbarkeit beziehen können. Wir behalten uns das Recht vor, jederzeit und ohne Vorankündigung (auch nachdem Sie Ihre Bestellung abgeschickt haben) Fehler, Ungenauigkeiten oder Auslassungen zu korrigieren und Informationen zu ändern oder zu aktualisieren oder Bestellungen zu stornieren, wenn Informationen im Service oder auf einer zugehörigen Website ungenau sind.
-
-Wir übernehmen keine Verpflichtung zur Aktualisierung, Änderung oder Klarstellung von Informationen im Service oder auf zugehörigen Websites, einschließlich, aber nicht beschränkt auf Preisinformationen, es sei denn, dies ist gesetzlich vorgeschrieben. Ein im Service oder auf einer zugehörigen Website angegebenes Update- oder Auffrischungsdatum sollte nicht als Hinweis darauf verstanden werden, dass sämtliche Informationen im Service oder auf einer zugehörigen Website geändert oder aktualisiert wurden.
-
-## ABSCHNITT 12 – VERBOTENE VERWENDUNGEN
-
-Zusätzlich zu anderen Verboten, die in den allgemeinen Geschäftsbedingungen dargelegt sind, ist Ihnen die Nutzung der Site oder ihrer Inhalte untersagt:
-(a) für rechtswidrige Zwecke;
-(b) um andere zur Durchführung oder Teilnahme an rechtswidrigen Handlungen aufzufordern;
-(c) um gegen internationale, bundesstaatliche, provinzielle oder staatliche Bestimmungen, Regeln, Gesetze oder lokale Verordnungen zu verstoßen;
-(d) um unsere geistigen Eigentumsrechte oder die geistigen Eigentumsrechte anderer zu verletzen oder zu verletzen;
-(e) um aufgrund von Geschlecht, sexueller Orientierung, Religion, Ethnizität, Rasse, Alter, nationaler Herkunft oder Behinderung zu belästigen, zu missbrauchen, zu beleidigen, zu schädigen, zu diffamieren, zu verleumden, herabzusetzen, einzuschüchtern oder zu diskriminieren;
-(f) um falsche oder irreführende Angaben zu machen;
-(g) um Viren oder andere Arten von Schadcode hochzuladen oder zu übertragen, der in einer Weise verwendet wird oder werden kann, die die Funktion oder den Betrieb des Dienstes oder einer damit verbundenen Website, anderer Websites oder des Internets beeinträchtigt;
-(h) um die persönlichen Daten anderer zu sammeln oder zu verfolgen;
-(i) zum Spammen, Phishing, Pharmen, Vortäuschen, Spidern, Crawlen oder Scrapen;
-(j) für obszöne oder unmoralische Zwecke; oder
-(k) zum Stören oder Umgehen der Sicherheitsfunktionen des Dienstes oder damit verbundener Websites, anderer Websites oder des Internets.
-Wir behalten uns das Recht vor, Ihre Nutzung des Dienstes oder einer zugehörigen Website bei verbotener Nutzung gemäß den Nutzungsbedingungen zu beenden.
-
-## ABSCHNITT 13 – HAFTUNGSAUSSCHLUSS; HAFTUNGSBESCHRÄNKUNG
-
-Wir übernehmen keine Garantie oder Gewährleistung dafür, dass Ihre Nutzung unseres Dienstes ohne Unterbrechungen, rechtzeitig, sicher oder fehlerfrei erfolgt.
-
-Wir übernehmen keine Gewähr dafür, dass die durch die Nutzung des Dienstes erzielten Ergebnisse genau oder zuverlässig sind.
-
-Sie erklären sich damit einverstanden, dass wir den Dienst von Zeit zu Zeit für unbestimmte Zeiträume entfernen oder den Dienst jederzeit ohne Vorankündigung an Sie kündigen können.
-
-Sie erklären sich ausdrücklich damit einverstanden, dass die Nutzung des Dienstes bzw. die Unmöglichkeit der Nutzung des Dienstes ausschließlich auf Ihr eigenes Risiko erfolgt. Der Dienst und alle Produkte und Dienste, die Ihnen über den Dienst bereitgestellt werden, werden (sofern von uns nicht ausdrücklich anders angegeben) „wie besehen“ und „wie verfügbar“ für Ihre Nutzung bereitgestellt, ohne jegliche Zusicherungen, Garantien oder Bedingungen jeglicher Art, weder ausdrücklich noch stillschweigend, einschließlich aller stillschweigenden Garantien oder Bedingungen hinsichtlich der Marktgängigkeit, handelsüblichen Qualität, Eignung für einen bestimmten Zweck, Haltbarkeit, Eigentumsansprüchen und Nichtverletzung.
-
-In keinem Fall dürfen Your-Garden-Eden, unsere Direktoren, leitenden Angestellten, Mitarbeiter, verbundenen Unternehmen, Vertreter, Auftragnehmer, Praktikanten, Lieferanten, Dienstanbieter oder Lizenzgeber für jedwede Verletzungen, Verluste, Ansprüche oder jedwede direkte, indirekte, zufällige, Straf-, Sonder- oder Folgeschäden jeglicher Art, einschließlich, aber nicht beschränkt auf entgangenen Gewinn, entgangenen Umsatz, entgangene Einsparungen, Datenverlust, Wiederbeschaffungskosten oder ähnliche Schäden, unabhängig davon, ob sie auf einem Vertrag, einer unerlaubten Handlung (einschließlich Fahrlässigkeit), einer verschuldensunabhängigen Haftung oder anderweitig beruhen, die sich aus Ihrer Nutzung des Dienstes oder der über den Dienst beschafften Produkte ergeben, haftbar gemacht werden oder für jedwede andere Ansprüche, die in irgendeiner Weise mit Ihrer Nutzung des Dienstes oder eines Produkts in Zusammenhang stehen, einschließlich, aber nicht beschränkt auf Fehler oder Auslassungen in Inhalten oder Verluste oder Schäden jeglicher Art, die aus der Nutzung des Dienstes oder der über den Dienst veröffentlichten, übertragenen oder anderweitig bereitgestellten Inhalte (oder Produkte) entstehen, selbst falls auf deren Möglichkeit hingewiesen wurde. Da in manchen Staaten oder Rechtsräumen der Ausschluss oder die Beschränkung der Haftung für Folge- oder Nebenschäden nicht zulässig ist, unsere Haftung in diesen Staaten oder Rechtsräumen auf das gesetzlich zulässige Höchstmaß beschränkt.
-
-## ABSCHNITT 14 – SCHADENSERSATZ
-
-Sie verpflichten sich, Your-Garden-Eden und unsere Muttergesellschaften, Tochtergesellschaften, Partner, leitenden Angestellten, Geschäftsführer, Vertreter, Auftragnehmer, Lizenzgeber, Dienstleister, Subunternehmer, Lieferanten, Praktikanten und Mitarbeiter schadlos zu halten von allen Ansprüchen und Forderungen Dritter, einschließlich angemessener Anwaltskosten, die aus Ihrem Verstoß gegen diese Servicebedingungen oder die Dokumente, auf die in diesen Servicebedingungen verwiesen wird, oder aus Ihrem Verstoß gegen ein Gesetz oder die Rechte eines Dritten entstehen.
-
-## ABSCHNITT 15 – SALVATORISCHE KLAUSEL
-
-Sollte eine Bestimmung dieser allgemeinen Geschäftsbedingungen für gesetzeswidrig, ungültig oder nicht durchsetzbar befunden werden, so ist diese Bestimmung dennoch im größtmöglichen, nach geltendem Recht zulässigen Umfang durchsetzbar und der nicht durchsetzbare Teil gilt als von diesen allgemeinen Geschäftsbedingungen abgetrennt. Eine solche Feststellung hat keinen Einfluss auf die Gültigkeit und Durchsetzbarkeit aller anderen verbleibenden Bestimmungen.
-
-## ABSCHNITT 16 – KÜNDIGUNG
-
-Die vor dem Kündigungstermin entstandenen Verpflichtungen und Haftungen der Parteien bleiben für alle Zwecke auch nach der Kündigung dieser Vereinbarung bestehen.
-
-Diese allgemeinen Geschäftsbedingungen gelten bis sie von Ihnen oder uns gekündigt werden. Sie können diese allgemeinen Geschäftsbedingungen jederzeit kündigen, indem Sie uns mitteilen, dass Sie unsere Dienste nicht mehr nutzen möchten, oder wenn Sie die Nutzung unserer Site einstellen.
-
-Wenn Sie nach unserem alleinigen Ermessen gegen eine Bedingung oder Bestimmung dieser allgemeinen Geschäftsbedingungen verstoßen oder wir den Verdacht haben, dass Sie gegen eine Bedingung oder Bestimmung dieser allgemeinen Geschäftsbedingungen verstoßen haben, können wir diese Vereinbarung außerdem jederzeit fristlos kündigen. In diesem Fall bleiben Sie für alle bis einschließlich des Kündigungsdatums fälligen Beträge haftbar; und/oder wir können Ihnen dementsprechend den Zugriff auf unsere Dienste (oder Teile davon) verweigern.
-
-## ABSCHNITT 17 – GESAMTE VEREINBARUNG
-
-Das Versäumnis unsererseits, ein Recht oder eine Bestimmung dieser allgemeinen Geschäftsbedingungen auszuüben oder durchzusetzen, stellt keinen Verzicht auf das entsprechende Recht oder die Bestimmung dar.
-
-Diese allgemeinen Geschäftsbedingungen und alle von uns auf dieser Site oder in Bezug auf den Service veröffentlichten Richtlinien oder Betriebsregeln stellen die gesamte Vereinbarung und Übereinkunft zwischen Ihnen und uns dar und regeln Ihre Nutzung des Services. Sie ersetzen alle vorherigen oder gleichzeitigen Vereinbarungen, Mitteilungen und Vorschläge, ob mündlich oder schriftlich, zwischen Ihnen und uns (einschließlich, aber nicht beschränkt auf alle vorherigen Versionen der allgemeinen Geschäftsbedingungen).
-
-Eventuelle Unklarheiten bei der Auslegung dieser allgemeinen Geschäftsbedingungen dürfen nicht zum Nachteil der verfassenden Partei ausgelegt werden.
-
-## ABSCHNITT 18 – GELTENDES RECHT
-
-Diese Servicebedingungen und alle separaten Vereinbarungen, durch die wir Ihnen Dienste bereitstellen, unterliegen den Gesetzen von Germany.
-
-## ABSCHNITT 19 – ÄNDERUNGEN DER ALLGEMEINEN GESCHÄFTSBEDINGUNGEN
-
-Sie können die aktuellste Version der allgemeinen Geschäftsbedingungen jederzeit auf dieser Seite einsehen.
-
-Wir behalten uns das Recht vor, nach eigenem Ermessen Teile dieser allgemeinen Geschäftsbedingungen zu aktualisieren, zu ändern oder zu ersetzen, indem wir Aktualisierungen und Änderungen auf unserer Website veröffentlichen. Es liegt in Ihrer Verantwortung, unsere Website regelmäßig auf Änderungen zu überprüfen. Ihre fortgesetzte Nutzung oder Ihr Zugriff auf unsere Website oder den Dienst nach der Veröffentlichung von Änderungen dieser allgemeinen Geschäftsbedingungen gilt als Akzeptanz dieser Änderungen.
-
-
+# General Terms and Conditions (GTC)
+## OVERVIEW
+This website is operated by Your-Garden-Eden. Throughout the website, the terms “we,” “us,” and “our” refer to Your-Garden-Eden. Your-Garden-Eden offers you, the user, this website, including all information, tools, and services available on this website, on the condition that you accept all terms, conditions, policies, and notices set forth herein.
+By visiting our site and/or purchasing something from us, you participate in our “Service” and agree to be bound by the following terms and conditions (“Terms of Service,” “Terms,” “Conditions”), including the additional terms and conditions and policies referenced herein and/or available via hyperlink. These terms and conditions apply to all users of the site, including browsers, vendors, customers, merchants, and/or content providers.
+Please read these terms and conditions carefully before accessing or using our website. By accessing or using any part of the site, you agree to these terms and conditions. If you do not agree to all the terms and conditions of this agreement, then you may not access the website or use any services. If these terms and conditions are considered an offer, acceptance is expressly limited to these terms and conditions.
+Any new features or tools added to the current store are also subject to the terms and conditions. You can review the most current version of the terms and conditions at any time on this page. We reserve the right to update, change or replace any part of these terms and conditions by posting updates and/or changes to our website. It is your responsibility to check this page periodically for changes. Your continued use or access to the website following the posting of any changes constitutes acceptance of those changes.
+Our store is hosted by Shopify Inc. They provide us with the online e-commerce platform that allows us to sell our products and services to you.
+## SECTION 1 – ONLINE STORE TERMS
+By agreeing to these terms and conditions, you represent that you are at least the age of majority in your state or province of residence, or that you are the age of majority in your state or province of residence and you have given us your consent to allow any of your minor dependents to use this site.
+You may not use our products for any illegal or unauthorized purpose nor may you, in the use of the Service, violate any laws in your jurisdiction (including but not limited to copyright laws).
+You may not transmit any worms or viruses or any other code of a destructive nature.
+A breach or violation of any of the terms and conditions will result in immediate termination of your services.
+## SECTION 2 – GENERAL CONDITIONS
+We reserve the right to refuse service at any time and for any reason.
+You understand that your content (excluding credit card information) may be transferred unencrypted and (a) involve transmissions over various networks and (b) require changes to adapt to technical requirements of connecting networks or devices. Credit card information is always encrypted during transmission over networks.
+You agree not to reproduce, duplicate, copy, sell, resell or exploit any portion of the Service, use of the Service, or access to the Service or any contact on the website through which the Service is provided, without our express written permission.
+The headings used in this Agreement are for convenience only and have no limiting or other effect on these Terms.
+## SECTION 3 – ACCURACY, COMPLETENESS, AND TIMELINESS OF INFORMATION
+We are not responsible for the accuracy, completeness, or timeliness of the information provided on this Site. The materials on this Site are for general information only and should not be relied upon as the sole basis for any decision without consulting primary, more accurate, more complete, or more up-to-date sources of information. Your reliance on the materials on this Site is at your own risk.
+This site may contain certain historical information. Historical information is not necessarily current and is provided for your reference only. We reserve the right to modify the content of this site at any time, but we are under no obligation to update the information on our site. You agree that it is your responsibility to monitor changes to our site.
+## SECTION 4 – CHANGES TO THE SERVICE AND PRICES
+The prices of our products are subject to change without notice.
+We reserve the right at any time, at any time, to modify or discontinue the Service (or any part or content thereof) without notice.
+We shall not be liable to you or to any third party for any modification, price change, suspension or discontinuance of the Service.
+## SECTION 5 – PRODUCTS OR SERVICES (if applicable)
+Certain products or services may be available exclusively online through the website. These products or services may be available in limited quantities and are subject to change or discontinuation at any time without notice, including without limitation or as a result of errors on our website.
+We have made every effort to display as accurately as possible the colors and images of our products that appear in the store. We cannot guarantee that your computer monitor's color display is accurate.
+We reserve the right, but are not obligated, to limit the sales or services of our products or services to any person, geographic region or jurisdiction. We may exercise this right at any time, on a case-by-case basis. We reserve the right to limit the quantity of any products or services we offer. All product descriptions and product prices are subject to change at any time without notice and at our sole discretion. We reserve the right to discontinue any product at any time. All offers for products or services provided on this website are void where prohibited by law.
+We do not guarantee that the quality of any products, services, information, or other materials purchased or obtained by you will meet your expectations or that any errors in the service will be corrected.
+## SECTION 6 – ACCURACY OF BILLING AND ACCOUNT INFORMATION
+We reserve the right to refuse any order you place with us. We may, in our sole discretion, limit or cancel quantities purchased per person, per household or per order. These restrictions may include orders placed by or under the same customer account, the same credit or debit card, or orders that appear to be placed by or are in the same customer account, the same credit or debit card, or the same billing and/or shipping address. In the event that we change or cancel an order, we will attempt to notify you by email and/or via the billing address/phone number provided by you when placing the order. We reserve the right to limit or prohibit orders that, in our sole discretion, appear to be placed by dealers, resellers, or distributors.
+You agree to provide current, complete, and accurate purchase and account information for all purchases made in our store. You agree to promptly update your account and other information, including your email address and credit card numbers and expiration dates, so that we are able to complete your transactions and contact you as needed.
+For more details, please see our Refund Policy: [Refund Policy](/widerrufsrecht)
+## SECTION 7 – OPTIONAL TOOLS
+We may provide you with access to third-party tools that we neither monitor nor control nor have any influence over.
+You acknowledge and agree that we provide access to such tools “as is” and “as available,” without any warranties, representations, or conditions of any kind, and without any endorsement. We shall have no liability whatsoever arising from or relating to your use of optional third-party tools.
+Your use of optional tools offered through the Site is at your own risk and discretion. You should ensure that you are familiar with and agree to the terms and conditions under which the tools are provided by the respective third-party providers. We may also offer new services and/or features through the Website in the future (including the release of new tools and resources). These new features and/or services will also be subject to these Terms and Conditions.
+## SECTION 8 – THIRD-PARTY LINKS
+Certain content, products, and services available via our Service may include materials from third-party providers.
+Third-party providers may provide services and/or resources on our Service. We do not monitor, control, or review third-party services or websites and do not recommend any third-party services or websites. We are not responsible for the content, accuracy, or reliability of third-party services or websites, or for any damage or loss resulting from your use of or reliance on such third-party services or websites.
+We are not liable for any damages related to the purchase or use of goods, services, resources, content, or other transactions made in connection with any third-party websites. Please review the third-party provider's policies and practices carefully and make sure you understand them before you engage in any transaction. Complaints, claims, concerns, or questions regarding third-party products should be directed to the third-party provider.
+## SECTION 9 – USER COMMENTS, FEEDBACK, AND OTHER SUBMISSIONS
+If, at our request, you send certain submissions (such as contest entries) or, without such a request, send creative ideas, suggestions, proposals, plans, or other materials, whether online, by email, by postal mail, or by any other means (collectively, “Comments”), you agree that we may edit, copy, publish, distribute, translate, and otherwise use any comments you submit to us at any time without restriction. We are and remain under no obligation to (1) keep any comments confidential, (2) pay compensation for any comments, or (3) respond to any comments.
+We may, but are not obligated to, monitor, edit, or remove content that we determine in our sole discretion to be unlawful, offensive, threatening, libelous, defamatory, pornographic, obscene, or otherwise objectionable or that violates any party's intellectual property or these Terms of Service.
+You agree that your comments will not violate any third party rights, including copyrights, trademarks, privacy rights, personality rights, or other personal or proprietary rights. You further agree that your comments will not contain any defamatory or otherwise unlawful, abusive, or obscene material, nor will they contain any computer viruses or other malware that could in any way impair the operation of the Service or any related website. You may not use a false email address, impersonate any person, or otherwise mislead us or third parties as to the origin of any comments. You are solely responsible for your comments and their accuracy. We take no responsibility and assume no liability for any comments posted by you or any third party.
+## SECTION 10 – PERSONAL DATA
+Your transmission of personal data via the Shop is subject to our Privacy Policy, which you can view here: [Privacy Policy](/privacy-policy)
+## SECTION 11 – ERRORS, INACCURACIES, AND OMISSIONS
+Occasionally, information on our Site or in the Service may contain typographical errors, inaccuracies, or omissions that may relate to product descriptions, prices, promotions, offers, product shipping charges, transportation times, and availability. We reserve the right, at any time and without notice (including after you have submitted your order), to correct any errors, inaccuracies or omissions, and to change or update information or cancel orders if any information in the Service or on any related website is inaccurate.
+We assume no obligation to update, modify, or clarify information in the Service or on any related websites, including, without limitation, pricing information, unless required by law. An update or refresh date indicated on the Service or any related website should not be understood as indicating that all information on the Service or any related website has been modified or updated.
+## SECTION 12 – PROHIBITED USES
+In addition to other prohibitions as set forth in the Terms of Service, you are prohibited from using the Site or its content:
+(a) for any unlawful purpose;
+(b) to solicit others to perform or participate in any unlawful acts;
+(c) to violate any international, federal, provincial, or state regulations, rules, laws, or local ordinances;
+(d) to infringe or violate our intellectual property rights or the intellectual property rights of others;
+(e) to harass, abuse, insult, harm, defame, slander, disparage, intimidate, or discriminate based on gender, sexual orientation, religion, ethnicity, race, age, national origin, or disability;
+(f) to make false or misleading statements;
+(g) to upload or transmit viruses or other types of malicious code that are used or may be used in a manner that affects the functionality or operation of the Service or any related website, other websites, or the Internet;
+(h) to collect or track the personal data of others;
+(i) for spamming, phishing, pharming, spoofing, spidering, crawling, or scraping;
+(j) for obscene or immoral purposes; or
+(k) to interfere with or circumvent the security features of the Service or any related website, other websites, or the Internet.
+We reserve the right to terminate your use of the Service or any related website for any prohibited use in accordance with the Terms of Use.
+## SECTION 13 – DISCLAIMER; LIMITATION OF LIABILITY
+We do not guarantee or warrant that your use of our Service will be uninterrupted, timely, secure, or error-free.
+We do not guarantee that the results obtained from the use of the Service will be accurate or reliable.
+You agree that we may remove the Service from time to time for indefinite periods of time or terminate the Service at any time without notice to you.
+You expressly agree that your use of the Service or your inability to use the Service is at your sole risk. The Service and all products and services provided to you through the Service are (unless expressly stated otherwise by us) provided “as is” and “as available” for your use, without any representations, warranties or conditions of any kind, either express or implied, including all implied warranties or conditions of merchantability, merchantable quality, fitness for a particular purpose, durability, title and non-infringement.
+In no event shall Your-Garden-Eden, our directors, officers, employees, affiliates, agents, contractors, interns, suppliers, service providers, or licensors be liable for any injuries, losses, claims, or any direct, indirect, incidental, punitive, special, or consequential damages of any kind, including, but not limited to, lost profits, lost revenue, lost savings, data loss, replacement costs, or similar damages, whether based on contract, tort (including negligence), strict liability, or otherwise, arising from your use of the Service or products obtained through the Service, or for any other claims in any way related to your use of the Service or any product, including, but not limited to, errors or omissions in content or loss or damage of any kind arising from the use of the Service or any content (or products) posted, transmitted or otherwise made available through the Service, even if advised of their possibility. Because some states or jurisdictions do not allow the exclusion or limitation of liability for consequential or incidental damages, our liability in such states or jurisdictions is limited to the maximum extent permitted by law.
+## SECTION 14 – DAMAGES
+You agree to indemnify and hold harmless Your-Garden-Eden and our parent companies, subsidiaries, affiliates, officers, directors, agents, contractors, licensors, service providers, subcontractors, suppliers, interns, and employees from any claims and demands, including reasonable attorneys' fees, arising from your breach of these Terms of Service or the documents referenced in these Terms of Service, or your violation of any law or the rights of a third party.
+## SECTION 15 – SEVERABILITY
+If any provision of these Terms and Conditions is found to be unlawful, invalid, or unenforceable, that provision shall nevertheless be enforceable to the fullest extent permitted by applicable law, and the unenforceable portion shall be deemed severed from these Terms and Conditions. Such determination shall not affect the validity and enforceability of all other remaining provisions.
+## SECTION 16 – TERMINATION
+The obligations and liabilities of the parties arising prior to the termination date shall survive the termination of this Agreement for all purposes.
+These Terms and Conditions shall remain in effect until terminated by you or us. You may terminate these Terms and Conditions at any time by notifying us that you no longer wish to use our services, or when you cease using our Site.
+If, in our sole discretion, you breach any term or provision of these terms and conditions, or we suspect that you have breached any term or provision of these terms and conditions, we may also terminate this agreement at any time without notice. In such event, you will remain liable for all amounts due up to and including the date of termination; and/or we may deny you access to our services (or any part thereof) accordingly.
+## SECTION 17 – ENTIRE AGREEMENT
+Our failure to exercise or enforce any right or provision of these Terms and Conditions shall not constitute a waiver of such right or provision.
+These Terms and Conditions and any policies or operating rules posted by us on this site or in respect to the Service constitute the entire agreement and understanding between you and us and govern your use of the Service. They supersede all prior or contemporaneous agreements, communications, and proposals, whether oral or written, between you and us (including, but not limited to, all prior versions of the Terms and Conditions).
+Any ambiguities in the interpretation of these Terms and Conditions shall not be construed against the drafting party.
+## SECTION 18 – GOVERNING LAW
+These Terms of Service and any separate agreements by which we provide you Services are governed by the laws of Germany.
+## SECTION 19 – CHANGES TO TERMS OF SERVICE
+You can view the most current version of the Terms of Service at any time on this page.
+We reserve the right, at our sole discretion, to update, modify, or replace any part of these terms and conditions by posting updates and changes to our website. It is your responsibility to check our website regularly for changes. Your continued use of or access to our website or the service following the posting of any changes to these terms and conditions constitutes acceptance of those changes.
