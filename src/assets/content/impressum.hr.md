@@ -15,5 +15,3 @@ Deutschland
 
 *   Telefon: 01621858637
 *   E-Mail: info@Your-Garden-Eden.de
-*   Umsatzsteuer-ID : 
-*   Handelsregisternummer: 

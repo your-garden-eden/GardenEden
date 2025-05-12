@@ -1,132 +1,79 @@
-# Datenschutzerklärung
-
-# Datenschutzerklärung
-
-Letzte Aktualisierung: 29. April 2025 *(Anmerkung: Datum ggf. anpassen)*
-
-Diese Datenschutzrichtlinie beschreibt, wie Your-Garden-Eden (die „Site“, „wir“, „uns“ oder „unser“) Ihre persönlichen Daten sammelt, verwendet und weitergibt, wenn Sie stygej-6u.myshopify.com (die „Site“) besuchen, unsere Dienste nutzen, einen Kauf dort tätigen oder auf andere Weise bezüglich der Site mit uns kommunizieren (zusammen die „Dienste“). Im Sinne dieser Datenschutzrichtlinie beziehen sich „Sie“ und „Ihr“ auf Sie als Benutzer der Dienste, unabhängig davon, ob Sie Kunde, Website-Besucher oder eine andere Person sind, deren Informationen wir gemäß dieser Datenschutzrichtlinie erfasst haben.
-
-Bitte lesen Sie diese Datenschutzrichtlinie sorgfältig durch.
-
-## Änderungen dieser Datenschutzrichtlinie
-
-Wir können diese Datenschutzrichtlinie von Zeit zu Zeit aktualisieren, unter anderem, um Änderungen unserer Praktiken widerzuspiegeln, oder aus anderen betrieblichen, rechtlichen oder regulatorischen Gründen. Wir werden die überarbeitete Datenschutzrichtlinie auf der Site veröffentlichen, das Datum „Zuletzt aktualisiert“ aktualisieren und alle weiteren gesetzlich erforderlichen Schritte unternehmen.
-
-## So erfassen und verwenden wir Ihre personenbezogenen Daten
-
-Um die Dienste bereitzustellen, sammeln wir personenbezogene Daten über Sie aus verschiedenen Quellen, wie unten aufgeführt. Die von uns gesammelten und verwendeten Informationen variieren je nachdem, wie Sie mit uns interagieren.
-
-Zusätzlich zu den unten aufgeführten spezifischen Verwendungszwecken können wir die über Sie erfassten Informationen verwenden, um mit Ihnen zu kommunizieren, die Dienste bereitzustellen oder zu verbessern, alle geltenden gesetzlichen Verpflichtungen zu erfüllen, alle geltenden Servicebedingungen durchzusetzen und die Dienste, unsere Rechte und die Rechte unserer Benutzer oder anderer zu schützen oder zu verteidigen.
-
-### Welche persönlichen Daten sammeln wir?
-
-Die Art der personenbezogenen Daten, die wir über Sie erhalten, hängt davon ab, wie Sie mit unserer Site interagieren und unsere Dienste nutzen. Wenn wir den Begriff „persönliche Informationen“ verwenden, beziehen wir uns auf Informationen, die Sie identifizieren, sich auf Sie beziehen, Sie beschreiben oder mit Ihnen in Verbindung gebracht werden können. In den folgenden Abschnitten werden die Kategorien und spezifischen Arten der von uns erfassten personenbezogenen Daten beschrieben.
-
-#### Informationen, die wir direkt von Ihnen erfassen
-
-Zu den Informationen, die Sie uns direkt über unsere Dienste übermitteln, können gehören:
-
-*   **Kontaktdaten** – einschließlich Ihres Namens, Ihrer Adresse, Telefonnummer und E-Mail-Adresse.
-*   **Bestellinformationen** – einschließlich Ihres Namens, Ihrer Rechnungsadresse, Lieferadresse, Zahlungsbestätigung, E-Mail-Adresse und Telefonnummer.
-*   **Kontoinformationen** – einschließlich Ihres Benutzernamens, Passworts, Sicherheitsfragen und anderer Informationen, die für die Kontosicherheit verwendet werden.
-*   **Informationen zum Kundensupport** – einschließlich der Informationen, die Sie in Ihre Kommunikation mit uns aufnehmen, beispielsweise wenn Sie eine Nachricht über die Dienste senden.
-
-Für einige Funktionen der Dienste ist es möglicherweise erforderlich, dass Sie uns bestimmte Informationen über sich selbst direkt zur Verfügung stellen. Sie können bestimmen, diese Informationen nicht bereitzustellen. Dies kann jedoch dazu führen, dass Sie diese Funktionen nicht nutzen oder nicht darauf zugreifen können.
-
-#### Von uns erfasste Informationen über Ihre Nutzung
-
-Wir können auch automatisch bestimmte Informationen über Ihre Interaktion mit den Diensten erfassen („Nutzungsdaten“). Zu diesem Zweck verwenden wir möglicherweise Cookies, Pixel und ähnliche Technologien („Cookies“). Nutzungsdaten können Informationen darüber enthalten, wie Sie auf unsere Site und Ihr Konto zugreifen und diese verwenden, darunter Geräteinformationen, Browserinformationen, Informationen zu Ihrer Netzwerkverbindung, Ihre IP-Adresse und andere Informationen zu Ihrer Interaktion mit den Diensten.
-
-#### Von Dritten erhaltene Informationen
-
-Schließlich können wir Informationen über Sie von Dritten erhalten, darunter von Anbietern und Dienstleistern, die in unserem Namen Informationen erfassen, beispielsweise:
-
-*   Unternehmen, die unsere Site und Dienste unterstützen, wie etwa Shopify.
-*   Unsere Zahlungsabwickler, die Zahlungsinformationen (z. B. Bankkonto, Kredit- oder Debitkarteninformationen, Rechnungsadresse) erfassen, um Ihre Zahlung abzuwickeln, Ihre Bestellungen auszuführen und Ihnen die von Ihnen angeforderten Produkte oder Dienstleistungen bereitzustellen, um unseren Vertrag mit Ihnen zu erfüllen.
-*   Wenn Sie unsere Site besuchen, E-Mails öffnen oder anklicken, die wir Ihnen senden, oder mit unseren Diensten oder Anzeigen interagieren, können wir oder Dritte, mit denen wir zusammenarbeiten, mithilfe von Online-Tracking-Technologien wie Pixeln, Web Beacons, Software Developer Kits, Bibliotheken von Drittanbietern und Cookies automatisch bestimmte Informationen erfassen.
-
-Alle Informationen, die wir von Dritten erhalten, werden gemäß dieser Datenschutzrichtlinie behandelt. Siehe auch den Abschnitt unten, **Websites und Links Dritter**.
-
-### So verwenden wir Ihre persönlichen Daten
-
-*   **Bereitstellung von Produkten und Dienstleistungen:** Wir verwenden Ihre personenbezogenen Daten, um Ihnen die Dienste bereitzustellen und unseren Vertrag mit Ihnen zu erfüllen, einschließlich der Bearbeitung Ihrer Zahlungen, der Ausführung Ihrer Bestellungen, der Zusendung von Benachrichtigungen in Bezug auf Ihr Konto, Einkäufe, Rücksendungen, Umtausch oder andere Transaktionen, der Erstellung, Pflege und sonstigen Verwaltung Ihres Kontos, der Organisation des Versands, der Erleichterung von Rücksendungen und Umtausch sowie anderer Funktionen und Funktionalitäten in Bezug auf Ihr Konto. Wir können Ihr Einkaufserlebnis auch verbessern, indem wir Shopify ermöglichen, Ihr Konto mit anderen Shopify-Diensten abzugleichen, die Sie möglicherweise verwenden möchten. In diesem Fall verarbeitet Shopify Ihre Daten gemäß seiner Datenschutzrichtlinie und Verbraucherdatenschutzrichtlinie.
-*   **Marketing und Werbung:** Wir können Ihre personenbezogenen Daten für Marketing- und Werbezwecke verwenden, beispielsweise um Marketing- und Werbenachrichten per E-Mail, SMS oder Post zu versenden und Ihnen Werbung für Produkte oder Dienstleistungen anzuzeigen. Hierzu gehört gegebenenfalls die Verwendung Ihrer personenbezogenen Daten, um die Dienste und Werbung auf unserer Site und anderen Websites besser anzupassen. Wenn Sie im EWR ansässig sind, ist die Rechtsgrundlage für diese Datenverarbeitungsaktivitäten unser berechtigtes Interesse am Verkauf unserer Produkte gemäß Art. 6, Abs. 1 (f) DSGVO.
-*   **Sicherheit und Betrugsprävention:** Wir verwenden Ihre personenbezogenen Daten, um mögliche betrügerische, illegale oder böswillige Aktivitäten zu erkennen, zu untersuchen oder entsprechende Maßnahmen zu ergreifen. Wenn Sie sich für die Nutzung der Dienste entscheiden und ein Konto registrieren, sind Sie für die Sicherheit Ihrer Kontoanmeldeinformationen verantwortlich. Wir empfehlen Ihnen dringend, Ihren Benutzernamen, Ihr Passwort oder andere Zugangsdaten nicht an Dritte weiterzugeben. Wenn Sie glauben, dass Ihr Konto kompromittiert wurde, kontaktieren Sie uns bitte umgehend. Wenn Sie im EWR ansässig sind, ist die Rechtsgrundlage für diese Datenverarbeitungsaktivitäten unser berechtigtes Interesse, die Sicherheit unserer Website für Sie und andere Kunden zu gewährleisten, gemäß Art. 6, Abs. 1 (f) DSGVO.
-*   **Kommunikation mit Ihnen und Serviceverbesserung:** Wir verwenden Ihre personenbezogenen Daten, um Ihnen Kundensupport zu bieten und unsere Dienste zu verbessern. Dies liegt in unserem berechtigten Interesse, um Ihnen antworten zu können, Ihnen wirksame Dienstleistungen zu bieten und unsere Geschäftsbeziehung mit Ihnen aufrechtzuerhalten, gemäß Art. 6, Abs. 1 (f) DSGVO.
-
+# Privacy Policy
+Last updated: April 29, 2025 *(Note: adjust date if necessary)*
+This Privacy Policy describes how Your-Garden-Eden (the “Site,” “we,” “us,” or “our”) collects, uses, and shares your personal information when you visit stygej-6u.myshopify.com (the “Site”), use our services, make a purchase there, or otherwise communicate with us in relation to the Site (collectively, the “Services”). For the purposes of this Privacy Policy, “you” and “your” refer to you as a user of the Services, whether you are a customer, website visitor, or other person whose information we have collected in accordance with this Privacy Policy.
+Please read this Privacy Policy carefully.
+## Changes to this Privacy Policy
+We may update this Privacy Policy from time to time, including to reflect changes in our practices or for other operational, legal, or regulatory reasons. We will post the revised Privacy Policy on the Site, update the “Last Updated” date, and take any other steps required by law.
+## How we collect and use your personal information
+In order to provide the Services, we collect personal information about you from various sources, as listed below. The information we collect and use varies depending on how you interact with us.
+In addition to the specific uses listed below, we may use the information we collect about you to communicate with you, provide or improve the Services, comply with any applicable legal obligations, enforce any applicable terms of service, and protect or defend our rights or the rights of our users or others.
+### What personal information do we collect?
+The type of personal information we receive about you depends on how you interact with our Site and use our Services. When we use the term “personal information,” we are referring to information that identifies you, relates to you, describes you, or could be used to contact you. The following sections describe the categories and specific types of personal information we collect.
+#### Information we collect directly from you
+The information you submit directly to us through our services may include:
+*  **Contact information** – including your name, address, telephone number, and email address.
+*  **Order information** – including your name, billing address, shipping address, payment confirmation, email address, and telephone number.
+*  **Account information** – including your username, password, security questions, and other information used for account security.
+*  **Customer support information** – including the information you include in your communications with us, such as when you send a message through the Services.
+Some features of the Services may require you to provide certain information about yourself directly to us. You can choose not to provide this information. However, this may result in you being unable to use or access these features.
+#### Information we collect about your use
+We may also automatically collect certain information about your interaction with the Services (“Usage Data”). To do this, we may use cookies, pixels, and similar technologies (“Cookies”). Usage Data may include information about how you access and use our Site and your account, including device information, browser information, information about your network connection, your IP address, and other information about your interaction with the Services.
+#### Information we receive from third parties
+Finally, we may receive information about you from third parties, including vendors and service providers who collect information on our behalf, such as:
+* Companies that support our Site and Services, such as Shopify.
+* Our payment processors, who collect payment information (e.g., bank account, credit or debit card information, billing address) to process your payment, fulfill your orders, and provide you with the products or services you requested to fulfill our contract with you.
+* When you visit our site, open or click on emails we send you, or interact with our services or ads, we or third parties with whom we work may automatically collect certain information using online tracking technologies such as pixels, web beacons, software developer kits, third-party libraries, and cookies.
+All information we receive from third parties is treated in accordance with this Privacy Policy. See also the section below, **Third-party websites and links**.
+### How we use your personal information
+*  **Providing products and services:** We use your personal information to provide you with the Services and to fulfill our contract with you, including processing your payments, fulfilling your orders, sending you notifications regarding your account, purchases, returns, exchanges, or other transactions, creating, maintaining and otherwise administering your account, organizing shipping, facilitating returns and exchanges, and providing other features and functionality related to your account. We may also enhance your shopping experience by enabling Shopify to match your account with other Shopify services you may wish to use. In this case, Shopify will process your data in accordance with its privacy policy and consumer privacy policy.
+*  **Marketing and advertising:** We may use your personal information for marketing and advertising purposes, such as sending you marketing and advertising messages via email, SMS, or postal mail, and displaying advertisements for products or services to you. This may include using your personal data to better tailor the services and advertising on our site and other websites. If you are located in the EEA, the legal basis for these data processing activities is our legitimate interest in selling our products in accordance with Art. 6, para. 1 (f) GDPR.
+*  **Security and fraud prevention:** We use your personal data to detect, investigate, or take appropriate action against potential fraudulent, illegal, or malicious activities. If you choose to use the Services and register for an account, you are responsible for the security of your account login information. We strongly recommend that you do not share your username, password, or other login details with anyone else. If you believe that your account has been compromised, please contact us immediately. If you are located in the EEA, the legal basis for these data processing activities is our legitimate interest in ensuring the security of our website for you and other customers, in accordance with Art. 6, para. 1 (f) GDPR.
+*  **Communicating with you and improving our services:** We use your personal data to provide you with customer support and to improve our services. This is in our legitimate interest to be able to respond to you, provide you with effective services, and maintain our business relationship with you, in accordance with Art. 6, para. 1 (f) GDPR.
 ## Cookies
-
-Wie viele Websites verwenden wir Cookies auf unserer Site. Spezifische Informationen zu den Cookies, die wir im Zusammenhang mit der Bereitstellung unseres Shops über Shopify verwenden, finden Sie unter <https://www.shopify.com/legal/cookies>. Wir verwenden Cookies, um unsere Site und unsere Dienste zu betreiben und zu verbessern (einschließlich der Speicherung Ihrer Aktionen und Präferenzen), um Analysen durchzuführen und die Benutzerinteraktion mit den Diensten besser zu verstehen (in unserem berechtigten Interesse, die Dienste zu verwalten, zu verbessern und zu optimieren). Wir können Dritten und Dienstanbietern außerdem gestatten, Cookies auf unserer Site zu verwenden, um die Dienste, Produkte und Werbung auf unserer Site und anderen Websites besser anzupassen.
-
-Die meisten Browser akzeptieren Cookies standardmäßig automatisch. Sie können Ihren Browser jedoch so einstellen, dass Cookies über die Browsersteuerung entfernt oder abgelehnt werden. Bitte beachten Sie, dass das Entfernen oder Blockieren von Cookies Ihre Benutzererfahrung beeinträchtigen kann und dazu führen kann, dass einige der Dienste, einschließlich bestimmter Funktionen und allgemeiner Funktionalitäten, nicht richtig funktionieren oder nicht mehr verfügbar sind. Darüber hinaus kann das Blockieren von Cookies nicht vollständig verhindern, dass wir Informationen an Dritte, beispielsweise unsere Werbepartner, weitergeben.
-
-## Wie wir personenbezogene Daten weitergeben
-
-Unter bestimmten Umständen können wir Ihre personenbezogenen Daten zum Zwecke der Vertragserfüllung, zu legitimen Zwecken und aus anderen Gründen, die dieser Datenschutzrichtlinie unterliegen, an Dritte weitergeben. Zu diesen Umständen können gehören:
-
-*   mit Anbietern oder anderen Drittparteien, die in unserem Auftrag Dienstleistungen erbringen (z. B. IT-Management, Zahlungsabwicklung, Datenanalyse, Kundensupport, Cloud-Speicher, Auftragserfüllung und Versand).
-*   mit Geschäfts- und Marketingpartnern um Ihnen Dienste bereitzustellen und Werbung für Sie zu machen. Unsere Geschäfts- und Marketingpartner verwenden Ihre Daten gemäß ihren eigenen Datenschutzrichtlinien.
-*   Wenn Sie uns anweisen, auffordern oder uns anderweitig Ihre Zustimmung zur Weitergabe bestimmter Informationen an Dritte erteilen, beispielsweise um Ihnen Produkte zuzusenden oder durch Ihre Nutzung von Social-Media-Widgets oder Login-Integrationen, und zwar mit Ihrer Zustimmung.
-*   mit unseren Tochtergesellschaften oder anderweitig innerhalb unserer Unternehmensgruppe, in unserem berechtigten Interesse, ein erfolgreiches Geschäft zu führen.
-*   Im Zusammenhang mit einer Geschäftstransaktion wie einer Fusion oder einem Konkurs, um alle geltenden gesetzlichen Verpflichtungen zu erfüllen (einschließlich der Beantwortung von Vorladungen, Durchsuchungsbefehlen und ähnlichen Anfragen), um alle geltenden Servicebedingungen durchzusetzen und um die Dienste, unsere Rechte und die Rechte unserer Benutzer oder anderer zu schützen oder zu verteidigen.
-
-Wir geben die folgenden Kategorien personenbezogener Daten und sensibler personenbezogener Daten über Benutzer für die oben genannten Zwecke weiter (siehe „So erfassen und verwenden wir Ihre personenbezogenen Daten“ und „Wie wir personenbezogene Daten weitergeben“):
-
-**Kategorie** | **Kategorien von Empfängern**
+Like many websites, we use cookies on our site. Specific information about the cookies we use in connection with the provision of our shop via Shopify can be found at <https://www.shopify.com/legal/cookies>. We use cookies to operate and improve our site and services (including storing your actions and preferences), to perform analytics, and to better understand user interaction with the services (in our legitimate interest to administer, improve, and optimize the services). We may also allow third parties and service providers to use cookies on our site to better tailor the services, products, and advertising on our site and other websites.
+Most browsers automatically accept cookies by default. However, you can set your browser to remove or reject cookies through your browser controls. Please note that removing or blocking cookies may affect your user experience and may cause some of the Services, including certain features and general functionality, to not function properly or become unavailable. In addition, blocking cookies may not completely prevent us from sharing information with third parties, such as our advertising partners.
+## How we share personal information
+Under certain circumstances, we may share your personal data with third parties for the purposes of contract fulfillment, for legitimate purposes, and for other reasons subject to this Privacy Policy. These circumstances may include:
+*  with providers or other third parties who provide services on our behalf (e.g., IT management, payment processing, data analysis, customer support, cloud storage, order fulfillment, and shipping).
+*  with business and marketing partners to provide services to you and advertise to you. Our business and marketing partners use your data in accordance with their own privacy policies.
+* If you instruct us, request us, or otherwise give us your consent to share certain information with third parties, for example, to send you products or through your use of social media widgets or login integrations, with your consent.
+* With our subsidiaries or otherwise within our corporate group, in our legitimate interest to run a successful business.
+* In connection with a business transaction such as a merger or bankruptcy, to comply with all applicable legal obligations (including responding to subpoenas, search warrants, and similar requests), to enforce all applicable terms of service, and to protect or defend the services, our rights, and the rights of our users or others.
+We share the following categories of personal data and sensitive personal data about users for the purposes described above (see “How we collect and use your personal data” and “How we share personal data”):
+**Category** | **Categories of recipients**
 ------- | --------
-Identifikatoren (wie grundlegende Kontaktdaten, bestimmte Bestell- und Kontoinformationen) | Anbieter und Dritte, die in unserem Auftrag Dienstleistungen erbringen (wie Internetdienstanbieter, Zahlungsabwickler, Fulfillment-Partner, Kundensupport-Partner und Datenanalyseanbieter); Geschäfts- und Marketingpartner; Affiliates
-Kommerzielle Informationen (wie Bestellinformationen, Einkaufsinformationen, Kundensupportinformationen) | Anbieter und Dritte, die in unserem Auftrag Dienstleistungen erbringen (wie Internetdienstanbieter, Zahlungsabwickler, Fulfillment-Partner, Kundensupport-Partner und Datenanalyseanbieter); Geschäfts- und Marketingpartner; Affiliates
-Internet- oder andere ähnliche Netzwerkaktivitäten (wie Nutzungsdaten) | Anbieter und Dritte, die in unserem Auftrag Dienstleistungen erbringen (wie Internetdienstanbieter, Zahlungsabwickler, Fulfillment-Partner, Kundensupport-Partner und Datenanalyseanbieter); Geschäfts- und Marketingpartner; Affiliates
-Geolokalisierungsdaten (z. B. Standorte, die über IP-Adresse oder andere technische Hilfsmittel bestimmt werden) | Anbieter und Dritte, die in unserem Auftrag Dienstleistungen erbringen (wie Internetdienstanbieter, Zahlungsabwickler, Fulfillment-Partner, Kundensupport-Partner und Datenanalyseanbieter); Geschäfts- und Marketingpartner; Affiliates
-
-Ohne Ihre Zustimmung oder zum Zwecke des Rückschluss auf Ihre persönlichen Daten verwenden oder veröffentlichen wir diese nicht.
-
-Mit Ihrer Zustimmung geben wir personenbezogene Daten zum Zwecke der Durchführung von Werbe- und Marketingaktivitäten wie folgt weiter.
-
-## Websites und Links Dritter
-
-Unsere Site enthält möglicherweise Links zu Websites oder anderen Online-Plattformen, die von Dritten betrieben werden. Wenn Sie Links zu Websites folgen, die nicht mit uns verbunden sind oder von uns kontrolliert werden, sollten Sie deren Datenschutz- und Sicherheitsrichtlinien sowie andere Geschäftsbedingungen überprüfen. Wir übernehmen keine Garantie und Verantwortung für den Datenschutz oder die Sicherheit solcher Websites, einschließlich der Richtigkeit, Vollständigkeit oder Zuverlässigkeit der auf diesen Websites gefundenen Informationen. Informationen, die Sie an öffentlichen oder halb-öffentlichen Orten bereitstellen, einschließlich Informationen, die Sie auf Social-Networking-Plattformen Dritter teilen, können möglicherweise auch von anderen Benutzern der Dienste und/oder Benutzern dieser Plattformen Dritter eingesehen werden, ohne dass hinsichtlich der Verwendung durch uns oder Dritte eine Einschränkung besteht. Die Einbeziehung solcher Links durch uns stellt automatisch keine Billigung der Inhalte solcher Plattformen oder ihrer Eigentümer bzw. Betreiber dar, außer wie in den Diensten offengelegt.
-
-## Daten von Kindern
-
-Die Dienste sind nicht für die Nutzung durch Kinder vorgesehen, und wir erfassen wissentlich keine personenbezogenen Daten von Kindern. Wenn Sie Elternteil oder Erziehungsberechtigter eines Kindes sind, das uns seine personenbezogenen Daten übermittelt hat, können Sie uns über die unten angegebenen Kontaktdaten erreichen und die Löschung dieser Daten verlangen.
-
-Zum Zeitpunkt des Inkrafttretens dieser Datenschutzrichtlinie liegt uns keine tatsächliche Kenntnis darüber vor, dass wir personenbezogene Daten von Personen unter 16 Jahren „weitergeben“ oder „verkaufen“ (wie diese Begriffe im geltenden Recht definiert sind).
-
-## Sicherheit und Aufbewahrung Ihrer Daten
-
-Bitte beachten Sie, dass keine Sicherheitsmaßnahmen perfekt oder undurchdringlich sind und wir keine „perfekte Sicherheit“ garantieren können. Darüber hinaus sind die Informationen, die Sie uns senden, während der Übertragung möglicherweise nicht sicher. Wir empfehlen Ihnen, keine unsicheren Kanäle zu verwenden, um uns sensible oder vertrauliche Informationen mitzuteilen.
-
-Wie lange wir Ihre personenbezogenen Daten aufbewahren, hängt von verschiedenen Faktoren ab, beispielsweise davon, ob wir die Daten benötigen, um Ihr Konto zu verwalten, die Dienste bereitzustellen, gesetzlichen Verpflichtungen nachzukommen, Streitigkeiten beizulegen oder andere geltende Verträge und Richtlinien durchzusetzen.
-
-## Ihre Rechte
-
-Je nachdem, wo Sie leben, haben Sie möglicherweise einige oder alle der unten aufgeführten Rechte in Bezug auf Ihre persönlichen Daten. Allerdings sind diese Rechte nicht absolut und gelten nur unter bestimmten Umständen. In bestimmten Fällen können wir Ihre Anfrage im gesetzlich zulässigen Rahmen ablehnen.
-
-*   **Recht auf Zugang/Information:** Sie haben möglicherweise das Recht, Zugriff auf die personenbezogenen Daten zu verlangen, die wir über Sie gespeichert haben, einschließlich Einzelheiten dazu, wie wir Ihre Daten nutzen und weitergeben.
-*   **Recht auf Löschung:** Sie haben möglicherweise das Recht, die Löschung der von uns über Sie gespeicherten personenbezogenen Daten zu verlangen.
-*   **Recht auf Berichtigung:** Sie haben möglicherweise das Recht, die Korrektur unrichtiger personenbezogener Daten zu verlangen, die wir über Sie gespeichert haben.
-*   **Recht auf Portabilität:** Sie haben möglicherweise das Recht, eine Kopie der von uns über Sie gespeicherten personenbezogenen Daten zu erhalten und unter bestimmten Umständen und mit bestimmten Ausnahmen die Übertragung dieser Daten an Dritte zu verlangen.
-*   **Recht auf Widerspruch gegen Verkauf, Weitergabe oder gezielte Werbung:** Sie haben möglicherweise das Recht, uns anzuweisen, Ihre personenbezogenen Daten nicht zu „verkaufen“ oder „weiterzugeben“ oder der Verarbeitung Ihrer personenbezogenen Daten zu Zwecken zu widersprechen, die als „gezielte Werbung“ im Sinne der geltenden Datenschutzgesetze gelten. Bitte beachten Sie: Wenn Sie unsere Site mit aktiviertem Opt-out-Präferenzsignal „Global Privacy Control“ besuchen, behandeln wir dies je nach Ihrem Standort automatisch als eine Aufforderung, dem „Verkauf“ oder der „Weitergabe“ von Informationen für das Gerät und den Browser, die Sie zum Besuch der Site verwenden, zu widersprechen.
-*   **Einschränkung der Verarbeitung:** Sie haben möglicherweise das Recht, uns aufzufordern, die Verarbeitung Ihrer personenbezogenen Daten einzustellen oder einzuschränken.
-*   **Widerruf der Einwilligung:** Wenn wir zur Verarbeitung Ihrer personenbezogenen Daten auf Ihre Einwilligung angewiesen sind, haben Sie möglicherweise das Recht, diese Einwilligung zu widerrufen.
-*   **Recht auf Einspruch:** Wenn wir die Bearbeitung Ihres Antrags ablehnen, haben Sie möglicherweise das Recht, gegen unsere Entscheidung Berufung einzulegen. Dies können Sie durch eine direkte Antwort auf unsere Ablehnung tun.
-*   **Kommunikationseinstellungen verwalten:** Wir senden Ihnen unter Umständen Werbe-E-Mails und Sie können den Erhalt dieser E-Mails jederzeit ablehnen, indem Sie die in unseren E-Mails an Sie angezeigte Abmeldeoption verwenden. Wenn Sie sich abmelden, senden wir Ihnen möglicherweise noch immer E-Mails ohne Werbezweck, beispielsweise zu Ihrem Konto oder Ihren Bestellungen.
-
-Sie können diese Rechte wie auf unserer Site angegeben ausüben oder indem Sie uns über die unten angegebenen Kontaktdaten kontaktieren.
-
-Wir werden Sie nicht diskriminieren, wenn Sie eines dieser Rechte ausüben. Möglicherweise müssen wir zur Überprüfung Ihrer Identität Informationen von Ihnen erfassen, etwa Ihre E-Mail-Adresse oder Kontoinformationen, bevor wir eine inhaltliche Antwort auf die Anfrage geben können. Gemäß den geltenden Gesetzen können Sie einen autorisierten Vertreter benennen, der in Ihrem Namen Anfragen zur Ausübung Ihrer Rechte stellt. Bevor wir eine solche Anfrage eines Vertreters annehmen, müssen wir von diesem den Nachweis erbringen, dass Sie ihn bevollmächtigt haben, in Ihrem Namen zu handeln. Zudem müssen wir unter Umständen Ihre Identität direkt bei uns bestätigen. Wir werden Ihre Anfrage zeitnah beantworten, wie es das geltende Recht erfordert.
+Identifiers (such as basic contact information, certain order and account information) | Providers and third parties who provide services on our behalf (such as internet service providers, payment processors, fulfillment partners, customer support partners, and data analytics providers); business and marketing partners; affiliates
+Commercial information (such as order information, purchase information, customer support information) | Providers and third parties who provide services on our behalf (such as internet service providers, payment processors, fulfillment partners, customer support partners, and data analysis providers); business and marketing partners; affiliates
+Internet or other similar network activity (such as usage data) | Providers and third parties who provide services on our behalf (such as internet service providers, payment processors, fulfillment partners, customer support partners, and data analytics providers); business and marketing partners; affiliates
+Geolocation data (e.g., locations determined via IP address or other technical means) | Providers and third parties who provide services on our behalf (such as internet service providers, payment processors, fulfillment partners, customer support partners, and data analytics providers); business and marketing partners; affiliates
+We will not use or disclose your personal data without your consent or for the purpose of inferring your personal data.
+With your consent, we will disclose personal data for the purpose of conducting advertising and marketing activities as follows.
+## Third-party websites and links
+Our Site may contain links to websites or other online platforms operated by third parties. If you follow links to websites that are not affiliated with or controlled by us, you should review their privacy and security policies and other terms and conditions. We do not guarantee or assume responsibility for the privacy or security of such websites, including the accuracy, completeness, or reliability of the information found on those websites. Information you provide in public or semi-public areas, including information you share on third-party social networking platforms, may also be viewed by other users of the Services and/or users of those third-party platforms without restriction on their use by us or third parties. Our inclusion of such links does not automatically imply our endorsement of the content of such platforms or their owners or operators, except as disclosed in the Services.
+## Children's Data
+The Services are not intended for use by children, and we do not knowingly collect personal data from children. If you are a parent or guardian of a child who has provided us with their personal data, you can contact us using the contact details provided below and request that this data be deleted.
+At the time this Privacy Policy comes into effect, we have no actual knowledge that we “share” or “sell” (as defined in applicable law) personal data of individuals under the age of 16.
+## Security and storage of your data
+Please note that no security measures are perfect or impenetrable, and we cannot guarantee “perfect security.” In addition, the information you send to us may not be secure during transmission. We recommend that you do not use unsecure channels to communicate sensitive or confidential information to us.
+How long we retain your personal data depends on various factors, such as whether we need the data to manage your account, provide the services, comply with legal obligations, resolve disputes, or enforce other applicable agreements and policies.
+## Your rights
+Depending on where you live, you may have some or all of the rights listed below with respect to your personal data. However, these rights are not absolute and only apply in certain circumstances. In certain cases, we may refuse your request to the extent permitted by law.
+*  **Right of Access/Information: You may have the right to request access to the personal information we hold about you, including details of how we use and share your information.
+*  **Right to Erasure: You may have the right to request that we erase the personal information we hold about you.
+*  Right to rectification: You may have the right to request that we correct any inaccurate personal data we hold about you.
+*  Right to portability: You may have the right to obtain a copy of the personal data we hold about you and, in certain circumstances and with certain exceptions, to request that we transfer this data to a third party.
+*  Right to object to sale, sharing, or targeted advertising: You may have the right to instruct us not to “sell” or “share” your personal information or to object to the processing of your personal information for purposes that are considered “targeted advertising” under applicable privacy laws. Please note: If you visit our Site with the “Global Privacy Control” opt-out preference signal enabled, we will automatically treat this as a request to object to the “sale” or “sharing” of information for the device and browser you are using to visit the Site, depending on your location.
+*  **Restriction of processing: You may have the right to request that we stop or restrict the processing of your personal data.
+*  **Withdrawal of consent: If we rely on your consent to process your personal data, you may have the right to withdraw that consent.
+*  **Right to object: If we refuse to process your request, you may have the right to appeal our decision. You can do this by responding directly to our refusal.
+* Manage communication settings: We may send you promotional emails, and you can opt out of receiving these emails at any time by using the unsubscribe option provided in our emails to you. If you unsubscribe, we may still send you emails that are not promotional, such as emails about your account or orders.
+You can exercise these rights as indicated on our site or by contacting us using the contact details provided below.
+We will not discriminate against you for exercising any of these rights. We may need to collect information from you, such as your email address or account information, to verify your identity before we can provide a substantive response to your request. In accordance with applicable law, you may designate an authorized representative to make requests on your behalf to exercise your rights. Before we accept such a request from a representative, we will require the representative to provide proof that you have authorized them to act on your behalf. We may also need to confirm your identity directly with you. We will respond to your request in a timely manner as required by applicable law.
 
 
-
-## Internationale Benutzer
-
-Bitte beachten Sie, dass wir Ihre personenbezogenen Daten möglicherweise außerhalb des Landes übertragen, speichern und verarbeiten, in dem Sie leben. Ihre personenbezogenen Daten werden auch von Mitarbeitern und externen Dienstleistern und Partnern in diesen Ländern verarbeitet.
-
-Wenn wir Ihre personenbezogenen Daten in Länder außerhalb Europas übermitteln, verlassen wir uns dabei auf anerkannte Übermittlungsmechanismen wie die Standardvertragsklauseln der Europäischen Kommission oder gleichwertige Verträge der jeweils zuständigen britischen Behörde, es sei denn, die Datenübertragung erfolgt in ein Land, von dem festgestellt wurde, dass es ein angemessenes Schutzniveau bietet.
-
-## Kontakt
-
-Sollten Sie Fragen zu unseren Datenschutzpraktiken oder dieser Datenschutzrichtlinie haben oder eines der Ihnen zustehenden Rechte ausüben wollen, rufen Sie uns bitte an oder schreiben Sie uns eine E-Mail an info@Your-Garden-Eden.de oder kontaktieren Sie uns unter Schmölln 49, Randowtal-Schmölln, 17291, DE.
-
-Im Sinne der geltenden Datenschutzgesetze und sofern nicht ausdrücklich etwas anderes angegeben ist, sind wir der Verantwortliche für Ihre personenbezogenen Daten.
+## International users
+Please note that we may transfer, store, and process your personal data outside the country in which you live. Your personal data will also be processed by employees and external service providers and partners in these countries.
+When we transfer your personal data to countries outside Europe, we rely on recognized transfer mechanisms such as the European Commission's standard contractual clauses or equivalent agreements with the relevant UK authority, unless the data transfer is to a country that has been determined to provide an adequate level of protection.
+## Contact
+If you have any questions about our data protection practices or this privacy policy, or if you wish to exercise any of your rights, please call us or send us an email at info@Your-Garden-Eden.de or contact us at Schmölln 49, Randowtal-Schmölln, 17291, DE.
+In accordance with applicable data protection laws and unless expressly stated otherwise, we are the controller of your personal data.
