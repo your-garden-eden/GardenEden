@@ -21,4 +21,4 @@ Notwithstanding our extended 30-day return policy, as a consumer in the European
 ## Refunds
 We will notify you once we have received and inspected your return and let you know whether or not the refund has been approved.
 If approved, you will receive an automatic refund to your original payment method within **10 business days**, **minus a fixed return fee of €8.90**.
-Please keep in mind that it may take some time for your bank or credit card company to process and post the refund. If more than 15 business days have passed since we approved your return, please contact us at [info@Your-Garden-Eden.de](mailto:info@Your-Garden-Eden.de).
+Please keep in mind that it may take some time for your bank or credit card company to process and post the refund. If more than 15 business days have passed since we approved your return, please contact us at [info@Your-Garden-Eden.de](mailto:info@Your-Garden-Eden.de). 
