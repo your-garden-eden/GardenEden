@@ -1,39 +1,52 @@
-<!-- home.component.html (ANGEPASST) -->
+<!-- /src/app/features/home/home.component.html -->
 <section class="hero-section">
   <video class="hero-video" autoplay loop muted playsinline>
     <source src="assets/videos/SchleifenVideo.mp4" type="video/mp4">
-    Dein Browser unterstützt leider keine HTML5 Videos.
+    {{ 'home.videoNotSupported' | transloco }}
   </video>
 </section>
 
-<!-- Wetter Sektion WURDE ENTFERNT -->
-<!--
-<section class="weather-section content-container">
-  @if (isLoadingWeather()) {
-    <div class="loading-indicator small"><p>Lade Wetter...</p></div>
-  } @else if (errorWeather()) {
-    <div class="error-message small"><p>{{ errorWeather() }}</p></div>
-  } @else {
-    @if (weatherData(); as data) {
-      <div class="weather-display">
-        <img [src]="data.iconUrl" [alt]="data.description" class="weather-icon" width="50" height="50">
-        <div class="weather-info">
-          <span class="weather-temp">{{ data.tempCelsius | number:'1.0-0' }}°C</span>
-          <span class="weather-desc">{{ data.description }}</span>
-          <span class="weather-location">in {{ data.locationName }}</span>
-        </div>
+<!-- UNTERKATEGORIE SLIDER SEKTION - GEÄNDERTE STRUKTUR -->
+<section class="subcategory-slider-section-fullwidth"> <!-- Neuer Container für volle Breite -->
+  
+  <!-- Optional: Titel für die Sektion - dieser bleibt im content-container zentriert -->
+  <!-- 
+  <div class="content-container"> 
+    <h2>{{ 'home.discoverCategories' | transloco }}</h2>
+  </div> 
+  -->
+
+  <!-- Swiper-Container jetzt außerhalb des .content-containers für den Titel -->
+  <div class="swiper-container-outer"> 
+    <div #subCategorySwiper class="swiper subcategory-swiper">
+      <div class="swiper-wrapper">
+        @for (subItem of shuffledSubCategoryItems(); track subItem.link) {
+          <div class="swiper-slide subcategory-slide">
+            <a [routerLink]="subItem.link" class="subcategory-slide-link">
+              @if (subItem.iconFilename) {
+                <img [src]="getIconPath(subItem.iconFilename)"
+                     [alt]="subItem.i18nId | transloco"
+                     class="subcategory-slide-icon"
+                     loading="lazy">
+              } @else {
+                <div class="subcategory-slide-icon-placeholder">
+                  <span class="material-symbols-outlined">category</span>
+                </div>
+              }
+              <span class="subcategory-slide-label">{{ subItem.i18nId | transloco }}</span>
+            </a>
+          </div>
+        }
       </div>
-    } @else {
-       <p class="info-message small">Wetterdaten nicht verfügbar.</p>
-    }
-  }
+    </div>
+  </div>
 </section>
--->
+<!-- ENDE UNTERKATEGORIE SLIDER SEKTION -->
 
 <section class="bestseller-section content-container">
-  <h2>Unsere Bestseller</h2>
+  <h2>{{ 'home.bestsellersTitle' | transloco }}</h2>
   @if (isLoadingBestsellers()) {
-    <div class="loading-indicator"><p>Lade Bestseller...</p></div>
+    <div class="loading-indicator"><p>{{ 'general.loading' | transloco }}</p></div>
   } @else if (errorBestsellers()) {
     <div class="error-message"><p>{{ errorBestsellers() }}</p></div>
   } @else {
@@ -44,51 +57,7 @@
         }
       </div>
     } @else {
-      <p class="info-message">Momentan sind keine Bestseller verfügbar.</p>
+      <p class="info-message">{{ 'home.noBestsellers' | transloco }}</p>
     }
   }
 </section>
-
-<!-- News Sektion WURDE ENTFERNT -->
-<!--
-<section class="news-section content-container">
-  <h2>Aktuelles aus dem Garten</h2>
-  @if (isLoadingNews()) {
-    <div class="loading-indicator"><p>Lade Nachrichten...</p></div>
-  } @else if (errorNews()) {
-    <div class="error-message"><p>{{ errorNews() }}</p></div>
-  } @else {
-    @if (newsArticles().length > 0) {
-      <div class="news-list">
-        @for (article of newsArticles(); track article.url) {
-          <article class="news-article-card">
-            @if (article.urlToImage) {
-              <a [href]="article.url" target="_blank" rel="noopener noreferrer" class="news-image-link" aria-label="Artikelbild">
-                <img [src]="article.urlToImage" [alt]="article.title || 'Nachrichtenbild'" loading="lazy" class="news-image"
-                     onerror="this.style.display='none'; this.parentElement.style.display='none'">
-              </a>
-            }
-            <div class="news-content">
-              <h3>
-                <a [href]="article.url" target="_blank" rel="noopener noreferrer">{{ article.title }}</a>
-              </h3>
-              @if (article.description) {
-                <p class="news-description">{{ article.description }}</p>
-              }
-              <div class="news-meta">
-                 @if(article.source.name) {
-                    <span class="news-source">Quelle: {{ article.source.name }}</span>
-                 }
-                 <span class="news-date">{{ article.publishedAt | date:'shortDate' }}</span>
-              </div>
-              <a [href]="article.url" target="_blank" rel="noopener noreferrer" class="read-more-link">Weiterlesen<span class="visually-hidden"> über {{article.title}}</span></a>
-            </div>
-          </article>
-        }
-      </div>
-    } @else {
-      <p class="info-message">Keine aktuellen Garten-Nachrichten gefunden.</p>
-    }
-  }
-</section>
--->

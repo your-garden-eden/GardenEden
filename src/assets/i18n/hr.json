@@ -4,7 +4,8 @@
     "loading": "Učitavanje...",
     "error": "Došlo je do pogreške",
     "noResults": "Nema rezultata",
-    "searchPrompt": "Molimo unesite najmanje 3 znaka."
+    "searchPrompt": "Molimo unesite najmanje 3 znaka.",
+    "close": "Zatvori"
   },
   "header": {
     "searchPlaceholder": "Pretražite proizvode...",
@@ -93,7 +94,7 @@
     }
   },
   "categoryOverview": {
-    "pageTitleSuffix": "- Your Garden Eden",
+    "pageTitleSuffix": "- Tvoj Vrtni Raj",
     "notFoundTitle": "Kategorija nije pronađena",
     "notFoundError": "Tražena kategorija nije mogla biti pronađena.",
     "backToHome": "Natrag na početnu stranicu",
@@ -101,7 +102,8 @@
     "popularProducts": "Popularni proizvodi iz ove kategorije",
     "loadingPreview": "Učitavanje pregleda proizvoda...",
     "previewLoadError": "Nije moguće učitati proizvode za pregled.",
-    "noPreviewProducts": "Nema proizvoda za pregled."
+    "noPreviewProducts": "Nema proizvoda za pregled.",
+    "pageTitle": "{{categoryName}} - Tvoj Vrtni Raj"
   },
   "productList": {
     "backTo": "Natrag na",
@@ -113,7 +115,9 @@
     "errorPageTitle": "Pogreška",
     "defaultTitle": "Proizvodi",
     "noProductsFound": "Nažalost, u ovoj kategoriji nisu pronađeni proizvodi.",
-    "loadingMoreProducts": "Učitavanje dodatnih proizvoda..."
+    "loadingMoreProducts": "Učitavanje dodatnih proizvoda...",
+    "pageTitle": "{{collectionName}} - Tvoj Vrtni Raj",
+    "pageTitleError": "{{errorName}} - Tvoj Vrtni Raj"
   },
   "productPage": {
     "backButton": "Natrag",
@@ -143,7 +147,9 @@
       "none": "Nema dostupnog opisa."
     },
     "errorVariantNotAvailable": "Varijanta proizvoda nije dostupna ili nije odabrana.",
-    "errorAddingToCart": "Pogreška pri dodavanju u košaricu."
+    "errorAddingToCart": "Pogreška pri dodavanju u košaricu.",
+    "pageTitle": "{{productName}} - Tvoj Vrtni Raj",
+    "pageTitleError": "{{errorName}} - Tvoj Vrtni Raj"
   },
   "staticPage": {
     "loadingPage": "Učitavanje stranice...",
@@ -155,29 +161,152 @@
       "genericTitle": "Pogreška",
       "noSource": "Nema dostupnog sadržaja za prikaz."
     },
-    "impressum": { "title": "Impresum - Your Garden Eden" },
-    "datenschutz": { "title": "Pravila o privatnosti - Your Garden Eden" },
-    "agb": { "title": "Uvjeti korištenja - Your Garden Eden" },
-    "widerrufsrecht": { "title": "Pravo na odustajanje - Your Garden Eden" },
-    "kontakt": { "title": "Kontakt - Your Garden Eden" },
-    "versand": { "title": "Dostava i isporuka - Your Garden Eden" },
-    "faq": { "title": "Česta pitanja - Your Garden Eden" },
-    "ueberUns": { "title": "O nama - Your Garden Eden" }
+    "impressum": { "title": "Impresum - Tvoj Vrtni Raj" },
+    "datenschutz": { "title": "Pravila o privatnosti - Tvoj Vrtni Raj" },
+    "agb": { "title": "Uvjeti korištenja - Tvoj Vrtni Raj" },
+    "widerrufsrecht": { "title": "Pravo na odustajanje - Tvoj Vrtni Raj" },
+    "kontakt": { "title": "Kontakt - Tvoj Vrtni Raj" },
+    "versand": { "title": "Dostava i isporuka - Tvoj Vrtni Raj" },
+    "faq": { "title": "Česta pitanja - Tvoj Vrtni Raj" },
+    "ueberUns": { "title": "O nama - Tvoj Vrtni Raj" }
   },
   "home": {
-    "title": "Your Garden Eden - Početna stranica"
+    "title": "Tvoj Vrtni Raj - Početna stranica",
+    "videoNotSupported": "Vaš preglednik ne podržava HTML5 videozapise.",
+    "bestsellersTitle": "Naši Bestselleri",
+    "noBestsellers": "Trenutno nema dostupnih bestselera.",
+    "errorLoadingBestsellers": "Pogreška pri učitavanju bestselera.",
+    "discoverCategories": "Otkrijte Naše Kategorije"
   },
   "registerPage": {
-    "title": "Registracija - Your Garden Eden"
+    "title": "Registracija - Tvoj Vrtni Raj",
+    "mainTitle": "Stvori novi račun",
+    "successHeadline": "Registracija uspješna!",
+    "successMessage": "Hvala Vam na registraciji! Email za potvrdu poslan je na {{email}}. Molimo provjerite svoj sandučić (i mapu neželjene pošte) i kliknite na poveznicu kako biste aktivirali svoj račun.",
+    "successRedirectMessage": "Uskoro ćete biti preusmjereni na početnu stranicu. Alternativno, možete",
+    "successRedirectLink": "kliknuti ovdje",
+    "subtitle": "Stvorite svoj osobni račun za Tvoj Vrtni Raj.",
+    "firstNameLabel": "Ime",
+    "firstNamePlaceholder": "Ivan",
+    "errorFirstNameRequired": "Ime je obavezno.",
+    "lastNameLabel": "Prezime",
+    "lastNamePlaceholder": "Horvat",
+    "errorLastNameRequired": "Prezime je obavezno.",
+    "addressStreetLabel": "Ulica i kućni broj",
+    "addressStreetPlaceholder": "Primjerna ulica 123",
+    "errorAddressStreetRequired": "Ulica i kućni broj su obavezni.",
+    "addressZipLabel": "Poštanski broj",
+    "addressZipPlaceholder": "PBR",
+    "errorAddressZipRequired": "Poštanski broj je obavezan.",
+    "errorAddressZipPattern": "Nevažeći poštanski broj.",
+    "addressCityLabel": "Grad",
+    "addressCityPlaceholder": "Primjergrad",
+    "errorAddressCityRequired": "Grad je obavezan.",
+    "emailLabel": "Email adresa",
+    "emailPlaceholder": "ivan.horvat@mail.hr",
+    "errorEmailRequired": "Email je obavezan.",
+    "errorEmailInvalid": "Nevažeća email adresa.",
+    "errorEmailInUse": "Ova email adresa se već koristi.",
+    "passwordLabel": "Lozinka",
+    "errorPasswordRequired": "Lozinka je obavezna.",
+    "errorPasswordMinlength": "Lozinka mora imati najmanje 6 znakova.",
+    "confirmPasswordLabel": "Potvrdi lozinku",
+    "errorConfirmPasswordRequired": "Potvrda lozinke je obavezna.",
+    "errorPasswordsMismatch": "Lozinke se ne podudaraju.",
+    "newsletterLabel": "Da, želim se pretplatiti na newsletter i primati ekskluzivne ponude.",
+    "acceptTermsPrefix": "Pročitao/la sam i prihvaćam",
+    "acceptTermsAGBLink": "Uvjete korištenja",
+    "acceptTermsAnd": "i",
+    "acceptTermsPrivacyLink": "Pravila o privatnosti",
+    "acceptTermsSuffix": ".",
+    "errorAcceptTermsRequired": "Molimo prihvatite Uvjete korištenja i Pravila o privatnosti.",
+    "createAccountButton": "Stvori račun",
+    "creatingAccountButton": "Stvaranje računa...",
+    "alreadyHaveAccountPrompt": "Već imate račun?",
+    "loginHereLink": "Prijavite se ovdje",
+    "errorGeneric": "Registracija nije uspjela. Molimo pokušajte ponovno.",
+    "errorUserRetrieval": "Nije moguće dohvatiti korisnika nakon registracije.",
+    "errorSavingUserData": "Nije moguće spremiti dodatne korisničke podatke.",
+    "errorAutocompleteInit": "Pogreška pri inicijalizaciji samodovršavanja adrese.",
+    "errorAutocompleteInitGeneral": "Samodovršavanje adrese nije moglo biti inicijalizirano.",
+    "errorAddressFieldNotFound": "Polje adrese za samodovršavanje nije pronađeno.",
+    "errorGoogleMapsLoad": "Google Karte nisu mogle biti učitane. Samodovršavanje adrese nije dostupno."
   },
   "profilePage": {
-    "title": "Moj račun - Your Garden Eden"
+    "title": "Moj račun - Tvoj Vrtni Raj",
+    "mainTitle": "Moj račun",
+    "loadingData": "Učitavanje podataka profila...",
+    "backToHome": "Natrag na početnu stranicu",
+    "cancelButton": "Odustani",
+    "editProfileButton": "Uredi profil",
+    "personalDataTitle": "Osobni podaci",
+    "emailLabel": "Email adresa",
+    "emailHint": "Email adresa se ne može mijenjati.",
+    "firstNameLabel": "Ime",
+    "errorFirstNameRequired": "Ime je obavezno.",
+    "lastNameLabel": "Prezime",
+    "errorLastNameRequired": "Prezime je obavezno.",
+    "addressTitle": "Adresa",
+    "addressStreetLabel": "Ulica i kućni broj",
+    "errorAddressStreetRequired": "Ulica i kućni broj su obavezni.",
+    "addressZipLabel": "Poštanski broj",
+    "errorAddressZipRequired": "Poštanski broj je obavezan.",
+    "errorAddressZipPattern": "Nevažeći poštanski broj.",
+    "addressCityLabel": "Grad",
+    "errorAddressCityRequired": "Grad je obavezan.",
+    "settingsTitle": "Postavke",
+    "newsletterLabel": "Da, želim se pretplatiti na newsletter.",
+    "statusLabel": "Status",
+    "subscribed": "Pretplaćen",
+    "notSubscribed": "Nije pretplaćen",
+    "passwordLabel": "Lozinka",
+    "changePasswordButton": "Promijeni lozinku",
+    "changePasswordHint": "Funkcija će biti dodana kasnije.",
+    "saveChangesButton": "Spremi promjene",
+    "savingButton": "Spremanje...",
+    "profileNotAvailable": "Korisnički profil nije dostupan.",
+    "notAvailable": "N/A",
+    "errorUserNotFound": "Korisnik nije pronađen. Molimo prijavite se ponovno.",
+    "errorUserNotFoundSave": "Korisnik nije pronađen. Spremanje nije uspjelo.",
+    "errorProfileLoad": "Nije moguće učitati korisnički profil.",
+    "errorProfileLoadGeneral": "Pogreška pri učitavanju profila.",
+    "successProfileUpdate": "Profil uspješno ažuriran!",
+    "errorProfileSave": "Pogreška pri spremanju profila."
   },
   "cartPage": {
-    "title": "Košarica - Your Garden Eden"
+    "title": "Košarica - Tvoj Vrtni Raj",
+    "mainTitle": "Košarica",
+    "loadingCart": "Učitavanje košarice...",
+    "itemsTitle": "Artikli",
+    "tableHeaderProduct": "Proizvod",
+    "tableHeaderPrice": "Cijena",
+    "tableHeaderQuantity": "Količina",
+    "tableHeaderTotal": "Ukupno",
+    "productLinkTitle": "Na proizvod: ",
+    "decreaseQuantityAria": "Smanji količinu",
+    "increaseQuantityAria": "Povećaj količinu",
+    "updatingText": "Ažuriranje...",
+    "removeItemTitle": "Ukloni artikl",
+    "removeItemAria": "Ukloni artikl",
+    "summaryTitle": "Pregled",
+    "summarySubtotal": "Međuzbroj",
+    "summaryShipping": "Dostava",
+    "summaryShippingText": "Izračunava se na sljedećem koraku",
+    "summaryTaxes": "Porezi",
+    "summaryTotal": "Ukupan iznos",
+    "vatInfo": "Uklj. PDV",
+    "checkoutButton": "Idi na blagajnu",
+    "noteLabel": "Napomena",
+    "emptyCartTitle": "Vaša košarica je prazna.",
+    "emptyCartMessage": "Dodajte proizvode da biste ih vidjeli ovdje.",
+    "continueShoppingButton": "Nastavi s kupnjom",
+    "errorUpdateQuantity": "Količina nije mogla biti ažurirana.",
+    "errorRemoveItem": "Artikl nije mogao biti uklonjen.",
+    "errorCheckoutNotPossible": "Naplata nije moguća. Molimo pokušajte kasnije.",
+    "errorGlobalDefault": "Došlo je do pogreške u košarici. Molimo pokušajte ponovno."
   },
   "wishlistPage": {
-    "title": "Moja lista želja",
+    "title": "Moja lista želja - Tvoj Vrtni Raj",
     "loading": "Učitavanje liste želja...",
     "yourProducts": "Vaši spremljeni proizvodi",
     "actions": {
@@ -203,6 +332,40 @@
       "movingToCartError": "Pogreška pri premještanju {{productName}} u košaricu."
     }
   },
+  "loginOverlay": {
+    "title": "Prijava",
+    "subtitle": "Prijavite se na svoj račun.",
+    "emailLabel": "Email adresa",
+    "emailPlaceholder": "vasa.email@adresa.hr",
+    "emailRequiredError": "Email je obavezan.",
+    "emailInvalidError": "Nevažeća email adresa.",
+    "passwordLabel": "Lozinka",
+    "passwordRequiredError": "Lozinka je obavezna.",
+    "forgotPasswordLink": "Zaboravili ste lozinku?",
+    "loginButton": "Prijavi se",
+    "loggingInButton": "Prijavljujem se...",
+    "orDivider": "ILI",
+    "noAccountPrompt": "Nemate račun?",
+    "registerNowLink": "Registrirajte se sada",
+    "errorInvalidCredentials": "Nevažeća email adresa ili lozinka.",
+    "errorUnknown": "Došlo je do nepoznate pogreške prilikom prijave.",
+    "errorGoogleInvalidResponse": "Prijava putem Googlea nije uspjela (nevažeći odgovor).",
+    "errorGoogleFirebase": "Prijava putem Googlea na Firebase nije uspjela."
+  },
+  "miniCart": {
+    "title": "Košarica",
+    "closeButtonAria": "Zatvori košaricu",
+    "updating": "Ažuriranje...",
+    "emptyMessage": "Vaša košarica je prazna.",
+    "subtotalLabel": "Međuzbroj",
+    "checkoutButton": "Na Blagajnu",
+    "viewCartLink": "Pogledaj košaricu",
+    "decreaseQuantityAria": "Smanji količinu",
+    "increaseQuantityAria": "Povećaj količinu",
+    "errorGlobal": "Došlo je do pogreške u košarici. Molimo pokušajte ponovno.",
+    "errorUpdateQuantity": "Količina nije mogla biti ažurirana.",
+    "errorCheckoutNotPossible": "Naplata trenutno nije moguća."
+  },
   "cookieConsent": {
     "bannerTextLine1": "Koristimo kolačiće kako bismo poboljšali vaše iskustvo pregledavanja i analizirali korištenje naše web stranice. Više informacija potražite u našim",
     "privacyPolicyLink": "Pravilima o privatnosti",
@@ -210,6 +373,6 @@
     "btnAcceptAll": "Prihvati sve"
   },
   "notFound": {
-    "title": "Stranica nije pronađena - Your Garden Eden"
+    "title": "Stranica nije pronađena - Tvoj Vrtni Raj"
   }
 }

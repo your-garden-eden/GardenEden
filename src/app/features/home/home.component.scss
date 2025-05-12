@@ -1,22 +1,18 @@
 // /src/app/features/home/home.component.scss
 
-// Lokale CSS Custom Properties im :host werden nicht mehr benötigt,
-// da wir globale Variablen aus styles.scss verwenden.
-// :host {
-//   --card-border-radius: 8px;
-//   --text-color-normal: #333;
-//   ...etc...
-// }
+// Basis Swiper Styles
+@import 'swiper/scss';
+// @import 'swiper/scss/navigation'; // Navigation-Import ist nicht mehr nötig, da Pfeile entfernt wurden
 
 .content-container {
-  max-width: 1400px; // Spezifischer Wert für diese Seite
+  max-width: 1400px;
   margin-left: auto;
   margin-right: auto;
-  padding-left: var(--spacing-lg);  // Globale Variable
-  padding-right: var(--spacing-lg); // Globale Variable
+  padding-left: var(--spacing-lg);
+  padding-right: var(--spacing-lg);
 }
 
-.visually-hidden { // Bleibt wie es ist, ist eine Utility-Klasse
+.visually-hidden {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -30,10 +26,15 @@
 .hero-section {
   position: relative;
   width: 100%;
-  height: 70vh;
-  min-height: 400px;
+  height: 70vh; // Standardhöhe Desktop
+  min-height: 300px; // Kleinere Min-Höhe für Flexibilität
   overflow: hidden;
-  background-color: var(--background-color-light-gray); // Globale Variable (oder eine spezifischere)
+  background-color: var(--background-color-light-gray); // Für eventuelle Balken bei object-fit: contain
+
+  @media (max-width: 767px) { // Mobile Anpassung
+    height: 35vh;
+    min-height: 200px;
+  }
 }
 
 .hero-video {
@@ -42,58 +43,61 @@
   left: 50%;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: cover; // Bleibt für Desktop und als Standard auf cover
   transform: translate(-50%, -50%);
   z-index: 1;
 }
 
+// Diese Sektionen nutzen weiterhin .content-container als Klasse direkt auf der section
 .bestseller-section, .news-section, .weather-section {
-  padding-top: var(--spacing-xxxl);    // Globale Variable
-  padding-bottom: var(--spacing-xxxl); // Globale Variable
+  // Diese Sektionen bekommen die .content-container Klasse im HTML zugewiesen,
+  // daher ist hier kein separates .content-container Styling nötig, es sei denn für Überschreibungen.
+  padding-top: var(--spacing-xxxl);
+  padding-bottom: var(--spacing-xxxl);
 
   h2 {
     text-align: center;
-    margin-bottom: var(--spacing-xxl); // Globale Variable
-    font-size: 2rem; // Typo-Skala
-    font-weight: var(--font-weight-semibold); // Globale Variable
-    color: var(--text-color-headings); // Globale Variable
+    margin-bottom: var(--spacing-xxl);
+    font-size: 2rem;
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-color-headings);
   }
 
   .loading-indicator, .error-message, .info-message {
     text-align: center;
-    padding: var(--spacing-xxxl) var(--spacing-lg); // Globale Variablen
-    font-size: 1.1rem; // Typo-Skala
-    color: var(--text-color-muted); // Globale Variable
+    padding: var(--spacing-xxxl) var(--spacing-lg);
+    font-size: 1.1rem;
+    color: var(--text-color-muted);
     min-height: 150px;
     display: flex;
     justify-content: center;
     align-items: center;
     &.small {
       min-height: 60px;
-      padding: var(--spacing-lg); // Globale Variable
-      font-size: 0.9rem; // Typo-Skala
+      padding: var(--spacing-lg);
+      font-size: 0.9rem;
     }
   }
-  .error-message { // Wird von der allgemeinen .error-message in category-overview abgedeckt, wenn globaler
-    color: var(--error-text-color); // Globale Variable
-    background-color: var(--error-background-color); // Für Konsistenz
+  .error-message {
+    color: var(--error-text-color);
+    background-color: var(--error-background-color);
     border-radius: var(--border-radius-md);
-    font-weight: var(--font-weight-medium); // Globale Variable
+    font-weight: var(--font-weight-medium);
   }
 }
 
-.weather-section {
-  padding-top: var(--spacing-lg);    // Globale Variable
-  padding-bottom: var(--spacing-lg); // Globale Variable
-  background-color: var(--background-color-light-gray); // Globale Variable
-  border-bottom: 1px solid var(--border-color-light); // Globale Variable
-  margin-bottom: var(--spacing-xl); // Globale Variable
+.weather-section { // Bleibt spezifisch, falls es eigene Styles hat, die nicht von oben abgedeckt werden
+  padding-top: var(--spacing-lg);
+  padding-bottom: var(--spacing-lg);
+  background-color: var(--background-color-light-gray);
+  border-bottom: 1px solid var(--border-color-light);
+  margin-bottom: var(--spacing-xl);
 
   .weather-display {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: var(--spacing-sm); // Globale Variable
+    gap: var(--spacing-sm);
     flex-wrap: wrap;
   }
 
@@ -111,62 +115,62 @@
   }
 
   .weather-temp {
-    font-size: 1.5rem; // Typo-Skala
-    font-weight: var(--font-weight-semibold); // Globale Variable
-    color: var(--text-color-base); // Globale Variable
+    font-size: 1.5rem;
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-color-base);
     line-height: 1.1;
   }
 
   .weather-desc {
-    font-size: 0.95rem; // Typo-Skala
-    color: var(--text-color-muted); // Globale Variable
+    font-size: 0.95rem;
+    color: var(--text-color-muted);
     line-height: 1.2;
     text-transform: capitalize;
   }
   .weather-location {
-      font-size: 0.8rem; // Typo-Skala
-      color: var(--text-color-muted); // Globale Variable (statt --text-color-lighter)
+      font-size: 0.8rem;
+      color: var(--text-color-muted);
       line-height: 1.2;
   }
 }
 
-.bestseller-section {
+.bestseller-section { // Bleibt spezifisch
   .product-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: var(--spacing-xl); // Globale Variable
+    gap: var(--spacing-xl);
     justify-content: center;
-    @media (max-width: 992px) { gap: var(--spacing-lg); } // Globale Variable
-    @media (max-width: 768px) { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--spacing-lg); } // Globale Variable
-    @media (max-width: 480px) { grid-template-columns: repeat(2, 1fr); gap: var(--spacing-sm); } // Globale Variable
+    @media (max-width: 992px) { gap: var(--spacing-lg); }
+    @media (max-width: 768px) { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--spacing-lg); }
+    @media (max-width: 480px) { grid-template-columns: repeat(2, 1fr); gap: var(--spacing-sm); }
   }
 }
 
-.news-section {
-  border-top: 1px solid var(--border-color-light); // Globale Variable
+.news-section { // Bleibt spezifisch (ist aktuell im HTML auskommentiert)
+  border-top: 1px solid var(--border-color-light);
   .news-list {
     display: grid;
     grid-template-columns: 1fr;
-    gap: var(--spacing-xl); // Globale Variable
+    gap: var(--spacing-xl);
     @media (min-width: 768px) { grid-template-columns: repeat(2, 1fr); }
-    @media (min-width: 1024px) { grid-template-columns: repeat(3, 1fr); gap: var(--spacing-xxl); } // Globale Variable
+    @media (min-width: 1024px) { grid-template-columns: repeat(3, 1fr); gap: var(--spacing-xxl); }
   }
   .news-article-card {
-    background-color: var(--background-color-component); // Globale Variable
-    border-radius: var(--border-radius-lg); // Globale Variable (statt --card-border-radius)
-    box-shadow: var(--box-shadow-sm); // Globale Variable (statt --card-shadow)
+    background-color: var(--background-color-component);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--box-shadow-sm);
     overflow: hidden;
     display: flex;
     flex-direction: column;
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
     &:hover {
       transform: translateY(-5px);
-      box-shadow: var(--box-shadow-md); // Stärkerer Schatten beim Hover
+      box-shadow: var(--box-shadow-md);
     }
     .news-image-link {
       display: block;
       aspect-ratio: 16 / 9;
-      background-color: var(--background-color-light-gray); // Globale Variable
+      background-color: var(--background-color-light-gray);
       overflow: hidden;
     }
     .news-image {
@@ -180,33 +184,33 @@
       transform: scale(1.05);
     }
     .news-content {
-      padding: var(--spacing-lg) var(--spacing-xl) var(--spacing-xl); // Globale Variablen
+      padding: var(--spacing-lg) var(--spacing-xl) var(--spacing-xl);
       display: flex;
       flex-direction: column;
       flex-grow: 1;
       h3 {
-        font-size: 1.1rem; // Typo-Skala
-        margin: 0 0 var(--spacing-sm) 0; // Globale Variable
+        font-size: 1.1rem;
+        margin: 0 0 var(--spacing-sm) 0;
         line-height: 1.4;
-        color: var(--text-color-base); // Globale Variable
+        color: var(--text-color-base);
         display: -webkit-box;
         -webkit-line-clamp: 3;
         -webkit-box-orient: vertical;
         overflow: hidden;
         text-overflow: ellipsis;
-        min-height: calc(1.1rem * 1.4 * 3); // Berechnung beibehalten
+        min-height: calc(1.1rem * 1.4 * 3);
         a {
           text-decoration: none;
-          color: inherit; // Erbt Farbe von h3
+          color: inherit;
           transition: color 0.2s ease;
-          &:hover { color: var(--text-color-link-hover); } // Globale Variable
+          &:hover { color: var(--text-color-link-hover); }
         }
       }
       .news-description {
-        font-size: 0.9rem; // Typo-Skala
-        color: var(--text-color-muted); // Globale Variable
+        font-size: 0.9rem;
+        color: var(--text-color-muted);
         line-height: 1.5;
-        margin-bottom: var(--spacing-lg); // Globale Variable
+        margin-bottom: var(--spacing-lg);
         display: -webkit-box;
         -webkit-line-clamp: 4;
         -webkit-box-orient: vertical;
@@ -215,28 +219,28 @@
         flex-grow: 1;
       }
       .news-meta {
-        font-size: 0.8rem; // Typo-Skala
-        color: var(--text-color-muted); // Globale Variable (statt --text-color-lighter)
-        margin-bottom: var(--spacing-sm); // Globale Variable
+        font-size: 0.8rem;
+        color: var(--text-color-muted);
+        margin-bottom: var(--spacing-sm);
         display: flex;
         justify-content: space-between;
         flex-wrap: wrap;
-        gap: var(--spacing-xs); // Globale Variable
-        border-top: 1px dashed var(--border-color-light); // Globale Variable
-        padding-top: var(--spacing-sm); // Globale Variable
+        gap: var(--spacing-xs);
+        border-top: 1px dashed var(--border-color-light);
+        padding-top: var(--spacing-sm);
         margin-top: auto;
-        .news-source { font-weight: var(--font-weight-medium); } // Globale Variable
+        .news-source { font-weight: var(--font-weight-medium); }
       }
       .read-more-link {
-          font-size: 0.9rem; // Typo-Skala
-          font-weight: var(--font-weight-medium); // Globale Variable
-          color: var(--text-color-link); // Globale Variable
+          font-size: 0.9rem;
+          font-weight: var(--font-weight-medium);
+          color: var(--text-color-link);
           text-decoration: none;
           align-self: flex-start;
-          padding: var(--spacing-xs) 0; // Globale Variable
+          padding: var(--spacing-xs) 0;
           &:hover {
               text-decoration: underline;
-              color: var(--text-color-link-hover); // Globale Variable
+              color: var(--text-color-link-hover);
           }
       }
     }
@@ -245,13 +249,134 @@
 
 @media (max-width: 768px) {
   .bestseller-section h2, .news-section h2, .weather-section h2 {
-    font-size: 1.8rem; // Typo-Skala
-    margin-bottom: var(--spacing-xl); // Globale Variable
+    font-size: 1.8rem;
+    margin-bottom: var(--spacing-xl);
   }
 }
 @media (max-width: 480px) {
   .bestseller-section h2, .news-section h2, .weather-section h2 {
-    font-size: 1.5rem; // Typo-Skala
-    margin-bottom: var(--spacing-lg); // Globale Variable
+    font-size: 1.5rem;
+    margin-bottom: var(--spacing-lg);
+  }
+}
+
+/* =============================================== */
+/* Styling für den Unterkategorie-Slider         */
+/* =============================================== */
+.subcategory-slider-section-fullwidth { // Neuer Name, nimmt volle Breite
+  padding-top: var(--spacing-xxl);
+  padding-bottom: var(--spacing-xxxl);
+  width: 100%; // Wichtig für volle Breite
+  box-sizing: border-box;
+
+  // Wenn ein Titel verwendet wird (auskommentiert im HTML), ist er in einem .content-container
+  > .content-container { // Selektiert den .content-container direkt unter .subcategory-slider-section-fullwidth
+    padding-bottom: var(--spacing-xl); // Abstand zwischen Titel und Slider
+    // Das normale .content-container Styling (max-width, margin, padding) gilt hier
+    h2 {
+      text-align: center;
+      margin-bottom: 0;
+      font-size: 1.8rem;
+      font-weight: var(--font-weight-semibold);
+      color: var(--text-color-headings);
+    }
+  }
+}
+
+.swiper-container-outer { // Dieser Container ist jetzt direkt im Fullwidth-Container
+  position: relative;
+  // Kein horizontales Padding mehr hier, der Swiper soll die volle Breite nutzen können
+}
+
+.subcategory-swiper.swiper {
+  width: 100%; // Nimmt volle Breite des .swiper-container-outer
+  overflow: hidden;
+
+  .swiper-wrapper {
+    transition-timing-function: linear !important;
+  }
+}
+
+.subcategory-slide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+  height: auto;
+  user-select: none;
+  width: 120px;
+
+  .subcategory-slide-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: var(--text-color-base);
+    padding: var(--spacing-sm);
+    border-radius: var(--border-radius-md);
+    transition: background-color 0.2s ease, transform 0.2s ease;
+    width: 100%;
+    &:hover {
+      background-color: var(--background-color-hover-light);
+      transform: translateY(-3px);
+      .subcategory-slide-label {
+        color: var(--primary-color);
+      }
+    }
+  }
+
+  .subcategory-slide-icon {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    margin-bottom: var(--spacing-xs);
+    border-radius: var(--border-radius-sm);
+    transition: width 0.2s ease, height 0.2s ease;
+  }
+
+  .subcategory-slide-icon-placeholder {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--background-color-light-gray);
+    border-radius: var(--border-radius-sm);
+    margin-bottom: var(--spacing-xs);
+    transition: width 0.2s ease, height 0.2s ease;
+    .material-symbols-outlined {
+      font-size: 32px;
+      transition: font-size 0.2s ease;
+    }
+  }
+
+  .subcategory-slide-label {
+    font-size: 0.8rem;
+    font-weight: var(--font-weight-medium);
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-height: calc(0.8rem * 1.3 * 2);
+  }
+}
+
+@media (min-width: 768px) {
+  .subcategory-slide {
+    width: 200px;
+    .subcategory-slide-icon,
+    .subcategory-slide-icon-placeholder {
+      width: 140px;
+      height: 140px;
+    }
+    .subcategory-slide-icon-placeholder .material-symbols-outlined {
+      font-size: 70px;
+    }
+    .subcategory-slide-label {
+      font-size: 1rem;
+    }
   }
 }

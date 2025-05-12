@@ -1,160 +1,154 @@
 <!-- /src/app/features/auth/register-page/register-page.component.html -->
 <div class="auth-page-container register-page">
-  <h1>Neues Konto erstellen</h1>
+  <h1>{{ 'registerPage.mainTitle' | transloco }}</h1>
 
   <div *ngIf="registrationSuccessMessage()" class="success-message registration-success">
     <span class="material-symbols-outlined icon-large">mark_email_read</span>
-    <h2>Registrierung erfolgreich!</h2>
-    <p>{{ registrationSuccessMessage() }}</p>
-    <p>Sie werden in Kürze zur Startseite weitergeleitet. Alternativ können Sie auch <a routerLink="/">hier klicken</a>.</p>
+    <h2>{{ 'registerPage.successHeadline' | transloco }}</h2>
+    <p>{{ registrationSuccessMessage() }}</p> <!-- Kommt schon übersetzt aus TS mit E-Mail -->
+    <p>{{ 'registerPage.successRedirectMessage' | transloco }} <a routerLink="/">{{ 'registerPage.successRedirectLink' | transloco }}</a>.</p>
   </div>
 
   <ng-container *ngIf="!registrationSuccessMessage()">
-    <p>Erstelle dein persönliches Konto für Your Garden Eden.</p>
+    <p>{{ 'registerPage.subtitle' | transloco }}</p>
 
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" novalidate class="auth-form">
 
-      <!-- Vorname -->
       <div class="form-field">
-        <label for="firstName">Vorname</label>
-        <input type="text" id="firstName" formControlName="firstName" placeholder="Max" required
+        <label for="firstName">{{ 'registerPage.firstNameLabel' | transloco }}</label>
+        <input type="text" id="firstName" formControlName="firstName" [placeholder]="'registerPage.firstNamePlaceholder' | transloco" required
                [attr.aria-invalid]="firstName?.invalid && (firstName?.touched || formSubmitted())"
                aria-describedby="firstNameError">
         <div id="firstNameError" class="error-container"
              *ngIf="firstName?.invalid && (firstName?.touched || formSubmitted())">
-          <small *ngIf="firstName?.errors?.['required']">Vorname ist erforderlich.</small>
+          <small *ngIf="firstName?.errors?.['required']">{{ 'registerPage.errorFirstNameRequired' | transloco }}</small>
         </div>
       </div>
 
-      <!-- Nachname -->
       <div class="form-field">
-        <label for="lastName">Nachname</label>
-        <input type="text" id="lastName" formControlName="lastName" placeholder="Mustermann" required
+        <label for="lastName">{{ 'registerPage.lastNameLabel' | transloco }}</label>
+        <input type="text" id="lastName" formControlName="lastName" [placeholder]="'registerPage.lastNamePlaceholder' | transloco" required
                [attr.aria-invalid]="lastName?.invalid && (lastName?.touched || formSubmitted())"
                aria-describedby="lastNameError">
          <div id="lastNameError" class="error-container"
              *ngIf="lastName?.invalid && (lastName?.touched || formSubmitted())">
-          <small *ngIf="lastName?.errors?.['required']">Nachname ist erforderlich.</small>
+          <small *ngIf="lastName?.errors?.['required']">{{ 'registerPage.errorLastNameRequired' | transloco }}</small>
         </div>
       </div>
 
-      <!-- Adresse - Straße (mit Template-Referenzvariable) -->
       <div class="form-field">
-        <label for="addressStreet">Straße & Hausnummer</label>
+        <label for="addressStreet">{{ 'registerPage.addressStreetLabel' | transloco }}</label>
         <input #addressStreetInput
                type="text" id="addressStreet" formControlName="addressStreet"
-               placeholder="Adresse eingeben..." required
+               [placeholder]="'registerPage.addressStreetPlaceholder' | transloco" required
                [attr.aria-invalid]="addressStreet?.invalid && (addressStreet?.touched || formSubmitted())"
                aria-describedby="addressStreetError">
         <div id="addressStreetError" class="error-container"
               *ngIf="addressStreet?.invalid && (addressStreet?.touched || formSubmitted())">
-          <small *ngIf="addressStreet?.errors?.['required']">Straße und Hausnummer sind erforderlich.</small>
+          <small *ngIf="addressStreet?.errors?.['required']">{{ 'registerPage.errorAddressStreetRequired' | transloco }}</small>
         </div>
       </div>
 
-      <!-- Adresse - PLZ & Ort (in einer Reihe) -->
       <div class="form-row">
         <div class="form-field zip-field">
-          <label for="addressZip">Postleitzahl</label>
-          <input type="text" id="addressZip" formControlName="addressZip" placeholder="PLZ" required inputmode="numeric"
+          <label for="addressZip">{{ 'registerPage.addressZipLabel' | transloco }}</label>
+          <input type="text" id="addressZip" formControlName="addressZip" [placeholder]="'registerPage.addressZipPlaceholder' | transloco" required inputmode="numeric"
                 [attr.aria-invalid]="addressZip?.invalid && (addressZip?.touched || formSubmitted())"
                 aria-describedby="addressZipError">
           <div id="addressZipError" class="error-container"
                 *ngIf="addressZip?.invalid && (addressZip?.touched || formSubmitted())">
-            <small *ngIf="addressZip?.errors?.['required']">PLZ ist erforderlich.</small>
-            <small *ngIf="addressZip?.errors?.['pattern']">Ungültige PLZ.</small>
+            <small *ngIf="addressZip?.errors?.['required']">{{ 'registerPage.errorAddressZipRequired' | transloco }}</small>
+            <small *ngIf="addressZip?.errors?.['pattern']">{{ 'registerPage.errorAddressZipPattern' | transloco }}</small>
           </div>
         </div>
         <div class="form-field city-field">
-          <label for="addressCity">Ort</label>
-          <input type="text" id="addressCity" formControlName="addressCity" placeholder="Ort" required
+          <label for="addressCity">{{ 'registerPage.addressCityLabel' | transloco }}</label>
+          <input type="text" id="addressCity" formControlName="addressCity" [placeholder]="'registerPage.addressCityPlaceholder' | transloco" required
                 [attr.aria-invalid]="addressCity?.invalid && (addressCity?.touched || formSubmitted())"
                 aria-describedby="addressCityError">
           <div id="addressCityError" class="error-container"
                 *ngIf="addressCity?.invalid && (addressCity?.touched || formSubmitted())">
-            <small *ngIf="addressCity?.errors?.['required']">Ort ist erforderlich.</small>
+            <small *ngIf="addressCity?.errors?.['required']">{{ 'registerPage.errorAddressCityRequired' | transloco }}</small>
           </div>
         </div>
       </div>
 
-      <!-- E-Mail -->
       <div class="form-field">
-        <label for="email">E-Mail-Adresse</label>
-        <input type="email" id="email" formControlName="email" placeholder="max.mustermann@mail.de" required
+        <label for="email">{{ 'registerPage.emailLabel' | transloco }}</label>
+        <input type="email" id="email" formControlName="email" [placeholder]="'registerPage.emailPlaceholder' | transloco" required
                [attr.aria-invalid]="email?.invalid && (email?.touched || formSubmitted())"
                aria-describedby="emailError">
         <div id="emailError" class="error-container"
              *ngIf="email?.invalid && (email?.touched || formSubmitted())">
-          <small *ngIf="email?.errors?.['required']">E-Mail ist erforderlich.</small>
-          <small *ngIf="email?.errors?.['email']">Ungültige E-Mail-Adresse.</small>
-          <small *ngIf="email?.errors?.['alreadyInUse']">Diese E-Mail-Adresse wird bereits verwendet.</small>
+          <small *ngIf="email?.errors?.['required']">{{ 'registerPage.errorEmailRequired' | transloco }}</small>
+          <small *ngIf="email?.errors?.['email']">{{ 'registerPage.errorEmailInvalid' | transloco }}</small>
+          <small *ngIf="email?.errors?.['alreadyInUse']">{{ 'registerPage.errorEmailInUse' | transloco }}</small>
         </div>
       </div>
 
-      <!-- Passwort -->
       <div class="form-field">
-        <label for="password">Passwort</label>
+        <label for="password">{{ 'registerPage.passwordLabel' | transloco }}</label>
         <input type="password" id="password" formControlName="password" required minlength="6"
                [attr.aria-invalid]="password?.invalid && (password?.touched || formSubmitted())"
                aria-describedby="passwordError">
          <div id="passwordError" class="error-container"
              *ngIf="password?.invalid && (password?.touched || formSubmitted())">
-          <small *ngIf="password?.errors?.['required']">Passwort ist erforderlich.</small>
-          <small *ngIf="password?.errors?.['minlength']">Passwort muss mindestens 6 Zeichen lang sein.</small>
+          <small *ngIf="password?.errors?.['required']">{{ 'registerPage.errorPasswordRequired' | transloco }}</small>
+          <small *ngIf="password?.errors?.['minlength']">{{ 'registerPage.errorPasswordMinlength' | transloco }}</small>
         </div>
       </div>
 
-      <!-- Passwort bestätigen -->
       <div class="form-field">
-        <label for="confirmPassword">Passwort bestätigen</label>
+        <label for="confirmPassword">{{ 'registerPage.confirmPasswordLabel' | transloco }}</label>
         <input type="password" id="confirmPassword" formControlName="confirmPassword" required
                [attr.aria-invalid]="(confirmPassword?.invalid || registerForm.errors?.['passwordsMismatch']) && (confirmPassword?.touched || formSubmitted())"
                aria-describedby="confirmPasswordError passwordMatchError">
          <div id="confirmPasswordError" class="error-container"
               *ngIf="confirmPassword?.invalid && (confirmPassword?.touched || formSubmitted())">
-           <small *ngIf="confirmPassword?.errors?.['required']">Passwortbestätigung ist erforderlich.</small>
+           <small *ngIf="confirmPassword?.errors?.['required']">{{ 'registerPage.errorConfirmPasswordRequired' | transloco }}</small>
          </div>
          <div id="passwordMatchError" class="error-container"
               *ngIf="registerForm.errors?.['passwordsMismatch'] && (confirmPassword?.touched || password?.touched || formSubmitted())">
-           <small>Die Passwörter stimmen nicht überein.</small>
+           <small>{{ 'registerPage.errorPasswordsMismatch' | transloco }}</small>
          </div>
       </div>
 
-      <!-- Newsletter -->
       <div class="form-field checkbox-field">
          <input type="checkbox" id="newsletter" formControlName="newsletter">
-         <label for="newsletter">Ja, ich möchte den Newsletter abonnieren...</label>
+         <label for="newsletter">{{ 'registerPage.newsletterLabel' | transloco }}</label>
       </div>
 
-      <!-- AGB / Datenschutz Checkbox -->
       <div class="form-field checkbox-field terms-field">
          <input type="checkbox" id="acceptTerms" formControlName="acceptTerms" required
                 [attr.aria-invalid]="acceptTerms?.invalid && (acceptTerms?.touched || formSubmitted())"
                 aria-describedby="acceptTermsError">
          <label for="acceptTerms">
-           Ich habe die <a routerLink="/agb" target="_blank" rel="noopener noreferrer">AGB</a> und die
-           <a routerLink="/datenschutz" target="_blank" rel="noopener noreferrer">Datenschutzerklärung</a> gelesen und akzeptiere sie. *
+           {{ 'registerPage.acceptTermsPrefix' | transloco }}
+           <a routerLink="/agb" target="_blank" rel="noopener noreferrer">{{ 'registerPage.acceptTermsAGBLink' | transloco }}</a>
+           {{ 'registerPage.acceptTermsAnd' | transloco }}
+           <a routerLink="/datenschutz" target="_blank" rel="noopener noreferrer">{{ 'registerPage.acceptTermsPrivacyLink' | transloco }}</a>
+           {{ 'registerPage.acceptTermsSuffix' | transloco }} *
          </label>
           <div id="acceptTermsError" class="error-container"
              *ngIf="acceptTerms?.invalid && (acceptTerms?.touched || formSubmitted())">
-           <small *ngIf="acceptTerms?.errors?.['required']">Bitte akzeptiere die AGB und Datenschutzbestimmungen.</small>
+           <small *ngIf="acceptTerms?.errors?.['required']">{{ 'registerPage.errorAcceptTermsRequired' | transloco }}</small>
          </div>
       </div>
 
       <div *ngIf="errorMessage() && !registrationSuccessMessage()" class="error-message general-error">
-        {{ errorMessage() }}
+        {{ errorMessage() }} <!-- Kommt schon übersetzt aus TS -->
       </div>
 
       <button type="submit" class="submit-button" [disabled]="registerForm.invalid || isLoading()">
-        <span *ngIf="!isLoading()">Konto erstellen</span>
+        <span *ngIf="!isLoading()">{{ 'registerPage.createAccountButton' | transloco }}</span>
         <span *ngIf="isLoading()" class="button-loading-spinner"></span>
-        <span *ngIf="isLoading()">Konto wird erstellt...</span>
+        <span *ngIf="isLoading()">{{ 'registerPage.creatingAccountButton' | transloco }}</span>
       </button>
     </form>
 
     <div class="auth-switch-link">
-      <p>Du hast bereits ein Konto?
-        <a href="#" (click)="openLoginOverlay($event)">Hier anmelden</a> <!-- +++ GEÄNDERT +++ -->
+      <p>{{ 'registerPage.alreadyHaveAccountPrompt' | transloco }}
+        <a href="#" (click)="openLoginOverlay($event)">{{ 'registerPage.loginHereLink' | transloco }}</a>
       </p>
     </div>
   </ng-container>

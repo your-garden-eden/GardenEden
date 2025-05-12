@@ -1,16 +1,15 @@
 // /src/app/features/product-list/product-list.component.ts
-import { Component, OnInit, OnDestroy, inject, signal, WritableSignal, ChangeDetectionStrategy, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core'; // ChangeDetectorRef
+import { Component, OnInit, OnDestroy, inject, signal, WritableSignal, ChangeDetectionStrategy, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Title } from '@angular/platform-browser';
-import { Subscription, of, from } from 'rxjs';
-import { switchMap, tap, catchError, finalize, map, take } from 'rxjs/operators';
+import { Subscription, of, from, combineLatest, Observable } from 'rxjs';
+import { switchMap, tap, catchError, finalize, map, take, distinctUntilChanged, startWith } from 'rxjs/operators';
 
 import { ShopifyService, Product, PageInfo, CollectionQueryResult } from '../../core/services/shopify.service';
 import { ProductCardComponent } from '../../shared/components/product-card/product-card.component';
 import { navItems, NavItem, NavSubItem } from '../../core/data/navigation.data';
 
-// Transloco
 import { TranslocoModule, TranslocoService } from '@ngneat/transloco';
 
 @Component({
@@ -20,7 +19,7 @@ import { TranslocoModule, TranslocoService } from '@ngneat/transloco';
     CommonModule,
     ProductCardComponent,
     RouterModule,
-    TranslocoModule // TranslocoModule hinzugefügt
+    TranslocoModule
   ],
   templateUrl: './product-list.component.html',
   styleUrl: './product-list.component.scss',
@@ -30,111 +29,128 @@ export class ProductListComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private shopifyService = inject(ShopifyService);
   private titleService = inject(Title);
-  private router = inject(Router);
-  private translocoService = inject(TranslocoService); // TranslocoService injiziert
-  private cdr = inject(ChangeDetectorRef); // ChangeDetectorRef injiziert
+  private translocoService = inject(TranslocoService);
+  private cdr = inject(ChangeDetectorRef);
 
   products: WritableSignal<Product[]> = signal([]);
   collectionTitle: WritableSignal<string | null> = signal(null);
+  mainCategoryLabel: WritableSignal<string | null> = signal(null);
+
   isLoading: WritableSignal<boolean> = signal(true);
   isLoadingMore: WritableSignal<boolean> = signal(false);
   error: WritableSignal<string | null> = signal(null);
   pageInfo: WritableSignal<PageInfo> = signal({ hasNextPage: false, endCursor: null });
   collectionHandle: string | null = null;
   mainCategoryLink: WritableSignal<string | null> = signal(null);
-  mainCategoryLabel: WritableSignal<string | null> = signal(null); // Wird jetzt übersetzt gesetzt
 
-  private _loadMoreTriggerEl?: ElementRef<HTMLDivElement>;
-  @ViewChild('loadMoreTrigger') set loadMoreTrigger(el: ElementRef<HTMLDivElement> | undefined) {
-    this._loadMoreTriggerEl = el;
-    if (el && this.pageInfo().hasNextPage && !this.isLoadingMore()) {
-      this.setupIntersectionObserver(el.nativeElement);
-    } else if ((!el || !this.pageInfo().hasNextPage) && this.intersectionObserver) {
-      this.disconnectObserver();
-    }
-  }
-  get loadMoreTriggerElement(): ElementRef<HTMLDivElement> | undefined {
-    return this._loadMoreTriggerEl;
-  }
+  @ViewChild('loadMoreTrigger') private loadMoreTriggerEl?: ElementRef<HTMLDivElement>;
   private intersectionObserver?: IntersectionObserver;
-  private routeSubscription?: Subscription;
-  private langChangeSubscription?: Subscription; // Für Sprachwechsel
+  private subscriptions = new Subscription();
   private readonly PRODUCTS_PER_PAGE = 12;
 
-  // Temporäre Speicherung der Navigationsdaten für den Sprachwechsel
   private currentFoundSubItem: NavSubItem | undefined;
   private currentMainCategoryNavItem: NavItem | undefined;
-  private shopifyCollectionTitle: string | null = null; // Titel von Shopify, falls kein navItem existiert
+  private shopifyCollectionTitleFromLoad: string | null = null;
 
   ngOnInit(): void {
-    this.routeSubscription = this.route.paramMap.pipe(
+    const paramMap$ = this.route.paramMap.pipe(
       map(params => params.get('slug')),
+      distinctUntilChanged(),
       tap(slug => {
         this.collectionHandle = slug;
         this.resetState();
-      }),
+        this.isLoading.set(true);
+      })
+    );
+
+    const languageChange$ = this.translocoService.langChanges$.pipe(
+      startWith(this.translocoService.getActiveLang())
+    );
+
+    const dataLoadingSubscription = paramMap$.pipe(
       switchMap(slug => {
         if (!slug) {
-          this.error.set(this.translocoService.translate('productList.errorNoSlug'));
+          const errorMsg = this.translocoService.translate('productList.errorNoSlug');
+          this.error.set(errorMsg);
           this.isLoading.set(false);
-          this.titleService.setTitle(`${this.translocoService.translate('productList.errorPageTitle')} - Your Garden Eden`);
-          return of(null);
+          const errorPageTitleText = this.translocoService.translate('productList.errorPageTitle');
+          this.titleService.setTitle(`${errorPageTitleText} - Your Garden Eden`); // Suffix hier
+          this.collectionTitle.set(errorPageTitleText);
+          this.cdr.detectChanges();
+          return of(null as CollectionQueryResult | null);
         }
 
         const categoryInfo = this.findMainCategoryInfoForSubItemLink(`/product-list/${slug}`);
-        if (categoryInfo) {
-          this.mainCategoryLink.set(categoryInfo.mainCategoryLink);
-          // Label wird unten zusammen mit collectionTitle gesetzt nach Sprachprüfung
-          this.currentMainCategoryNavItem = navItems.find(item => item.link === categoryInfo.mainCategoryLink);
-        }
+        this.mainCategoryLink.set(categoryInfo?.mainCategoryLink ?? null);
+        this.currentMainCategoryNavItem = categoryInfo ? navItems.find(item => item.link === categoryInfo.mainCategoryLink) : undefined;
+        this.currentFoundSubItem = this.findSubItemByLink(`/product-list/${slug}`);
 
         return from(this.shopifyService.getProductsByCollectionHandle(slug, this.PRODUCTS_PER_PAGE, null)).pipe(
+          tap(result => {
+            this.shopifyCollectionTitleFromLoad = result?.title ?? null;
+          }),
           catchError(error => {
             console.error(`Fehler beim Laden der Produkte für Slug ${slug}:`, error);
             this.error.set(this.translocoService.translate('productList.errorLoadingProducts'));
-            this.updateTitlesAfterLanguageChangeOrError(); // Titel setzen basierend auf Fallbacks
             this.isLoading.set(false);
+            this.cdr.detectChanges();
             return of(null);
           })
         );
       })
-    ).subscribe((result: CollectionQueryResult | null) => {
-        if (this.error() && !result) {
-            this.isLoading.set(false);
-            return;
+    ).subscribe(result => {
+      if (result) {
+        const initialProducts = result.products.edges.map(edge => edge.node);
+        this.products.set(initialProducts);
+        this.pageInfo.set(result.products.pageInfo);
+        this.error.set(null);
+        if (this.loadMoreTriggerEl?.nativeElement && this.pageInfo().hasNextPage && !this.isLoadingMore()) {
+          this.setupIntersectionObserver(this.loadMoreTriggerEl.nativeElement);
         }
-
-        this.shopifyCollectionTitle = result?.title ?? null; // Shopify-Titel speichern
-        this.updateTitlesAfterLanguageChangeOrError(result); // Titel setzen
-
-        if (result) {
-            const initialProducts = result.products.edges.map(edge => edge.node);
-            this.products.set(initialProducts);
-            this.pageInfo.set(result.products.pageInfo);
-            this.error.set(null);
-        } else if (!this.error()) {
-            this.products.set([]);
-            this.pageInfo.set({ hasNextPage: false, endCursor: null });
-        }
-        this.isLoading.set(false);
-        if (this.loadMoreTriggerElement && this.pageInfo().hasNextPage && !this.isLoadingMore()) {
-             this.setupIntersectionObserver(this.loadMoreTriggerElement.nativeElement);
-        }
+      } else if (!this.error() && this.collectionHandle) {
+        this.products.set([]);
+        this.pageInfo.set({ hasNextPage: false, endCursor: null });
+      }
+      this.isLoading.set(false);
+      this.cdr.detectChanges();
     });
+    this.subscriptions.add(dataLoadingSubscription);
 
-    this.langChangeSubscription = this.translocoService.langChanges$.subscribe(() => {
-        this.updateTitlesAfterLanguageChangeOrError();
-        if (this.error() === this.translocoService.translate('productList.errorNoSlug') ||
-            this.error() === this.translocoService.translate('productList.errorLoadingProducts')) {
-            // Wenn ein Fehler besteht, der bereits übersetzt wurde, aktualisiere ihn
-            if (this.error() === this.translocoService.translate('productList.errorNoSlug')) {
-                this.error.set(this.translocoService.translate('productList.errorNoSlug'));
-            } else {
-                 this.error.set(this.translocoService.translate('productList.errorLoadingProducts'));
-            }
+    const titleAndLabelSubscription = languageChange$.pipe(
+      switchMap(lang => {
+        let h1Title$: Observable<string>;
+        if (this.currentFoundSubItem?.i18nId) {
+          h1Title$ = this.translocoService.selectTranslate(this.currentFoundSubItem.i18nId, {}, lang);
+        } else if (this.shopifyCollectionTitleFromLoad) {
+          h1Title$ = of(this.shopifyCollectionTitleFromLoad);
+        } else if (this.collectionHandle) {
+          h1Title$ = of(this.collectionHandle);
+        } else {
+          h1Title$ = this.translocoService.selectTranslate('productList.defaultTitle', {}, lang);
         }
-        this.cdr.detectChanges();
+
+        let breadcrumbLabel$: Observable<string | null> = of(null);
+        if (this.currentMainCategoryNavItem?.i18nId) {
+          breadcrumbLabel$ = this.translocoService.selectTranslate(this.currentMainCategoryNavItem.i18nId, {}, lang).pipe(startWith(null));
+        } else if (this.currentMainCategoryNavItem?.label) {
+          breadcrumbLabel$ = of(this.currentMainCategoryNavItem.label);
+        }
+        
+        return combineLatest([h1Title$.pipe(startWith(this.collectionTitle() || null)), breadcrumbLabel$]);
+      })
+    ).subscribe(([translatedH1Title, translatedBreadcrumbLabel]) => {
+      if (translatedH1Title && translatedH1Title !== this.collectionTitle()) {
+        this.collectionTitle.set(translatedH1Title);
+      }
+      
+      // Seitentitel (<title>) wieder mit festem Suffix setzen
+      const currentH1 = this.collectionTitle() || this.collectionHandle || this.translocoService.translate('productList.defaultTitle');
+      this.titleService.setTitle(`${currentH1} - Your Garden Eden`); // SUFFIX WIEDER HIER
+
+      this.mainCategoryLabel.set(translatedBreadcrumbLabel);
+      this.cdr.detectChanges();
     });
+    this.subscriptions.add(titleAndLabelSubscription);
   }
 
   private resetState(): void {
@@ -148,44 +164,12 @@ export class ProductListComponent implements OnInit, OnDestroy {
     this.mainCategoryLabel.set(null);
     this.currentFoundSubItem = undefined;
     this.currentMainCategoryNavItem = undefined;
-    this.shopifyCollectionTitle = null;
+    this.shopifyCollectionTitleFromLoad = null;
     this.disconnectObserver();
   }
 
-  private updateTitlesAfterLanguageChangeOrError(shopifyResult?: CollectionQueryResult | null): void {
-    let displayTitle: string | null = null;
-    let mainCatLabel: string | null = null;
-
-    if (this.collectionHandle) {
-        const expectedLink = `/product-list/${this.collectionHandle}`;
-        this.currentFoundSubItem = this.findSubItemByLink(expectedLink); // Im State speichern
-
-        if (this.currentFoundSubItem?.i18nId) {
-            displayTitle = this.translocoService.translate(this.currentFoundSubItem.i18nId);
-        } else if (this.shopifyCollectionTitle) { // Fallback zum Shopify Titel
-            displayTitle = this.shopifyCollectionTitle;
-        } else if (shopifyResult?.title) { // Fallback zum Shopify Titel vom aktuellen Call
-             displayTitle = shopifyResult.title;
-        } else { // Letzter Fallback zum Handle
-            displayTitle = this.collectionHandle;
-        }
-    }
-    const finalTitle = displayTitle ?? this.translocoService.translate('productList.defaultTitle');
-    this.collectionTitle.set(finalTitle);
-    this.titleService.setTitle(`${finalTitle} - Your Garden Eden`);
-
-    if (this.currentMainCategoryNavItem?.i18nId) {
-        mainCatLabel = this.translocoService.translate(this.currentMainCategoryNavItem.i18nId);
-    } else if (this.currentMainCategoryNavItem?.label) {
-        mainCatLabel = this.currentMainCategoryNavItem.label; // Fallback
-    }
-    this.mainCategoryLabel.set(mainCatLabel);
-  }
-
-
   ngOnDestroy(): void {
-    this.routeSubscription?.unsubscribe();
-    this.langChangeSubscription?.unsubscribe();
+    this.subscriptions.unsubscribe();
     this.disconnectObserver();
   }
 
@@ -206,8 +190,8 @@ export class ProductListComponent implements OnInit, OnDestroy {
 
   private disconnectObserver(): void {
       if (this.intersectionObserver) {
-        if (this.loadMoreTriggerElement?.nativeElement) {
-            this.intersectionObserver.unobserve(this.loadMoreTriggerElement.nativeElement);
+        if (this.loadMoreTriggerEl?.nativeElement) {
+            this.intersectionObserver.unobserve(this.loadMoreTriggerEl.nativeElement);
         }
         this.intersectionObserver.disconnect();
         this.intersectionObserver = undefined;
@@ -241,6 +225,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
           this.disconnectObserver();
       }
       this.isLoadingMore.set(false);
+      this.cdr.detectChanges();
     });
   }
 
@@ -265,7 +250,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
         if (foundSubItem && mainItem.link && mainItem.link.startsWith('/category/')) {
           return {
             mainCategoryLink: mainItem.link,
-            mainCategoryLabelI18nKey: mainItem.i18nId // Wichtig: i18nId der Hauptkategorie zurückgeben
+            mainCategoryLabelI18nKey: mainItem.i18nId
           };
         }
       }
