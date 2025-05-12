@@ -5,9 +5,7 @@
   @if (isLoadingWishlist() || isLoadingProducts()) {
     <div class="loading-indicator wishlist-loading"><p>{{ 'wishlistPage.loading' | transloco }}</p></div>
   }
-  <!-- Fehler vom WishlistService (sollte schon übersetzt sein, falls der Service das macht) -->
   @if (wishlistError(); as errorMsg) { <p class="error-message global-wishlist-error">{{ errorMsg }}</p> }
-  <!-- Fehler vom Product Laden (wird jetzt im TS übersetzt) -->
   @if (productsError(); as errorMsg) { <p class="error-message product-load-error">{{ errorMsg }}</p> }
 
 
@@ -67,7 +65,6 @@
           <div class="summary-row total-price">
             <span>{{ 'wishlistPage.summary.totalPrice' | transloco }}:</span>
             <span>{{ totalPrice() | currency:'EUR':'symbol':'1.2-2':'de-DE' }}</span>
-            <!-- Währung und Locale für CurrencyPipe müssten ggf. auch dynamisch sein -->
           </div>
           <p class="vat-info">{{ 'wishlistPage.summary.vatInfo' | transloco }}</p>
           <button class="add-all-to-cart-button primary-button" (click)="addAllToCart()" [disabled]="isAddAllDisabled()">

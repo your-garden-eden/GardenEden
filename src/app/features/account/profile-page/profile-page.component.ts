@@ -1,11 +1,15 @@
 // /src/app/features/account/profile-page/profile-page.component.ts
-import { Component, OnInit, inject, signal, WritableSignal, computed, Signal } from '@angular/core';
+import { Component, OnInit, inject, signal, WritableSignal, computed, Signal, OnDestroy, ChangeDetectorRef } from '@angular/core'; // OnDestroy, ChangeDetectorRef hinzugefügt
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../../shared/services/auth.service';
 import { Firestore, doc, getDoc, updateDoc, DocumentData, DocumentSnapshot } from '@angular/fire/firestore';
 import { User } from '@angular/fire/auth';
+import { Title } from '@angular/platform-browser'; // Title importieren
+import { TranslocoModule, TranslocoService } from '@ngneat/transloco'; // Transloco importieren
+import { Subscription } from 'rxjs'; // Subscription importieren
+import { startWith, switchMap, tap } from 'rxjs/operators'; // RxJS Operatoren
 
 // Interface für die Benutzerprofildaten in Firestore (ANGEPASST)
 interface UserProfile extends DocumentData {
@@ -19,80 +23,105 @@ interface UserProfile extends DocumentData {
     city: string;
   };
   newsletterSubscribed: boolean;
-  createdAt: Date | any; // Firestore Timestamp könnte auch ein Objekt sein
-  provider?: string; // Optional: 'google.com', 'apple.com', 'password'
-  // --- NEU ---
-  profileComplete: boolean; // Ist das Profil vollständig (Adresse etc.)?
-  // --- ENDE NEU ---
+  createdAt: Date | any;
+  provider?: string;
+  profileComplete: boolean;
 }
 
 @Component({
   selector: 'app-profile-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, TranslocoModule], // TranslocoModule hinzugefügt
   templateUrl: './profile-page.component.html',
   styleUrl: './profile-page.component.scss'
 })
-export class ProfilePageComponent implements OnInit {
-  // Services injizieren
+export class ProfilePageComponent implements OnInit, OnDestroy { // OnDestroy implementieren
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private firestore = inject(Firestore);
-  private router = inject(Router);
+  private titleService = inject(Title); // TitleService injizieren
+  private translocoService = inject(TranslocoService); // TranslocoService injizieren
+  private cdr = inject(ChangeDetectorRef); // ChangeDetectorRef injizieren
 
-  // Signale für Zustand
   currentUser: Signal<User | null> = signal(this.authService.getCurrentUser());
   userProfile: WritableSignal<UserProfile | null> = signal(null);
   isLoading: WritableSignal<boolean> = signal(true);
   isSaving: WritableSignal<boolean> = signal(false);
   errorMessage: WritableSignal<string | null> = signal(null);
+  private errorMessageKey: WritableSignal<string | null> = signal(null); // Key für Fehlermeldung
   successMessage: WritableSignal<string | null> = signal(null);
+  private successMessageKey: WritableSignal<string | null> = signal(null); // Key für Erfolgsmeldung
   isEditing: WritableSignal<boolean> = signal(false);
   formSubmitted: WritableSignal<boolean> = signal(false);
 
-  // Formular-Gruppe
   profileForm!: FormGroup;
+  private subscriptions = new Subscription(); // Für alle Subscriptions
 
   ngOnInit(): void {
     const user = this.currentUser();
     if (user?.uid) {
       this.loadUserProfile(user.uid);
     } else {
-      this.errorMessage.set('Benutzer nicht gefunden. Bitte neu anmelden.');
+      this.errorMessageKey.set('profilePage.errorUserNotFound'); // Key verwenden
+      this.errorMessage.set(this.translocoService.translate(this.errorMessageKey()!));
       this.isLoading.set(false);
       console.error('ProfilePage: No user UID found on init.');
     }
+
+    // Titel und sprachabhängige UI-Texte (Fehler, Erfolg) reaktiv setzen
+    const langChangeSub = this.translocoService.langChanges$.pipe(
+      startWith(this.translocoService.getActiveLang()),
+      switchMap(lang => 
+        this.translocoService.selectTranslate('profilePage.title', {}, lang)
+      ),
+      tap(translatedPageTitle => {
+        this.titleService.setTitle(translatedPageTitle);
+        if (this.errorMessageKey()) {
+          this.errorMessage.set(this.translocoService.translate(this.errorMessageKey()!));
+        }
+        if (this.successMessageKey()) {
+          this.successMessage.set(this.translocoService.translate(this.successMessageKey()!));
+        }
+      })
+    ).subscribe(() => {
+      this.cdr.detectChanges();
+    });
+    this.subscriptions.add(langChangeSub);
   }
 
-  /** Lädt das Benutzerprofil aus Firestore */
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+  }
+
   private async loadUserProfile(userId: string): Promise<void> {
     this.isLoading.set(true);
     this.errorMessage.set(null);
+    this.errorMessageKey.set(null);
     try {
       const userDocRef = doc(this.firestore, `users/${userId}`);
       const docSnap: DocumentSnapshot<DocumentData> = await getDoc(userDocRef);
 
       if (docSnap.exists()) {
         const profileData = docSnap.data() as UserProfile;
-        if (profileData.createdAt?.toDate) { // Prüfen ob es ein Timestamp ist
+        if (profileData.createdAt?.toDate) {
            profileData.createdAt = profileData.createdAt.toDate();
         }
         this.userProfile.set(profileData);
-        console.log('User profile loaded:', profileData);
-        this.initializeForm(); // Formular initialisieren
+        this.initializeForm();
       } else {
         console.error(`Kein Profildokument für Benutzer ${userId} gefunden.`);
-        this.errorMessage.set('Benutzerprofil konnte nicht geladen werden.');
+        this.errorMessageKey.set('profilePage.errorProfileLoad');
+        this.errorMessage.set(this.translocoService.translate(this.errorMessageKey()!));
       }
     } catch (error) {
       console.error('Fehler beim Laden des Benutzerprofils:', error);
-      this.errorMessage.set('Fehler beim Laden des Profils.');
+      this.errorMessageKey.set('profilePage.errorProfileLoadGeneral');
+      this.errorMessage.set(this.translocoService.translate(this.errorMessageKey()!));
     } finally {
       this.isLoading.set(false);
     }
   }
 
-  /** Initialisiert das Formular mit den Profildaten */
   private initializeForm(): void {
     const profile = this.userProfile();
     if (!profile) return;
@@ -104,29 +133,32 @@ export class ProfilePageComponent implements OnInit {
       addressStreet: [profile.address?.street || '', Validators.required],
       addressZip: [profile.address?.zip || '', [Validators.required, Validators.pattern(/^\d{5}$/)]],
       addressCity: [profile.address?.city || '', Validators.required],
-      newsletter: [profile.newsletterSubscribed],
-      passwordPlaceholder: [{ value: '', disabled: true }]
+      newsletter: [profile.newsletterSubscribed]
+      // Passwort-Platzhalter entfernt, da es einen Button gibt
     });
   }
 
-  /** Wechselt zwischen Anzeige- und Bearbeitungsmodus */
   toggleEditMode(): void {
     if (this.isEditing()) {
-      this.initializeForm(); // Mit Originaldaten neu initialisieren
+      this.initializeForm();
       this.formSubmitted.set(false);
       this.errorMessage.set(null);
+      this.errorMessageKey.set(null);
+      this.successMessage.set(null);
+      this.successMessageKey.set(null);
       this.isEditing.set(false);
     } else {
-      if (!this.profileForm) { this.initializeForm(); }
+      if (!this.profileForm) { this.initializeForm(); } // Sicherstellen, dass Form existiert
       this.isEditing.set(true);
     }
   }
 
-  /** Speichert die geänderten Profildaten */
   async onSubmit(): Promise<void> {
     this.formSubmitted.set(true);
     this.errorMessage.set(null);
+    this.errorMessageKey.set(null);
     this.successMessage.set(null);
+    this.successMessageKey.set(null);
 
     if (!this.profileForm || this.profileForm.invalid) {
       console.log('Profilformular ungültig');
@@ -135,12 +167,13 @@ export class ProfilePageComponent implements OnInit {
 
     const user = this.currentUser();
     if (!user?.uid) {
-      this.errorMessage.set('Benutzer nicht gefunden. Speichern fehlgeschlagen.');
+      this.errorMessageKey.set('profilePage.errorUserNotFoundSave');
+      this.errorMessage.set(this.translocoService.translate(this.errorMessageKey()!));
       return;
     }
 
     this.isSaving.set(true);
-    const formValue = this.profileForm.value;
+    const formValue = this.profileForm.getRawValue(); // getRawValue() um auch disabled Felder zu bekommen (obwohl email hier nicht gespeichert wird)
     const updateData = {
       firstName: formValue.firstName,
       lastName: formValue.lastName,
@@ -150,41 +183,41 @@ export class ProfilePageComponent implements OnInit {
         city: formValue.addressCity
       },
       newsletterSubscribed: formValue.newsletter
-      // profileComplete wird hier NICHT geändert, das passiert nur auf der /complete-profile Seite
     };
 
     try {
       const userDocRef = doc(this.firestore, `users/${user.uid}`);
       await updateDoc(userDocRef, updateData);
-      console.log('Profil erfolgreich aktualisiert.');
-
-      // Korrigierte Aktualisierung des Signals
+      
       this.userProfile.update(currentProfile => {
         if (!currentProfile) { return null; }
-        const updatedProfile: UserProfile = {
+        return {
            ...currentProfile,
            firstName: updateData.firstName,
            lastName: updateData.lastName,
            address: updateData.address,
            newsletterSubscribed: updateData.newsletterSubscribed
         };
-        return updatedProfile;
       });
 
-      this.successMessage.set('Profil erfolgreich aktualisiert!');
+      this.successMessageKey.set('profilePage.successProfileUpdate');
+      this.successMessage.set(this.translocoService.translate(this.successMessageKey()!));
       this.isEditing.set(false);
       this.formSubmitted.set(false);
-      setTimeout(() => this.successMessage.set(null), 3000);
+      setTimeout(() => {
+        this.successMessage.set(null);
+        this.successMessageKey.set(null);
+      }, 3000);
 
     } catch (error) {
       console.error('Fehler beim Aktualisieren des Profils:', error);
-      this.errorMessage.set('Fehler beim Speichern des Profils.');
+      this.errorMessageKey.set('profilePage.errorProfileSave');
+      this.errorMessage.set(this.translocoService.translate(this.errorMessageKey()!));
     } finally {
       this.isSaving.set(false);
     }
   }
 
-  // --- Formular-Getter ---
   get firstName() { return this.profileForm?.get('firstName'); }
   get lastName() { return this.profileForm?.get('lastName'); }
   get addressStreet() { return this.profileForm?.get('addressStreet'); }
@@ -192,5 +225,4 @@ export class ProfilePageComponent implements OnInit {
   get addressCity() { return this.profileForm?.get('addressCity'); }
   get email() { return this.profileForm?.get('email'); }
   get newsletter() { return this.profileForm?.get('newsletter'); }
-
 }

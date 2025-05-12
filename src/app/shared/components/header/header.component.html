@@ -1,8 +1,8 @@
 <!-- /src/app/shared/components/header/header.component.html -->
 <header class="app-header two-rows">
   <div class="top-row">
-    <!-- Sprachauswahl -->
-    <div class="language-selector-container">
+    <!-- Sprachauswahl (Desktop) -->
+    <div class="language-selector-container desktop-language-selector"> <!-- Neue Klasse für Desktop -->
       <span class="material-symbols-outlined language-icon" aria-hidden="true">language</span>
       <select class="language-selector"
               [ngModel]="activeLang()"
@@ -11,7 +11,7 @@
               [title]="'header.selectLanguage' | transloco">
         @for(lang of availableLangsSignal(); track lang.id) {
           <option [value]="lang.id">
-            {{ lang.label }}
+            {{ lang.label }} <!-- Nutzt jetzt die ausgeschriebenen Namen -->
           </option>
         }
       </select>
@@ -114,13 +114,11 @@
       </a>
     </div>
     <ul class="desktop-nav-list">
-      <!-- HIER WIRD item.i18nId verwendet (item.label als track key ist ok, solange eindeutig) -->
       @for (item of navItems; track item.label) {
         <li class="nav-item" [class.has-submenu]="item.subItems && item.subItems.length > 0">
           <a [routerLink]="item.link" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: item.link === '/'}">{{ item.i18nId | transloco }}</a>
           @if (item.subItems && item.subItems.length > 0) {
             <ul class="submenu">
-              <!-- HIER WIRD child.i18nId verwendet -->
               @for (child of item.subItems; track child.label) {
                 <li><a [routerLink]="child.link" routerLinkActive="active-link">{{ child.i18nId | transloco }}</a></li>
               }
@@ -135,8 +133,29 @@
        <button class="icon-button close-mobile-menu-button" (click)="closeMobileMenu()" [attr.aria-label]="'header.closeMenu' | transloco">
          <span class="material-symbols-outlined">close</span>
        </button>
+
        <ul class="mobile-nav-list">
-          <!-- HIER WIRD item.i18nId verwendet -->
+          <!-- NEU: Sprachauswahl für Mobile ganz oben -->
+          <li class="mobile-nav-item mobile-language-selector-item">
+            <div class="mobile-language-header">
+              <span class="material-symbols-outlined language-icon">language</span>
+              <span>{{ 'header.selectLanguage' | transloco }}</span>
+            </div>
+            <ul class="mobile-language-list">
+              @for(lang of availableLangsSignal(); track lang.id) {
+                <li>
+                  <button type="button"
+                          class="language-button"
+                          [class.active]="lang.id === activeLang()"
+                          (click)="changeLanguage(lang.id)">
+                    {{ lang.label }} <!-- Ausgeschriebene Namen -->
+                  </button>
+                </li>
+              }
+            </ul>
+          </li>
+          <!-- Ende NEU -->
+
           @for (item of navItems; track item.label) {
             <li class="mobile-nav-item">
               <div class="mobile-nav-item-content">
@@ -153,7 +172,6 @@
               </div>
               @if (item.subItems && item.subItems.length > 0 && item.isExpanded) {
                 <ul class="mobile-submenu">
-                   <!-- HIER WIRD child.i18nId verwendet -->
                    @for (child of item.subItems; track child.label) {
                      <li><a [routerLink]="child.link" routerLinkActive="active-link" (click)="closeMobileMenu()">{{ child.i18nId | transloco }}</a></li>
                    }

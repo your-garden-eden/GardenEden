@@ -5,12 +5,13 @@ import { RouterLink } from '@angular/router';
 import { WishlistService } from '../../../shared/services/wishlist.service';
 import { ShopifyService, Product, CartLineInput, ShopifyProductVariant } from '../../../core/services/shopify.service';
 import { CartService } from '../../../shared/services/cart.service';
-import { ProductCardComponent } from '../../../shared/components/product-card/product-card.component';
+// ProductCardComponent wird hier nicht direkt verwendet, falls doch, wieder einkommentieren
+// import { ProductCardComponent } from '../../../shared/components/product-card/product-card.component';
 import { FormatPricePipe } from '../../../shared/pipes/format-price.pipe';
-
-// Transloco
+import { Title } from '@angular/platform-browser';
 import { TranslocoModule, TranslocoService } from '@ngneat/transloco';
-import { Subscription } from 'rxjs'; // Subscription importieren
+import { Subscription } from 'rxjs';
+import { startWith, switchMap, tap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-wishlist-page',
@@ -19,24 +20,26 @@ import { Subscription } from 'rxjs'; // Subscription importieren
   templateUrl: './wishlist-page.component.html',
   styleUrls: ['./wishlist-page.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [CurrencyPipe]
+  providers: [CurrencyPipe] // CurrencyPipe ist okay hier, wenn nur lokal benötigt oder zur Sicherheit
 })
-export class WishlistPageComponent implements OnInit, OnDestroy { // OnDestroy hinzugefügt
+export class WishlistPageComponent implements OnInit, OnDestroy {
   private wishlistService = inject(WishlistService);
   private shopifyService = inject(ShopifyService);
   private cartService = inject(CartService);
   private cdr = inject(ChangeDetectorRef);
-  private translocoService = inject(TranslocoService); // TranslocoService injiziert
+  private titleService = inject(Title);
+  private translocoService = inject(TranslocoService);
 
   isLoadingWishlist = this.wishlistService.isLoading;
-  wishlistError = this.wishlistService.error; // Wird ggf. vom Service schon übersetzt
+  wishlistError = this.wishlistService.error; // Wird vom Service behandelt
   wishlistHandles = this.wishlistService.wishlistHandles$;
 
   isLoadingProducts: WritableSignal<boolean> = signal(false);
-  productsError: WritableSignal<string | null> = signal(null);
+  productsError: WritableSignal<string | null> = signal(null); // Hält den übersetzten Fehlertext
+  private productsErrorKey: WritableSignal<string | null> = signal(null); // Hält den Key für Neuübersetzung
   wishlistProducts: WritableSignal<Product[]> = signal([]);
 
-  private langChangeSubscription?: Subscription; // Für Sprachwechsel
+  private subscriptions = new Subscription();
 
   totalPrice = computed(() => {
     let total = 0;
@@ -53,135 +56,157 @@ export class WishlistPageComponent implements OnInit, OnDestroy { // OnDestroy h
 
   readonly isAddAllDisabled: Signal<boolean> = computed(() => {
       const loadingProd = this.isLoadingProducts();
-      const loadingWish = this.isLoadingWishlist();
+      const loadingWish = this.isLoadingWishlist(); // isLoading vom Service
       const emptyWish = this.isEmptyWishlist();
-      return loadingProd || loadingWish || emptyWish;
+      const noProducts = this.wishlistProducts().length === 0;
+      const allUnavailable = this.wishlistProducts().every(p => !p.availableForSale);
+      return loadingProd || loadingWish || emptyWish || noProducts || allUnavailable;
   });
 
   constructor() {
+    // Effect zum Laden der Produkte, wenn sich die Wishlist-Handles ändern
     effect(() => {
       const handles = this.wishlistHandles();
-      console.log('WishlistPage EFFECT: Handles changed, checking handles:', handles);
+      // Verhindere mehrfaches Laden, wenn isLoadingProducts bereits true ist
       if (untracked(this.isLoadingProducts)) {
-          console.log("WishlistPage EFFECT: Skipping because products are already loading.");
           return;
       }
       if (handles.length > 0) {
         this.loadProductsByHandles(handles);
       } else {
+        // Wenn keine Handles mehr da sind, leere die Produktliste und Fehler
         if(untracked(this.wishlistProducts).length > 0) { this.wishlistProducts.set([]); }
-        if(untracked(this.productsError)) { this.productsError.set(null); }
+        if(untracked(this.productsError)) { 
+            this.productsError.set(null); 
+            this.productsErrorKey.set(null);
+        }
       }
-      this.cdr.markForCheck();
+      this.cdr.markForCheck(); // Stelle sicher, dass die UI aktualisiert wird
     });
   }
 
   ngOnInit(): void {
-    console.log("WishlistPageComponent initialized.");
-    this.wishlistService.error.set(null);
+    this.wishlistService.error.set(null); // Setze Service-Fehler zurück beim Init
 
-    this.langChangeSubscription = this.translocoService.langChanges$.subscribe(() => {
-        // Wenn Fehlertexte direkt im Component gesetzt werden, hier neu übersetzen
-        if (this.productsError()) {
-            // Diese Logik hängt davon ab, wie die Fehler gesetzt werden.
-            // Einfacher Ansatz: Wenn ein Fehler da ist, versuche ihn neu zu setzen, falls er einem Key entspricht.
-            // Besser: Fehler als Key speichern und bei Anzeige übersetzen oder hier Key neu übersetzen.
-            // Für den Moment lassen wir das, da die meisten Fehler vom Service kommen könnten
-            // oder spezifische Produktnamen enthalten.
+    // Titel und sprachabhängige UI-Texte (Fehler) reaktiv setzen
+    const langChangeSub = this.translocoService.langChanges$.pipe(
+      startWith(this.translocoService.getActiveLang()), // Auch initial ausführen
+      switchMap(lang => 
+        this.translocoService.selectTranslate('wishlistPage.title', {}, lang) 
+      ),
+      tap(translatedPageTitle => {
+        this.titleService.setTitle(translatedPageTitle);
+        
+        // Produktladefehler neu übersetzen, falls vorhanden
+        if (this.productsErrorKey()) {
+          // Parameter für die Fehlermeldung, falls nötig (hier nur productName als Beispiel)
+          const currentProductForError = this.wishlistProducts().find(p => 
+              this.productsErrorKey() === 'wishlistPage.error.productNotAvailable' ||
+              this.productsErrorKey() === 'wishlistPage.error.noVariantFound' ||
+              this.productsErrorKey() === 'wishlistPage.error.movingToCartError'
+          );
+          const params = currentProductForError ? { productName: currentProductForError.title } : {};
+          this.productsError.set(this.translocoService.translate(this.productsErrorKey()!, params));
         }
-        this.cdr.markForCheck();
+      })
+    ).subscribe(() => {
+      this.cdr.detectChanges(); // UI Update anstoßen
     });
+    this.subscriptions.add(langChangeSub);
   }
 
   ngOnDestroy(): void {
-      this.langChangeSubscription?.unsubscribe();
+      this.subscriptions.unsubscribe();
   }
 
   private async loadProductsByHandles(handles: string[]): Promise<void> {
-    if (this.isLoadingProducts()) {
-        console.log("WishlistPage loadProductsByHandles: Already loading, skipping call.");
-        return;
-    }
+    if (this.isLoadingProducts()) return; // Verhindere paralleles Laden
+
     this.isLoadingProducts.set(true);
     this.productsError.set(null);
-    console.log(`WishlistPage loadProductsByHandles: Starting to load ${handles.length} products individually...`);
+    this.productsErrorKey.set(null);
     try {
-      const productPromises = handles.map(async (handle) => {
-         try {
-             console.log(`WishlistPage loadProductsByHandles: Fetching handle: ${handle}`);
-             const product = await this.shopifyService.getProductByHandle(handle);
-             console.log(`WishlistPage loadProductsByHandles: Fetched product for ${handle}:`, !!product);
-             return product;
-         } catch (singleError) {
-             console.error(`WishlistPage loadProductsByHandles: Error fetching single product ${handle}:`, singleError);
-             return null;
-         }
-      });
+      const productPromises = handles.map(handle => 
+        this.shopifyService.getProductByHandle(handle).catch(err => {
+          console.error(`WishlistPage: Error fetching product ${handle}:`, err);
+          return null; // Wichtig, damit Promise.all nicht beim ersten Fehler abbricht
+        })
+      );
       const productsOrNulls = await Promise.all(productPromises);
       const products = productsOrNulls.filter(p => p !== null) as Product[];
-      console.log(`WishlistPage loadProductsByHandles: Promise.all resolved. Loaded ${products.length} products successfully.`);
+      
+      // Produkte in der Reihenfolge der Handles sortieren
       const sortedProducts = handles
         .map(handle => products.find(p => p.handle === handle))
         .filter(p => p !== undefined) as Product[];
+      
       this.wishlistProducts.set(sortedProducts);
+
       if (sortedProducts.length !== handles.length) {
-           console.warn("WishlistPage loadProductsByHandles: Some wishlist products could not be loaded.");
-           // Optional: eine nicht-blockierende Info für den Nutzer
+        console.warn("WishlistPage: Some wishlist products could not be loaded.");
+        // Hier keinen globalen Fehler setzen, da es einzelne Produkte betrifft.
+        // Man könnte eine separate Info-Meldung für den Nutzer anzeigen.
       }
-    } catch (error) {
-      console.error("WishlistPage loadProductsByHandles: Error during Promise.all execution:", error);
-      this.productsError.set(this.translocoService.translate('wishlistPage.error.loadingProducts'));
+    } catch (error) { // Fängt Fehler von Promise.all selbst ab (selten)
+      console.error("WishlistPage: General error loading products by handles:", error);
+      this.productsErrorKey.set('wishlistPage.error.loadingProducts');
+      this.productsError.set(this.translocoService.translate(this.productsErrorKey()!));
       this.wishlistProducts.set([]);
     } finally {
-      console.log("WishlistPage loadProductsByHandles: Setting isLoadingProducts to false.");
       this.isLoadingProducts.set(false);
-      console.log("WishlistPage loadProductsByHandles: Triggering Change Detection after loading.");
       this.cdr.markForCheck();
     }
   }
 
   async removeFromWishlist(productHandle: string): Promise<void> {
-      this.productsError.set(null);
+      this.productsError.set(null); // Fehler zurücksetzen
+      this.productsErrorKey.set(null);
       await this.wishlistService.removeFromWishlist(productHandle);
+      // Die Produktliste wird durch den effect-Hook automatisch aktualisiert.
   }
 
   async moveFromWishlistToCart(product: Product): Promise<void> {
-    if (!product.availableForSale) {
-        this.productsError.set(this.translocoService.translate('wishlistPage.error.productNotAvailable', { productName: product.title }));
-        console.warn(`Product ${product.handle} is not available for sale.`);
-        return;
-    }
-    // ... (Rest der Logik bleibt gleich, aber Fehlermeldungen anpassen)
-    let variantId: string | null | undefined = product.variants?.edges?.find(edge => edge.node.availableForSale)?.node?.id;
-
-    if (!variantId && product.variants?.edges?.[0]?.node?.id) {
-        variantId = product.variants.edges[0].node.id;
-    }
-    if (!variantId) {
-        this.productsError.set(this.translocoService.translate('wishlistPage.error.noVariantFound', { productName: product.title }));
-        console.error(`No variant ID found for product handle: ${product.handle}`);
-        return;
-    }
-    console.log(`Moving ${product.handle} (Variant: ${variantId}) from wishlist to cart.`);
-    this.isLoadingProducts.set(true); // oder ein spezifisches Loading-Signal für diese Aktion
     this.productsError.set(null);
+    this.productsErrorKey.set(null);
+
+    if (!product.availableForSale) {
+        this.productsErrorKey.set('wishlistPage.error.productNotAvailable');
+        this.productsError.set(this.translocoService.translate(this.productsErrorKey()!, { productName: product.title }));
+        return;
+    }
+    // Finde die erste verfügbare Variante oder die erste Variante überhaupt
+    let variantId = product.variants?.edges?.find(edge => edge.node.availableForSale)?.node?.id 
+                  || product.variants?.edges?.[0]?.node?.id;
+
+    if (!variantId) {
+        this.productsErrorKey.set('wishlistPage.error.noVariantFound');
+        this.productsError.set(this.translocoService.translate(this.productsErrorKey()!, { productName: product.title }));
+        return;
+    }
+    
+    // Ein spezifisches Loading-Signal für diese Aktion wäre besser, um nicht die ganze Liste auszublenden
+    // Fürs Erste nutzen wir isLoadingProducts, aber idealerweise ein feingranulareres Signal.
+    // this.isLoadingProducts.set(true); 
     try {
         await this.cartService.addLine(variantId, 1);
-        await this.wishlistService.removeFromWishlist(product.handle);
+        await this.wishlistService.removeFromWishlist(product.handle); // Entfernt von Wunschliste nach erfolgreichem Hinzufügen
     } catch (error: any) {
-        console.error(`Error moving ${product.handle} to cart:`, error);
-        this.productsError.set(this.translocoService.translate('wishlistPage.error.movingToCartError', { productName: product.title }));
+        this.productsErrorKey.set('wishlistPage.error.movingToCartError');
+        this.productsError.set(this.translocoService.translate(this.productsErrorKey()!, { productName: product.title }));
     } finally {
-        this.isLoadingProducts.set(false); // oder spezifisches Loading-Signal zurücksetzen
+        // this.isLoadingProducts.set(false);
     }
   }
 
   async addAllToCart(): Promise<void> {
+      this.productsError.set(null); // Fehler zurücksetzen
+      this.productsErrorKey.set(null);
+      // Die Logik in addAllToCartAndClearWishlist sollte Fehler behandeln
+      // und ggf. einen Fehler über wishlistService.error setzen.
       await this.wishlistService.addAllToCartAndClearWishlist();
-      // Der WishlistService sollte idealerweise auch Fehler behandeln und ggf. übersetzbare Fehler liefern
   }
 
   getProductIdentifier(index: number, product: Product): string {
-    return product.id;
+    return product.id; // product.id ist stabiler als der Index
   }
 }

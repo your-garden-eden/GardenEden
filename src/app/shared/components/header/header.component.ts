@@ -5,7 +5,7 @@ import { CommonModule, isPlatformBrowser, AsyncPipe } from '@angular/common';
 import { Observable, Subscription, Subject, EMPTY } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, tap, switchMap, catchError, startWith } from 'rxjs/operators';
 import { User } from '@angular/fire/auth';
-import { ReactiveFormsModule, FormControl, FormsModule } from '@angular/forms'; // FormsModule hinzugefügt
+import { ReactiveFormsModule, FormControl, FormsModule } from '@angular/forms';
 
 // Komponenten
 import { MiniCartComponent } from '../mini-cart/mini-cart.component';
@@ -31,7 +31,7 @@ import { TranslocoModule, TranslocoService, LangDefinition } from '@ngneat/trans
     CommonModule,
     RouterModule,
     ReactiveFormsModule,
-    FormsModule, // FormsModule hier hinzugefügt
+    FormsModule,
     AsyncPipe,
     MiniCartComponent,
     TranslocoModule
@@ -47,7 +47,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
   private wishlistService = inject(WishlistService);
   private router = inject(Router);
   private renderer = inject(Renderer2);
-  @Inject(PLATFORM_ID) private platformId = inject(PLATFORM_ID);
+  // @Inject(PLATFORM_ID) private platformId = inject(PLATFORM_ID); // Korrektur: platformId wird hier direkt verwendet
+  private platformId = inject(PLATFORM_ID); // KORRIGIERT: Kein @Inject Decorator
   private shopifyService = inject(ShopifyService);
   private breakpointObserver = inject(BreakpointObserver);
   private cdr = inject(ChangeDetectorRef);
@@ -71,8 +72,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   isMobileScreen: WritableSignal<boolean> = signal(false);
 
-  // Für Sprachumschalter
-  availableLangsSignal: WritableSignal<{ id: string; label: string }[]> = signal([]); // Geänderter Name und Typ
+  availableLangsSignal: WritableSignal<{ id: string; label: string }[]> = signal([]);
   activeLang: WritableSignal<string> = signal(this.translocoService.getActiveLang());
 
   constructor() {
@@ -104,32 +104,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   private getMobileBreakpoint(): number {
-    return 1024;
+    return 1024; // Dein SCSS Breakpoint
   }
 
   ngOnInit(): void {
     this.setupSearchDebounce();
     this.setupRouteListener();
-
-    // Sprach-Setup
-    const rawLangs = this.translocoService.getAvailableLangs();
-    // Stelle sicher, dass rawLangs immer ein Array ist, auch wenn nur ein String zurückkommt (unwahrscheinlich, aber sicher ist sicher)
-    const langsArray = Array.isArray(rawLangs) ? rawLangs : [rawLangs as LangDefinition];
-
-    const formattedLangs = langsArray.map(lang => {
-      if (typeof lang === 'string') {
-        // Fallback: Wenn `getAvailableLangs` nur Strings liefert, erstelle Objekte
-        // Annahme: Die `label` soll der Sprachcode in Großbuchstaben sein.
-        // Besser wäre, wenn `getAvailableLangs` immer `LangDefinition[]` liefert
-        // oder du definierst die Labels explizit (z.B. in einer Konstante).
-        // Für den Moment: 'de' -> 'DE', 'en' -> 'EN'
-        return { id: lang, label: lang.toUpperCase() };
-      }
-      // Wenn lang ein Objekt ist (angenommen LangDefinition {id: string, label: string})
-      return lang;
-    });
-    this.availableLangsSignal.set(formattedLangs as {id: string; label: string}[]);
-
+    this.setupLanguageOptions(); // Sprachoptionen initialisieren
 
     const langChangeSub = this.translocoService.langChanges$.subscribe(currentLang => {
         this.activeLang.set(currentLang);
@@ -138,14 +119,46 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.subscriptions.add(langChangeSub);
   }
 
+  private setupLanguageOptions(): void {
+    const rawLangs = this.translocoService.getAvailableLangs();
+    const langsArray = Array.isArray(rawLangs) ? rawLangs : [rawLangs as LangDefinition];
+
+    const formattedLangs = langsArray.map(langInput => {
+      const langId = typeof langInput === 'string' ? langInput : langInput.id;
+      let label = langId.toUpperCase(); // Fallback-Label
+
+      // Ausgeschriebene Labels für bekannte Sprachen
+      switch (langId) {
+        case 'de':
+          label = 'Deutsch';
+          break;
+        case 'en':
+          label = 'English';
+          break;
+        case 'hr':
+          label = 'Hrvatski';
+          break;
+        // Füge hier weitere Sprachen hinzu, falls nötig
+      }
+      // Wenn langInput ein Objekt war und ein Label hatte, nutze das (falls vorhanden und gewünscht)
+      // Für Konsistenz überschreiben wir es hier aber mit unserer Logik.
+      // if (typeof langInput === 'object' && langInput.label) {
+      //   label = langInput.label;
+      // }
+      return { id: langId, label: label };
+    });
+    this.availableLangsSignal.set(formattedLangs);
+  }
+
+
   ngOnDestroy(): void {
      this.subscriptions.unsubscribe();
   }
 
-  changeLanguage(langId: string): void { // Parameter ist jetzt der string Wert der Option
-    if (langId) { // Sicherstellen, dass ein Wert vorhanden ist
+  changeLanguage(langId: string): void {
+    if (langId) {
         this.translocoService.setActiveLang(langId);
-        if(this.isMobileMenuOpen) {
+        if(this.isMobileMenuOpen) { // Schließe das Menü nach Sprachwahl
           this.closeMobileMenu();
         }
     }
@@ -185,9 +198,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
       this.searchResults.set(results ?? []);
       this.isSearchLoading.set(false);
       if (!results || results.length === 0) {
-        if (!this.searchError()) {
-            // Kein Fehlertext
-        }
+        if (!this.searchError()) {}
       } else {
          this.searchError.set(null);
       }

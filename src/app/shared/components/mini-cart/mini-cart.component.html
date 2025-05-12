@@ -3,68 +3,57 @@
      (mouseenter)="cancelTimeout()"
      (mouseleave)="startTimeout()">
 
-  <!-- Optionaler Header -->
   <div class="mini-cart-header">
-    <h3>Warenkorb</h3>
-    <button class="close-button icon-button" (click)="closeCart()" aria-label="Warenkorb schließen">
+    <h3>{{ 'miniCart.title' | transloco }}</h3>
+    <button class="close-button icon-button" (click)="closeCart()" [attr.aria-label]="'miniCart.closeButtonAria' | transloco">
       <span class="material-symbols-outlined">close</span>
     </button>
   </div>
 
-  <!-- Fehleranzeige vom CartService -->
   <div *ngIf="error()" class="error-message">
-    {{ error() }}
+    {{ error() }} <!-- Kommt übersetzt aus TS -->
   </div>
 
-  <!-- Ladeanzeige vom CartService -->
   <div *ngIf="isLoading()" class="loading-indicator">
-    <p>Wird aktualisiert...</p>
+    <p>{{ 'miniCart.updating' | transloco }}</p>
   </div>
 
-  <!-- Inhalt (wenn nicht geladen und kein Fehler) -->
   <div class="mini-cart-content" *ngIf="!isLoading() && !error()">
-
-    <!-- Liste der Artikel -->
     <ul class="cart-item-list" *ngIf="items().length > 0; else emptyCart">
       <li *ngFor="let item of items()" class="cart-item">
-        <!-- Bild -->
         <div class="item-image">
           <a [routerLink]="['/product', item.merchandise.product.handle]" (click)="closeCart()">
-            <!-- Korrektur 1: Optional Chaining im [src] -->
             <img *ngIf="item.merchandise.image?.url"
                  [src]="item.merchandise.image?.url" 
                  [alt]="item.merchandise.product.title"
                  loading="lazy">
             <div *ngIf="!item.merchandise.image?.url" class="no-image-placeholder small">
-              <span class="material-symbols-outlined">image</span>
+              <span class="material-symbols-outlined" [title]="'productPage.noImageAvailable' | transloco">image</span>
             </div>
           </a>
         </div>
-        <!-- Details -->
         <div class="item-details">
           <a [routerLink]="['/product', item.merchandise.product.handle]" class="item-title" (click)="closeCart()">
             {{ item.merchandise.product.title }}
             <span class="item-variant-title" *ngIf="item.merchandise.title !== 'Default Title'">{{ item.merchandise.title }}</span>
           </a>
-          <!-- Korrektur 2: Korrekte Werte an FormatPricePipe -->
-          <span class="item-price" *ngIf="item.merchandise.price"> <!-- *ngIf für price -->
-             {{ item.merchandise.price.amount | formatPrice : item.merchandise.price.currencyCode }} <!-- amount & currencyCode -->
+          <span class="item-price" *ngIf="item.merchandise.price">
+             {{ item.merchandise.price.amount | formatPrice : item.merchandise.price.currencyCode }}
           </span>
         </div>
-        <!-- Menge & Aktionen -->
         <div class="item-actions">
           <div class="quantity-control">
             <button class="quantity-btn minus"
                     (click)="decreaseQuantity(item.id, item.quantity)"
                     [disabled]="isLoading()"
-                    aria-label="Menge verringern">
+                    [attr.aria-label]="'miniCart.decreaseQuantityAria' | transloco">
               <span class="material-symbols-outlined">remove</span>
             </button>
             <span class="quantity-value">{{ item.quantity }}</span>
             <button class="quantity-btn plus"
                     (click)="increaseQuantity(item.id, item.quantity)"
                     [disabled]="isLoading()"
-                    aria-label="Menge erhöhen">
+                    [attr.aria-label]="'miniCart.increaseQuantityAria' | transloco">
               <span class="material-symbols-outlined">add</span>
             </button>
           </div>
@@ -72,31 +61,24 @@
       </li>
     </ul>
 
-    <!-- Meldung für leeren Warenkorb -->
     <ng-template #emptyCart>
-      <p class="empty-cart-message">Dein Warenkorb ist leer.</p>
+      <p class="empty-cart-message">{{ 'miniCart.emptyMessage' | transloco }}</p>
     </ng-template>
-
   </div>
 
-  <!-- Footer mit Summe und Checkout -->
   <div class="mini-cart-footer" *ngIf="!error() && items().length > 0">
     <div class="subtotal">
-      <span>Zwischensumme:</span>
-      <!-- === HIER DIE ÄNDERUNG FÜR SUBTOTAL === -->
-      <!-- Greife auf subtotalData() zu und verwende Pipe im Template -->
+      <span>{{ 'miniCart.subtotalLabel' | transloco }}:</span>
       <span class="subtotal-amount" *ngIf="subtotalData() as subtotal">
          {{ subtotal.amount | formatPrice : subtotal.currencyCode }}
       </span>
-      <span class="subtotal-amount" *ngIf="!subtotalData()">...</span> <!-- Fallback -->
-       <!-- === ENDE DER ÄNDERUNG === -->
+      <span class="subtotal-amount" *ngIf="!subtotalData()">...</span>
     </div>
     <button class="checkout-button"
             (click)="goToCheckout()"
             [disabled]="isLoading() || items().length === 0">
-      Zum Checkout
+      {{ 'miniCart.checkoutButton' | transloco }}
     </button>
-     <a routerLink="/warenkorb" class="view-cart-link" (click)="closeCart()">Warenkorb ansehen</a>
+     <a routerLink="/warenkorb" class="view-cart-link" (click)="closeCart()">{{ 'miniCart.viewCartLink' | transloco }}</a>
   </div>
-
 </div>

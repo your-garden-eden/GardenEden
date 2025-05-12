@@ -1,51 +1,50 @@
 // /src/app/features/cart/cart-page/cart-page.component.scss
-@use "sass:color"; // Wird für color.adjust() benötigt
+@use "sass:color";
 
-// --- Breakpoint-Variablen (bleiben vorerst lokal) ---
+// --- Breakpoint-Variablen ---
 $breakpoint-large: 1024px;
 $breakpoint-medium: 768px;
 $breakpoint-small: 600px;
-$breakpoint-xs: 480px; // Hinzugefügt für Konsistenz mit Media Query am Ende
+$breakpoint-xs: 480px;
 
-// --- Sass-Variablen, die explizit für color.adjust() benötigt werden ---
-// Ihre Werte sollten mit den globalen CSS Custom Properties in styles.scss übereinstimmen.
+// --- Sass-Variablen für color.adjust() ---
 $error-color-sass: #dc3545;     // Entspricht var(--error-color)
 $warning-color-sass: #ffc107;   // Entspricht var(--warning-color)
-$background-color-light-sass: #f8f9fa; // Entspricht var(--background-color-light-gray) oder var(--background-color-light)
+$background-color-light-sass: #f8f9fa; // Entspricht var(--background-color-light-gray)
 
 // --- Basiskomponente ---
 :host {
   display: block;
-  padding: var(--spacing-lg); // Globale Variable
-  max-width: 1200px; // Beibehalten als spezifischer Wert für diese Seite
+  padding: var(--spacing-lg);
+  max-width: 1200px;
   margin: 0 auto;
   position: relative;
 }
 
 // --- Allgemeine Styles ---
 h1, h2 {
-  color: var(--primary-color-dark); // Globale Variable
-  margin-bottom: var(--spacing-md); // Globale Variable
-  font-weight: var(--font-weight-semibold); // Globale Variable
+  color: var(--primary-color-dark);
+  margin-bottom: var(--spacing-md);
+  font-weight: var(--font-weight-semibold);
 }
 
 h1 {
   text-align: center;
-  margin-bottom: var(--spacing-lg); // Globale Variable
-  font-size: 2.2em; // Kann später durch globale Typo-Variable ersetzt werden
+  margin-bottom: var(--spacing-lg);
+  font-size: 2.2em;
 }
 
 h2 {
-  font-size: 1.5em; // Kann später durch globale Typo-Variable ersetzt werden
-  border-bottom: 1px solid var(--border-color-light); // Globale Variable
-  padding-bottom: var(--spacing-sm); // Globale Variable
+  font-size: 1.5em;
+  border-bottom: 1px solid var(--border-color-light);
+  padding-bottom: var(--spacing-sm);
 }
 
-a { // Allgemeine Links auf dieser Seite, falls nicht spezifischer gestylt
-  color: var(--text-color-link); // Globale Variable
+a {
+  color: var(--text-color-link);
   text-decoration: none;
   &:hover {
-    color: var(--text-color-link-hover); // Globale Variable
+    color: var(--text-color-link-hover);
     text-decoration: underline;
   }
 }
@@ -59,23 +58,23 @@ a { // Allgemeine Links auf dieser Seite, falls nicht spezifischer gestylt
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  z-index: var(--z-index-modal-backdrop); // Globale Variable (oder spezifischer Wert)
-  border-radius: var(--border-radius-lg); // Globale Variable
+  z-index: var(--z-index-modal-backdrop);
+  border-radius: var(--border-radius-lg);
   backdrop-filter: blur(2px);
 
   .spinner {
     border: 4px solid rgba(0, 0, 0, 0.1);
     width: 36px;
     height: 36px;
-    border-radius: var(--border-radius-circle); // Globale Variable
-    border-left-color: var(--primary-color); // Globale Variable
-    margin-bottom: var(--spacing-md); // Globale Variable
+    border-radius: var(--border-radius-circle);
+    border-left-color: var(--primary-color);
+    margin-bottom: var(--spacing-md);
     animation: spin 1s ease infinite;
   }
 
   span {
-    font-weight: var(--font-weight-medium); // Globale Variable
-    color: var(--text-color-muted); // Globale Variable
+    font-weight: var(--font-weight-medium);
+    color: var(--text-color-muted);
   }
 }
 
@@ -85,25 +84,25 @@ a { // Allgemeine Links auf dieser Seite, falls nicht spezifischer gestylt
 }
 
 .error-message {
-  padding: var(--spacing-sm) var(--spacing-md); // Globale Variablen
-  border-radius: var(--border-radius-md); // Globale Variable
-  margin-bottom: var(--spacing-md); // Globale Variable
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  margin-bottom: var(--spacing-md);
   border: 1px solid transparent;
   font-size: 0.95em;
 
   &.global-cart-error {
-    background-color: color.adjust($error-color-sass, $alpha: -0.85); // Sass-Variable für color.adjust
-    border-color: color.adjust($error-color-sass, $alpha: -0.7);   // Sass-Variable für color.adjust
-    color: var(--error-text-color); // Globale Variable
+    background-color: color.adjust($error-color-sass, $alpha: -0.85);
+    border-color: color.adjust($error-color-sass, $alpha: -0.7);
+    color: var(--error-text-color);
     text-align: center;
   }
 
   &.line-update-error {
-    background-color: color.adjust($warning-color-sass, $alpha: -0.85); // Sass-Variable für color.adjust
-    border-color: color.adjust($warning-color-sass, $alpha: -0.7);   // Sass-Variable für color.adjust
-    color: var(--warning-text-color); // Globale Variable
+    background-color: color.adjust($warning-color-sass, $alpha: -0.85);
+    border-color: color.adjust($warning-color-sass, $alpha: -0.7);
+    color: var(--warning-text-color);
     text-align: center;
-    margin-top: var(--spacing-sm); // Globale Variable
+    margin-top: var(--spacing-sm);
   }
 }
 
@@ -111,13 +110,13 @@ a { // Allgemeine Links auf dieser Seite, falls nicht spezifischer gestylt
 .cart-content {
   display: grid;
   grid-template-columns: minmax(0, 2.5fr) minmax(0, 1fr);
-  gap: var(--spacing-xl); // Globale Variable
+  gap: var(--spacing-xl);
 
-  @media (max-width: $breakpoint-large) { // Lokale Breakpoint-Variable
-     gap: var(--spacing-lg); // Globale Variable
+  @media (max-width: $breakpoint-large) {
+     gap: var(--spacing-lg);
   }
 
-  @media (max-width: $breakpoint-medium) { // Lokale Breakpoint-Variable
+  @media (max-width: $breakpoint-medium) {
     grid-template-columns: 1fr;
   }
 }
@@ -132,22 +131,22 @@ a { // Allgemeine Links auf dieser Seite, falls nicht spezifischer gestylt
 
     thead th {
       text-align: left;
-      padding-bottom: var(--spacing-md); // Globale Variable
-      color: var(--text-color-muted); // Globale Variable
-      font-weight: var(--font-weight-medium); // Globale Variable
+      padding-bottom: var(--spacing-md);
+      color: var(--text-color-muted);
+      font-weight: var(--font-weight-medium);
       font-size: 0.9em;
       text-transform: uppercase;
-      border-bottom: 2px solid var(--border-color-base); // Globale Variable
+      border-bottom: 2px solid var(--border-color-base);
 
-      &:nth-child(1) { width: 90px; }
-      &:nth-child(2) { padding-left: var(--spacing-sm); } // Globale Variable
-      &:nth-child(3), &:nth-child(5) { text-align: right; width: 15%; }
-      &:nth-child(4) { text-align: center; width: 18%; }
-      &:nth-child(6) { text-align: center; width: 8%; }
+      &:nth-child(1) { width: 90px; } // Bild
+      &:nth-child(2) { padding-left: var(--spacing-sm); } // Details
+      &:nth-child(3), &:nth-child(5) { text-align: right; width: 15%; } // Einzelpreis, Zeilengesamt
+      &:nth-child(4) { text-align: center; width: 18%; } // Menge
+      &:nth-child(6) { text-align: center; width: 8%; } // Entfernen
     }
 
     tbody tr.cart-item {
-      border-bottom: 1px solid var(--border-color-light); // Globale Variable
+      border-bottom: 1px solid var(--border-color-light);
       transition: opacity 0.3s ease;
 
       &.updating {
@@ -156,12 +155,12 @@ a { // Allgemeine Links auf dieser Seite, falls nicht spezifischer gestylt
       }
 
       td {
-        padding: var(--spacing-md) 0; // Globale Variable
+        padding: var(--spacing-md) 0;
         vertical-align: middle;
 
-        &:first-child { padding-right: var(--spacing-sm); } // Globale Variable
-        &:not(:first-child):not(:last-child) { padding-left: var(--spacing-sm); padding-right: var(--spacing-sm); } // Globale Variablen
-        &:last-child { padding-left: var(--spacing-sm); } // Globale Variable
+        &:first-child { padding-right: var(--spacing-sm); }
+        &:not(:first-child):not(:last-child) { padding-left: var(--spacing-sm); padding-right: var(--spacing-sm); }
+        &:last-child { padding-left: var(--spacing-sm); }
       }
     }
   }
@@ -176,20 +175,20 @@ a { // Allgemeine Links auf dieser Seite, falls nicht spezifischer gestylt
     height: auto;
     max-height: 80px;
     object-fit: contain;
-    border: 1px solid var(--border-color-light); // Globale Variable
-    border-radius: var(--border-radius-sm); // Globale Variable
-    background-color: var(--background-color-component); // Globale Variable
+    border: 1px solid var(--border-color-light);
+    border-radius: var(--border-radius-sm);
+    background-color: var(--background-color-component);
   }
   .placeholder-image {
     width: 80px;
     height: 80px;
-    background-color: var(--background-color-light-gray); // Globale Variable
-    border-radius: var(--border-radius-sm); // Globale Variable
+    background-color: var(--background-color-light-gray);
+    border-radius: var(--border-radius-sm);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--border-color-base); // Globale Variable
-    border: 1px solid var(--border-color-light); // Globale Variable
+    color: var(--border-color-base);
+    border: 1px solid var(--border-color-light);
     .material-symbols-outlined { font-size: 40px; }
   }
 }
@@ -198,23 +197,23 @@ a { // Allgemeine Links auf dieser Seite, falls nicht spezifischer gestylt
   vertical-align: top;
   .product-title {
     display: block;
-    font-weight: var(--font-weight-medium); // Globale Variable
-    color: var(--text-color-base); // Globale Variable
-    margin-bottom: var(--spacing-xs); // Globale Variable
-    &:hover { color: var(--text-color-link); } // Globale Variable (oder --primary-color)
+    font-weight: var(--font-weight-medium);
+    color: var(--text-color-base);
+    margin-bottom: var(--spacing-xs);
+    &:hover { color: var(--text-color-link); }
   }
   .variant-title {
     display: block;
     font-size: 0.9em;
-    color: var(--text-color-muted); // Globale Variable
+    color: var(--text-color-muted);
   }
 }
 
 .item-price, .item-total-price {
   text-align: right;
   white-space: nowrap;
-  font-weight: var(--font-weight-medium); // Globale Variable
-  color: var(--price-color); // Globale Variable für Preise
+  font-weight: var(--font-weight-medium);
+  color: var(--price-color);
 }
 
 .item-quantity {
@@ -222,30 +221,30 @@ a { // Allgemeine Links auf dieser Seite, falls nicht spezifischer gestylt
   .quantity-control {
     display: inline-flex;
     align-items: center;
-    border: 1px solid var(--border-color-base); // Globale Variable
-    border-radius: var(--border-radius-md); // Globale Variable
+    border: 1px solid var(--border-color-base);
+    border-radius: var(--border-radius-md);
     overflow: hidden;
 
     .quantity-button {
       background: none;
       border: none;
-      padding: var(--spacing-xs); // Globale Variable
+      padding: var(--spacing-xs);
       margin: 0;
-      color: var(--text-color-muted); // Globale Variable
+      color: var(--text-color-muted);
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       line-height: 1;
-      background-color: var(--background-color-light-gray); // Globale Variable
+      background-color: var(--background-color-light-gray);
       transition: background-color 0.2s ease, color 0.2s ease;
 
-      &:first-of-type { border-right: 1px solid var(--border-color-base); } // Globale Variable
-      &:last-of-type { border-left: 1px solid var(--border-color-base); } // Globale Variable
+      &:first-of-type { border-right: 1px solid var(--border-color-base); }
+      &:last-of-type { border-left: 1px solid var(--border-color-base); }
 
       &:hover:not(:disabled) {
-        background-color: color.adjust($background-color-light-sass, $lightness: -5%); // Sass-Variable für color.adjust
-        color: var(--primary-color); // Globale Variable
+        background-color: color.adjust($background-color-light-sass, $lightness: -5%);
+        color: var(--primary-color);
       }
       &:disabled {
         opacity: 0.5;
@@ -260,12 +259,11 @@ a { // Allgemeine Links auf dieser Seite, falls nicht spezifischer gestylt
     }
 
     .quantity-value {
-      padding: 0 var(--spacing-md); // Globale Variable
-      font-weight: var(--font-weight-medium); // Globale Variable
+      padding: 0 var(--spacing-md);
+      font-weight: var(--font-weight-medium);
       min-width: 2.5em;
       text-align: center;
-      // line-height: calc(20px + 2 * var(--spacing-xs)); // Berechnung mit globaler Variable
-      line-height: calc(20px + (2 * var(--spacing-xs, 4px)) ); // Expliziter Fallback für Berechnung, falls --spacing-xs nicht numerisch interpretierbar ist
+      line-height: calc(20px + (2 * var(--spacing-xs, 8px))); // Korrektur: Fallback-Wert für var
       display: inline-block;
       vertical-align: middle;
     }
@@ -274,8 +272,8 @@ a { // Allgemeine Links auf dieser Seite, falls nicht spezifischer gestylt
   .loading-indicator {
      display: block;
      font-size: 0.8em;
-     color: var(--text-color-muted); // Globale Variable
-     margin-top: var(--spacing-xs); // Globale Variable
+     color: var(--text-color-muted);
+     margin-top: var(--spacing-xs);
      text-align: center;
      min-height: 1.2em;
   }
@@ -286,25 +284,27 @@ a { // Allgemeine Links auf dieser Seite, falls nicht spezifischer gestylt
   .remove-button {
     background: none;
     border: none;
-    padding: var(--spacing-xs); // Globale Variable
+    padding: var(--spacing-xs);
     margin: 0;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     line-height: 1;
-    color: var(--text-color-muted); // Globale Variable
-    border-radius: var(--border-radius-circle); // Globale Variable
-    transition: background-color 0.2s ease, color 0.2s ease;
+    // Standardfarbe für das Icon ist jetzt rot
+    color: var(--error-color); // GEÄNDERT
+    border-radius: var(--border-radius-circle);
+    transition: background-color 0.2s ease, color 0.2s ease, opacity 0.2s ease; // opacity hinzugefügt
 
     &:hover:not(:disabled) {
-      color: var(--error-color-dark); // Globale Variable
-      background-color: color.adjust($error-color-sass, $alpha: -0.8); // Sass-Variable für color.adjust
+      color: var(--error-color-dark);
+      background-color: color.adjust($error-color-sass, $alpha: -0.85); // Leichterer Hover-Effekt
     }
     &:disabled {
       opacity: 0.5;
       cursor: not-allowed;
       background-color: transparent !important;
+      color: var(--disabled-color) !important; // Ausgegrautes Icon im disabled Zustand
     }
     .material-symbols-outlined { font-size: 22px; display: block; }
   }
@@ -312,93 +312,93 @@ a { // Allgemeine Links auf dieser Seite, falls nicht spezifischer gestylt
 
 // --- Warenkorb-Zusammenfassung (Rechts) ---
 .cart-summary {
-  background-color: var(--background-color-light-gray); // Globale Variable
-  padding: var(--spacing-lg); // Globale Variable
-  border-radius: var(--border-radius-lg); // Globale Variable
-  border: 1px solid var(--border-color-light); // Globale Variable
+  background-color: var(--background-color-light-gray);
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--border-color-light);
   height: fit-content;
   position: sticky;
-  top: var(--spacing-lg); // Globale Variable
+  top: var(--spacing-lg);
 
   h2 { margin-top: 0; }
 
   .summary-row {
     display: flex;
     justify-content: space-between;
-    margin-bottom: var(--spacing-md); // Globale Variable
+    margin-bottom: var(--spacing-md);
     font-size: 1em;
 
-    span:first-child { color: var(--text-color-muted); } // Globale Variable
-    span:last-child { font-weight: var(--font-weight-medium); } // Globale Variable
+    span:first-child { color: var(--text-color-muted); }
+    span:last-child { font-weight: var(--font-weight-medium); }
   }
 
   .summary-total {
-    font-weight: var(--font-weight-semibold); // Globale Variable
+    font-weight: var(--font-weight-semibold);
     font-size: 1.2em;
-    margin-top: var(--spacing-lg); // Globale Variable
-    padding-top: var(--spacing-lg); // Globale Variable
-    border-top: 2px solid var(--border-color-base); // Globale Variable
+    margin-top: var(--spacing-lg);
+    padding-top: var(--spacing-lg);
+    border-top: 2px solid var(--border-color-base);
   }
 
   .vat-info {
     font-size: 0.9em;
-    color: var(--text-color-muted); // Globale Variable
+    color: var(--text-color-muted);
     text-align: center;
-    margin-top: var(--spacing-sm); // Globale Variable
-    margin-bottom: var(--spacing-lg); // Globale Variable
+    margin-top: var(--spacing-sm);
+    margin-bottom: var(--spacing-lg);
   }
 
   .checkout-button {
     display: inline-block;
-    font-weight: var(--font-weight-semibold); // Globale Variable
+    font-weight: var(--font-weight-semibold);
     line-height: 1.5;
-    color: var(--primary-color-text); // Globale Variable
+    color: var(--primary-color-text);
     text-align: center;
     text-decoration: none;
     vertical-align: middle;
     cursor: pointer;
     user-select: none;
-    background-color: var(--primary-color); // Globale Variable
-    border: 1px solid var(--primary-color); // Globale Variable
-    padding: var(--spacing-md); // Globale Variable
+    background-color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+    padding: var(--spacing-md);
     font-size: 1.1em;
-    border-radius: var(--border-radius-md); // Globale Variable
+    border-radius: var(--border-radius-md);
     transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
     width: 100%;
     text-transform: uppercase;
 
     &:hover:not(:disabled) {
-      color: var(--primary-color-text); // Globale Variable
-      background-color: var(--primary-color-dark); // Globale Variable
-      border-color: var(--primary-color-dark); // Globale Variable
+      color: var(--primary-color-text);
+      background-color: var(--primary-color-dark);
+      border-color: var(--primary-color-dark);
     }
 
     &:disabled {
-       color: var(--primary-color-text); // Globale Variable
-       background-color: var(--primary-color); // Globale Variable
-       border-color: var(--primary-color); // Globale Variable
+       color: var(--primary-color-text);
+       background-color: var(--primary-color);
+       border-color: var(--primary-color);
        opacity: 0.65;
        cursor: not-allowed;
     }
   }
 
   .cart-note {
-      margin-top: var(--spacing-lg); // Globale Variable
-      padding-top: var(--spacing-md); // Globale Variable
-      border-top: 1px dashed var(--border-color-light); // Globale Variable
+      margin-top: var(--spacing-lg);
+      padding-top: var(--spacing-md);
+      border-top: 1px dashed var(--border-color-light);
       font-size: 0.9em;
-      color: var(--text-color-muted); // Globale Variable
-      strong { color: var(--text-color-base); } // Globale Variable
+      color: var(--text-color-muted);
+      strong { color: var(--text-color-base); }
   }
 }
 
 // --- Meldung für leeren Warenkorb ---
 .empty-cart-message {
   text-align: center;
-  padding: calc(var(--spacing-xl) * 2) var(--spacing-xl); // Berechnung mit globaler Variable
-  border: 1px dashed var(--border-color-light); // Globale Variable
-  border-radius: var(--border-radius-lg); // Globale Variable
-  background-color: var(--background-color-light-gray); // Globale Variable
+  padding: calc(var(--spacing-xl) * 2) var(--spacing-xl);
+  border: 1px dashed var(--border-color-light);
+  border-radius: var(--border-radius-lg);
+  background-color: var(--background-color-light-gray);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -406,46 +406,46 @@ a { // Allgemeine Links auf dieser Seite, falls nicht spezifischer gestylt
   min-height: 300px;
 
   h2 {
-    margin-bottom: var(--spacing-md); // Globale Variable
-    color: var(--text-color-base); // Globale Variable
+    margin-bottom: var(--spacing-md);
+    color: var(--text-color-base);
   }
   p {
-    margin-bottom: var(--spacing-lg); // Globale Variable
-    color: var(--text-color-muted); // Globale Variable
+    margin-bottom: var(--spacing-lg);
+    color: var(--text-color-muted);
     max-width: 400px;
   }
-  .primary-button { // Dieser Button sollte idealerweise eine globale Klasse wie .button-primary verwenden
+  .primary-button {
      display: inline-block;
-     font-weight: var(--font-weight-normal); // Globale Variable
+     font-weight: var(--font-weight-normal);
      line-height: 1.5;
-     color: var(--primary-color-text); // Globale Variable
+     color: var(--primary-color-text);
      text-align: center;
      text-decoration: none;
      vertical-align: middle;
      cursor: pointer;
      user-select: none;
-     background-color: var(--primary-color); // Globale Variable
-     border: 1px solid var(--primary-color); // Globale Variable
-     padding: var(--spacing-sm) var(--spacing-lg); // Globale Variablen
+     background-color: var(--primary-color);
+     border: 1px solid var(--primary-color);
+     padding: var(--spacing-sm) var(--spacing-lg);
      font-size: 1rem;
-     border-radius: var(--border-radius-md); // Globale Variable
+     border-radius: var(--border-radius-md);
      transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 
      &:hover {
-       color: var(--primary-color-text); // Globale Variable
-       background-color: var(--primary-color-dark); // Globale Variable
-       border-color: var(--primary-color-dark); // Globale Variable
+       color: var(--primary-color-text);
+       background-color: var(--primary-color-dark);
+       border-color: var(--primary-color-dark);
      }
   }
 }
 
 // --- Responsive Anpassungen ---
-@media (max-width: $breakpoint-medium) { // Lokale Breakpoint-Variable
-  .cart-content { gap: var(--spacing-lg); } // Globale Variable
+@media (max-width: $breakpoint-medium) {
+  .cart-content { gap: var(--spacing-lg); }
   .cart-summary { position: static; top: auto; }
 }
 
-@media (max-width: $breakpoint-small) { // Lokale Breakpoint-Variable
+@media (max-width: $breakpoint-small) {
   .cart-items-list table {
     thead { display: none; }
     tbody tr.cart-item {
@@ -454,19 +454,21 @@ a { // Allgemeine Links auf dieser Seite, falls nicht spezifischer gestylt
       grid-template-rows: auto auto;
       grid-template-areas:
         "image details   quantity remove"
-        "image price     total    remove";
-      gap: var(--spacing-xs) var(--spacing-md); // Globale Variablen
-      padding: var(--spacing-md) 0; // Globale Variable
+        "image price     total    remove"; // 'total' war hier, meinte wohl den Zeilenpreis
+      gap: var(--spacing-xs) var(--spacing-md);
+      padding: var(--spacing-md) 0;
 
       td { padding: 0 !important; border: none; vertical-align: middle !important; text-align: left !important; }
 
-      .item-image { grid-area: image; align-self: stretch; padding-right: var(--spacing-md) !important; } // Globale Variable
-      .item-details { grid-area: details; align-self: end; }
+      .item-image { grid-area: image; align-self: stretch; padding-right: var(--spacing-md) !important; }
+      .item-details { grid-area: details; align-self: end; } // Hält Details und Preis zusammen
       .item-price {
          grid-area: price; align-self: start; font-size: 0.9em; color: var(--text-color-muted);
-         &::before { content: "Einzelpreis: "; font-weight: normal; color: var(--text-color-muted); margin-right: 5px; display: none; }
+         // "Einzelpreis:" Label hier nicht mehr nötig, da es jetzt klarer ist
       }
-       .item-total-price { display: none; }
+       .item-total-price { // Zeilen-Gesamtpreis wird auf Mobile ausgeblendet
+           display: none;
+        }
       .item-quantity {
           grid-area: quantity; text-align: center !important; display: flex; flex-direction: column;
           align-items: center; justify-content: center; min-width: auto;
@@ -481,14 +483,14 @@ a { // Allgemeine Links auf dieser Seite, falls nicht spezifischer gestylt
   }
 }
 
-@media (max-width: $breakpoint-xs) { // Lokale Breakpoint-Variable (hinzugefügt)
+@media (max-width: $breakpoint-xs) {
    h1 { font-size: 1.8em; }
-   :host { padding: var(--spacing-md); } // Globale Variable
+   :host { padding: var(--spacing-md); }
    .cart-items-list table tbody tr.cart-item {
-     grid-template-columns: 65px 1fr auto auto;
+     grid-template-columns: 65px 1fr auto auto; // Bild etwas kleiner
      .item-image { width: 65px; img { width: 60px; max-height: 60px;} .placeholder-image { width: 60px; height: 60px; .material-symbols-outlined { font-size: 30px;} } }
      .item-details .product-title { font-size: 0.95em; }
    }
-    .cart-summary { padding: var(--spacing-md); } // Globale Variable
-    .empty-cart-message { padding: var(--spacing-lg); } // Globale Variable
+    .cart-summary { padding: var(--spacing-md); }
+    .empty-cart-message { padding: var(--spacing-lg); }
 }

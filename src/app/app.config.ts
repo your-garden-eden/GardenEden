@@ -1,5 +1,6 @@
 // /src/app/app.config.ts
-import { ApplicationConfig, LOCALE_ID, isDevMode } from '@angular/core';
+import { ApplicationConfig, LOCALE_ID, isDevMode, PLATFORM_ID, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { provideRouter, withComponentInputBinding, withViewTransitions } from '@angular/router';
 import { provideClientHydration } from '@angular/platform-browser';
 import { provideHttpClient, withFetch } from '@angular/common/http';
@@ -28,29 +29,35 @@ import localeDeExtra from '@angular/common/locales/extra/de';
 
 // --- TRANSLOCO IMPORTS ---
 import { TranslocoHttpLoader } from './transloco-loader';
-import { provideTransloco } from '@ngneat/transloco';
+import { provideTransloco } from '@ngneat/transloco'; // TranslocoStorage Import entfernt
 import { provideTranslocoPersistLang, TRANSLOCO_PERSIST_LANG_STORAGE } from '@ngneat/transloco-persist-lang';
 
 registerLocaleData(localeDe, 'de-DE', localeDeExtra);
 // --- ENDE LOCALE ---
 
+// Dummy-Storage für Serverseite
+// Muss die Methoden getItem, setItem, removeItem haben.
+export class NoOpStorage {
+  getItem(key: string): string | null {
+    console.log(`SSR NoOpStorage: getItem called for key ${key}`);
+    return null;
+  }
+  setItem(key: string, value: string): void {
+    console.log(`SSR NoOpStorage: setItem called for key ${key} with value ${value}`);
+  }
+  removeItem(key: string): void {
+    console.log(`SSR NoOpStorage: removeItem called for key ${key}`);
+  }
+}
+
 export const appConfig: ApplicationConfig = {
   providers: [
-    // --- Vorhandene Provider ---
     provideRouter(routes, withComponentInputBinding(), withViewTransitions()),
     provideClientHydration(),
     provideHttpClient(withFetch()),
-
-    // --- STANDARD LOCALE SETZEN ---
     { provide: LOCALE_ID, useValue: 'de-DE' },
-
-    // --- CurrencyPipe Provider hinzufügen ---
     CurrencyPipe,
-
-    // --- Provider für ngx-markdown ---
     provideMarkdown(),
-
-    // --- Firebase Provider ---
     provideFirebaseApp(() => initializeApp(environment.firebase)),
     provideAuth(() => getAuth()),
     provideFirestore(() => getFirestore()),
@@ -60,7 +67,6 @@ export const appConfig: ApplicationConfig = {
     ScreenTrackingService,
     UserTrackingService,
 
-    // --- TRANSLOCO PROVIDER ---
     provideTransloco({
       config: {
         availableLangs: ['de', 'en', 'hr'],
@@ -70,16 +76,19 @@ export const appConfig: ApplicationConfig = {
       },
       loader: TranslocoHttpLoader
     }),
-    // --- PROVIDER FÜR SPRACHPERSISTENZ (KORRIGIERT) ---
+
+    // --- PROVIDER FÜR SPRACHPERSISTENZ (SSR-SICHER) ---
     provideTranslocoPersistLang({
-        // Der Storage-Provider wird hier direkt übergeben,
-        // der Token TRANSLOCO_PERSIST_LANG_STORAGE wird intern verwendet
-        // um den hier bereitgestellten Storage zu injizieren.
-        storage: { // Dies ist der Schlüssel für die Storage-Konfiguration
-            useValue: localStorage // Der Wert, der für TRANSLOCO_PERSIST_LANG_STORAGE bereitgestellt wird
+        storage: {
+          useFactory: () => {
+            const platformId = inject(PLATFORM_ID);
+            if (isPlatformBrowser(platformId)) {
+              return localStorage;
+            }
+            return new NoOpStorage();
+          }
         },
-        // Optional: Ein benutzerdefinierter Schlüsselname im Local Storage
-        // storageKey: 'user-lang', // Standard ist 'transloco-lang'
+        // storageKey: 'user-lang',
     }),
   ]
 };

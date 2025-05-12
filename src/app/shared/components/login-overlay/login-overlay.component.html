@@ -1,78 +1,67 @@
 <!-- /src/app/shared/components/login-overlay/login-overlay.component.html -->
-<div class="login-overlay" (click)="closeOverlay()"> <!-- Klick auf Hintergrund schließt -->
+<div class="login-overlay" (click)="closeOverlay()">
 
-  <div class="overlay-content" (click)="$event.stopPropagation()"> <!-- Klick hier schließt NICHT -->
+  <div class="overlay-content" (click)="$event.stopPropagation()">
 
-    <!-- Schließen-Button (X) -->
-    <button class="close-button icon-button" (click)="closeOverlay()" aria-label="Schließen">
+    <button class="close-button icon-button" (click)="closeOverlay()" [attr.aria-label]="'general.close' | transloco"> <!-- NEU: 'general.close' Key -->
       <span class="material-symbols-outlined">close</span>
     </button>
 
     <div class="overlay-header">
-      <h1>Anmelden</h1>
-      <p>Melde dich bei deinem Konto an.</p>
+      <h1>{{ 'loginOverlay.title' | transloco }}</h1>
+      <p>{{ 'loginOverlay.subtitle' | transloco }}</p>
     </div>
 
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate class="auth-form overlay-form">
 
-      <!-- E-Mail -->
       <div class="form-field">
-        <label for="overlayLoginEmail">E-Mail-Adresse</label>
-        <input type="email" id="overlayLoginEmail" formControlName="email" placeholder="deine.email@mail.de" required
+        <label for="overlayLoginEmail">{{ 'loginOverlay.emailLabel' | transloco }}</label>
+        <input type="email" id="overlayLoginEmail" formControlName="email" [placeholder]="'loginOverlay.emailPlaceholder' | transloco" required
                [attr.aria-invalid]="email?.invalid && (email?.touched || formSubmitted())"
                aria-describedby="overlayLoginEmailError">
         <div id="overlayLoginEmailError" class="error-container"
              *ngIf="email?.invalid && (email?.touched || formSubmitted())">
-          <small *ngIf="email?.errors?.['required']">E-Mail ist erforderlich.</small>
-          <small *ngIf="email?.errors?.['email']">Ungültige E-Mail-Adresse.</small>
+          <small *ngIf="email?.errors?.['required']">{{ 'loginOverlay.emailRequiredError' | transloco }}</small>
+          <small *ngIf="email?.errors?.['email']">{{ 'loginOverlay.emailInvalidError' | transloco }}</small>
         </div>
       </div>
 
-      <!-- Passwort -->
       <div class="form-field">
-        <label for="overlayLoginPassword">Passwort</label>
+        <label for="overlayLoginPassword">{{ 'loginOverlay.passwordLabel' | transloco }}</label>
         <input type="password" id="overlayLoginPassword" formControlName="password" required
                [attr.aria-invalid]="password?.invalid && (password?.touched || formSubmitted())"
                aria-describedby="overlayLoginPasswordError">
          <div id="overlayLoginPasswordError" class="error-container"
              *ngIf="password?.invalid && (password?.touched || formSubmitted())">
-          <small *ngIf="password?.errors?.['required']">Passwort ist erforderlich.</small>
+          <small *ngIf="password?.errors?.['required']">{{ 'loginOverlay.passwordRequiredError' | transloco }}</small>
         </div>
          <div class="forgot-password-link">
-            <button type="button" class="link-button" (click)="navigateToForgotPassword()">Passwort vergessen?</button>
+            <button type="button" class="link-button" (click)="navigateToForgotPassword()">{{ 'loginOverlay.forgotPasswordLink' | transloco }}</button>
          </div>
       </div>
 
-      <!-- Allgemeine Fehlermeldung -->
       <div *ngIf="errorMessage()" class="error-message general-error">
-        {{ errorMessage() }}
+        {{ errorMessage() }} <!-- Dynamische Fehlermeldungen werden schon im TS übersetzt -->
       </div>
 
-      <!-- Absende-Button (E-Mail/Passwort) -->
       <button type="submit" class="submit-button" [disabled]="loginForm.invalid || isLoading()">
-        <span *ngIf="!isLoading()">Anmelden</span>
+        <span *ngIf="!isLoading()">{{ 'loginOverlay.loginButton' | transloco }}</span>
         <span *ngIf="isLoading()" class="button-loading-spinner"></span>
-        <span *ngIf="isLoading()">Melde an...</span>
+        <span *ngIf="isLoading()">{{ 'loginOverlay.loggingInButton' | transloco }}</span>
       </button>
 
-    </form> <!-- Ende E-Mail/Passwort Formular -->
+    </form>
 
-    <!-- Social Login Bereich -->
-    <div class="social-login-divider"><span>ODER</span></div>
+    <div class="social-login-divider"><span>{{ 'loginOverlay.orDivider' | transloco }}</span></div>
     <div class="social-login-buttons">
-       <!-- === Container für Google Button Rendering === -->
        <div #googleBtnContainerOverlay class="google-button-container-overlay">
-           <!-- Der GSI Button wird hier per JavaScript von Google eingefügt -->
+           <!-- Google Button wird hier gerendert, Text kommt von Google -->
        </div>
-       <!-- === ENDE Google Button Container === -->
-
-       <!-- <button type="button" class="social-button apple-button" [disabled]="isLoading()">Mit Apple anmelden</button> -->
     </div>
-
 
     <div class="auth-switch-link overlay-switch-link">
-      <p>Noch kein Konto? <button type="button" class="link-button" (click)="navigateToRegister()">Jetzt registrieren</button></p>
+      <p>{{ 'loginOverlay.noAccountPrompt' | transloco }} <button type="button" class="link-button" (click)="navigateToRegister()">{{ 'loginOverlay.registerNowLink' | transloco }}</button></p>
     </div>
 
-  </div> <!-- Ende .overlay-content -->
-</div> <!-- Ende .login-overlay -->
+  </div>
+</div>
