@@ -5,7 +5,8 @@
     "error": "An error occurred",
     "noResults": "No results found",
     "searchPrompt": "Please enter at least 3 characters.",
-    "close": "Close"
+    "close": "Close",
+    "locale": "en-US"
   },
   "header": {
     "searchPlaceholder": "Search products...",
@@ -18,8 +19,8 @@
     "loginRegister": "Login / Register",
     "loginForWishlist": "Please log in to use the wishlist",
     "searchLoading": "Searching...",
-    "searchError": "Error during search.",
-    "searchNoResults": "No products found for",
+    "searchError": "Error during product search.",
+    "searchNoResults": "No products found for '{term}'.",
     "menuOpenClose": "Open/close menu",
     "clearSearch": "Clear search",
     "closeMenu": "Close menu",
@@ -28,42 +29,56 @@
     "nav": {
       "home": "Home",
       "furniture": "Garden Furniture",
-      "furniture.sofas": "Sofas & Lounges",
-      "furniture.chairs": "Chairs & Armchairs",
+      "furniture.sofas": "Sofas",
+      "furniture.lounges": "Lounges",
+      "furniture.chairs": "Chairs",
+      "furniture.armchairs": "Garden Armchairs",
+      "furniture.seatingGroups": "Seating Groups",
+      "furniture.furnitureSets": "Furniture Sets",
       "furniture.tables": "Garden Tables",
       "furniture.benches": "Benches",
-      "furniture.loungers": "Loungers & Beds",
-      "furniture.hammocks": "Hammocks & Swings",
-      "furniture.sets": "Furniture Sets",
-      "furniture.covers": "Protective Covers",
+      "furniture.sunloungers": "Sun Loungers",
+      "furniture.beds": "Beds",
+      "furniture.hammocks": "Hammocks",
+      "furniture.swings": "Swings",
       "sunprotection": "Sun Protection",
-      "sunprotection.pavilions": "Pavilions & Tents",
-      "sunprotection.umbrellas": "Parasols & Sails",
       "sunprotection.awnings": "Awnings",
+      "sunprotection.umbrellas": "Parasols",
+      "sunprotection.sunsails": "Sun Sails",
+      "sunprotection.accessories": "Accessories",
       "water": "Water in the Garden",
-      "water.pools": "Pools & Accessories",
-      "water.ponds": "Ponds & Accessories",
+      "water.pools": "Pools",
+      "water.ponds": "Ponds",
+      "water.accessories": "Accessories",
       "heating": "Heating & Fire",
-      "heating.fireplaces": "Fireplaces & Fire Bowls",
-      "heating.storage": "Firewood Storage",
-      "maintenance": "Garden Care & Tools",
-      "maintenance.tools": "Garden Tools",
-      "maintenance.storage": "Storage Boxes",
-      "maintenance.compost": "Composters & Water Butts",
+      "heating.fireplaces": "Fireplaces",
+      "heating.firebowls": "Fire Bowls",
+      "heating.heaters": "Patio Heaters",
+      "heating.firewoodstorage": "Firewood Storage",
+      "gardenhelpers": "Garden Helpers & Storage",
+      "gardenhelpers.tools": "Garden Tools",
+      "gardenhelpers.sheds": "Garden Sheds",
+      "gardenhelpers.storagegeneral": "Storage",
+      "gardenhelpers.composters": "Composters",
+      "gardenhelpers.waterbutts": "Water Butts",
+      "gardenhelpers.toolstorage": "Tool Storage",
       "deco": "Decoration & Light",
-      "deco.deco": "Garden Decoration",
       "deco.lighting": "Outdoor Lighting",
-      "deco.planters": "Planters & Stands",
+      "deco.decoration": "Garden Decoration",
       "deco.rugs": "Garden Rugs",
+      "deco.christmas": "Christmas Decoration",
       "plants": "Plants & Cultivation",
-      "plants.artificial": "Artificial Plants",
-      "plants.real": "Lawn Seeds & Growing Aids",
       "plants.greenhouses": "Greenhouses",
-      "plants.trellises": "Trellises",
+      "plants.raisedbeds": "Raised Beds",
+      "plants.artificial": "Artificial Plants",
       "plants.protection": "Plant Protection",
-      "leisure": "Leisure & Wildlife",
-      "leisure.play": "Play Equipment",
-      "leisure.animal": "Animal Houses & Feeding Stations"
+      "plants.planters": "Planters",
+      "plants.trellises": "Trellises",
+      "playfun": "Play & Fun",
+      "playfun.sandpits": "Sandpits",
+      "playfun.playcastles": "Play Castles",
+      "playfun.trampolines": "Trampolines",
+      "playfun.accessories": "Accessories"
     }
   },
   "footer": {
@@ -96,14 +111,16 @@
   "categoryOverview": {
     "pageTitleSuffix": "- Your Garden Eden",
     "notFoundTitle": "Category Not Found",
-    "notFoundError": "The requested category could not be found.",
+    "notFoundError": "The category '{categorySlug}' could not be found.",
     "backToHome": "Back to homepage",
     "noSubcategories": "There are currently no subcategories for \"{{category}}\".",
     "popularProducts": "Popular products from this category",
     "loadingPreview": "Loading product preview...",
     "previewLoadError": "Could not load products for the preview.",
     "noPreviewProducts": "No products found for the preview.",
-    "pageTitle": "{{categoryName}} - Your Garden Eden"
+    "pageTitle": "{{categoryName}} - Your Garden Eden",
+    "errorNoParentSlug": "No parent category specified.",
+    "genericError": "An error has occurred."
   },
   "productList": {
     "backTo": "Back to",
@@ -117,14 +134,16 @@
     "noProductsFound": "Unfortunately, no products were found in this category.",
     "loadingMoreProducts": "Loading more products...",
     "pageTitle": "{{collectionName}} - Your Garden Eden",
-    "pageTitleError": "{{errorName}} - Your Garden Eden"
+    "pageTitleError": "{{errorName}} - Your Garden Eden",
+    "categoryNotFound": "Category '{categorySlug}' was not found.",
+    "categoryNotFoundTitle": "Category Not Found"
   },
   "productPage": {
     "backButton": "Back",
     "loadingDetails": "Loading product details...",
     "backToHome": "Back to homepage",
     "errorTitle": "Error",
-    "errorNoHandle": "No product handle specified.",
+    "errorNoHandle": "No product identifier specified.",
     "errorLoadingProduct": "Error loading product.",
     "errorNotFound": "Product not found.",
     "notFoundTitle": "Product not found",
@@ -133,7 +152,8 @@
     "thumbnailAlt": "Thumbnail {{index}}",
     "availability": {
       "inStock": "In stock",
-      "outOfStock": "Not available"
+      "outOfStock": "Not available",
+      "selectVariant": "Please select a variant"
     },
     "actions": {
       "addToCart": "Add to cart",
@@ -146,10 +166,16 @@
       "title": "Description",
       "none": "No description available."
     },
-    "errorVariantNotAvailable": "Product variant not available or not selected.",
+    "shortDescription": {
+      "title": "Short Description"
+    },
+    "errorSelectVariant": "Please select a product variant.",
+    "errorVariantNotAvailable": "This product variant is currently unavailable.",
+    "errorProductNotAvailable": "This product is currently unavailable.",
     "errorAddingToCart": "Error adding to cart.",
     "pageTitle": "{{productName}} - Your Garden Eden",
-    "pageTitleError": "{{errorName}} - Your Garden Eden"
+    "pageTitleError": "{{errorName}} - Your Garden Eden",
+    "selectOption": "Select {{optionName}}"
   },
   "staticPage": {
     "loadingPage": "Loading page...",
@@ -275,9 +301,8 @@
   },
   "cartPage": {
     "title": "Shopping Cart - Your Garden Eden",
-    "mainTitle": "Shopping Cart",
     "loadingCart": "Loading cart...",
-    "itemsTitle": "Items",
+    "yourItems": "Your Items",
     "tableHeaderProduct": "Product",
     "tableHeaderPrice": "Price",
     "tableHeaderQuantity": "Quantity",
@@ -287,23 +312,32 @@
     "increaseQuantityAria": "Increase quantity",
     "updatingText": "Updating...",
     "removeItemTitle": "Remove item",
-    "removeItemAria": "Remove item",
-    "summaryTitle": "Summary",
-    "summarySubtotal": "Subtotal",
-    "summaryShipping": "Shipping",
-    "summaryShippingText": "Calculated at next step",
-    "summaryTaxes": "Taxes",
-    "summaryTotal": "Total Amount",
-    "vatInfo": "Incl. VAT",
-    "checkoutButton": "Proceed to Checkout",
+    "removeItemAria": "Remove item '{itemName}'",
+    "summary": {
+      "title": "Summary",
+      "subtotal": "Subtotal",
+      "shipping": "Shipping",
+      "shippingText": "Calculated at next step",
+      "taxes": "Taxes",
+      "total": "Total Amount",
+      "vatInfo": "Incl. VAT, plus shipping costs",
+      "checkoutButton": "Proceed to Checkout",
+      "itemSingular": "item",
+      "itemPlural": "items",
+      "continueShopping": "Continue Shopping"
+    },
     "noteLabel": "Note",
-    "emptyCartTitle": "Your cart is empty.",
-    "emptyCartMessage": "Add products to see them here.",
-    "continueShoppingButton": "Continue Shopping",
+    "empty": {
+      "title": "Your cart is empty.",
+      "message": "Add products to see them here.",
+      "continueShopping": "Shop now"
+    },
+    "priceUnavailable": "Price unavailable",
     "errorUpdateQuantity": "Could not update quantity.",
     "errorRemoveItem": "Could not remove item.",
     "errorCheckoutNotPossible": "Checkout not possible. Please try again later.",
-    "errorGlobalDefault": "An error occurred in the cart. Please try again."
+    "errorFromService": "An error occurred: {serviceErrorMsg}",
+    "errorGlobalDefault": "An unknown error occurred in the cart."
   },
   "wishlistPage": {
     "title": "My Wishlist - Your Garden Eden",
@@ -327,9 +361,10 @@
     },
     "error": {
       "loadingProducts": "Error loading wishlist products.",
-      "productNotAvailable": "{{productName}} is currently not available.",
-      "noVariantFound": "No variant found for {{productName}} to add.",
-      "movingToCartError": "Error moving {{productName}} to cart."
+      "productNotAvailable": "Product '{productName}' is currently not available.",
+      "noVariantFound": "No variant found for product '{productName}' to add.",
+      "movingToCartError": "Error moving '{productName}' to cart.",
+      "noneAvailableToAdd": "No available products found to add to cart."
     }
   },
   "loginOverlay": {
@@ -374,5 +409,24 @@
   },
   "notFound": {
     "title": "Page Not Found - Your Garden Eden"
+  },
+  "maintenancePage": {
+    "mainTitle": "Something Big is Coming...",
+    "countdown": {
+      "days": "Days",
+      "hours": "Hours",
+      "minutes": "Minutes",
+      "seconds": "Seconds"
+    },
+    "countdownEnded": "It's time! The gates to Your Garden Eden are opening!",
+    "mysteryTextLine1": "Shhh... something unique is growing behind the scenes.",
+    "mysteryTextLine2": "An oasis of inspiration for your perfect garden awaits, filled with exclusive designs and green secrets.",
+    "mysteryTextHighlight": "Get ready – it will be worth the wait!"
+  },
+  "productCard": {
+    "sale": "Sale!",
+    "outOfStock": "Sold Out",
+    "availableInVariants": "Available in variants",
+    "priceFrom": "From"
   }
 }

@@ -2,41 +2,44 @@
 <div class="wishlist-page-container">
   <h1>{{ 'wishlistPage.title' | transloco }}</h1>
 
-  @if (isLoadingWishlist() || isLoadingProducts()) {
+  @if (isLoadingWishlistHandles() || isLoadingProducts()) {
     <div class="loading-indicator wishlist-loading"><p>{{ 'wishlistPage.loading' | transloco }}</p></div>
   }
-  @if (wishlistError(); as errorMsg) { <p class="error-message global-wishlist-error">{{ errorMsg }}</p> }
+  @if (wishlistServiceError(); as errorMsg) { <p class="error-message global-wishlist-error">{{ errorMsg }}</p> }
   @if (productsError(); as errorMsg) { <p class="error-message product-load-error">{{ errorMsg }}</p> }
 
 
-  @if (!isLoadingWishlist() && !isLoadingProducts()) {
+  @if (!isLoadingWishlistHandles() && !isLoadingProducts()) {
     @if (!isEmptyWishlist()) {
       <div class="wishlist-content">
         <div class="wishlist-items">
           <h2>{{ 'wishlistPage.yourProducts' | transloco }}</h2>
           <div class="items-grid">
-            @for (product of wishlistProducts(); track getProductIdentifier($index, product)) {
+            @for (product of wishlistProducts(); track product.id) {
               <div class="wishlist-item-card">
-                <a [routerLink]="['/product', product.handle]" class="item-link">
+                <a [routerLink]="getProductLink(product)" class="item-link">
                   <div class="item-image">
-                    @if (product.images.edges?.[0]?.node?.url; as imgUrl) {
-                      <img [src]="imgUrl" [alt]="product.title" loading="lazy">
+                    @if (getProductImage(product); as imgUrl) {
+                      <img [src]="imgUrl" [alt]="product.name" loading="lazy">
                     } @else {
                       <div class="placeholder-image small"><span class="material-symbols-outlined" [title]="'productPage.noImageAvailable' | transloco">image</span></div>
                     }
                   </div>
                   <div class="item-info">
-                    <h3 class="item-title">{{ product.title }}</h3>
-                    @if (product.priceRange.minVariantPrice; as price) {
-                      <span class="item-price">{{ price.amount | formatPrice : price.currencyCode }}</span>
+                    <h3 class="item-title">{{ product.name }}</h3>
+                    @if (product.price_html) {
+                      <span class="item-price" [innerHTML]="product.price_html | safeHtml"></span>
+                    } @else if (product.price) {
+                      <span class="item-price">{{ product.price | formatPrice : (getProductCurrencyCode(product) ) }}</span> <!-- Nutze Hilfsmethode -->
                     }
                   </div>
                 </a>
                 <div class="item-actions">
+                  <!-- KORRIGIERT: Button Tag korrekt geschlossen -->
                   <button class="action-button remove-button"
                           [title]="'wishlistPage.actions.remove' | transloco"
-                          (click)="removeFromWishlist(product.handle)"
-                          [disabled]="isLoadingWishlist()"
+                          (click)="removeFromWishlist(product.slug)"
+                          [disabled]="isLoadingWishlistHandles()"
                           [attr.aria-label]="'wishlistPage.actions.remove' | transloco">
                     <span class="icon-stack">
                       <span class="material-symbols-outlined base-icon">favorite</span>
@@ -47,7 +50,7 @@
                   <button class="action-button add-to-cart-button"
                           [title]="'wishlistPage.actions.moveToCart' | transloco"
                           (click)="moveFromWishlistToCart(product)"
-                          [disabled]="isLoadingProducts() || !product.availableForSale">
+                          [disabled]="isLoadingProducts() || product.stock_status !== 'instock' || !product.purchasable">
                     <span class="material-symbols-outlined">add_shopping_cart</span>
                   </button>
                 </div>
@@ -64,7 +67,7 @@
           </div>
           <div class="summary-row total-price">
             <span>{{ 'wishlistPage.summary.totalPrice' | transloco }}:</span>
-            <span>{{ totalPrice() | currency:'EUR':'symbol':'1.2-2':'de-DE' }}</span>
+            <span>{{ totalPrice() | currency : getGlobalCurrencyCode() : 'symbol' : '1.2-2' : ('general.locale' | transloco) }}</span> <!-- getGlobalCurrencyCode() für Konsistenz -->
           </div>
           <p class="vat-info">{{ 'wishlistPage.summary.vatInfo' | transloco }}</p>
           <button class="add-all-to-cart-button primary-button" (click)="addAllToCart()" [disabled]="isAddAllDisabled()">

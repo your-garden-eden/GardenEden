@@ -1,56 +1,73 @@
-<!-- /src/app/features/product-list/product-list.component.html -->
+<!-- /src/app/features/product-list/product-list-page/product-list-page.component.html -->
 <div class="category-page-content">
-
   <div class="page-header-with-back-button">
     @if (mainCategoryLink(); as categoryLink) {
-      <a [routerLink]="categoryLink" class="back-button product-list-back-button">
-        <span class="material-symbols-outlined">arrow_back_ios</span>
-        <!-- mainCategoryLabel() kommt bereits übersetzt aus dem TS -->
-        {{ 'productList.backTo' | transloco }} {{ mainCategoryLabel() || ('productList.categoryOverview' | transloco) }}
-      </a>
+    <a [routerLink]="categoryLink" class="back-button product-list-back-button">
+      <span class="material-symbols-outlined">arrow_back_ios</span>
+      {{ 'productList.backTo' | transloco }} {{ mainCategoryLabel() || ('productList.categoryOverview' | transloco) }}
+    </a>
     } @else {
-      <div class="back-button-placeholder"></div>
+    <div class="back-button-placeholder"></div>
     }
 
-    <!-- collectionTitle() kommt bereits übersetzt aus dem TS -->
-    <h1 *ngIf="collectionTitle()" class="product-list-title">{{ collectionTitle() }}</h1>
-    <!-- Fallback, falls collectionTitle null ist, aber handle existiert (sollte selten sein) -->
-    <h1 *ngIf="!collectionTitle() && collectionHandle" class="product-list-title">{{ 'productList.categoryLabel' | transloco }}: {{ collectionHandle }}</h1>
+    <h1 *ngIf="categoryTitle()" class="product-list-title">{{ categoryTitle() }}</h1>
+    <h1 *ngIf="!categoryTitle() && categorySlugFromRoute" class="product-list-title">
+      {{ categorySlugFromRoute }}
+    </h1>
     <div class="title-align-placeholder"></div>
   </div>
 
   @if (isLoading() && products().length === 0) {
-    <div class="loading-indicator">
-      <p>{{ 'productList.loadingProducts' | transloco }}</p>
-    </div>
+  <div class="loading-indicator">
+    <p>{{ 'productList.loadingProducts' | transloco }}</p>
+  </div>
   }
 
-  <!-- error() kommt bereits übersetzt aus dem TS -->
   @if (error() && products().length === 0) {
-     <div class="error-message">
-       <p>{{ error() }}</p>
-     </div>
-   }
+  <div class="error-message">
+    <p>{{ error() }}</p>
+  </div>
+  }
 
   <ng-container *ngIf="!isLoading() || products().length > 0">
-     <p *ngIf="products().length === 0 && !isLoadingMore() && !error()" class="no-products-message">
+    @if (products().length === 0 && !isLoadingMore() && !error() && !isLoading()) {
+      <p class="no-products-message">
         {{ 'productList.noProductsFound' | transloco }}
-    </p>
+      </p>
+    }
 
-    <div class="product-grid" *ngIf="products().length > 0">
-      <app-product-card
-          *ngFor="let product of products(); trackBy: trackByProductId"
-          [product]="product">
-      </app-product-card>
-    </div>
+    @if (products().length > 0) {
+      <div class="product-grid">
+        <!-- *** KORRIGIERTES PRODUCT CARD BINDING *** -->
+        @for (product of products(); track product.id; let i = $index) {
+          <app-product-card
+            [productName]="product.name"
+            [priceHtml]="product.price_html"
+            [singlePrice]="product.price"
+            [currencySymbol]="getProductCurrencySymbol(product)"
+            [pricePrefix]="(product.type === 'variable' && product.price_html && product.price_html.toLowerCase().includes('ab')) ? '' : (product.type === 'variable' ? ('productCard.priceFrom' | transloco) + ' ' : '')"
+            [imageUrl]="getProductImage(product)"
+            [productLink]="getProductLink(product)"
+            [onSale]="product.on_sale"
+            [regularPrice]="product.regular_price"
+            [isLazy]="i >= 6"
+            [stockStatus]="product.stock_status"
+            [isVariable]="product.type === 'variable'"
+            [priceRange]="extractPriceRange(product)"
+          ></app-product-card>
+        }
+      </div>
+    }
 
-    <div #loadMoreTrigger
-         *ngIf="pageInfo().hasNextPage && products().length > 0"
-         class="load-more-trigger">
-    </div>
+    @if (hasNextPage() && products().length > 0) {
+      <div #loadMoreTrigger class="load-more-trigger">
+      </div>
+    }
 
-     <div *ngIf="isLoadingMore()" class="loading-indicator more-loading">
-       <p>{{ 'productList.loadingMoreProducts' | transloco }}</p>
-     </div>
+    @if (isLoadingMore()) {
+      <div class="loading-indicator more-loading">
+        <p>{{ 'productList.loadingMoreProducts' | transloco }}</p>
+      </div>
+    }
   </ng-container>
 </div>

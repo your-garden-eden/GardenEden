@@ -1,17 +1,18 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, Inject, PLATFORM_ID } from '@angular/core';
+// /src/app/features/maintenance/maintenance.component.ts
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, Inject, PLATFORM_ID, WritableSignal, signal } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { TranslocoModule, TranslocoService, LangDefinition } from '@ngneat/transloco';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-maintenance',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslocoModule, FormsModule],
   templateUrl: './maintenance.component.html',
   styleUrl: './maintenance.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MaintenanceComponent implements OnInit, OnDestroy {
-  // logoPath Eigenschaft entfernt
-
   targetDate!: Date;
   days: string = '00';
   hours: string = '00';
@@ -20,13 +21,24 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
   countdownEnded = false;
   private intervalId: any;
 
+  availableLangsSignal: WritableSignal<{ id: string; label: string }[]> = signal([]);
+  activeLang: WritableSignal<string> = signal('');
+
   constructor(
     private cdr: ChangeDetectorRef,
-    @Inject(PLATFORM_ID) private platformId: Object
+    @Inject(PLATFORM_ID) private platformId: Object,
+    private translocoService: TranslocoService
   ) {}
 
   ngOnInit(): void {
+    this.activeLang.set(this.translocoService.getActiveLang());
+    this.setupLanguageOptions();
     this.startCountdown();
+
+    this.translocoService.langChanges$.subscribe(currentLang => {
+        this.activeLang.set(currentLang);
+        this.cdr.markForCheck();
+    });
   }
 
   ngOnDestroy(): void {
@@ -35,16 +47,34 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
     }
   }
 
+  private setupLanguageOptions(): void {
+    const rawLangs = this.translocoService.getAvailableLangs();
+    const langsArray = Array.isArray(rawLangs) ? rawLangs : (typeof rawLangs === 'object' ? Object.keys(rawLangs) : [rawLangs as LangDefinition]);
+
+    const formattedLangs = langsArray.map(langInput => {
+      const langId = typeof langInput === 'string' ? langInput : langInput.id;
+      let label = langId.toUpperCase();
+      switch (langId) {
+        case 'de': label = 'Deutsch'; break;
+        case 'en': label = 'English'; break;
+        case 'hr': label = 'Hrvatski'; break;
+        case 'es': label = 'Español'; break; // *** NEU ***
+        case 'pl': label = 'Polski'; break;  // *** NEU ***
+      }
+      return { id: langId, label: label };
+    });
+    this.availableLangsSignal.set(formattedLangs);
+  }
+
+  changeLanguage(langId: string): void {
+    if (langId) {
+        this.translocoService.setActiveLang(langId);
+    }
+  }
+
   private startCountdown(): void {
-    // --- Zieljahr auf 2025 geändert ---
-    this.targetDate = new Date('2025-05-11T15:00:00'); // 11. Mai 2025, 15:00 Uhr
-    // --- Ende Zieljahr-Änderung ---
-
-    console.log('Target Date set to:', this.targetDate); // Debugging
-
+    this.targetDate = new Date('2025-06-01T00:00:00');
     this.updateCountdown();
-
-    // Interval nur starten, wenn im Browser! (SSR-Fix)
     if (isPlatformBrowser(this.platformId)) {
       this.intervalId = setInterval(() => {
         this.updateCountdown();
@@ -53,35 +83,15 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
   }
 
   private updateCountdown(): void {
-    const now = new Date().getTime(); // Holt die Zeit von deinem System (April 2025)
+    const now = new Date().getTime();
     if (!this.targetDate) {
-      console.error("Target date is not set!");
       return;
     }
-
-    // Debugging für Zeitstempel
-    const targetTimestamp = this.targetDate.getTime(); // Zeitstempel für Mai 2025
-    console.log('Target Timestamp:', targetTimestamp);
-    console.log('Current Timestamp (now):', now);
-
-    const distance = targetTimestamp - now; // Sollte jetzt POSITIV sein (Mai 2025 - April 2025)
-
-    // Altes Debugging für Distanz
-    if (this.seconds === '00' || distance <= 0) {
-       console.log('Current Distance (ms):', distance);
-       if(distance <= 0) {
-           console.log('Countdown ended because distance is <= 0');
-       } else {
-           // Logge die positive Distanz, um sicherzugehen
-           console.log('Countdown running, positive distance.');
-       }
-    }
+    const targetTimestamp = this.targetDate.getTime();
+    const distance = targetTimestamp - now;
 
     if (distance <= 0) {
-      this.days = '00';
-      this.hours = '00';
-      this.minutes = '00';
-      this.seconds = '00';
+      this.days = '00'; this.hours = '00'; this.minutes = '00'; this.seconds = '00';
       this.countdownEnded = true;
       if (this.intervalId) {
          clearInterval(this.intervalId);
@@ -92,7 +102,6 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
       const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
       const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
       const s = Math.floor((distance % (1000 * 60)) / 1000);
-
       this.days = d.toString().padStart(2, '0');
       this.hours = h.toString().padStart(2, '0');
       this.minutes = m.toString().padStart(2, '0');

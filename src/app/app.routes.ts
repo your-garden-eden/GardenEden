@@ -1,7 +1,7 @@
 // /src/app/app.routes.ts
 import { Routes } from '@angular/router';
 import { HomeComponent } from './features/home/home.component';
-import { ProductListComponent } from './features/product-list/product-list.component';
+import { ProductListPageComponent } from './features/product-list/product-list.component';
 import { ProductPageComponent } from './features/product-page/product-page.component';
 import { CategoryOverviewComponent } from './features/category-overview/category-overview.component';
 import { StaticPageComponent } from './features/static-page/static-page.component';
@@ -12,7 +12,7 @@ import { authGuard } from './core/guards/auth.guard';
 export const routes: Routes = [
   // --- Bestehende Routen ---
   { path: '', component: HomeComponent, data: { titleKey: 'home.title' }, title: 'Your Garden Eden - Startseite' },
-  { path: 'product-list/:slug', component: ProductListComponent, title: 'Produkte' },
+  { path: 'product-list/:slug', component: ProductListPageComponent, title: 'Produkte' },
   { path: 'product/:handle', component: ProductPageComponent, title: 'Produkt' },
   { path: 'category/:slug', component: CategoryOverviewComponent, title: 'Kategorie' },
 

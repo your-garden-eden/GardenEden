@@ -1,63 +1,83 @@
 <!-- /src/app/features/category-overview/category-overview.component.html -->
 <div class="category-overview-page">
 
-  <!-- Titel der Hauptkategorie (kommt bereits übersetzt aus dem TS) -->
   <h1 *ngIf="categoryTitle() && !error()">{{ categoryTitle() }}</h1>
 
-  <!-- Fehleranzeige für Hauptkategorie (error() wird bereits übersetzt aus dem TS) -->
   <div *ngIf="error()" class="error-message">
     <p>{{ error() }}</p>
     <a routerLink="/">{{ 'categoryOverview.backToHome' | transloco }}</a>
   </div>
 
   <!-- Container für Unterkategorien (Icons) -->
-  <div *ngIf="!error() && subCategories().length > 0" class="subcategories-container">
-    <a *ngFor="let subItem of subCategories()"
-       [routerLink]="subItem.link"
-       class="subcategory-item">
-      <img *ngIf="subItem.iconFilename"
-           [src]="getIconPath(subItem.iconFilename)"
-           [alt]="subItem.i18nId | transloco" 
-           class="subcategory-icon"
-           loading="lazy">
-      <span class="subcategory-label">{{ subItem.i18nId | transloco }}</span> <!-- Label übersetzen -->
-    </a>
+  <div *ngIf="!error() && subCategoriesToDisplay().length > 0" class="subcategories-container">
+    @for (subItem of subCategoriesToDisplay(); track subItem.link) {
+      <a [routerLink]="subItem.link" class="subcategory-item">
+        @if (subItem.iconFilename) {
+          <img
+            [src]="getIconPath(subItem.iconFilename)"
+            [alt]="subItem.i18nId | transloco"
+            class="subcategory-icon"
+            loading="lazy"
+          />
+        } @else {
+          <div class="subcategory-icon-placeholder">
+            <span class="material-symbols-outlined">category</span>
+          </div>
+        }
+        <span class="subcategory-label">{{ subItem.i18nId | transloco }}</span>
+      </a>
+    }
   </div>
 
-  <!-- Meldung, wenn keine Unterkategorien gefunden wurden -->
-  <div *ngIf="!error() && subCategories().length === 0 && categoryTitle()">
-    <!-- categoryTitle() ist bereits übersetzt -->
-    <p>{{ 'categoryOverview.noSubcategories' | transloco:{ category: categoryTitle() } }}</p>
-  </div>
+  @if (!error() && subCategoriesToDisplay().length === 0 && categoryTitle()) {
+    <p class="no-items-message">{{ 'categoryOverview.noSubcategories' | transloco: { category: categoryTitle() } }}</p>
+  }
 
-  <!-- ======================================== -->
-  <!-- Sektion für EINFACHE Produktvorschau     -->
-  <!-- ======================================== -->
-  <section class="product-preview-section" *ngIf="!error()">
+  <!-- Sektion für Produktvorschau aus den Unterkategorien -->
+  <section class="product-preview-section" *ngIf="!error() && subCategoriesToDisplay().length > 0">
+    @if (!isLoadingPreview() && !previewError() && productPreview().length > 0) {
+      <h2>
+        {{ 'categoryOverview.popularProducts' | transloco }}
+      </h2>
+    }
 
-    <h2 *ngIf="!isLoadingPreview() && !previewError() && productPreview().length > 0">
-      {{ 'categoryOverview.popularProducts' | transloco }}
-    </h2>
+    @if (isLoadingPreview()) {
+      <div class="loading-indicator preview-loading">
+        <p>{{ 'categoryOverview.loadingPreview' | transloco }}</p>
+      </div>
+    }
 
-    <div *ngIf="isLoadingPreview()" class="loading-indicator preview-loading">
-      <p>{{ 'categoryOverview.loadingPreview' | transloco }}</p>
-    </div>
+    @if (previewError()) {
+      <div class="error-message preview-error">
+        <p>{{ previewError() }}</p>
+      </div>
+    }
 
-    <!-- Fehleranzeige für die Vorschau (previewError() wird bereits übersetzt aus dem TS) -->
-    <div *ngIf="previewError()" class="error-message preview-error">
-      <p>{{ previewError() }}</p>
-    </div>
+    @if (!isLoadingPreview() && !previewError() && productPreview().length > 0) {
+      <div class="product-preview-grid">
+        @for (product of productPreview(); track product.id; let i = $index) {
+          <app-product-card
+            [productName]="product.name"
+            [priceHtml]="product.price_html"
+            [singlePrice]="product.price"
+            [currencySymbol]="getProductCurrencySymbol(product)"
+            [pricePrefix]="(product.type === 'variable' && product.price_html && product.price_html.toLowerCase().includes('ab')) ? '' : (product.type === 'variable' ? ('productCard.priceFrom' | transloco) + ' ' : '')"
+            [imageUrl]="getProductImage(product)"
+            [productLink]="getProductLink(product)"
+            [onSale]="product.on_sale"
+            [regularPrice]="product.regular_price"
+            [isLazy]="i >= 4"
+            [stockStatus]="product.stock_status"
+            [isVariable]="product.type === 'variable'"
+            [priceRange]="extractPriceRange(product)"
+          ></app-product-card>
+        }
+      </div>
+    }
 
-    <div *ngIf="!isLoadingPreview() && !previewError() && productPreview().length > 0" class="product-preview-grid">
-      <app-product-card
-          *ngFor="let product of productPreview(); trackBy: trackPreviewProductById"
-          [product]="product">
-      </app-product-card>
-    </div>
-
-     <div *ngIf="!isLoadingPreview() && !previewError() && productPreview().length === 0 && subCategories().length > 0" class="no-products-message">
-       <p>{{ 'categoryOverview.noPreviewProducts' | transloco }}</p>
-     </div>
-
+    <!-- Meldung, wenn keine Produkte für die Vorschau gefunden wurden, aber Unterkategorien existieren -->
+    @if (!isLoadingPreview() && !previewError() && productPreview().length === 0 && subCategoriesToDisplay().length > 0) {
+      <p class="no-items-message">{{ 'categoryOverview.noPreviewProducts' | transloco }}</p>
+    }
   </section>
 </div>

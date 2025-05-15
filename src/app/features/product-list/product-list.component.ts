@@ -1,171 +1,266 @@
 // /src/app/features/product-list/product-list.component.ts
-import { Component, OnInit, OnDestroy, inject, signal, WritableSignal, ChangeDetectionStrategy, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  inject,
+  signal,
+  WritableSignal,
+  ChangeDetectionStrategy,
+  ViewChild,
+  ElementRef,
+  ChangeDetectorRef,
+  afterNextRender,
+} from '@angular/core';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Title } from '@angular/platform-browser';
-import { Subscription, of, from, combineLatest, Observable } from 'rxjs';
-import { switchMap, tap, catchError, finalize, map, take, distinctUntilChanged, startWith } from 'rxjs/operators';
+import { Subscription, of, combineLatest, Observable, EMPTY } from 'rxjs';
+import {
+  switchMap,
+  tap,
+  catchError,
+  finalize,
+  map,
+  take,
+  distinctUntilChanged,
+  startWith,
+  filter,
+} from 'rxjs/operators';
 
-import { ShopifyService, Product, PageInfo, CollectionQueryResult } from '../../core/services/shopify.service';
+import {
+  WoocommerceService,
+  WooCommerceProduct,
+  WooCommerceCategory,
+  WooCommerceProductsResponse,
+  WooCommerceMetaData, // Importiert für Währung
+} from '../../core/services/woocommerce.service';
 import { ProductCardComponent } from '../../shared/components/product-card/product-card.component';
-import { navItems, NavItem, NavSubItem } from '../../core/data/navigation.data';
+import {
+  navItems,
+  NavItem,
+  NavSubItem,
+} from '../../core/data/navigation.data';
 
 import { TranslocoModule, TranslocoService } from '@ngneat/transloco';
 
 @Component({
-  selector: 'app-product-list',
+  selector: 'app-product-list-page',
   standalone: true,
-  imports: [
-    CommonModule,
-    ProductCardComponent,
-    RouterModule,
-    TranslocoModule
-  ],
+  imports: [CommonModule, ProductCardComponent, RouterModule, TranslocoModule],
   templateUrl: './product-list.component.html',
   styleUrl: './product-list.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProductListComponent implements OnInit, OnDestroy {
+export class ProductListPageComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
-  private shopifyService = inject(ShopifyService);
+  private woocommerceService = inject(WoocommerceService);
   private titleService = inject(Title);
   private translocoService = inject(TranslocoService);
   private cdr = inject(ChangeDetectorRef);
 
-  products: WritableSignal<Product[]> = signal([]);
-  collectionTitle: WritableSignal<string | null> = signal(null);
+  products: WritableSignal<WooCommerceProduct[]> = signal([]);
+  categoryTitle: WritableSignal<string | null> = signal(null);
   mainCategoryLabel: WritableSignal<string | null> = signal(null);
 
   isLoading: WritableSignal<boolean> = signal(true);
   isLoadingMore: WritableSignal<boolean> = signal(false);
   error: WritableSignal<string | null> = signal(null);
-  pageInfo: WritableSignal<PageInfo> = signal({ hasNextPage: false, endCursor: null });
-  collectionHandle: string | null = null;
+
+  private currentPage: WritableSignal<number> = signal(1);
+  private totalProductPages: WritableSignal<number> = signal(1);
+
+  categorySlugFromRoute: string | null = null;
+  hasNextPage: WritableSignal<boolean> = signal(false);
+
+  private currentCategory: WritableSignal<WooCommerceCategory | null | undefined> = signal(null);
   mainCategoryLink: WritableSignal<string | null> = signal(null);
 
-  @ViewChild('loadMoreTrigger') private loadMoreTriggerEl?: ElementRef<HTMLDivElement>;
+  @ViewChild('loadMoreTrigger')
+  private loadMoreTriggerEl?: ElementRef<HTMLDivElement>;
   private intersectionObserver?: IntersectionObserver;
   private subscriptions = new Subscription();
   private readonly PRODUCTS_PER_PAGE = 12;
 
   private currentFoundSubItem: NavSubItem | undefined;
   private currentMainCategoryNavItem: NavItem | undefined;
-  private shopifyCollectionTitleFromLoad: string | null = null;
+
+  constructor() {
+    afterNextRender(() => {
+      this.trySetupIntersectionObserver();
+    });
+  }
 
   ngOnInit(): void {
-    const paramMap$ = this.route.paramMap.pipe(
-      map(params => params.get('slug')),
-      distinctUntilChanged(),
-      tap(slug => {
-        this.collectionHandle = slug;
-        this.resetState();
-        this.isLoading.set(true);
+    const paramMapAndLang$ = combineLatest([
+      this.route.paramMap.pipe(
+        map(params => params.get('slug')),
+        distinctUntilChanged(),
+        tap(slug => console.log('ProductList: slug from route:', slug))
+      ),
+      this.translocoService.langChanges$.pipe(
+        startWith(this.translocoService.getActiveLang())
+      ),
+    ]).pipe(
+      tap(([slug, lang]) => {
+        if (slug !== this.categorySlugFromRoute) {
+          this.categorySlugFromRoute = slug;
+          this.resetStateBeforeLoad();
+          this.isLoading.set(true);
+          console.log('ProductList: State reset, loading for slug:', slug);
+        }
+        this.updateTitlesAndBreadcrumbs(lang, this.currentCategory()?.name);
+      }),
+      filter(([slug]) => {
+        if (slug === null) {
+          console.warn('ProductList: Slug is null, stopping data loading.');
+          return false;
+        }
+        return true;
       })
     );
 
-    const languageChange$ = this.translocoService.langChanges$.pipe(
-      startWith(this.translocoService.getActiveLang())
-    );
-
-    const dataLoadingSubscription = paramMap$.pipe(
-      switchMap(slug => {
+    const dataLoadingSubscription = paramMapAndLang$.pipe(
+      switchMap(([slug, lang]) => {
         if (!slug) {
-          const errorMsg = this.translocoService.translate('productList.errorNoSlug');
-          this.error.set(errorMsg);
-          this.isLoading.set(false);
+          this.handleErrorState(this.translocoService.translate('productList.errorNoSlug'));
           const errorPageTitleText = this.translocoService.translate('productList.errorPageTitle');
-          this.titleService.setTitle(`${errorPageTitleText} - Your Garden Eden`); // Suffix hier
-          this.collectionTitle.set(errorPageTitleText);
-          this.cdr.detectChanges();
-          return of(null as CollectionQueryResult | null);
+          this.titleService.setTitle(`${errorPageTitleText} - Your Garden Eden`);
+          return EMPTY;
         }
 
+        this.currentFoundSubItem = this.findSubItemByLink(`/product-list/${slug}`);
         const categoryInfo = this.findMainCategoryInfoForSubItemLink(`/product-list/${slug}`);
         this.mainCategoryLink.set(categoryInfo?.mainCategoryLink ?? null);
-        this.currentMainCategoryNavItem = categoryInfo ? navItems.find(item => item.link === categoryInfo.mainCategoryLink) : undefined;
-        this.currentFoundSubItem = this.findSubItemByLink(`/product-list/${slug}`);
+        this.currentMainCategoryNavItem = categoryInfo
+          ? navItems.find(item => item.link === categoryInfo.mainCategoryLink)
+          : undefined;
 
-        return from(this.shopifyService.getProductsByCollectionHandle(slug, this.PRODUCTS_PER_PAGE, null)).pipe(
-          tap(result => {
-            this.shopifyCollectionTitleFromLoad = result?.title ?? null;
+        console.log(`ProductList: Attempting to fetch category for slug: ${slug}`);
+        return this.woocommerceService.getCategoryBySlug(slug).pipe(
+          tap(category => console.log('ProductList: Fetched category by slug response:', category)),
+          switchMap(category => {
+            if (!category || !category.id) {
+              console.error(`ProductList: Category not found or no ID for slug: ${slug}`);
+              this.handleErrorState(this.translocoService.translate('productList.categoryNotFound', { categorySlug: slug }));
+              this.currentCategory.set(undefined);
+              this.updateTitlesAndBreadcrumbs(lang);
+              return of({ products: [], totalPages: 0, totalCount: 0 } as WooCommerceProductsResponse);
+            }
+            this.currentCategory.set(category);
+            this.updateTitlesAndBreadcrumbs(lang, category.name);
+            console.log(`ProductList: Category found: ${category.name} (ID: ${category.id}). Fetching products.`);
+
+            return this.woocommerceService.getProducts(category.id, this.PRODUCTS_PER_PAGE, 1).pipe(
+                tap(response => console.log(`ProductList: Fetched products for category ${category.id}:`, response.products))
+            );
           }),
           catchError(error => {
-            console.error(`Fehler beim Laden der Produkte für Slug ${slug}:`, error);
-            this.error.set(this.translocoService.translate('productList.errorLoadingProducts'));
-            this.isLoading.set(false);
-            this.cdr.detectChanges();
-            return of(null);
+            console.error(`ProductList: Error in data loading pipe for slug ${slug}:`, error);
+            this.handleErrorState(this.translocoService.translate('productList.errorLoadingProducts'));
+            this.currentCategory.set(undefined);
+            this.updateTitlesAndBreadcrumbs(lang);
+            return of({ products: [], totalPages: 0, totalCount: 0 } as WooCommerceProductsResponse);
           })
         );
       })
-    ).subscribe(result => {
-      if (result) {
-        const initialProducts = result.products.edges.map(edge => edge.node);
-        this.products.set(initialProducts);
-        this.pageInfo.set(result.products.pageInfo);
-        this.error.set(null);
-        if (this.loadMoreTriggerEl?.nativeElement && this.pageInfo().hasNextPage && !this.isLoadingMore()) {
-          this.setupIntersectionObserver(this.loadMoreTriggerEl.nativeElement);
-        }
-      } else if (!this.error() && this.collectionHandle) {
-        this.products.set([]);
-        this.pageInfo.set({ hasNextPage: false, endCursor: null });
-      }
+    ).subscribe((result: WooCommerceProductsResponse) => {
+      console.log('ProductList: Final result from data loading subscription:', result);
+      this.products.set(result.products);
+      this.totalProductPages.set(result.totalPages);
+      this.hasNextPage.set(this.currentPage() < result.totalPages);
       this.isLoading.set(false);
       this.cdr.detectChanges();
+      this.trySetupIntersectionObserver();
     });
     this.subscriptions.add(dataLoadingSubscription);
-
-    const titleAndLabelSubscription = languageChange$.pipe(
-      switchMap(lang => {
-        let h1Title$: Observable<string>;
-        if (this.currentFoundSubItem?.i18nId) {
-          h1Title$ = this.translocoService.selectTranslate(this.currentFoundSubItem.i18nId, {}, lang);
-        } else if (this.shopifyCollectionTitleFromLoad) {
-          h1Title$ = of(this.shopifyCollectionTitleFromLoad);
-        } else if (this.collectionHandle) {
-          h1Title$ = of(this.collectionHandle);
-        } else {
-          h1Title$ = this.translocoService.selectTranslate('productList.defaultTitle', {}, lang);
-        }
-
-        let breadcrumbLabel$: Observable<string | null> = of(null);
-        if (this.currentMainCategoryNavItem?.i18nId) {
-          breadcrumbLabel$ = this.translocoService.selectTranslate(this.currentMainCategoryNavItem.i18nId, {}, lang).pipe(startWith(null));
-        } else if (this.currentMainCategoryNavItem?.label) {
-          breadcrumbLabel$ = of(this.currentMainCategoryNavItem.label);
-        }
-        
-        return combineLatest([h1Title$.pipe(startWith(this.collectionTitle() || null)), breadcrumbLabel$]);
-      })
-    ).subscribe(([translatedH1Title, translatedBreadcrumbLabel]) => {
-      if (translatedH1Title && translatedH1Title !== this.collectionTitle()) {
-        this.collectionTitle.set(translatedH1Title);
-      }
-      
-      // Seitentitel (<title>) wieder mit festem Suffix setzen
-      const currentH1 = this.collectionTitle() || this.collectionHandle || this.translocoService.translate('productList.defaultTitle');
-      this.titleService.setTitle(`${currentH1} - Your Garden Eden`); // SUFFIX WIEDER HIER
-
-      this.mainCategoryLabel.set(translatedBreadcrumbLabel);
-      this.cdr.detectChanges();
-    });
-    this.subscriptions.add(titleAndLabelSubscription);
   }
 
-  private resetState(): void {
+  private trySetupIntersectionObserver(): void {
+    if (this.loadMoreTriggerEl?.nativeElement && this.hasNextPage() && !this.isLoadingMore()) {
+      this.setupIntersectionObserver(this.loadMoreTriggerEl.nativeElement);
+    } else {
+      this.disconnectObserver();
+    }
+  }
+
+  private updateTitlesAndBreadcrumbs(lang: string, categoryNameFromApi?: string): void {
+    let h1Title$: Observable<string>;
+    let pageTitleForBrowser = '';
+
+    if (this.currentFoundSubItem?.i18nId) {
+      h1Title$ = this.translocoService.selectTranslate(this.currentFoundSubItem.i18nId, {}, lang);
+      pageTitleForBrowser = categoryNameFromApi || this.translocoService.translate(this.currentFoundSubItem.i18nId, {}, lang);
+    } else if (categoryNameFromApi) {
+      h1Title$ = of(categoryNameFromApi);
+      pageTitleForBrowser = categoryNameFromApi;
+    } else if (this.categorySlugFromRoute) {
+      const formattedSlug = this.categorySlugFromRoute.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      h1Title$ = of(formattedSlug);
+      pageTitleForBrowser = formattedSlug;
+    } else {
+      h1Title$ = this.translocoService.selectTranslate('productList.defaultTitle', {}, lang);
+      pageTitleForBrowser = this.translocoService.translate('productList.defaultTitle', {}, lang);
+    }
+
+    if (this.currentCategory() === undefined && this.categorySlugFromRoute) {
+        const notFoundTitle = this.translocoService.translate('productList.categoryNotFoundTitle', { categorySlug: this.categorySlugFromRoute }, lang);
+        h1Title$ = of(notFoundTitle);
+        pageTitleForBrowser = notFoundTitle;
+    }
+
+    let breadcrumbLabel$: Observable<string | null> = of(null);
+    if (this.currentMainCategoryNavItem?.i18nId) {
+      breadcrumbLabel$ = this.translocoService.selectTranslate( this.currentMainCategoryNavItem.i18nId, {}, lang ).pipe(startWith(this.mainCategoryLabel() || null));
+    } else if (this.currentMainCategoryNavItem?.label) {
+      breadcrumbLabel$ = of(this.currentMainCategoryNavItem.label);
+    }
+
+    const titleUpdateSub = combineLatest([
+        h1Title$.pipe(startWith(this.categoryTitle() || '')),
+        breadcrumbLabel$
+    ]).pipe(take(1))
+      .subscribe(([translatedH1Title, translatedBreadcrumbLabel]) => {
+        if (translatedH1Title && translatedH1Title !== this.categoryTitle()) {
+          this.categoryTitle.set(translatedH1Title);
+        }
+        this.mainCategoryLabel.set(translatedBreadcrumbLabel);
+        this.cdr.markForCheck();
+    });
+    this.subscriptions.add(titleUpdateSub);
+
+    const finalBrowserTitle = pageTitleForBrowser || this.translocoService.translate('productList.defaultTitle');
+    this.titleService.setTitle(`${finalBrowserTitle} - Your Garden Eden`);
+  }
+
+  private handleErrorState(errorMessage: string): void {
+    console.error('ProductList: handleErrorState called with:', errorMessage);
+    this.error.set(errorMessage);
+    this.products.set([]);
+    this.isLoading.set(false);
+    this.hasNextPage.set(false);
+    this.currentPage.set(1);
+    this.totalProductPages.set(1);
+    this.categoryTitle.set(this.translocoService.translate('productList.errorPageTitle'));
+    this.cdr.detectChanges();
+  }
+
+  private resetStateBeforeLoad(): void {
     this.isLoading.set(true);
     this.products.set([]);
-    this.collectionTitle.set(null);
+    this.categoryTitle.set(null);
     this.error.set(null);
-    this.pageInfo.set({ hasNextPage: false, endCursor: null });
+    this.currentPage.set(1);
+    this.totalProductPages.set(1);
+    this.hasNextPage.set(false);
     this.isLoadingMore.set(false);
     this.mainCategoryLink.set(null);
     this.mainCategoryLabel.set(null);
     this.currentFoundSubItem = undefined;
     this.currentMainCategoryNavItem = undefined;
-    this.shopifyCollectionTitleFromLoad = null;
+    this.currentCategory.set(null);
     this.disconnectObserver();
+    this.cdr.detectChanges();
   }
 
   ngOnDestroy(): void {
@@ -174,63 +269,63 @@ export class ProductListComponent implements OnInit, OnDestroy {
   }
 
   private setupIntersectionObserver(targetElement: HTMLElement): void {
-     if (this.intersectionObserver) {
-         this.intersectionObserver.disconnect();
-     }
-     const options = { root: null, rootMargin: '0px 0px 300px 0px', threshold: 0.1 };
-     this.intersectionObserver = new IntersectionObserver((entries) => {
-       entries.forEach(entry => {
-         if (entry.isIntersecting && this.pageInfo().hasNextPage && !this.isLoadingMore()) {
-           this.loadMoreProducts();
-         }
-       });
-     }, options);
-     this.intersectionObserver.observe(targetElement);
+    this.disconnectObserver();
+    const options = { root: null, rootMargin: '0px 0px 300px 0px', threshold: 0.1 };
+    this.intersectionObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && this.hasNextPage() && !this.isLoadingMore()) {
+          this.loadMoreProducts();
+        }
+      });
+    }, options);
+    this.intersectionObserver.observe(targetElement);
   }
 
   private disconnectObserver(): void {
-      if (this.intersectionObserver) {
-        if (this.loadMoreTriggerEl?.nativeElement) {
-            this.intersectionObserver.unobserve(this.loadMoreTriggerEl.nativeElement);
-        }
-        this.intersectionObserver.disconnect();
-        this.intersectionObserver = undefined;
+    if (this.intersectionObserver) {
+      if (this.loadMoreTriggerEl?.nativeElement) {
+        this.intersectionObserver.unobserve(this.loadMoreTriggerEl.nativeElement);
       }
+      this.intersectionObserver.disconnect();
+      this.intersectionObserver = undefined;
+    }
   }
 
   loadMoreProducts(): void {
-    if (!this.pageInfo().hasNextPage || !this.collectionHandle || this.isLoadingMore() || !this.pageInfo().endCursor) {
+    if (!this.hasNextPage() || !this.categorySlugFromRoute || this.isLoadingMore() || !this.currentCategory()?.id) {
       return;
     }
     this.isLoadingMore.set(true);
-    from(this.shopifyService.getProductsByCollectionHandle(this.collectionHandle, this.PRODUCTS_PER_PAGE, this.pageInfo().endCursor))
-    .pipe(
-      take(1),
-      catchError(error => {
-        console.error('Fehler beim Nachladen weiterer Produkte:', error);
-        this.isLoadingMore.set(false);
-        return of(null);
-      })
-    )
-    .subscribe((result: CollectionQueryResult | null) => {
-      if (result && result.products.edges.length > 0) {
-        const newProducts = result.products.edges.map(edge => edge.node);
-        this.products.update(currentProducts => [...currentProducts, ...newProducts]);
-        this.pageInfo.set(result.products.pageInfo);
-        if (!result.products.pageInfo.hasNextPage) {
+    const nextPageToLoad = this.currentPage() + 1;
+
+    const loadMoreSub = this.woocommerceService.getProducts(this.currentCategory()!.id, this.PRODUCTS_PER_PAGE, nextPageToLoad)
+      .pipe(
+        take(1),
+        catchError(error => {
+          console.error('ProductList: Fehler beim Nachladen weiterer Produkte:', error);
+          return of(null);
+        }),
+        finalize(() => {
+            this.isLoadingMore.set(false);
+            this.cdr.detectChanges();
+        })
+      )
+      .subscribe((response: WooCommerceProductsResponse | null) => {
+        if (response && response.products && response.products.length > 0) {
+          this.products.update(currentProducts => [...currentProducts, ...response.products]);
+          this.currentPage.set(nextPageToLoad);
+          this.totalProductPages.set(response.totalPages);
+          this.hasNextPage.set(nextPageToLoad < response.totalPages);
+
+          if (!this.hasNextPage()) {
+            this.disconnectObserver();
+          }
+        } else {
+          this.hasNextPage.set(false);
           this.disconnectObserver();
         }
-      } else if (result) {
-          this.pageInfo.update(pi => ({ ...pi, hasNextPage: false }));
-          this.disconnectObserver();
-      }
-      this.isLoadingMore.set(false);
-      this.cdr.detectChanges();
-    });
-  }
-
-  trackByProductId(index: number, product: Product): string {
-    return product.id;
+      });
+    this.subscriptions.add(loadMoreSub);
   }
 
   private findSubItemByLink(link: string): NavSubItem | undefined {
@@ -243,18 +338,61 @@ export class ProductListComponent implements OnInit, OnDestroy {
     return undefined;
   }
 
-  private findMainCategoryInfoForSubItemLink(subItemLink: string): { mainCategoryLink: string, mainCategoryLabelI18nKey: string } | null {
+  private findMainCategoryInfoForSubItemLink(subItemLink: string): { mainCategoryLink: string; mainCategoryLabelI18nKey: string } | null {
     for (const mainItem of navItems) {
       if (mainItem.subItems) {
         const foundSubItem = mainItem.subItems.find(subItem => subItem.link === subItemLink);
         if (foundSubItem && mainItem.link && mainItem.link.startsWith('/category/')) {
           return {
             mainCategoryLink: mainItem.link,
-            mainCategoryLabelI18nKey: mainItem.i18nId
+            mainCategoryLabelI18nKey: mainItem.i18nId,
           };
         }
       }
     }
     return null;
+  }
+
+  getProductLink(product: WooCommerceProduct): string {
+    return `/product/${product.slug}`;
+  }
+
+  getProductImage(product: WooCommerceProduct): string | undefined {
+    return product.images && product.images.length > 0 ? product.images[0].src : undefined;
+  }
+
+  // NEUE METHODEN für ProductCard
+  extractPriceRange(product: WooCommerceProduct): { min: string, max: string } | null {
+    if (product.type === 'variable') {
+      if (product.price_html) {
+        const rangeMatch = product.price_html.match(/<span class="woocommerce-Price-amount amount"><bdi>.*?([\d,.]+).*?<\/bdi><\/span>\s*–\s*<span class="woocommerce-Price-amount amount"><bdi>.*?([\d,.]+).*?<\/bdi><\/span>/);
+        if (rangeMatch && rangeMatch[1] && rangeMatch[2]) {
+          return { min: rangeMatch[1].replace(',', '.'), max: rangeMatch[2].replace(',', '.') };
+        }
+        const singlePriceMatch = product.price_html.match(/<span class="woocommerce-Price-amount amount"><bdi>.*?([\d,.]+).*?<\/bdi><\/span>/);
+        if (singlePriceMatch && singlePriceMatch[1]) {
+          const priceVal = singlePriceMatch[1].replace(',', '.');
+          return { min: priceVal, max: priceVal };
+        }
+      }
+      // Fallback: Wenn price_html keine Spanne liefert, aber es ein variabler Typ ist,
+      // könnte man hier die Varianten laden und min/max ermitteln (zu aufwendig für Listenseite)
+      // oder den Standardpreis des Produkts als min/max nehmen, wenn verfügbar.
+      if (product.price) { // product.price ist der "active price"
+        return { min: product.price, max: product.price };
+      }
+    }
+    return null;
+  }
+
+  getProductCurrencySymbol(product: WooCommerceProduct): string {
+    const currencyMeta = product.meta_data?.find(m => m.key === '_currency_symbol');
+    if (currencyMeta?.value) return currencyMeta.value as string;
+    if (product.price_html) {
+      if (product.price_html.includes('€')) return '€';
+      if (product.price_html.includes('$')) return '$';
+      // Weitere Symbole hier...
+    }
+    return '€'; // Default
   }
 }

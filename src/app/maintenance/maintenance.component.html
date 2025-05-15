@@ -1,30 +1,54 @@
+<!-- /src/app/features/maintenance/maintenance.component.html -->
 <div class="maintenance-container">
-    <!-- Logo-Pfad direkt im src-Attribut -->
-    <img class="logo" src="assets/Logo.jpeg" alt="Your Garden Eden Logo">
-  
-    <h1>Bald sind wir Online</h1>
-  
-    <div class="countdown" *ngIf="!countdownEnded">
+  <img src="assets/icons/Logo.png" alt="Your Garden Eden Logo" class="logo">
+
+  <h1>{{ 'maintenancePage.mainTitle' | transloco }}</h1>
+
+  @if (!countdownEnded) {
+    <div class="countdown">
       <div class="time-unit">
         <span class="value">{{ days }}</span>
-        <span class="label">Tage</span>
+        <span class="label">{{ 'maintenancePage.countdown.days' | transloco }}</span>
       </div>
       <div class="time-unit">
         <span class="value">{{ hours }}</span>
-        <span class="label">Stunden</span>
+        <span class="label">{{ 'maintenancePage.countdown.hours' | transloco }}</span>
       </div>
       <div class="time-unit">
         <span class="value">{{ minutes }}</span>
-        <span class="label">Minuten</span>
+        <span class="label">{{ 'maintenancePage.countdown.minutes' | transloco }}</span>
       </div>
       <div class="time-unit">
         <span class="value">{{ seconds }}</span>
-        <span class="label">Sekunden</span>
+        <span class="label">{{ 'maintenancePage.countdown.seconds' | transloco }}</span>
       </div>
     </div>
-  
-    <div class="countdown-ended" *ngIf="countdownEnded">
-      <h2>Wir sind gleich für Sie da!</h2>
+  } @else {
+    <div class="countdown-ended">
+      <h2>{{ 'maintenancePage.countdownEnded' | transloco }}</h2>
     </div>
-  
+  }
+
+  <div class="info-text-section">
+    <p>{{ 'maintenancePage.mysteryTextLine1' | transloco }}</p>
+    <p>{{ 'maintenancePage.mysteryTextLine2' | transloco }}</p>
+    <p class="highlight">{{ 'maintenancePage.mysteryTextHighlight' | transloco }}</p>
   </div>
+
+  <!-- Sprachauswahl jetzt hier, größer und zentrierter -->
+  <div class="language-selector-wrapper bottom-selector">
+    <span class="material-symbols-outlined language-icon-large" aria-hidden="true">translate</span>
+    <select class="language-selector-maintenance large"
+            [ngModel]="activeLang()"
+            (ngModelChange)="changeLanguage($event)"
+            [attr.aria-label]="'header.selectLanguage' | transloco"
+            [title]="'header.selectLanguage' | transloco">
+      @for(lang of availableLangsSignal(); track lang.id) {
+        <option [value]="lang.id">
+          {{ lang.label }}
+        </option>
+      }
+    </select>
+  </div>
+
+</div>

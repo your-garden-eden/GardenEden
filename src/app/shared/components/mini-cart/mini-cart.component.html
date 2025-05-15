@@ -10,75 +10,95 @@
     </button>
   </div>
 
-  <div *ngIf="error()" class="error-message">
-    {{ error() }} <!-- Kommt übersetzt aus TS -->
-  </div>
+  @if (error(); as errorMsg) {
+    <div class="error-message">
+      {{ errorMsg }}
+    </div>
+  }
 
-  <div *ngIf="isLoading()" class="loading-indicator">
-    <p>{{ 'miniCart.updating' | transloco }}</p>
-  </div>
+  @if (isLoading()) {
+    <div class="loading-indicator">
+      <p>{{ 'miniCart.updating' | transloco }}</p>
+    </div>
+  }
 
   <div class="mini-cart-content" *ngIf="!isLoading() && !error()">
-    <ul class="cart-item-list" *ngIf="items().length > 0; else emptyCart">
-      <li *ngFor="let item of items()" class="cart-item">
-        <div class="item-image">
-          <a [routerLink]="['/product', item.merchandise.product.handle]" (click)="closeCart()">
-            <img *ngIf="item.merchandise.image?.url"
-                 [src]="item.merchandise.image?.url" 
-                 [alt]="item.merchandise.product.title"
-                 loading="lazy">
-            <div *ngIf="!item.merchandise.image?.url" class="no-image-placeholder small">
-              <span class="material-symbols-outlined" [title]="'productPage.noImageAvailable' | transloco">image</span>
+    @if (items().length > 0) {
+      <ul class="cart-item-list">
+        @for (item of items(); track item.key) {
+          <li class="cart-item">
+            <div class="item-image">
+              <!-- Annahme: getProductLinkForItem und getProductImageForItem liefern korrekte Werte -->
+              <a [routerLink]="getProductLinkForItem(item)" (click)="closeCart()">
+                @if (getProductImageForItem(item); as imageUrl) {
+                  <img [src]="imageUrl" [alt]="item.name" loading="lazy" />
+                } @else {
+                  <div class="no-image-placeholder small">
+                    <span class="material-symbols-outlined" [title]="'productPage.noImageAvailable' | transloco">image</span>
+                  </div>
+                }
+              </a>
             </div>
-          </a>
-        </div>
-        <div class="item-details">
-          <a [routerLink]="['/product', item.merchandise.product.handle]" class="item-title" (click)="closeCart()">
-            {{ item.merchandise.product.title }}
-            <span class="item-variant-title" *ngIf="item.merchandise.title !== 'Default Title'">{{ item.merchandise.title }}</span>
-          </a>
-          <span class="item-price" *ngIf="item.merchandise.price">
-             {{ item.merchandise.price.amount | formatPrice : item.merchandise.price.currencyCode }}
-          </span>
-        </div>
-        <div class="item-actions">
-          <div class="quantity-control">
-            <button class="quantity-btn minus"
-                    (click)="decreaseQuantity(item.id, item.quantity)"
-                    [disabled]="isLoading()"
-                    [attr.aria-label]="'miniCart.decreaseQuantityAria' | transloco">
-              <span class="material-symbols-outlined">remove</span>
-            </button>
-            <span class="quantity-value">{{ item.quantity }}</span>
-            <button class="quantity-btn plus"
-                    (click)="increaseQuantity(item.id, item.quantity)"
-                    [disabled]="isLoading()"
-                    [attr.aria-label]="'miniCart.increaseQuantityAria' | transloco">
-              <span class="material-symbols-outlined">add</span>
-            </button>
-          </div>
-        </div>
-      </li>
-    </ul>
-
-    <ng-template #emptyCart>
+            <div class="item-details">
+              <a [routerLink]="getProductLinkForItem(item)" class="item-title" (click)="closeCart()">
+                {{ item.name }}
+                <!-- Variantenanzeige, falls vorhanden und gewünscht -->
+                @if (item.variation && item.variation.length > 0) {
+                  <span class="item-variant-title">
+                    @for (variant of item.variation; track variant.attribute) {
+                      <span>{{ variant.attribute }}: {{ variant.value }}</span>
+                    }
+                  </span>
+                }
+              </a>
+              <!-- Preis des einzelnen Items (Preis * Menge) - kommt von item.totals.line_total -->
+              <span class="item-price">
+                 {{ item.totals.line_total | formatPrice : item.totals.currency_code }}
+              </span>
+            </div>
+            <div class="item-actions">
+              <div class="quantity-control">
+                <button class="quantity-btn minus"
+                        (click)="decreaseQuantity(item.key, item.quantity)"
+                        [disabled]="isLoading()"
+                        [attr.aria-label]="'miniCart.decreaseQuantityAria' | transloco">
+                  <span class="material-symbols-outlined">remove</span>
+                </button>
+                <span class="quantity-value">{{ item.quantity }}</span>
+                <button class="quantity-btn plus"
+                        (click)="increaseQuantity(item.key, item.quantity)"
+                        [disabled]="isLoading()"
+                        [attr.aria-label]="'miniCart.increaseQuantityAria' | transloco">
+                  <span class="material-symbols-outlined">add</span>
+                </button>
+              </div>
+            </div>
+          </li>
+        }
+      </ul>
+    } @else {
       <p class="empty-cart-message">{{ 'miniCart.emptyMessage' | transloco }}</p>
-    </ng-template>
+    }
   </div>
 
-  <div class="mini-cart-footer" *ngIf="!error() && items().length > 0">
-    <div class="subtotal">
-      <span>{{ 'miniCart.subtotalLabel' | transloco }}:</span>
-      <span class="subtotal-amount" *ngIf="subtotalData() as subtotal">
-         {{ subtotal.amount | formatPrice : subtotal.currencyCode }}
-      </span>
-      <span class="subtotal-amount" *ngIf="!subtotalData()">...</span>
+  @if (!error() && items().length > 0) {
+    <div class="mini-cart-footer">
+      <div class="subtotal">
+        <span>{{ 'miniCart.subtotalLabel' | transloco }}:</span>
+        @if (subtotalData(); as subtotal) {
+          <span class="subtotal-amount">
+            {{ subtotal.amount | formatPrice : subtotal.currencyCode }}
+          </span>
+        } @else {
+          <span class="subtotal-amount">...</span>
+        }
+      </div>
+      <button class="checkout-button"
+              (click)="goToCheckout()"
+              [disabled]="isLoading() || items().length === 0">
+        {{ 'miniCart.checkoutButton' | transloco }}
+      </button>
+       <a routerLink="/warenkorb" class="view-cart-link" (click)="closeCart()">{{ 'miniCart.viewCartLink' | transloco }}</a>
     </div>
-    <button class="checkout-button"
-            (click)="goToCheckout()"
-            [disabled]="isLoading() || items().length === 0">
-      {{ 'miniCart.checkoutButton' | transloco }}
-    </button>
-     <a routerLink="/warenkorb" class="view-cart-link" (click)="closeCart()">{{ 'miniCart.viewCartLink' | transloco }}</a>
-  </div>
+  }
 </div>

@@ -1,7 +1,7 @@
 export const environment = {
   baseUrl: '',
   production: false,
-  maintenanceMode: false,
+  maintenanceMode: true,
   firebase: {
     apiKey: 'AIzaSyA2W0UsyZEPQA8_GbRYbftcDEtGCe6pDSc', // Dein Firebase API Key
     authDomain: 'your-garden-eden.firebaseapp.com',

@@ -5,7 +5,8 @@
     "error": "Ein Fehler ist aufgetreten",
     "noResults": "Keine Ergebnisse gefunden",
     "searchPrompt": "Bitte mindestens 3 Zeichen eingeben.",
-    "close": "Schließen"
+    "close": "Schließen",
+    "locale": "de-DE"
   },
   "header": {
     "searchPlaceholder": "Produkte suchen...",
@@ -18,8 +19,8 @@
     "loginRegister": "Anmelden / Registrieren",
     "loginForWishlist": "Bitte anmelden, um die Wunschliste zu nutzen",
     "searchLoading": "Suche läuft...",
-    "searchError": "Fehler bei der Suche.",
-    "searchNoResults": "Keine Produkte gefunden für",
+    "searchError": "Fehler bei der Produktsuche.",
+    "searchNoResults": "Keine Produkte für '{term}' gefunden.",
     "menuOpenClose": "Menü öffnen/schließen",
     "clearSearch": "Suche leeren",
     "closeMenu": "Menü schließen",
@@ -28,42 +29,56 @@
     "nav": {
       "home": "Startseite",
       "furniture": "Gartenmöbel",
-      "furniture.sofas": "Sofas & Lounges",
-      "furniture.chairs": "Stühle & Sessel",
+      "furniture.sofas": "Sofas",
+      "furniture.lounges": "Lounges",
+      "furniture.chairs": "Stühle",
+      "furniture.armchairs": "Gartensessel",
+      "furniture.seatingGroups": "Sitzgarnituren",
+      "furniture.furnitureSets": "Möbelgarnituren",
       "furniture.tables": "Gartentische",
       "furniture.benches": "Bänke",
-      "furniture.loungers": "Liegen & Betten",
-      "furniture.hammocks": "Hängematten & Schaukeln",
-      "furniture.sets": "Möbel-Sets",
-      "furniture.covers": "Schutzhüllen",
+      "furniture.sunloungers": "Liegen",
+      "furniture.beds": "Betten",
+      "furniture.hammocks": "Hängematten",
+      "furniture.swings": "Schaukeln",
       "sunprotection": "Sonnenschutz",
-      "sunprotection.pavilions": "Pavillons & Zelte",
-      "sunprotection.umbrellas": "Sonnenschirme & Segel",
       "sunprotection.awnings": "Markisen",
+      "sunprotection.umbrellas": "Sonnenschirme",
+      "sunprotection.sunsails": "Sonnensegel",
+      "sunprotection.accessories": "Zubehör",
       "water": "Wasser im Garten",
-      "water.pools": "Pools & Zubehör",
-      "water.ponds": "Teiche & Zubehör",
+      "water.pools": "Pools",
+      "water.ponds": "Teiche",
+      "water.accessories": "Zubehör",
       "heating": "Heizen & Feuer",
-      "heating.fireplaces": "Kamine & Feuerschalen",
-      "heating.storage": "Feuerholzaufbewahrung",
-      "maintenance": "Gartenpflege & Geräte",
-      "maintenance.tools": "Gartengeräte",
-      "maintenance.storage": "Aufbewahrungboxen",
-      "maintenance.compost": "Komposter & Regentonnen",
+      "heating.fireplaces": "Kamine",
+      "heating.firebowls": "Feuerschalen",
+      "heating.heaters": "Heizstrahler",
+      "heating.firewoodstorage": "Feuerholzaufbewahrung",
+      "gardenhelpers": "Gartenhelfer & Aufbewahrung",
+      "gardenhelpers.tools": "Gartengeräte",
+      "gardenhelpers.sheds": "Gartenschuppen",
+      "gardenhelpers.storagegeneral": "Aufbewahrung",
+      "gardenhelpers.composters": "Komposter",
+      "gardenhelpers.waterbutts": "Regentonnen",
+      "gardenhelpers.toolstorage": "Werkzeugaufbewahrung",
       "deco": "Dekoration & Licht",
-      "deco.deco": "Gartendeko",
-      "deco.lighting": "Außenbeleuchtung",
-      "deco.planters": "Pflanzgefäße & Ständer",
+      "deco.lighting": "Gartenbeleuchtung",
+      "deco.decoration": "Gartendeko",
       "deco.rugs": "Gartenteppiche",
+      "deco.christmas": "Weihnachtsdeko",
       "plants": "Pflanzen & Anzucht",
-      "plants.artificial": "Kunstpflanzen",
-      "plants.real": "Rasensamen & Anzuchtshilfe",
       "plants.greenhouses": "Gewächshäuser",
-      "plants.trellises": "Rankhilfen",
+      "plants.raisedbeds": "Hochbeete",
+      "plants.artificial": "Kunstpflanzen",
       "plants.protection": "Pflanzenschutz",
-      "leisure": "Freizeit & Tierwelt",
-      "leisure.play": "Spielgeräte",
-      "leisure.animal": "Tierhäuser & Futterplätze"
+      "plants.planters": "Pflanzgefäße",
+      "plants.trellises": "Rankhilfen",
+      "playfun": "Spiel & Spaß",
+      "playfun.sandpits": "Sandkästen",
+      "playfun.playcastles": "Spielburgen",
+      "playfun.trampolines": "Trampoline",
+      "playfun.accessories": "Zubehör"
     }
   },
   "footer": {
@@ -96,14 +111,16 @@
   "categoryOverview": {
     "pageTitleSuffix": "- Your Garden Eden",
     "notFoundTitle": "Kategorie nicht gefunden",
-    "notFoundError": "Die gesuchte Kategorie konnte nicht gefunden werden.",
+    "notFoundError": "Die Kategorie '{categorySlug}' konnte nicht gefunden werden.",
     "backToHome": "Zurück zur Startseite",
     "noSubcategories": "Für die Kategorie \"{{category}}\" gibt es aktuell keine Unterkategorien.",
     "popularProducts": "Beliebte Produkte aus dieser Kategorie",
-    "loadingPreview": "Lade Produktvorschau...",
-    "previewLoadError": "Produkte für die Vorschau konnten nicht geladen werden.",
-    "noPreviewProducts": "Keine Produkte für die Vorschau gefunden.",
-    "pageTitle": "{{categoryName}} - Your Garden Eden"
+    "loadingPreview": "Produktvorschau wird geladen...",
+    "previewLoadError": "Fehler beim Laden der Produktvorschau.",
+    "noPreviewProducts": "Aktuell keine Produkte für eine Vorschau verfügbar.",
+    "pageTitle": "{{categoryName}} - Your Garden Eden",
+    "errorNoParentSlug": "Keine übergeordnete Kategorie angegeben.",
+    "genericError": "Ein Fehler ist aufgetreten."
   },
   "productList": {
     "backTo": "Zurück zu",
@@ -117,14 +134,16 @@
     "noProductsFound": "In dieser Kategorie wurden leider keine Produkte gefunden.",
     "loadingMoreProducts": "Lade weitere Produkte...",
     "pageTitle": "{{collectionName}} - Your Garden Eden",
-    "pageTitleError": "{{errorName}} - Your Garden Eden"
+    "pageTitleError": "{{errorName}} - Your Garden Eden",
+    "categoryNotFound": "Die Kategorie '{categorySlug}' wurde nicht gefunden.",
+    "categoryNotFoundTitle": "Kategorie nicht gefunden"
   },
   "productPage": {
     "backButton": "Zurück",
     "loadingDetails": "Lade Produktdetails...",
     "backToHome": "Zurück zur Startseite",
     "errorTitle": "Fehler",
-    "errorNoHandle": "Kein Produkt-Handle angegeben.",
+    "errorNoHandle": "Keine Produktkennung angegeben.",
     "errorLoadingProduct": "Fehler beim Laden des Produkts.",
     "errorNotFound": "Produkt nicht gefunden.",
     "notFoundTitle": "Produkt nicht gefunden",
@@ -133,7 +152,8 @@
     "thumbnailAlt": "Vorschaubild {{index}}",
     "availability": {
       "inStock": "Auf Lager",
-      "outOfStock": "Nicht verfügbar"
+      "outOfStock": "Nicht verfügbar",
+      "selectVariant": "Bitte Variante wählen"
     },
     "actions": {
       "addToCart": "In den Warenkorb",
@@ -146,10 +166,16 @@
       "title": "Beschreibung",
       "none": "Keine Beschreibung verfügbar."
     },
-    "errorVariantNotAvailable": "Produktvariante nicht verfügbar oder nicht ausgewählt.",
+    "shortDescription": {
+      "title": "Kurzbeschreibung"
+    },
+    "errorSelectVariant": "Bitte wähle eine Produktvariante aus.",
+    "errorVariantNotAvailable": "Diese Produktvariante ist derzeit nicht verfügbar.",
+    "errorProductNotAvailable": "Dieses Produkt ist derzeit nicht verfügbar.",
     "errorAddingToCart": "Fehler beim Hinzufügen zum Warenkorb.",
     "pageTitle": "{{productName}} - Your Garden Eden",
-    "pageTitleError": "{{errorName}} - Your Garden Eden"
+    "pageTitleError": "{{errorName}} - Your Garden Eden",
+    "selectOption": "Wähle {{optionName}}"
   },
   "staticPage": {
     "loadingPage": "Seite wird geladen...",
@@ -275,9 +301,8 @@
   },
   "cartPage": {
     "title": "Warenkorb - Your Garden Eden",
-    "mainTitle": "Warenkorb",
     "loadingCart": "Warenkorb wird geladen...",
-    "itemsTitle": "Artikel",
+    "yourItems": "Ihre Artikel",
     "tableHeaderProduct": "Produkt",
     "tableHeaderPrice": "Preis",
     "tableHeaderQuantity": "Menge",
@@ -287,23 +312,32 @@
     "increaseQuantityAria": "Menge erhöhen",
     "updatingText": "Aktualisiere...",
     "removeItemTitle": "Artikel entfernen",
-    "removeItemAria": "Artikel entfernen",
-    "summaryTitle": "Übersicht",
-    "summarySubtotal": "Zwischensumme",
-    "summaryShipping": "Versand",
-    "summaryShippingText": "Wird im nächsten Schritt berechnet",
-    "summaryTaxes": "Steuern",
-    "summaryTotal": "Gesamtsumme",
-    "vatInfo": "Inkl. MwSt.",
-    "checkoutButton": "Zur Kasse gehen",
+    "removeItemAria": "Artikel '{itemName}' entfernen",
+    "summary": {
+      "title": "Übersicht",
+      "subtotal": "Zwischensumme",
+      "shipping": "Versand",
+      "shippingText": "Wird im nächsten Schritt berechnet",
+      "taxes": "Steuern",
+      "total": "Gesamtsumme",
+      "vatInfo": "Inkl. MwSt., zzgl. Versandkosten",
+      "checkoutButton": "Zur Kasse gehen",
+      "itemSingular": "Artikel",
+      "itemPlural": "Artikel",
+      "continueShopping": "Weiter einkaufen"
+    },
     "noteLabel": "Hinweis",
-    "emptyCartTitle": "Ihr Warenkorb ist leer.",
-    "emptyCartMessage": "Fügen Sie Produkte hinzu, um sie hier zu sehen.",
-    "continueShoppingButton": "Weiter einkaufen",
+    "empty": {
+      "title": "Ihr Warenkorb ist leer.",
+      "message": "Fügen Sie Produkte hinzu, um sie hier zu sehen.",
+      "continueShopping": "Jetzt einkaufen"
+    },
+    "priceUnavailable": "Preis nicht verfügbar",
     "errorUpdateQuantity": "Menge konnte nicht aktualisiert werden.",
     "errorRemoveItem": "Artikel konnte nicht entfernt werden.",
-    "errorCheckoutNotPossible": "Checkout nicht möglich. Bitte versuchen Sie es später erneut.",
-    "errorGlobalDefault": "Ein Fehler im Warenkorb ist aufgetreten."
+    "errorCheckoutNotPossible": "Weiterleitung zur Kasse ist derzeit nicht möglich.",
+    "errorFromService": "Ein Fehler ist aufgetreten: {serviceErrorMsg}",
+    "errorGlobalDefault": "Ein unbekannter Fehler im Warenkorb ist aufgetreten."
   },
   "wishlistPage": {
     "title": "Meine Wunschliste - Your Garden Eden",
@@ -327,9 +361,10 @@
     },
     "error": {
       "loadingProducts": "Fehler beim Laden der Wunschlisten-Produkte.",
-      "productNotAvailable": "{{productName}} ist derzeit nicht verfügbar.",
-      "noVariantFound": "Keine Variante für {{productName}} zum Hinzufügen gefunden.",
-      "movingToCartError": "Fehler beim Verschieben von {{productName}} in den Warenkorb."
+      "productNotAvailable": "Das Produkt '{productName}' ist derzeit nicht verfügbar.",
+      "noVariantFound": "Für das Produkt '{productName}' konnte keine passende Variante gefunden werden.",
+      "movingToCartError": "Fehler beim Verschieben von '{productName}' in den Warenkorb.",
+      "noneAvailableToAdd": "Keine verfügbaren Produkte zum Hinzufügen in den Warenkorb gefunden."
     }
   },
   "loginOverlay": {
@@ -374,5 +409,24 @@
   },
   "notFound": {
     "title": "Seite nicht gefunden - Your Garden Eden"
+  },
+  "maintenancePage": {
+    "mainTitle": "Etwas Großes entsteht...",
+    "countdown": {
+      "days": "Tage",
+      "hours": "Stunden",
+      "minutes": "Minuten",
+      "seconds": "Sekunden"
+    },
+    "countdownEnded": "Es ist soweit! Die Tore zu Ihrem Garten Eden öffnen sich!",
+    "mysteryTextLine1": "Psst... hinter den Kulissen wächst etwas Einzigartiges heran.",
+    "mysteryTextLine2": "Eine Oase der Inspiration für Ihren perfekten Garten erwartet Sie mit exklusiven Designs und grünen Geheimnissen.",
+    "mysteryTextHighlight": "Seien Sie gespannt – das Warten wird sich lohnen!"
+  },
+  "productCard": {
+    "sale": "Angebot!",
+    "outOfStock": "Ausverkauft",
+    "availableInVariants": "In mehreren Varianten",
+    "priceFrom": "Ab"
   }
 }

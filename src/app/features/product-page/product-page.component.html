@@ -11,7 +11,7 @@
 
   @if (error(); as errorMsg) {
     <div class="error-message general-error product-load-error">
-      <p>{{ errorMsg }}</p> <!-- errorMsg kommt bereits übersetzt aus dem TS -->
+      <p>{{ errorMsg }}</p>
       <a routerLink="/">{{ 'productPage.backToHome' | transloco }}</a>
     </div>
   }
@@ -19,94 +19,137 @@
   @if (product(); as productData) {
     <div class="product-detail-container">
       <div class="product-main-grid">
-
+        <!-- Linke Spalte: Bildergalerie -->
         <div class="product-media-gallery">
           @if (selectedImage(); as mainImg) {
             <div class="main-image-container">
-              <img [src]="mainImg.url" [alt]="mainImg.altText ?? productData.title">
+              <img [src]="mainImg.src" [alt]="mainImg.alt || productData.name" />
             </div>
-          } @else if (!productData.images.edges?.[0]?.node) {
+          } @else if (productData.images && productData.images.length > 0) {
             <div class="main-image-container">
-               <div class="no-image-placeholder"><span class="material-symbols-outlined" [title]="'productPage.noImageAvailable' | transloco">image</span></div>
+              <img [src]="productData.images[0].src" [alt]="productData.images[0].alt || productData.name" />
+            </div>
+          } @else {
+            <div class="main-image-container">
+              <div class="no-image-placeholder">
+                <span class="material-symbols-outlined" [title]="'productPage.noImageAvailable' | transloco">image</span>
+              </div>
             </div>
           }
 
-          @if (productData.images.edges && productData.images.edges.length > 1) {
+          @if (productData.images && productData.images.length > 1) {
             <div class="thumbnail-container">
-              @for (edge of productData.images.edges; track edge.node.url; let i = $index) {
+              @for (image of productData.images; track image.id; let i = $index) {
                 <div class="thumbnail"
-                     (click)="selectImage(edge.node)"
-                     [class.selected]="selectedImage()?.url === edge.node.url">
-                  <img [src]="edge.node.url | imageTransform : 100 : 100"
-                       [alt]="edge.node.altText || ('productPage.thumbnailAlt' | transloco: { index: i + 1 })">
+                     (click)="selectImageOnClick(image)"
+                     [class.selected]="selectedImage()?.id === image.id">
+                  <img [src]="image.src"
+                       [alt]="image.alt || ('productPage.thumbnailAlt' | transloco: { index: i + 1 })" />
                 </div>
               }
             </div>
           }
         </div>
 
+        <!-- Rechte Spalte: Produktinfos und Aktionen -->
         <div class="product-info">
-          <h1>{{ productData.title }}</h1>
+          <h1>{{ productData.name }}</h1>
 
-          @if (productData.variants.edges?.[0]?.node?.price; as variantPrice) {
-            <div class="price-section">
-              <span class="current-price">
-                {{ variantPrice.amount | formatPrice : variantPrice.currencyCode }}
-              </span>
+          <div class="price-section">
+            <!-- displayRegularPriceFormatted liefert jetzt den formatierten String inkl. Symbol -->
+            @if (displayRegularPriceFormatted(); as regPriceFormatted) {
+              <span class="regular-price">{{ regPriceFormatted }}</span>
+            }
+            <!-- displayPriceFormatted liefert jetzt den formatierten String inkl. Symbol, ODER price_html -->
+            <span class="current-price" [innerHTML]="displayPriceFormatted() | safeHtml"></span>
+          </div>
+
+          @if (productData.type === 'variable' && variationAttributes().length > 0) {
+            <div class="variant-selection-section">
+              @for (attribute of variationAttributes(); track attribute.id) {
+                <div class="variant-option-group">
+                  <label class="variant-attribute-label" [for]="'attr-' + attribute.id">{{ attribute.name }}:</label>
+                  <div class="variant-options-container">
+                    @for (option of getOptionsForAttribute(attribute); track option) {
+                      <button
+                        type="button"
+                        class="variant-option-button"
+                        [id]="'attr-' + attribute.id + '-' + getNormalizedOptionValue(option)"
+                        [ngClass]="{ 'selected': isOptionSelected(getAttributeTrackKey(attribute), getNormalizedOptionValue(option)) }"
+                        (click)="onOptionSelect(getAttributeTrackKey(attribute), getNormalizedOptionValue(option))">
+                        {{ option }}
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
             </div>
           }
 
-          @if (productData.variants.edges?.[0]?.node; as firstVariant) {
-            <div class="availability-section">
-              <span [class.in-stock]="firstVariant.availableForSale"
-                    [class.out-of-stock]="!firstVariant.availableForSale">
-                {{ firstVariant.availableForSale ? ('productPage.availability.inStock' | transloco) : ('productPage.availability.outOfStock' | transloco) }}
+          <div class="availability-section">
+            @if (productData.type === 'variable') {
+              @if (currentSelectedVariation(); as selVar) {
+                <span [class.in-stock]="selVar.stock_status === 'instock' && selVar.purchasable"
+                      [class.out-of-stock]="selVar.stock_status !== 'instock' || !selVar.purchasable">
+                  {{ (selVar.stock_status === 'instock' && selVar.purchasable) ? ('productPage.availability.inStock' | transloco) : ('productPage.availability.outOfStock' | transloco) }}
+                </span>
+              } @else {
+                <span class="select-variant-prompt">{{ 'productPage.availability.selectVariant' | transloco }}</span>
+              }
+            } @else {
+              <span [class.in-stock]="productData.stock_status === 'instock' && productData.purchasable"
+                    [class.out-of-stock]="productData.stock_status !== 'instock' || !productData.purchasable">
+                {{ (productData.stock_status === 'instock' && productData.purchasable) ? ('productPage.availability.inStock' | transloco) : ('productPage.availability.outOfStock' | transloco) }}
               </span>
-            </div>
+            }
+          </div>
 
-            <div class="action-buttons-section">
-              <button class="add-to-cart-btn action-button"
-                      (click)="addToCart()"
-                      [disabled]="!firstVariant.availableForSale || isAddingToCart()">
-                @if (!isAddingToCart()) {
-                  <span class="material-symbols-outlined">add_shopping_cart</span>
-                  <span>{{ 'productPage.actions.addToCart' | transloco }}</span>
-                } @else {
-                  <span class="button-loading-spinner"></span>
-                  <span>{{ 'productPage.actions.addingToCart' | transloco }}</span>
-                }
-              </button>
+          <div class="action-buttons-section">
+            <button class="add-to-cart-btn action-button"
+                    (click)="addToCart()"
+                    [disabled]="isAddingToCart() || (productData.type === 'variable' && !currentSelectedVariation()) || (productData.type === 'simple' && (productData.stock_status !== 'instock' || !productData.purchasable))">
+              @if (!isAddingToCart()) {
+                <span class="material-symbols-outlined">add_shopping_cart</span>
+                <span>{{ 'productPage.actions.addToCart' | transloco }}</span>
+              } @else {
+                <span class="button-loading-spinner"></span>
+                <span>{{ 'productPage.actions.addingToCart' | transloco }}</span>
+              }
+            </button>
 
-              <button class="add-to-wishlist-btn action-button"
-                      (click)="toggleWishlist()"
-                      [disabled]="!isLoggedIn()"
-                      [title]="!isLoggedIn() ? ('productPage.actions.wishlistLogin' | transloco) : (isOnWishlist() ? ('productPage.actions.removeFromWishlist' | transloco) : ('productPage.actions.addToWishlist' | transloco))">
-                 <span class="material-symbols-outlined wishlist-icon" [class.filled]="isOnWishlist()">
-                     {{ isOnWishlist() ? 'favorite' : 'favorite_border' }}
-                 </span>
-              </button>
+            <button class="add-to-wishlist-btn action-button"
+                    (click)="toggleWishlist()"
+                    [disabled]="!isLoggedIn()"
+                    [title]="!isLoggedIn() ? ('productPage.actions.wishlistLogin' | transloco) : (isOnWishlist() ? ('productPage.actions.removeFromWishlist' | transloco) : ('productPage.actions.addToWishlist' | transloco))">
+              <span class="material-symbols-outlined wishlist-icon" [class.filled]="isOnWishlist()">
+                {{ isOnWishlist() ? 'favorite' : 'favorite_border' }}
+              </span>
+            </button>
+          </div>
 
-            </div>
-
-             @if (addToCartError()) { <!-- addToCartError kommt bereits übersetzt aus dem TS -->
-                <div class="error-message general-error cart-error">{{ addToCartError() }}</div>
-             }
+          @if (addToCartError(); as cartErr) {
+            <div class="error-message general-error cart-error">{{ cartErr }}</div>
           }
 
           <div class="description-section">
             <h3>{{ 'productPage.description.title' | transloco }}</h3>
-            @if (productData.descriptionHtml) {
-              <div [innerHTML]="productData.descriptionHtml | safeHtml"></div>
+            @if (productData.description) {
+              <div [innerHTML]="productData.description | safeHtml"></div>
             } @else {
               <p>{{ 'productPage.description.none' | transloco }}</p>
             }
           </div>
 
+          @if (productData.short_description) {
+            <div class="short-description-section">
+                <h3>{{ 'productPage.shortDescription.title' | transloco }}</h3>
+                <div [innerHTML]="productData.short_description | safeHtml"></div>
+            </div>
+          }
         </div>
       </div>
     </div>
-  }
-  @else if (!isLoading() && !error()) { <!-- error() kommt bereits übersetzt aus dem TS -->
+  } @else if (!isLoading() && !error()) {
     <p class="not-found-message">{{ 'productPage.notFoundMessage' | transloco }}</p>
   }
 </div>
