@@ -1,15 +1,43 @@
 <!-- /src/app/shared/components/product-card/product-card.component.html -->
-<div class="product-card" [class.is-unavailable]="!product.availableForSale">
+<div class="product-card"
+     [class.is-on-sale]="onSale"
+     [class.is-out-of-stock]="stockStatus === 'outofstock'"
+     [class.is-variable]="isVariable">
   <a [routerLink]="productLink" class="product-link">
     <div class="product-image-container">
-      <img *ngIf="imageUrl" [src]="imageUrl" [alt]="imageAlt" loading="lazy" class="product-image">
-      <div *ngIf="!imageUrl" class="no-image-placeholder">
-        <span class="material-symbols-outlined">image</span>
-      </div>
+      @if (imageUrl) {
+        <img
+          [src]="imageUrl"
+          [alt]="productName"
+          [loading]="isLazy ? 'lazy' : 'eager'"
+          class="product-image"
+        />
+        <div class="no-image-placeholder" style="display: none;"> <!-- Wird nur sichtbar, falls Error-Handling wieder aktiv -->
+            <span class="material-symbols-outlined">image_not_supported</span>
+        </div>
+      } @else {
+        <div class="no-image-placeholder">
+          <span class="material-symbols-outlined">image</span>
+        </div>
+      }
+      @if (onSale) {
+        <span class="sale-badge">{{ 'productCard.sale' | transloco }}</span>
+      }
+      @if (stockStatus === 'outofstock') {
+        <span class="out-of-stock-badge">{{ 'productCard.outOfStock' | transloco }}</span>
+      }
     </div>
     <div class="product-info">
-      <h3 class="product-title">{{ product.title }}</h3>
-      <p class="product-price">{{ productPrice }}</p>
+      <h3 class="product-title">{{ productName }}</h3>
+      <div class="product-price-container">
+        @if (onSale && regularPrice && !isVariable && singlePrice && regularPrice !== singlePrice) {
+          <span class="product-price-regular">{{ regularPrice }}{{ currencySymbol }}</span>
+        }
+        <span class="product-price" [innerHTML]="displayPrice"></span>
+      </div>
+      @if (isVariable) {
+        <span class="variable-product-info">{{ 'productCard.availableInVariants' | transloco }}</span>
+      }
     </div>
   </a>
 </div>

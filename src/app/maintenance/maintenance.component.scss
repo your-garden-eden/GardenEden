@@ -12,71 +12,178 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: var(--background-color-component); // Globale Variable (Weiß)
-  color: var(--primary-color); // Globale Primärfarbe für den Haupttext
-  padding: var(--spacing-xl); // Globale Variable (war 2rem)
+  background-image: linear-gradient(to bottom, var(--gradient-start, #e0f2f1), var(--gradient-end, #b2dfdb));
+  color: var(--text-color-on-gradient-base, var(--text-color-base));
+  padding: var(--spacing-xl);
   box-sizing: border-box;
   text-align: center;
+  // position: relative; // Nicht mehr unbedingt nötig, wenn der Umschalter im normalen Flow ist
 
   .logo {
-    width: 40%;
-    max-width: 400px;
+    width: clamp(150px, 40vw, 300px);
+    max-width: 100%;
     height: auto;
-    margin-bottom: var(--spacing-xl); // Globale Variable (war 2rem)
+    margin-bottom: var(--spacing-xxl);
   }
 
   h1 {
-    font-size: 2.5rem; // Kann später durch globale Typo-Skala ersetzt werden
-    margin-bottom: var(--spacing-xl); // Globale Variable (war 2rem)
-    font-weight: var(--font-weight-light); // Globale Variable
+    font-size: clamp(1.8rem, 5vw, 2.8rem);
+    margin-bottom: var(--spacing-xl);
+    font-weight: var(--font-weight-light);
+    color: var(--text-color-headings-on-gradient, var(--text-color-headings));
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
   }
 
   .countdown {
     display: flex;
     justify-content: center;
     align-items: baseline;
-    gap: var(--spacing-lg); // Globale Variable (war 1.5rem)
+    gap: var(--spacing-md);
     flex-wrap: wrap;
+    margin-bottom: var(--spacing-xxl);
 
     .time-unit {
       display: flex;
       flex-direction: column;
       align-items: center;
+      min-width: 70px;
 
       .value {
-        font-size: 3rem; // Kann später durch globale Typo-Skala ersetzt werden
-        font-weight: var(--font-weight-bold); // Globale Variable
+        font-size: clamp(2rem, 8vw, 3.5rem);
+        font-weight: var(--font-weight-bold);
         line-height: 1;
+        color: var(--primary-color-dark, var(--primary-color));
       }
 
       .label {
-        font-size: 0.9rem; // Kann später durch globale Typo-Skala ersetzt werden
+        font-size: clamp(0.75rem, 2vw, 0.9rem);
         text-transform: uppercase;
-        color: var(--text-color-muted); // Globale Variable (war #ccc)
+        letter-spacing: 0.05em;
+        color: var(--text-color-on-gradient-light, var(--text-color-muted));
+        margin-top: var(--spacing-xxs);
       }
     }
   }
 
   .countdown-ended {
-      h2 {
-        font-size: 2rem; // Kann später durch globale Typo-Skala ersetzt werden
-        color: var(--success-color); // Globale Variable (war #4caf50)
-        margin-top: var(--spacing-xl); // Etwas Abstand zum Rest
+    h2 {
+      font-size: clamp(1.5rem, 4vw, 2.2rem);
+      color: var(--success-color-on-gradient, var(--success-color));
+      margin-top: var(--spacing-xl);
+      font-weight: var(--font-weight-medium);
+    }
+  }
+
+  .info-text-section {
+    margin-top: var(--spacing-lg);
+    max-width: 600px;
+    font-size: clamp(1rem, 2.5vw, 1.2rem);
+    line-height: 1.6;
+    color: var(--text-color-on-gradient-base, var(--text-color-base));
+    margin-bottom: var(--spacing-xxl); // Abstand zum Sprachumschalter
+
+    p {
+      margin-bottom: var(--spacing-md);
+      &:last-child {
+        margin-bottom: 0;
       }
+    }
+    .highlight {
+      font-weight: var(--font-weight-semibold);
+      color: var(--primary-color-dark, var(--primary-color));
+    }
+  }
+
+  // *** Styling für den Sprachumschalter (neu positioniert und größer) ***
+  .language-selector-wrapper.bottom-selector {
+    display: flex;
+    align-items: center;
+    justify-content: center; // Zentriert den Inhalt horizontal
+    margin-top: var(--spacing-xl); // Abstand nach oben
+    padding: var(--spacing-md);
+    // background-color: rgba(255, 255, 255, 0.1); // Optional: leichter Hintergrund zur Abhebung
+    // border-radius: var(--border-radius-md);
+    width: 100%;
+    max-width: 300px; // Begrenzt die Breite des Select-Feldes
+
+    .language-icon-large {
+      font-size: 28px; // Größeres Icon
+      color: var(--text-color-on-gradient-base, var(--text-color-base));
+      margin-right: var(--spacing-sm);
+      opacity: 0.9;
+    }
+
+    .language-selector-maintenance.large {
+      background-color: rgba(255, 255, 255, 0.3); // Etwas deutlicherer Hintergrund
+      border: 1px solid var(--text-color-on-gradient-light, var(--border-color-light));
+      border-radius: var(--border-radius-md); // Etwas größerer Radius
+      padding: var(--spacing-sm) var(--spacing-lg); // Größeres Padding
+      padding-right: calc(var(--spacing-lg) + 1.5em); // Mehr Platz für größeren Pfeil
+      color: var(--text-color-on-gradient-base, var(--text-color-base));
+      font-size: 1rem; // Größere Schrift
+      font-weight: var(--font-weight-medium);
+      cursor: pointer;
+      outline: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      // Pfeil-Icon, Farbe angepasst
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23#{str-slice(inspect(var(--text-color-on-gradient-base, #333333)), 2)}'%3e%3cpath d='M7 10l5 5 5-5H7z'/%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right var(--spacing-md) center;
+      background-size: 1.2em; // Größerer Pfeil
+      transition: border-color 0.2s ease, background-color 0.2s ease;
+      min-width: 180px; // Mindestbreite für bessere Klickbarkeit
+
+      &:hover {
+        border-color: var(--text-color-on-gradient-base, var(--text-color-base));
+        background-color: rgba(255, 255, 255, 0.4);
+      }
+      &:focus-visible {
+        border-color: var(--accent-color-vibrant-green);
+        box-shadow: 0 0 0 3px var(--accent-color-vibrant-green-rgba-02); // Größerer Fokusring
+      }
+      option {
+        background-color: var(--background-color-component);
+        color: var(--text-color-base);
+        font-size: 1rem; // Stellt sicher, dass Optionen auch größer sind
+      }
+    }
   }
 }
 
-// Responsive Anpassungen
-@media (max-width: 480px) { // Breakpoint beibehalten
+// Responsive Anpassungen für den Sprachumschalter, falls nötig
+@media (max-width: 576px) {
   .maintenance-container {
-    h1 {
-      font-size: 2rem; // Typo-Skala
+    .logo {
+      width: clamp(120px, 50vw, 250px);
+      margin-bottom: var(--spacing-xl);
     }
-    .countdown .time-unit .value {
-      font-size: 2rem; // Typo-Skala
+    h1 { font-size: clamp(1.5rem, 6vw, 2.2rem); }
+    .countdown {
+      gap: var(--spacing-sm);
+      .time-unit {
+        min-width: 60px;
+        .value { font-size: clamp(1.8rem, 7vw, 2.8rem); }
+        .label { font-size: clamp(0.7rem, 1.8vw, 0.8rem); }
+      }
     }
-    .countdown-ended h2 {
-        font-size: 1.5rem; // Typo-Skala
+    .countdown-ended h2 { font-size: clamp(1.3rem, 3.5vw, 1.8rem); }
+    .info-text-section { font-size: clamp(0.9rem, 2.2vw, 1.1rem); }
+
+    .language-selector-wrapper.bottom-selector {
+      margin-top: var(--spacing-lg);
+      max-width: 280px; // Auf Mobile etwas schmaler, falls nötig
+
+      .language-icon-large {
+        font-size: 24px;
+      }
+      .language-selector-maintenance.large {
+        font-size: 0.9rem;
+        padding: var(--spacing-xs) var(--spacing-md);
+        padding-right: calc(var(--spacing-md) + 1.2em);
+        min-width: 150px;
+      }
     }
   }
 }

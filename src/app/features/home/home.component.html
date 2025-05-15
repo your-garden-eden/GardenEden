@@ -1,47 +1,38 @@
 <!-- /src/app/features/home/home.component.html -->
 <section class="hero-section">
-  <video class="hero-video" autoplay loop muted playsinline>
-    <source src="assets/videos/SchleifenVideo.mp4" type="video/mp4">
+  <video class="hero-video" autoplay loop muted playsinline preload="metadata">
+    <source src="assets/videos/SchleifenVideo.mp4" type="video/mp4" />
     {{ 'home.videoNotSupported' | transloco }}
   </video>
 </section>
 
-<!-- UNTERKATEGORIE SLIDER SEKTION - GEÄNDERTE STRUKTUR -->
-<section class="subcategory-slider-section-fullwidth"> <!-- Neuer Container für volle Breite -->
-  
-  <!-- Optional: Titel für die Sektion - dieser bleibt im content-container zentriert -->
-  <!-- 
-  <div class="content-container"> 
-    <h2>{{ 'home.discoverCategories' | transloco }}</h2>
-  </div> 
-  -->
-
-  <!-- Swiper-Container jetzt außerhalb des .content-containers für den Titel -->
-  <div class="swiper-container-outer"> 
+<section class="subcategory-slider-section-fullwidth">
+  <div class="swiper-container-outer">
     <div #subCategorySwiper class="swiper subcategory-swiper">
       <div class="swiper-wrapper">
         @for (subItem of shuffledSubCategoryItems(); track subItem.link) {
-          <div class="swiper-slide subcategory-slide">
-            <a [routerLink]="subItem.link" class="subcategory-slide-link">
-              @if (subItem.iconFilename) {
-                <img [src]="getIconPath(subItem.iconFilename)"
-                     [alt]="subItem.i18nId | transloco"
-                     class="subcategory-slide-icon"
-                     loading="lazy">
-              } @else {
-                <div class="subcategory-slide-icon-placeholder">
-                  <span class="material-symbols-outlined">category</span>
-                </div>
-              }
-              <span class="subcategory-slide-label">{{ subItem.i18nId | transloco }}</span>
-            </a>
-          </div>
+        <div class="swiper-slide subcategory-slide">
+          <a [routerLink]="subItem.link" class="subcategory-slide-link">
+            @if (subItem.iconFilename) {
+            <img
+              [src]="getIconPath(subItem.iconFilename)"
+              [alt]="subItem.i18nId | transloco"
+              class="subcategory-slide-icon"
+              loading="lazy"
+            />
+            } @else {
+            <div class="subcategory-slide-icon-placeholder">
+              <span class="material-symbols-outlined">category</span>
+            </div>
+            }
+            <span class="subcategory-slide-label">{{ subItem.i18nId | transloco }}</span>
+          </a>
+        </div>
         }
       </div>
     </div>
   </div>
 </section>
-<!-- ENDE UNTERKATEGORIE SLIDER SEKTION -->
 
 <section class="bestseller-section content-container">
   <h2>{{ 'home.bestsellersTitle' | transloco }}</h2>
@@ -52,8 +43,23 @@
   } @else {
     @if (bestsellerProducts().length > 0) {
       <div class="product-grid">
-        @for (product of bestsellerProducts(); track product.id) {
-          <app-product-card [product]="product"></app-product-card>
+        <!-- *** KORRIGIERTES PRODUCT CARD BINDING *** -->
+        @for (product of bestsellerProducts(); track product.id; let i = $index) {
+          <app-product-card
+            [productName]="product.name"
+            [priceHtml]="product.price_html"
+            [singlePrice]="product.price"
+            [currencySymbol]="getProductCurrencySymbol(product)"
+            [pricePrefix]="(product.type === 'variable' && product.price_html && product.price_html.toLowerCase().includes('ab')) ? '' : (product.type === 'variable' ? ('productCard.priceFrom' | transloco) + ' ' : '')"
+            [imageUrl]="getProductImage(product)"
+            [productLink]="getProductLink(product)"
+            [onSale]="product.on_sale"
+            [regularPrice]="product.regular_price"
+            [isLazy]="i >= 4"
+            [stockStatus]="product.stock_status"
+            [isVariable]="product.type === 'variable'"
+            [priceRange]="extractPriceRange(product)"
+          ></app-product-card>
         }
       </div>
     } @else {

@@ -16,32 +16,25 @@
   background-color: var(--background-color-component);
   overflow: hidden;
   position: relative;
-  transition: box-shadow 0.3s ease, opacity 0.3s ease, filter 0.3s ease; // Transitions für neue Effekte
+  transition: box-shadow 0.3s ease, opacity 0.3s ease, filter 0.3s ease;
 
   &:hover {
     box-shadow: var(--box-shadow-md);
   }
 
-  // +++ NEU: Styles für nicht verfügbare Produkte +++
-  &.is-unavailable {
-    opacity: 0.4; // Reduzierte Deckkraft
-    filter: grayscale(100%); // In Graustufen darstellen
-
-    // Optional: Hover-Effekte für nicht verfügbare Karten reduzieren oder entfernen
+  &.is-out-of-stock {
+    opacity: 0.6;
+    filter: grayscale(80%);
     &:hover {
-      box-shadow: var(--box-shadow-sm); // Weniger prominenter Schatten oder `none`
-      // .product-image { // Verhindert Bild-Zoom beim Hover, falls aktiv
-      //   transform: none;
-      // }
+      box-shadow: var(--box-shadow-sm);
     }
-
-    // Der Link bleibt klickbar, daher keine pointer-events: none;
-    // Das visuelle Feedback (ausgegraut, blass) signalisiert die Nichtverfügbarkeit.
   }
-  // +++ ENDE NEU +++
+  // Optional: Spezifisches Styling für variable Produktkarten
+  // &.is-variable {
+  //   border-left: 3px solid var(--primary-color);
+  // }
 }
 
-// Der klickbare Link-Bereich
 .product-link {
   display: flex;
   flex-direction: column;
@@ -51,19 +44,14 @@
   height: 100%;
 
   &:hover {
-     .product-image {
-        // transform: scale(1.03); // Optionaler Bild-Zoom, nur wenn Karte verfügbar ist (siehe unten)
-     }
+    // Bild-Zoom-Effekt wird weiter unten spezifischer gesteuert
   }
 }
 
-// Zusätzliche Regel, um Bild-Zoom nur für verfügbare Karten zu ermöglichen
-.product-card:not(.is-unavailable) .product-link:hover .product-image {
+.product-card:not(.is-out-of-stock) .product-link:hover .product-image {
   // transform: scale(1.03); // Aktiviere dies, wenn du den Zoom-Effekt möchtest
 }
 
-
-// Bild-Container
 .product-image-container {
   width: 100%;
   aspect-ratio: 1 / 1;
@@ -83,45 +71,90 @@
   }
 
   .no-image-placeholder {
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      display: flex; justify-content: center; align-items: center;
-      .material-symbols-outlined {
-          font-size: 4rem;
-          color: var(--border-color-base);
-      }
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    background-color: var(--background-color-hover-light);
+
+    .material-symbols-outlined {
+      font-size: clamp(2.5rem, 10vw, 4rem);
+      color: var(--border-color-base);
+    }
+  }
+
+  .sale-badge,
+  .out-of-stock-badge {
+    position: absolute;
+    top: var(--spacing-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.75rem;
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-color-on-accent);
+    z-index: 1;
+  }
+
+  .sale-badge {
+    left: var(--spacing-sm);
+    background-color: var(--accent-color-sale, #e74c3c);
+  }
+
+  .out-of-stock-badge {
+    right: var(--spacing-sm);
+    background-color: var(--neutral-color-dark, #7f8c8d);
   }
 }
 
-// Info-Bereich
 .product-info {
   padding: var(--spacing-md);
   flex-grow: 1;
   display: flex;
   flex-direction: column;
   background-color: var(--background-color-light-gray);
+  border-top: 1px solid var(--border-color-extra-light);
 }
 
-// Titel im Info-Bereich
 .product-title {
   font-size: 1rem;
   font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-base, 1.5);
   margin: 0 0 var(--spacing-sm) 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  min-height: calc(1rem * var(--line-height-headings, 1.3) * 2);
+  min-height: calc(1rem * var(--line-height-base, 1.5) * 2);
   color: inherit;
 }
 
-// Preis im Info-Bereich
+.product-price-container {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-xs);
+  margin: 0;
+  padding-top: var(--spacing-sm);
+  margin-top: auto;
+}
+
+.product-price-regular {
+  font-size: 0.875rem;
+  color: var(--text-color-light);
+  text-decoration: line-through;
+  font-weight: var(--font-weight-normal);
+}
+
 .product-price {
   font-size: 1rem;
   font-weight: var(--font-weight-bold);
   color: var(--price-color);
-  margin: 0;
-  padding-top: var(--spacing-sm);
-  margin-top: auto;
+}
+
+.variable-product-info {
+  font-size: 0.8rem;
+  color: var(--text-color-muted);
+  margin-top: var(--spacing-xxs);
+  font-style: italic;
 }

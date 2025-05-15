@@ -1,43 +1,37 @@
 // /src/app/features/product-page/product-page.component.scss
-// @use "sass:color"; // Nicht mehr unbedingt hier nötig, wenn Berechnungen in styles.scss sind
-
-// Lokale CSS Custom Properties im :host sind jetzt idealerweise nicht mehr nötig,
-// da wir auf globale Variablen aus styles.scss zugreifen.
 :host {
   display: block;
-  background-color: var(--background-color-page); // Globale Variable
+  background-color: var(--background-color-page);
   min-height: 100vh;
-  padding: var(--spacing-xl) 0; // Globale Variable
+  padding: var(--spacing-xl) 0;
 }
 
-// --- Inhalts-Container mit Gradient ---
 .product-page-content {
   max-width: 1200px;
-  margin: var(--spacing-lg) auto; // Globale Variablen
-  background-image: linear-gradient(to bottom, var(--gradient-start), var(--gradient-end)); // Globale Farbvariablen
-  border-radius: var(--border-radius-lg); // Globale Variable
-  box-shadow: var(--box-shadow-md); // Globale Variable
-  padding: var(--spacing-xl); // Globale Variable
-  color: var(--text-color-on-gradient-base); // Globale Variable
+  margin: var(--spacing-lg) auto;
+  background-image: linear-gradient(to bottom, var(--gradient-start), var(--gradient-end));
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--box-shadow-md);
+  padding: var(--spacing-xl);
+  color: var(--text-color-on-gradient-base);
   position: relative;
 }
 
-// --- Zurück-Button ---
 .back-button {
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-sm); // Globale Variable
+  gap: var(--spacing-sm);
   background-color: transparent;
-  border: 1px solid var(--text-color-on-gradient-base); // Globale Variable
-  color: var(--text-color-on-gradient-base); // Globale Variable
-  padding: var(--spacing-sm) var(--spacing-lg); // Globale Variablen
-  border-radius: var(--border-radius-pill); // Globale Variable
+  border: 1px solid var(--text-color-on-gradient-base);
+  color: var(--text-color-on-gradient-base);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--border-radius-pill);
   font-size: 0.9rem;
-  font-weight: var(--font-weight-semibold); // Globale Variable
+  font-weight: var(--font-weight-semibold);
   text-decoration: none;
   cursor: pointer;
   transition: all 0.25s ease-out;
-  margin-bottom: var(--spacing-lg); // Globale Variable
+  margin-bottom: var(--spacing-lg);
 
   .material-symbols-outlined {
     font-size: 20px;
@@ -45,10 +39,9 @@
   }
   &:hover {
     background-color: var(--text-color-on-gradient-base);
-    color: var(--background-color-page); // Kontrastfarbe
-    // border-color: var(--text-color-on-gradient-base); // Ist schon so
+    color: var(--background-color-page);
     transform: translateY(-1px);
-    box-shadow: var(--box-shadow-sm); // Globale Variable
+    box-shadow: var(--box-shadow-sm);
   }
   &:active {
     transform: translateY(0);
@@ -56,7 +49,7 @@
   }
   &:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 3px var(--accent-color-vibrant-green-rgba-02); // Globale Variable für Fokus
+    box-shadow: 0 0 0 3px var(--accent-color-vibrant-green-rgba-02);
   }
 }
 
@@ -65,73 +58,71 @@
 .product-main-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-xl); // Globale Variable
+  gap: var(--spacing-xl);
   align-items: start;
-  @media (max-width: 992px) { // Breakpoint beibehalten
+  @media (max-width: 992px) {
     grid-template-columns: 1fr;
-    gap: var(--spacing-xl); // Kann auch --spacing-xxl sein, je nach Design
+    gap: var(--spacing-xl);
   }
 }
 
-// --- Lade- & Fehleranzeigen ---
 .loading-indicator {
   text-align: center;
-  padding: var(--spacing-xxxl); // Globale Variable
-  color: var(--text-color-on-gradient-light); // Globale Variable
+  padding: var(--spacing-xxxl);
+  color: var(--text-color-on-gradient-light);
 }
 .error-message {
   &.general-error {
-    margin: var(--spacing-lg) 0; // Globale Variablen
+    margin: var(--spacing-lg) 0;
     padding: var(--spacing-lg);
-    background-color: rgba(255, 255, 255, 0.8); // Weiß mit Transparenz auf Gradient
-    border: 1px solid var(--error-color); // Globale Variable
-    border-radius: var(--border-radius-sm); // Globale Variable
+    background-color: rgba(255, 255, 255, 0.8);
+    border: 1px solid var(--error-color);
+    border-radius: var(--border-radius-sm);
     text-align: center;
-    font-weight: var(--font-weight-medium); // Globale Variable
-    color: var(--error-text-color); // Globale Variable
+    font-weight: var(--font-weight-medium);
+    color: var(--error-text-color);
     a {
       color: var(--error-text-color);
       text-decoration: underline;
       font-weight: var(--font-weight-bold);
     }
   }
-  &.cart-error { // Fehler direkt bei Buttons
-    margin-top: var(--spacing-md); // Globale Variable
-    color: var(--error-color); // Globale Variable
+  &.cart-error {
+    margin-top: var(--spacing-md);
+    color: var(--error-color);
     font-weight: var(--font-weight-medium);
     font-size: 0.9rem;
   }
 }
 
-// --- Linke Spalte: Medien-Galerie ---
 .product-media-gallery {
   display: flex;
   flex-direction: column;
 
   .main-image-container {
-    border: 1px solid rgba(0,0,0,0.1); // Beibehalten oder an --border-color anlehnen
-    margin-bottom: var(--spacing-lg); // Globale Variable
+    border: 1px solid rgba(0,0,0,0.1);
+    margin-bottom: var(--spacing-lg);
     position: relative;
-    background-color: var(--background-color-component); // Globale Variable
+    background-color: var(--background-color-component);
     min-height: 300px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: var(--border-radius-sm); // Globale Variable
+    border-radius: var(--border-radius-sm);
     overflow: hidden;
     aspect-ratio: 1 / 1;
 
     img { display: block; width: 100%; height: 100%; object-fit: contain; }
     .no-image-placeholder {
       width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
-      .material-symbols-outlined { font-size: 5rem; color: var(--border-color-base); } // Globale Variable
+      .material-symbols-outlined { font-size: 5rem; color: var(--border-color-base); }
     }
   }
 
   .thumbnail-container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(65px, 1fr));
-    gap: var(--spacing-sm); // Globale Variable
+    gap: var(--spacing-sm);
 
     .thumbnail {
       border: 2px solid transparent;
@@ -143,69 +134,133 @@
       align-items: center;
       justify-content: center;
       overflow: hidden;
-      background-color: var(--background-color-component); // Globale Variable
-      border-radius: var(--border-radius-sm); // Globale Variable
+      background-color: var(--background-color-component);
+      border-radius: var(--border-radius-sm);
 
       img { max-width: 100%; max-height: 100%; display: block; object-fit: contain; }
-      &:hover { border-color: var(--thumbnail-border-color-hover); } // Globale Variable
-      &.selected { border-color: var(--thumbnail-border-color-selected); } // Globale Variable
+      &:hover { border-color: var(--thumbnail-border-color-hover, var(--primary-color)); }
+      &.selected { border-color: var(--thumbnail-border-color-selected, var(--primary-color-dark)); }
     }
   }
 }
 
-// --- Rechte Spalte: Produkt-Infos ---
 .product-info {
-
   h1.product-title {
     margin-top: 0;
-    margin-bottom: var(--spacing-sm); // Globale Variable
-    font-size: 1.8em; // Typo-Skala
+    margin-bottom: var(--spacing-sm);
+    font-size: 1.8em;
     line-height: 1.3;
-    color: var(--text-color-on-gradient-base); // Globale Variable
+    color: var(--text-color-on-gradient-base);
   }
 
   .price-section {
-    margin-bottom: var(--spacing-sm); // Globale Variable
-    font-size: 1.6em; // Typo-Skala
-    font-weight: var(--font-weight-semibold); // Globale Variable
+    margin-bottom: var(--spacing-sm);
+    font-size: 1.6em;
+    font-weight: var(--font-weight-semibold);
     .current-price {
-      color: var(--price-color); // Globale Variable
+      color: var(--price-color);
+    }
+    .regular-price {
+      font-size: 0.7em;
+      color: var(--text-color-on-gradient-light, var(--text-color-muted));
+      text-decoration: line-through;
+      margin-right: var(--spacing-xs);
+      font-weight: var(--font-weight-normal);
+    }
+  }
+
+  .variant-selection-section {
+    margin-top: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+
+    .variant-option-group {
+      margin-bottom: var(--spacing-md);
+
+      .variant-attribute-label {
+        display: block;
+        font-weight: var(--font-weight-medium);
+        margin-bottom: var(--spacing-sm);
+        color: var(--text-color-on-gradient-base);
+      }
+
+      .variant-options-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--spacing-sm);
+      }
+
+      .variant-option-button {
+        padding: var(--spacing-sm) var(--spacing-md);
+        border: 1px solid var(--text-color-on-gradient-light, var(--border-color-base));
+        border-radius: var(--border-radius-md);
+        background-color: transparent;
+        color: var(--text-color-on-gradient-base, var(--text-color-base));
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+        font-size: 0.9rem;
+        min-width: 50px;
+        text-align: center;
+        line-height: 1.2;
+
+        &:hover {
+          border-color: var(--primary-color, #A1B48A);
+          background-color: rgba(var(--primary-color-rgb, 161, 180, 138), 0.1);
+          color: var(--primary-color-dark, darken(#A1B48A, 10%));
+        }
+
+        &.selected {
+          background-color: var(--primary-color, #A1B48A);
+          color: var(--primary-color-text, #FFFFFF);
+          border-color: var(--primary-color, #A1B48A);
+          font-weight: var(--font-weight-semibold);
+        }
+
+        &:focus-visible {
+          outline: 2px solid var(--accent-color-vibrant-green);
+          outline-offset: 2px;
+        }
+      }
     }
   }
 
   .availability-section {
-    margin-bottom: var(--spacing-lg); // Globale Variable
-    font-size: 0.95em; // Typo-Skala
-    font-weight: var(--font-weight-medium); // Globale Variable
-    .in-stock { color: var(--instock-color-on-gradient); } // Globale Variable
-    .out-of-stock { color: var(--outofstock-color-on-gradient); font-weight: var(--font-weight-bold); } // Globale Variablen
+    margin-bottom: var(--spacing-lg);
+    font-size: 0.95em;
+    font-weight: var(--font-weight-medium);
+    .in-stock { color: var(--instock-color-on-gradient, var(--success-color)); }
+    .out-of-stock { color: var(--outofstock-color-on-gradient, var(--error-color)); font-weight: var(--font-weight-bold); }
+    .select-variant-prompt {
+      color: var(--text-color-on-gradient-light, var(--text-color-muted));
+      font-style: italic;
+    }
   }
 
   .action-buttons-section {
-    margin-top: var(--spacing-lg); // Globale Variable
+    margin-top: var(--spacing-lg);
     margin-bottom: var(--spacing-lg);
     display: flex;
     flex-wrap: nowrap;
-    gap: var(--spacing-sm); // Globale Variable
+    gap: var(--spacing-sm);
     align-items: center;
 
     .action-button {
       display: inline-flex; align-items: center; justify-content: center;
       gap: var(--spacing-sm);
-      border-radius: var(--border-radius-md); // Globale Variable
+      border-radius: var(--border-radius-md);
       font-size: 1rem;
       font-weight: var(--font-weight-semibold);
       cursor: pointer;
       transition: background-color 0.2s ease, color 0.2s ease, filter 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
       border: none;
       white-space: nowrap;
+      padding: var(--spacing-sm) var(--spacing-md);
 
       .material-symbols-outlined { vertical-align: middle; font-size: 20px; }
 
       &:disabled {
-        background-color: var(--disabled-background-color) !important; // Globale Variable
-        border-color: var(--disabled-background-color) !important;
-        color: var(--text-color-muted) !important; // Angepasst von #fff
+        background-color: var(--disabled-background-color, #e0e0e0) !important;
+        border-color: var(--disabled-background-color, #e0e0e0) !important;
+        color: var(--text-color-on-disabled, #a0a0a0) !important;
         cursor: not-allowed;
         opacity: 0.7;
         filter: grayscale(50%);
@@ -214,20 +269,18 @@
     }
 
     .add-to-cart-btn {
-      background-color: var(--primary-color); // Globale Primärfarbe
-      color: var(--primary-color-text); // Globale Variable
+      background-color: var(--primary-color);
+      color: var(--primary-color-text);
       flex-grow: 1;
-      padding: var(--spacing-md) var(--spacing-lg); // Globale Variablen
 
       &:hover:not(:disabled) {
-         background-color: var(--primary-color-dark); // Globale Primärfarbe dunkel
-         // filter: brightness(90%); // Alternative zum direkten Abdunkeln
+         background-color: var(--primary-color-dark);
       }
 
-      .button-loading-spinner { // Spinner-Styling kann globalisiert werden
-        border: 2px solid var(--primary-color-text-rgba-03); // Globale Variable
+      .button-loading-spinner {
+        border: 2px solid var(--primary-color-text-rgba-03, rgba(255,255,255,0.3));
         border-radius: var(--border-radius-circle);
-        border-top-color: var(--primary-color-text);
+        border-top-color: var(--primary-color-text, #FFFFFF);
         width: 16px; height: 16px;
         animation: spin 1s linear infinite;
         margin-right: var(--spacing-sm);
@@ -236,69 +289,81 @@
 
     .add-to-wishlist-btn {
       background-color: transparent;
-      color: var(--text-color-on-gradient-light); // Globale Variable
-      border: none;
-      padding: var(--spacing-sm); // Globale Variable
-      border-radius: var(--border-radius-circle); // Globale Variable
+      color: var(--text-color-on-gradient-light);
+      border: 1px solid var(--text-color-on-gradient-light, var(--border-color-base));
+      border-radius: var(--border-radius-circle);
       flex-shrink: 0;
       outline: none;
 
-      &:focus-visible { box-shadow: 0 0 0 2px var(--accent-color-vibrant-green-rgba-02); } // Globale Variable
+      &:focus-visible { box-shadow: 0 0 0 2px var(--accent-color-vibrant-green-rgba-02); }
 
       &:hover:not(:disabled) {
-        background-color: var(--wishlist-hover-bg-color); // Globale Variable
-        color: var(--wishlist-icon-color); // Globale Variable
+        background-color: var(--wishlist-hover-bg-color, rgba(var(--primary-color-rgb), 0.1));
+        color: var(--wishlist-icon-color, var(--primary-color));
+        border-color: var(--wishlist-icon-color, var(--primary-color));
       }
 
       .wishlist-icon {
         color: inherit; font-size: 24px;
         transition: transform 0.2s ease, color 0.2s ease, font-variation-settings 0.1s ease;
         &.filled {
-          color: var(--wishlist-icon-color); // Globale Variable
+          color: var(--wishlist-icon-color, var(--accent-color-like));
           font-variation-settings: 'FILL' 1;
         }
       }
       &:disabled {
+        border-color: var(--disabled-color, #c0c0c0) !important;
         background-color: transparent !important; opacity: 0.5; cursor: not-allowed; filter: none;
         .wishlist-icon {
-           color: var(--disabled-color) !important; // Globale Variable
-           font-variation-settings: 'FILL' 1 !important;
-           background-color: transparent !important;
+           color: var(--disabled-color, #c0c0c0) !important;
+           font-variation-settings: 'FILL' 0 !important;
         }
       }
     }
   }
 
   .description-section {
-     margin-top: var(--spacing-xl); // Globale Variable
+     margin-top: var(--spacing-xl);
      h3 {
-       margin-bottom: var(--spacing-sm); // Globale Variable
-       font-size: 1.1rem; // Typo-Skala
-       color: var(--text-color-on-gradient-base); // Globale Variable
+       margin-bottom: var(--spacing-sm);
+       font-size: 1.1rem;
+       color: var(--text-color-on-gradient-base);
      }
-     div[innerHTML] { // Styling für ngx-markdown Output
+     div[innerHTML] {
          line-height: 1.6;
-         color: var(--text-color-on-gradient-light); // Globale Variable
-         font-size: 0.95rem; // Typo-Skala
+         color: var(--text-color-on-gradient-light);
+         font-size: 0.95rem;
          ul, ol { margin-left: 20px; margin-bottom: 1em; padding-left: 1em; }
          li { margin-bottom: 0.5em; }
          p { margin-bottom: 1em; }
-         strong { font-weight: var(--font-weight-bold); color: var(--text-color-on-gradient-base); } // Globale Variablen
-         a { // Links in der Beschreibung
-           color: var(--primary-color); // Globale Primärfarbe
+         strong { font-weight: var(--font-weight-bold); color: var(--text-color-on-gradient-base); }
+         a {
+           color: var(--primary-color);
            text-decoration: underline;
            &:hover {
-             color: var(--primary-color-dark); // Globale Primärfarbe dunkel
-             filter: none; // Sicherstellen, dass kein anderer Filter greift
+             color: var(--primary-color-dark);
+             filter: none;
            }
          }
      }
   }
+   .short-description-section {
+    margin-top: var(--spacing-lg);
+     h3 {
+       margin-bottom: var(--spacing-sm);
+       font-size: 1.1rem;
+       color: var(--text-color-on-gradient-base);
+     }
+     div[innerHTML] {
+         line-height: 1.6;
+         color: var(--text-color-on-gradient-light);
+         font-size: 0.95rem;
+     }
+  }
 }
 
-// --- Responsive ---
-@media (max-width: 768px) { // Breakpoint beibehalten
-  .product-main-grid { grid-template-columns: 1fr; gap: var(--spacing-lg); } // Globale Variable
+@media (max-width: 768px) {
+  .product-main-grid { grid-template-columns: 1fr; gap: var(--spacing-lg); }
   .product-media-gallery {
     .main-image-container { max-width: 85%; margin-left: auto; margin-right: auto; }
     .thumbnail-container { justify-content: flex-start; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); }
@@ -309,11 +374,10 @@
     .action-buttons-section {
       flex-direction: column; align-items: stretch;
       .add-to-cart-btn { width: 100%; justify-content: center; }
-      .add-to-wishlist-btn { width: auto; align-self: center; margin-top: var(--spacing-sm); } // Globale Variable
+      .add-to-wishlist-btn { width: auto; align-self: center; margin-top: var(--spacing-sm); }
     }
   }
-  .product-page-content { padding: var(--spacing-lg); margin: var(--spacing-lg); } // Globale Variablen
+  .product-page-content { padding: var(--spacing-lg); margin: var(--spacing-lg); }
 }
 
-// --- Keyframes ---
 @keyframes spin { to { transform: rotate(360deg); } }

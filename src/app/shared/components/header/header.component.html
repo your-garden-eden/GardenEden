@@ -1,8 +1,7 @@
 <!-- /src/app/shared/components/header/header.component.html -->
 <header class="app-header two-rows">
   <div class="top-row">
-    <!-- Sprachauswahl (Desktop) -->
-    <div class="language-selector-container desktop-language-selector"> <!-- Neue Klasse für Desktop -->
+    <div class="language-selector-container desktop-language-selector">
       <span class="material-symbols-outlined language-icon" aria-hidden="true">language</span>
       <select class="language-selector"
               [ngModel]="activeLang()"
@@ -10,9 +9,7 @@
               [attr.aria-label]="'header.selectLanguage' | transloco"
               [title]="'header.selectLanguage' | transloco">
         @for(lang of availableLangsSignal(); track lang.id) {
-          <option [value]="lang.id">
-            {{ lang.label }} <!-- Nutzt jetzt die ausgeschriebenen Namen -->
-          </option>
+          <option [value]="lang.id">{{ lang.label }}</option>
         }
       </select>
     </div>
@@ -28,7 +25,7 @@
         <span class="material-symbols-outlined search-icon-prefix">search</span>
         <input type="text" id="search-query" [placeholder]="'header.searchPlaceholder' | transloco"
                [formControl]="searchControl"
-               (focus)="isSearchOverlayVisible.set(true)"
+               (focus)="onSearchFocus()"
                autocomplete="off">
         @if(searchControl.value) {
           <button class="icon-button clear-button" (click)="clearSearch()" [attr.aria-label]="'header.clearSearch' | transloco">
@@ -38,29 +35,29 @@
       </div>
 
       @if(isSearchOverlayVisible()) {
-        <div class="search-results-overlay">
+        <div class="search-results-overlay" (click)="$event.stopPropagation()">
           @if(isSearchLoading()) {
             <div class="search-loading">{{ 'header.searchLoading' | transloco }}</div>
-          } @else if (searchError()) {
-              <div class="search-error">{{searchError()}}</div>
+          } @else if (searchError()) { <!-- KORRIGIERT: "as sError" entfernt -->
+            <div class="search-error">{{ searchError() }}</div> <!-- KORRIGIERT: searchError() direkt verwenden -->
           } @else if (searchResults().length > 0) {
             <ul>
               @for(product of searchResults(); track product.id) {
                 <li>
-                  <a [routerLink]="['/product', product.handle]" (click)="onSearchResultClick()" class="search-result-item">
-                    @if(product.images.edges?.[0]?.node?.url) {
-                      <img [src]="product.images.edges[0].node.url" [alt]="product.title" width="40" height="40">
+                  <a [routerLink]="getSearchResultLink(product)" (click)="onSearchResultClick()" class="search-result-item">
+                    @if(getSearchResultImage(product); as imgUrl) {
+                      <img [src]="imgUrl" [alt]="product.name" width="40" height="40">
                     } @else {
                       <div class="search-result-placeholder-img"></div>
                     }
-                    <span class="search-result-title">{{ product.title }}</span>
+                    <span class="search-result-title">{{ product.name }}</span>
                   </a>
                 </li>
               }
             </ul>
-          } @else if (searchControl.value && searchControl.value.length > 2 && !isSearchLoading() && !searchError()) {
-              <div class="search-no-results">{{ 'header.searchNoResults' | transloco }} "{{searchControl.value}}".</div>
-          } @else if (searchControl.value && searchControl.value.length <= 2) {
+          } @else if (searchControl.value && (searchControl.value.length > 2) && !isSearchLoading() && !searchError()) {
+              <div class="search-no-results">{{ 'header.searchNoResults' | transloco : { term: searchControl.value } }}</div>
+          } @else if (searchControl.value && (searchControl.value.length <= 2) && !isSearchLoading()) {
               <div class="search-prompt">{{ 'general.searchPrompt' | transloco }}</div>
           }
         </div>
@@ -114,12 +111,12 @@
       </a>
     </div>
     <ul class="desktop-nav-list">
-      @for (item of navItems; track item.label) {
+      @for (item of navItems; track item.link) {
         <li class="nav-item" [class.has-submenu]="item.subItems && item.subItems.length > 0">
           <a [routerLink]="item.link" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: item.link === '/'}">{{ item.i18nId | transloco }}</a>
           @if (item.subItems && item.subItems.length > 0) {
             <ul class="submenu">
-              @for (child of item.subItems; track child.label) {
+              @for (child of item.subItems; track child.link) {
                 <li><a [routerLink]="child.link" routerLinkActive="active-link">{{ child.i18nId | transloco }}</a></li>
               }
             </ul>
@@ -135,7 +132,6 @@
        </button>
 
        <ul class="mobile-nav-list">
-          <!-- NEU: Sprachauswahl für Mobile ganz oben -->
           <li class="mobile-nav-item mobile-language-selector-item">
             <div class="mobile-language-header">
               <span class="material-symbols-outlined language-icon">language</span>
@@ -148,15 +144,14 @@
                           class="language-button"
                           [class.active]="lang.id === activeLang()"
                           (click)="changeLanguage(lang.id)">
-                    {{ lang.label }} <!-- Ausgeschriebene Namen -->
+                    {{ lang.label }}
                   </button>
                 </li>
               }
             </ul>
           </li>
-          <!-- Ende NEU -->
 
-          @for (item of navItems; track item.label) {
+          @for (item of navItems; track item.link) {
             <li class="mobile-nav-item">
               <div class="mobile-nav-item-content">
                  <a [routerLink]="item.link"
@@ -172,7 +167,7 @@
               </div>
               @if (item.subItems && item.subItems.length > 0 && item.isExpanded) {
                 <ul class="mobile-submenu">
-                   @for (child of item.subItems; track child.label) {
+                   @for (child of item.subItems; track child.link) {
                      <li><a [routerLink]="child.link" routerLinkActive="active-link" (click)="closeMobileMenu()">{{ child.i18nId | transloco }}</a></li>
                    }
                 </ul>

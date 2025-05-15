@@ -1,13 +1,38 @@
-import { Component, OnInit, inject, signal, ChangeDetectionStrategy, WritableSignal, OnDestroy, AfterViewInit, ElementRef, ViewChild, PLATFORM_ID, ChangeDetectorRef } from '@angular/core';
+// /src/app/features/home/home.component.ts
+import {
+  Component,
+  OnInit,
+  inject,
+  signal,
+  ChangeDetectionStrategy,
+  WritableSignal,
+  OnDestroy,
+  AfterViewInit,
+  ElementRef,
+  ViewChild,
+  PLATFORM_ID,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Title } from '@angular/platform-browser';
 import { TranslocoService, TranslocoModule } from '@ngneat/transloco';
-import { Subscription } from 'rxjs';
+import { Subscription, of } from 'rxjs';
+import { catchError, finalize, take, map } from 'rxjs/operators';
 import { RouterModule } from '@angular/router';
+import { HttpParams } from '@angular/common/http';
 
-import { ShopifyService, Product } from '../../core/services/shopify.service';
+import {
+  WoocommerceService,
+  WooCommerceProduct,
+  WooCommerceProductsResponse,
+  WooCommerceMetaData, // Importiert
+} from '../../core/services/woocommerce.service';
 import { ProductCardComponent } from '../../shared/components/product-card/product-card.component';
-import { navItems, NavItem, NavSubItem } from '../../core/data/navigation.data';
+import {
+  navItems,
+  NavItem,
+  NavSubItem,
+} from '../../core/data/navigation.data';
 
 // Swiper Imports
 import Swiper from 'swiper';
@@ -16,26 +41,20 @@ import { Autoplay } from 'swiper/modules';
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [
-    CommonModule,
-    ProductCardComponent,
-    TranslocoModule,
-    RouterModule
-  ],
+  imports: [CommonModule, ProductCardComponent, TranslocoModule, RouterModule],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
-
-  private shopifyService = inject(ShopifyService);
+  private woocommerceService = inject(WoocommerceService);
   private titleService = inject(Title);
   private translocoService = inject(TranslocoService);
   private platformId = inject(PLATFORM_ID);
   private cdr = inject(ChangeDetectorRef);
-  private langChangeSubscription!: Subscription;
+  private subscriptions = new Subscription();
 
-  bestsellerProducts: WritableSignal<Product[]> = signal([]);
+  bestsellerProducts: WritableSignal<WooCommerceProduct[]> = signal([]);
   isLoadingBestsellers: WritableSignal<boolean> = signal(false);
   errorBestsellers: WritableSignal<string | null> = signal(null);
 
@@ -44,6 +63,8 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('subCategorySwiper') swiperContainer!: ElementRef<HTMLElement>;
   private swiperInstance: Swiper | null = null;
 
+  private readonly BESTSELLER_COUNT = 8;
+
   constructor() {}
 
   ngOnInit(): void {
@@ -51,24 +72,26 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
     this.updateTitle();
     this.prepareSubCategorySliderItems();
 
-    this.langChangeSubscription = this.translocoService.langChanges$.subscribe(() => {
+    const langSub = this.translocoService.langChanges$.subscribe(() => {
       this.updateTitle();
       if (this.errorBestsellers()) {
-        this.errorBestsellers.set(this.translocoService.translate('home.errorLoadingBestsellers'));
+        this.errorBestsellers.set(
+          this.translocoService.translate('home.errorLoadingBestsellers')
+        );
       }
+      this.cdr.markForCheck();
     });
+    this.subscriptions.add(langSub);
   }
 
   ngAfterViewInit(): void {
     if (isPlatformBrowser(this.platformId)) {
-      this.initSwiper();
+      Promise.resolve().then(() => this.initSwiper());
     }
   }
 
   ngOnDestroy(): void {
-    if (this.langChangeSubscription) {
-      this.langChangeSubscription.unsubscribe();
-    }
+    this.subscriptions.unsubscribe();
     if (this.swiperInstance) {
       this.swiperInstance.destroy(true, true);
     }
@@ -79,19 +102,41 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
     this.titleService.setTitle(title);
   }
 
-  async loadBestsellers(): Promise<void> {
+  loadBestsellers(): void {
     this.isLoadingBestsellers.set(true);
     this.errorBestsellers.set(null);
     this.bestsellerProducts.set([]);
-    try {
-      const products = await this.shopifyService.getProductsSortedByBestSelling(10);
-      this.bestsellerProducts.set(products ?? []);
-    } catch (err) {
-      console.error('HomeComponent: Bestseller Fehler:', err);
-      this.errorBestsellers.set(this.translocoService.translate('home.errorLoadingBestsellers'));
-    } finally {
-      this.isLoadingBestsellers.set(false);
-    }
+
+    let httpApiParams = new HttpParams();
+    httpApiParams = httpApiParams.set('orderby', 'total_sales');
+    httpApiParams = httpApiParams.set('order', 'desc');
+
+    const bestsellerSub = this.woocommerceService
+      .getProducts(
+        undefined,
+        this.BESTSELLER_COUNT,
+        1,
+        httpApiParams
+      )
+      .pipe(
+        take(1),
+        catchError(err => {
+          console.error('HomeComponent: Bestseller Fehler:', err);
+          this.errorBestsellers.set(
+            this.translocoService.translate('home.errorLoadingBestsellers')
+          );
+          return of({ products: [], totalPages: 0, totalCount: 0 } as WooCommerceProductsResponse);
+        }),
+        map((response: WooCommerceProductsResponse) => response.products),
+        finalize(() => {
+          this.isLoadingBestsellers.set(false);
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe((products: WooCommerceProduct[]) => {
+        this.bestsellerProducts.set(products);
+      });
+    this.subscriptions.add(bestsellerSub);
   }
 
   private prepareSubCategorySliderItems(): void {
@@ -102,8 +147,11 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     });
     const shuffled = this.shuffleArray(allSubItems);
-    this.shuffledSubCategoryItems.set(shuffled);
-    this.cdr.detectChanges();
+    this.shuffledSubCategoryItems.set(shuffled.slice(0, 15));
+    this.cdr.markForCheck();
+    if (isPlatformBrowser(this.platformId) && this.swiperContainer?.nativeElement && this.shuffledSubCategoryItems().length > 0) {
+        this.initSwiper();
+    }
   }
 
   private shuffleArray<T>(array: T[]): T[] {
@@ -120,31 +168,78 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private initSwiper(): void {
-    if (this.swiperContainer && this.swiperContainer.nativeElement && this.shuffledSubCategoryItems().length > 0) {
-      if (this.swiperInstance) {
+    if (this.swiperInstance) {
         this.swiperInstance.destroy(true, true);
         this.swiperInstance = null;
-      }
-
+    }
+    if (this.swiperContainer?.nativeElement && this.shuffledSubCategoryItems().length > 0) {
       this.swiperInstance = new Swiper(this.swiperContainer.nativeElement, {
         modules: [Autoplay],
         loop: true,
         slidesPerView: 'auto',
-        spaceBetween: 20, // Dieser Wert wird für Desktop ggf. im Breakpoint überschrieben
-        centeredSlides: false, // Wichtig für den "randlosen" Effekt, wenn slidesPerView: 'auto'
+        spaceBetween: 20,
+        centeredSlides: false,
         grabCursor: true,
         autoplay: {
-          delay: 0,
+          delay: 1,
           disableOnInteraction: false,
+          pauseOnMouseEnter: true,
         },
-        speed: 4000,
-        breakpoints: { // Hier nur noch spaceBetween anpassen, slidesPerView ist 'auto'
+        speed: 5000,
+        freeMode: true,
+        breakpoints: {
           320: { spaceBetween: 15 },
-          768: { spaceBetween: 20 }, // Ggf. etwas mehr Space auf Desktop
-        }
+          768: { spaceBetween: 20 },
+        },
       });
-    } else {
-      console.warn('Swiper konnte nicht initialisiert werden. Container nicht bereit oder keine Slider-Items.');
     }
+  }
+
+  getProductLink(product: WooCommerceProduct): string {
+    return `/product/${product.slug}`;
+  }
+
+  getProductImage(product: WooCommerceProduct): string | undefined {
+    return product.images && product.images.length > 0
+      ? product.images[0].src
+      : undefined;
+  }
+
+  // NEUE METHODEN für ProductCard
+  extractPriceRange(product: WooCommerceProduct): { min: string, max: string } | null {
+    if (product.type === 'variable') {
+      if (product.price_html) {
+        // Verbesserter Regex, um verschiedene Währungsformate und "ab"-Texte zu berücksichtigen
+        const rangeMatch = product.price_html.match(/([\d.,]+)[^\d.,<]*?(?:–|-)[^\d.,<]*?([\d.,]+)/);
+        if (rangeMatch && rangeMatch[1] && rangeMatch[2]) {
+          return { 
+            min: rangeMatch[1].replace(',', '.'), 
+            max: rangeMatch[2].replace(',', '.') 
+          };
+        }
+        // Regex für einzelnen Preis (z.B. "Ab 19,99€" oder nur "19,99€")
+        const singlePriceMatch = product.price_html.match(/([\d.,]+)/);
+        if (singlePriceMatch && singlePriceMatch[1]) {
+          const priceVal = singlePriceMatch[1].replace(',', '.');
+          return { min: priceVal, max: priceVal };
+        }
+      }
+      if (product.price) { // Fallback auf product.price, wenn price_html nicht passt
+        return { min: product.price, max: product.price };
+      }
+    }
+    return null;
+  }
+
+  getProductCurrencySymbol(product: WooCommerceProduct): string {
+    const currencyMeta = product.meta_data?.find(m => m.key === '_currency_symbol');
+    if (currencyMeta?.value) return currencyMeta.value as string;
+    
+    if (product.price_html) {
+      if (product.price_html.includes('€')) return '€';
+      if (product.price_html.includes('$')) return '$';
+      // Hier weitere Währungssymbole bei Bedarf hinzufügen
+    }
+    return '€'; // Standard-Fallback
   }
 }

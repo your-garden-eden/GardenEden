@@ -33,6 +33,8 @@ export class FooterComponent implements OnInit {
         if (lang === 'de') label = 'Deutsch';
         if (lang === 'en') label = 'English';
         if (lang === 'hr') label = 'Hrvatski';
+        if (lang === 'es') label = 'Español';  // *** NEU ***
+        if (lang === 'pl') label = 'Polski';   // *** NEU ***
         return { id: lang, label: label };
       }
       return { id: lang.id, label: lang.label || lang.id.toUpperCase() };

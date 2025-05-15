@@ -26,27 +26,32 @@ import { routes } from './app.routes';
 import { registerLocaleData, CurrencyPipe } from '@angular/common';
 import localeDe from '@angular/common/locales/de';
 import localeDeExtra from '@angular/common/locales/extra/de';
+// Locale-Daten für Spanisch und Polnisch (optional, aber gut für Datums-/Zahlenformate)
+import localeEs from '@angular/common/locales/es';
+import localePl from '@angular/common/locales/pl';
+
 
 // --- TRANSLOCO IMPORTS ---
 import { TranslocoHttpLoader } from './transloco-loader';
-import { provideTransloco } from '@ngneat/transloco'; // TranslocoStorage Import entfernt
-import { provideTranslocoPersistLang, TRANSLOCO_PERSIST_LANG_STORAGE } from '@ngneat/transloco-persist-lang';
+import { provideTransloco } from '@ngneat/transloco';
+import { provideTranslocoPersistLang } from '@ngneat/transloco-persist-lang'; // TRANSLOCO_PERSIST_LANG_STORAGE hier nicht mehr nötig, wird intern gehandhabt
 
 registerLocaleData(localeDe, 'de-DE', localeDeExtra);
+registerLocaleData(localeEs, 'es'); // Registriere Spanisch
+registerLocaleData(localePl, 'pl'); // Registriere Polnisch
 // --- ENDE LOCALE ---
 
 // Dummy-Storage für Serverseite
-// Muss die Methoden getItem, setItem, removeItem haben.
 export class NoOpStorage {
   getItem(key: string): string | null {
-    console.log(`SSR NoOpStorage: getItem called for key ${key}`);
+    // console.log(`SSR NoOpStorage: getItem called for key ${key}`);
     return null;
   }
   setItem(key: string, value: string): void {
-    console.log(`SSR NoOpStorage: setItem called for key ${key} with value ${value}`);
+    // console.log(`SSR NoOpStorage: setItem called for key ${key} with value ${value}`);
   }
   removeItem(key: string): void {
-    console.log(`SSR NoOpStorage: removeItem called for key ${key}`);
+    // console.log(`SSR NoOpStorage: removeItem called for key ${key}`);
   }
 }
 
@@ -55,13 +60,13 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes, withComponentInputBinding(), withViewTransitions()),
     provideClientHydration(),
     provideHttpClient(withFetch()),
-    { provide: LOCALE_ID, useValue: 'de-DE' },
+    { provide: LOCALE_ID, useValue: 'de-DE' }, // Standard-Locale bleibt Deutsch
     CurrencyPipe,
     provideMarkdown(),
     provideFirebaseApp(() => initializeApp(environment.firebase)),
     provideAuth(() => getAuth()),
     provideFirestore(() => getFirestore()),
-    provideFunctions(() => getFunctions(getApp(), 'europe-west3')),
+    provideFunctions(() => getFunctions(getApp(), 'europe-west3')), // Region ggf. anpassen
     provideStorage(() => getStorage()),
     provideAnalytics(() => getAnalytics()),
     ScreenTrackingService,
@@ -69,7 +74,8 @@ export const appConfig: ApplicationConfig = {
 
     provideTransloco({
       config: {
-        availableLangs: ['de', 'en', 'hr'],
+        // *** HIER ERWEITERT ***
+        availableLangs: ['de', 'en', 'hr', 'es', 'pl'],
         defaultLang: 'de',
         reRenderOnLangChange: true,
         prodMode: !isDevMode(),
@@ -77,7 +83,6 @@ export const appConfig: ApplicationConfig = {
       loader: TranslocoHttpLoader
     }),
 
-    // --- PROVIDER FÜR SPRACHPERSISTENZ (SSR-SICHER) ---
     provideTranslocoPersistLang({
         storage: {
           useFactory: () => {
@@ -88,7 +93,7 @@ export const appConfig: ApplicationConfig = {
             return new NoOpStorage();
           }
         },
-        // storageKey: 'user-lang',
+        // storageKey: 'user-lang', // Standard-Key ist okay
     }),
   ]
 };
