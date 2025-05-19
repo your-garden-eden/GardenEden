@@ -2,8 +2,8 @@
 import { ApplicationConfig, LOCALE_ID, isDevMode, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { provideRouter, withComponentInputBinding, withViewTransitions } from '@angular/router';
-import { provideClientHydration } from '@angular/platform-browser';
-import { provideHttpClient, withFetch } from '@angular/common/http';
+import { provideClientHydration, withHttpTransferCacheOptions } from '@angular/platform-browser'; // Wichtig für SSR Cache
+import { provideHttpClient, withFetch } from '@angular/common/http'; // withFetch hier noch importiert lassen, aber unten nicht verwenden
 
 // Firebase-Imports (Kern)
 import { initializeApp, provideFirebaseApp, getApp } from '@angular/fire/app';
@@ -12,7 +12,7 @@ import { environment } from '../environments/environment';
 // Firebase-Imports (Module/Features)
 import { getAuth, provideAuth } from '@angular/fire/auth';
 import { getFirestore, provideFirestore } from '@angular/fire/firestore';
-import { getFunctions, provideFunctions } from '@angular/fire/functions';
+import { getFunctions, provideFunctions } from '@angular/fire/functions'; // Importiere getFunctions und provideFunctions
 import { getStorage, provideStorage } from '@angular/fire/storage';
 import { provideAnalytics, getAnalytics, ScreenTrackingService, UserTrackingService } from '@angular/fire/analytics';
 
@@ -26,47 +26,69 @@ import { routes } from './app.routes';
 import { registerLocaleData, CurrencyPipe } from '@angular/common';
 import localeDe from '@angular/common/locales/de';
 import localeDeExtra from '@angular/common/locales/extra/de';
-// Locale-Daten für Spanisch und Polnisch (optional, aber gut für Datums-/Zahlenformate)
 import localeEs from '@angular/common/locales/es';
 import localePl from '@angular/common/locales/pl';
-
 
 // --- TRANSLOCO IMPORTS ---
 import { TranslocoHttpLoader } from './transloco-loader';
 import { provideTransloco } from '@ngneat/transloco';
-import { provideTranslocoPersistLang } from '@ngneat/transloco-persist-lang'; // TRANSLOCO_PERSIST_LANG_STORAGE hier nicht mehr nötig, wird intern gehandhabt
+import { provideTranslocoPersistLang } from '@ngneat/transloco-persist-lang';
 
 registerLocaleData(localeDe, 'de-DE', localeDeExtra);
-registerLocaleData(localeEs, 'es'); // Registriere Spanisch
-registerLocaleData(localePl, 'pl'); // Registriere Polnisch
+registerLocaleData(localeEs, 'es');
+registerLocaleData(localePl, 'pl');
 // --- ENDE LOCALE ---
 
-// Dummy-Storage für Serverseite
+// Dummy-Storage für Serverseite (für Transloco Persist Lang)
 export class NoOpStorage {
   getItem(key: string): string | null {
-    // console.log(`SSR NoOpStorage: getItem called for key ${key}`);
     return null;
   }
   setItem(key: string, value: string): void {
-    // console.log(`SSR NoOpStorage: setItem called for key ${key} with value ${value}`);
   }
   removeItem(key: string): void {
-    // console.log(`SSR NoOpStorage: removeItem called for key ${key}`);
   }
 }
+
+// Funktion zur Bestimmung der Firebase Functions Region
+// Passe dies an, falls deine functionsUrl Struktur anders ist oder du die Region explizit in environment.ts hast
+function getFirebaseRegion(): string {
+  if (environment.firebase.functionsUrl) {
+    if (environment.firebase.functionsUrl.includes('europe-west1')) return 'europe-west1';
+    if (environment.firebase.functionsUrl.includes('europe-west3')) return 'europe-west3';
+    if (environment.firebase.functionsUrl.includes('us-central1')) return 'us-central1';
+    // Füge weitere Regionen hinzu oder habe eine Standardregion
+  }
+  return 'europe-west1'; // Fallback-Region, passe dies ggf. an
+}
+
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes, withComponentInputBinding(), withViewTransitions()),
-    provideClientHydration(),
-    provideHttpClient(withFetch()),
-    { provide: LOCALE_ID, useValue: 'de-DE' }, // Standard-Locale bleibt Deutsch
+    provideClientHydration(
+      withHttpTransferCacheOptions({
+        includeHeaders: [
+          'Nonce',                // Wichtigster Header, den dein Server sendet
+          'X-WP-Nonce',           // Vorsichtshalber
+          'X-WC-Store-API-Nonce', // Vorsichtshalber
+          'Cart-Token',           // Wenn du diesen auch clientseitig aus Cache lesen willst
+          // 'ETag',              // Standardmäßig oft schon drin, aber schadet nicht
+          // 'Last-Modified'      // Standardmäßig oft schon drin
+        ],
+      })
+    ),
+    // --- BEGIN TEST AKTION 2: withFetch() temporär deaktivieren ---
+    //provideHttpClient(), // Ohne withFetch()
+    // --- END TEST AKTION 2 ---
+    provideHttpClient(withFetch()), // Originalzeile auskommentiert für den Test
+    { provide: LOCALE_ID, useValue: 'de-DE' },
     CurrencyPipe,
     provideMarkdown(),
     provideFirebaseApp(() => initializeApp(environment.firebase)),
     provideAuth(() => getAuth()),
     provideFirestore(() => getFirestore()),
-    provideFunctions(() => getFunctions(getApp(), 'europe-west3')), // Region ggf. anpassen
+    provideFunctions(() => getFunctions(getApp(), getFirebaseRegion())), // Region dynamisch oder korrekt setzen
     provideStorage(() => getStorage()),
     provideAnalytics(() => getAnalytics()),
     ScreenTrackingService,
@@ -74,7 +96,6 @@ export const appConfig: ApplicationConfig = {
 
     provideTransloco({
       config: {
-        // *** HIER ERWEITERT ***
         availableLangs: ['de', 'en', 'hr', 'es', 'pl'],
         defaultLang: 'de',
         reRenderOnLangChange: true,
@@ -93,7 +114,6 @@ export const appConfig: ApplicationConfig = {
             return new NoOpStorage();
           }
         },
-        // storageKey: 'user-lang', // Standard-Key ist okay
     }),
   ]
 };
