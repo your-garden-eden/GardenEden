@@ -21,10 +21,10 @@ export const environment = {
     // Fürs Erste kannst du hier dieselben Staging-Daten wie in environment.development.ts verwenden,
     // oder Platzhalter lassen, bis du eine Live-WC-Instanz hast.
     // Beispielhaft hier mit den Staging-Daten, passe dies für die echte Produktion an!
-    apiUrl: 'https://info4725f7bd88c.wpcomstaging.com/wp-json/wc/v3/',
-    consumerKey: 'ck_5a48a6bf13cf63ac125919533bf5529f6bb4fa5e', // SPÄTER ÄNDERN!
-    consumerSecret: 'cs_95721e41221089a17bd82e6fb6435b453c03b78f', // SPÄTER ÄNDERN!
-    storeUrl: 'https://info4725f7bd88c.wpcomstaging.com', // Dies sollte deine LIVE Shop URL sein, z.B. https://www.your-garden-eden.de
+    apiUrl: 'https://your-garden-eden-4ujzpfm5qt.live-website.com/wp-json/wc/v3/',
+    consumerKey: 'ck_764caa58c2fd1cc7a0ad705630b3f8f2ea397dad', // SPÄTER ÄNDERN!
+    consumerSecret: 'cs_5ca3357f994013428fb5028baa3bfc8f33e4f969', // SPÄTER ÄNDERN!
+    storeUrl: 'https://your-garden-eden-4ujzpfm5qt.live-website.com', // Dies sollte deine LIVE Shop URL sein, z.B. https://www.your-garden-eden.de
   },
   googleMaps: {
     // Stelle sicher, dass dies ein separater, für Google Maps gedachter API Key ist,
