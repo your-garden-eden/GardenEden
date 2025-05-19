@@ -256,23 +256,23 @@ export interface WooCommerceStoreCartTotals {
 export interface WooCommerceStoreCartCoupon {
   code: string;
   discount_type: string;
-  totals: WooCommerceStoreCartTotals; // Annahme: Das sind die Gesamtbeträge des Coupons
+  totals: WooCommerceStoreCartTotals;
 }
 
 export interface WooCommerceStoreCart {
   coupons: WooCommerceStoreCartCoupon[];
-  shipping_rates: any[]; // Ggf. genauer typisieren
-  shipping_address: any; // Ggf. genauer typisieren
-  billing_address: any; // Ggf. genauer typisieren
+  shipping_rates: any[];
+  shipping_address: any;
+  billing_address: any;
   items: WooCommerceStoreCartItem[];
   items_count: number;
-  items_weight: number; // Annahme: Gewicht in Standardeinheit des Shops
+  items_weight: number;
   needs_payment: boolean;
   needs_shipping: boolean;
   has_calculated_shipping: boolean;
   totals: WooCommerceStoreCartTotals;
-  _links?: any; // Für HATEOAS-Links
-  extensions?: object; // Für Erweiterbarkeitsdaten
+  _links?: any;
+  extensions?: object;
 }
 
 
@@ -337,10 +337,8 @@ export class WoocommerceService {
     let headers = new HttpHeaders().set('Content-Type', 'application/json');
     console.log('[WC_SERVICE_NONCE_DEBUG] getStoreApiHeaders: Current this.storeApiNonce BEFORE setting X-WC-Store-API-Nonce header:', this.storeApiNonce);
     if (this.storeApiNonce && this.storeApiNonce.trim() !== '') {
-      // --- Änderung: Header in Standard-Großschreibung senden ---
-      headers = headers.set('X-WC-Store-API-Nonce', this.storeApiNonce);
+      headers = headers.set('X-WC-Store-API-Nonce', this.storeApiNonce); // Standard-Schreibweise
       console.log('[WC_SERVICE_NONCE_DEBUG] getStoreApiHeaders: X-WC-Store-API-Nonce (Standard Case) header SET with value:', this.storeApiNonce);
-      // --- Ende Änderung ---
     } else {
       console.warn('[WC_SERVICE_NONCE_DEBUG] getStoreApiHeaders: this.storeApiNonce is null or empty. X-WC-Store-API-Nonce header NOT SET.');
     }
@@ -383,8 +381,6 @@ export class WoocommerceService {
         this.http.get<WooCommerceStoreCart>(`${this.storeApiUrl}/cart`, { headers: initialHeaders, observe: 'response', withCredentials: true })
       );
       console.log('[WC_SERVICE_NONCE_DEBUG] fetchAndSetNonceAsync: Response from GET /cart received. Status:', response.status);
-      // console.log('[WC_SERVICE_NONCE_DEBUG] fetchAndSetNonceAsync: Angular sees response object:', response); // Weniger wichtig jetzt
-      // console.log('[WC_SERVICE_NONCE_DEBUG] fetchAndSetNonceAsync: Angular sees response headers keys:', response.headers.keys()); // Weniger wichtig jetzt
       this.updateNonceFromResponse(response);
 
       if (!this.storeApiNonce || this.storeApiNonce.trim() === '') {
@@ -416,7 +412,7 @@ export class WoocommerceService {
         this.noncePromise = null;
     });
 
-    const currentInitPromise = this.noncePromise;
+    const currentInitPromise = this.noncePromise; // Wichtig: Die Promise-Instanz hier zwischenspeichern
     if (currentInitPromise) {
         currentInitPromise.then(nonce => {
             if (nonce && nonce.trim() !== '') {
@@ -428,7 +424,8 @@ export class WoocommerceService {
             console.error('[WC_SERVICE_NONCE_DEBUG] initializeNonce: Error during initial Nonce fetch promise in constructor:', err.message || err);
         });
     } else {
-         console.warn('[WC_SERVICE_NONCE_DEBUG] initializeNonce: this.noncePromise was null immediately after assignment in finally. This is unexpected.');
+         // Dieser Fall sollte eigentlich nicht eintreten, da noncePromise direkt vorher gesetzt wird.
+         console.warn('[WC_SERVICE_NONCE_DEBUG] initializeNonce: this.noncePromise was null immediately after assignment in constructor context. This is unexpected.');
     }
   }
 
@@ -445,12 +442,14 @@ export class WoocommerceService {
         const nonceFromOngoingPromise = await this.noncePromise;
         if (nonceFromOngoingPromise && nonceFromOngoingPromise.trim() !== '') {
           console.log('[WC_SERVICE_NONCE_DEBUG] ensureNoncePresent: Nonce became available from ongoing fetch promise:', nonceFromOngoingPromise);
+          // Überprüfe, ob this.storeApiNonce in der Zwischenzeit durch den Promise-Callback gesetzt wurde
           if (this.storeApiNonce && this.storeApiNonce.trim() !== '') {
             console.log('[WC_SERVICE_NONCE_DEBUG] ensureNoncePresent: Confirmed this.storeApiNonce is set after ongoing promise:', this.storeApiNonce);
             return this.storeApiNonce;
           } else {
+             // Fallback, falls der Nonce aus dem Promise kommt, aber this.storeApiNonce noch nicht aktualisiert wurde
              console.warn('[WC_SERVICE_NONCE_DEBUG] ensureNoncePresent: Ongoing promise yielded non-empty nonce, but this.storeApiNonce is still null/empty. Using promise value directly, and setting global nonce:', nonceFromOngoingPromise);
-             this.storeApiNonce = nonceFromOngoingPromise;
+             this.storeApiNonce = nonceFromOngoingPromise; // Setter aufrufen
              return nonceFromOngoingPromise;
           }
         } else {
@@ -463,29 +462,32 @@ export class WoocommerceService {
 
     console.warn('[WC_SERVICE_NONCE_DEBUG] ensureNoncePresent: Nonce is null/empty or previous/ongoing fetch failed/yielded null/empty. Attempting to refresh with a new call to fetchAndSetNonceAsync.');
     const newFetchAttemptPromise = this.fetchAndSetNonceAsync();
-    this.noncePromise = newFetchAttemptPromise;
+    this.noncePromise = newFetchAttemptPromise; // Wichtig: Den neuen Promise zuweisen
 
     try {
         const refreshedNonceFromNewAttempt = await newFetchAttemptPromise;
+        // Überprüfe this.storeApiNonce zuerst, da es durch den fetchAndSetNonceAsync Call aktualisiert sein sollte
         if (this.storeApiNonce && this.storeApiNonce.trim() !== '') {
           console.log('[WC_SERVICE_NONCE_DEBUG] ensureNoncePresent: Nonce refreshed successfully via new fetch (this.storeApiNonce is set):', this.storeApiNonce);
           return this.storeApiNonce;
         } else if (refreshedNonceFromNewAttempt && refreshedNonceFromNewAttempt.trim() !== '') {
+            // Fallback, falls this.storeApiNonce nicht gesetzt wurde, aber der Promise einen Wert liefert
             console.warn('[WC_SERVICE_NONCE_DEBUG] ensureNoncePresent: New fetch promise yielded non-empty nonce value, but this.storeApiNonce is still null/empty. Using promise value and setting global nonce as fallback:', refreshedNonceFromNewAttempt);
-            this.storeApiNonce = refreshedNonceFromNewAttempt;
+            this.storeApiNonce = refreshedNonceFromNewAttempt; // Setter aufrufen
             return refreshedNonceFromNewAttempt;
         }
         else {
-          console.error('[WC_SERVICE_NONCE_DEBUG] ensureNoncePresent: Failed to refresh Nonce. fetchAndSetNonceAsync (new attempt) resolved to null/empty and this.storeApiNonce is also null/empty.');
+          console.error('[WC_SERVICE_NONCE_DEBUG] ensureNoncePresent: Failed to refresh Nonce. fetchAndSetNonceAsync (new attempt) resolved to null/empty and this.storeApiNonce (Getter) is also null/empty.');
           throw new Error('Nonce for cart operation is missing and could not be refreshed (ensureNoncePresent after new fetch).');
         }
     } catch (error: any) {
         console.error('[WC_SERVICE_NONCE_DEBUG] ensureNoncePresent: Error during new Nonce fetch execution in ensureNoncePresent.', error.message || error);
-        if (this.noncePromise === newFetchAttemptPromise) {
+        if (this.noncePromise === newFetchAttemptPromise) { // Nur den aktuellen Promise zurücksetzen
             this.noncePromise = null;
         }
-        throw error;
+        throw error; // Fehler weiterwerfen, damit der Aufrufer ihn behandeln kann
     } finally {
+        // Stelle sicher, dass noncePromise nur zurückgesetzt wird, wenn es der Promise dieses Aufrufs war
         if (this.noncePromise === newFetchAttemptPromise) {
             this.noncePromise = null;
             console.log('[WC_SERVICE_NONCE_DEBUG] ensureNoncePresent: Cleared this.noncePromise (for newFetchAttemptPromise) after new fetch attempt completion.');
@@ -495,7 +497,6 @@ export class WoocommerceService {
 
   // --- Standard V3 API Methods (Products, Categories) ---
   getProducts( categoryId?: number, perPage: number = 10, page: number = 1, otherParams?: HttpParams ): Observable<WooCommerceProductsResponse> {
-    // console.log(`[WC_SERVICE_DEBUG] getProducts called. CategoryId: ${categoryId}, PerPage: ${perPage}, Page: ${page}`); // Auskommentiert für weniger Logs
     let params = this.getAuthParamsV3()
       .set('per_page', perPage.toString())
       .set('page', page.toString());
@@ -510,7 +511,6 @@ export class WoocommerceService {
           const products = response.body || [];
           const totalPages = parseInt(response.headers.get('X-WP-TotalPages') || '0', 10);
           const totalCount = parseInt(response.headers.get('X-WP-Total') || '0', 10);
-          // console.log(`[WC_SERVICE_DEBUG] getProducts received ${products.length} products. TotalPages: ${totalPages}, TotalCount: ${totalCount}`);
           return { products, totalPages, totalCount };
         }),
         catchError(this.handleError)
@@ -518,25 +518,21 @@ export class WoocommerceService {
   }
 
   getProductById(productId: number): Observable<WooCommerceProduct> {
-    // console.log(`[WC_SERVICE_DEBUG] getProductById called. ProductId: ${productId}`);
     const params = this.getAuthParamsV3();
     return this.http
       .get<WooCommerceProduct>(`${this.apiUrlV3}products/${productId}`, { params })
       .pipe(
-        // tap(product => console.log(`[WC_SERVICE_DEBUG] getProductById received product: ${product.name}`)),
         catchError(this.handleError)
       );
   }
 
   getProductBySlug(productSlug: string): Observable<WooCommerceProduct | undefined> {
-    // console.log(`[WC_SERVICE_DEBUG] getProductBySlug called. Slug: ${productSlug}`);
     const params = this.getAuthParamsV3().set('slug', productSlug);
     return this.http
       .get<WooCommerceProduct[]>(`${this.apiUrlV3}products`, { params })
       .pipe(
         map(products => {
           const product = products && products.length > 0 ? products[0] : undefined;
-          // console.log(`[WC_SERVICE_DEBUG] getProductBySlug found product: ${product?.name || 'undefined'}`);
           return product;
         }),
         catchError(this.handleError)
@@ -544,43 +540,37 @@ export class WoocommerceService {
   }
 
   getProductVariations(productId: number): Observable<WooCommerceProductVariation[]> {
-    // console.log(`[WC_SERVICE_DEBUG] getProductVariations called. ProductId: ${productId}`);
-    const params = this.getAuthParamsV3().set('per_page', '100');
+    const params = this.getAuthParamsV3().set('per_page', '100'); // Get all variations
     return this.http
       .get<WooCommerceProductVariation[]>(`${this.apiUrlV3}products/${productId}/variations`, { params })
       .pipe(
-        // tap(variations => console.log(`[WC_SERVICE_DEBUG] getProductVariations received ${variations.length} variations for product ${productId}`)),
         catchError(this.handleError)
       );
   }
 
   getCategories(parentId?: number, otherParams?: HttpParams): Observable<WooCommerceCategory[]> {
-    // console.log(`[WC_SERVICE_DEBUG] getCategories called. ParentId: ${parentId}`);
     let params = this.getAuthParamsV3();
     if (parentId !== undefined) {
       params = params.set('parent', parentId.toString());
     }
-    if (!otherParams || !otherParams.has('hide_empty')) {
+    if (!otherParams || !otherParams.has('hide_empty')) { // Standardmäßig leere Kategorien ausblenden
         params = params.set('hide_empty', 'true');
     }
     params = this.appendParams(params, otherParams);
     return this.http
       .get<WooCommerceCategory[]>(`${this.apiUrlV3}products/categories`, { params })
       .pipe(
-        // tap(categories => console.log(`[WC_SERVICE_DEBUG] getCategories received ${categories.length} categories.`)),
         catchError(this.handleError)
       );
   }
 
   getCategoryBySlug(categorySlug: string): Observable<WooCommerceCategory | undefined> {
-    // console.log(`[WC_SERVICE_DEBUG] getCategoryBySlug called. Slug: ${categorySlug}`);
     const params = this.getAuthParamsV3().set('slug', categorySlug);
     return this.http
       .get<WooCommerceCategory[]>(`${this.apiUrlV3}products/categories`, { params })
       .pipe(
         map(categories => {
           const category = categories && categories.length > 0 ? categories[0] : undefined;
-          // console.log(`[WC_SERVICE_DEBUG] getCategoryBySlug found category: ${category?.name || 'undefined'}`);
           return category;
         }),
         catchError(this.handleError)
@@ -619,18 +609,29 @@ export class WoocommerceService {
         }
 
         const headers = this.getStoreApiHeaders();
-        const body: any = { id: productId, quantity: quantity }; // Nonce aus Body entfernt
-        if (variationId) { body.variation_id = variationId; }
+        const requestUrl = `${this.storeApiUrl}/cart/add-item`;
+        let params = new HttpParams();
+        let body: any = {};
 
-        // --- Änderung: Konsolen-Log angepasst für Standard-Header-Schreibweise ---
-        console.log('[WC_SERVICE_NONCE_DEBUG] addItemToWcCart: Sending POST to /cart/add-item. Request Body:', JSON.stringify(body), 'Actual Header from headers.get("X-WC-Store-API-Nonce") (Standard Case):', headers.get('X-WC-Store-API-Nonce'));
-        // --- Ende Änderung ---
-
-        return this.http.post<WooCommerceStoreCart>(`${this.storeApiUrl}/cart/add-item`, body, { headers, observe: 'response', withCredentials: true });
+        if (!variationId) {
+            // Für einfache Produkte: Parameter in URL, Body leer
+            params = params.set('id', productId.toString());
+            params = params.set('quantity', quantity.toString());
+            body = {}; // Leerer Body für POST, wenn Daten in URL
+            console.log(`[WC_SERVICE_NONCE_DEBUG] addItemToWcCart: Sending SIMPLE product. URL Params: id=${productId}, quantity=${quantity}. Header X-WC-Store-API-Nonce: ${headers.get('X-WC-Store-API-Nonce')}`);
+            return this.http.post<WooCommerceStoreCart>(requestUrl, body, { headers, params, observe: 'response', withCredentials: true });
+        } else {
+            // Für variable Produkte: Parameter im Body (gemäß cart.md für 'variation' Array)
+            // Wir senden hier 'variation_id' als Vereinfachung, was die API hoffentlich versteht.
+            // Wenn die API strikt das 'variation' Array erwartet, muss das hier angepasst werden.
+            body = { id: productId, quantity: quantity, variation_id: variationId };
+            console.log(`[WC_SERVICE_NONCE_DEBUG] addItemToWcCart: Sending VARIABLE product. Body: ${JSON.stringify(body)}. Header X-WC-Store-API-Nonce: ${headers.get('X-WC-Store-API-Nonce')}`);
+            return this.http.post<WooCommerceStoreCart>(requestUrl, body, { headers, observe: 'response', withCredentials: true });
+        }
       }),
       tap((response: HttpResponse<WooCommerceStoreCart | null>) => {
         console.log('[WC_SERVICE_NONCE_DEBUG] addItemToWcCart: Received response from POST /cart/add-item. Status:', response.status);
-        this.updateNonceFromResponse(response); // Nonce aus Response Headern aktualisieren
+        this.updateNonceFromResponse(response);
       }),
       map((response: HttpResponse<WooCommerceStoreCart | null>) => response.body),
       catchError(err => {
@@ -644,14 +645,13 @@ export class WoocommerceService {
     console.log(`[WC_SERVICE_NONCE_DEBUG] updateWcCartItemQuantity: INIT. ItemKey: ${itemKey}, Qty: ${quantity}`);
     return from(this.ensureNoncePresent()).pipe(
       switchMap((nonceValueFromEnsure) => {
-        console.log(`[WC_SERVICE_NONCE_DEBUG] updateWcCartItemQuantity: switchMap after ensureNoncePresent. Nonce: '${nonceValueFromEnsure}'. Current this.storeApiNonce: '${this.storeApiNonce}'`);
         const headers = this.getStoreApiHeaders();
-        const body = { quantity }; // Nonce aus Body entfernt
-        console.log('[WC_SERVICE_NONCE_DEBUG] updateWcCartItemQuantity: Sending POST to /cart/items/:itemKey. Body:', JSON.stringify(body), 'Nonce Header (from headers.get("X-WC-Store-API-Nonce")):', headers.get('X-WC-Store-API-Nonce'));
-        return this.http.post<WooCommerceStoreCart>(`${this.storeApiUrl}/cart/items/${itemKey}`, body, { headers, observe: 'response', withCredentials: true });
+        const body = { key: itemKey, quantity }; // Gemäß cart.md
+        console.log('[WC_SERVICE_NONCE_DEBUG] updateWcCartItemQuantity: Sending POST to /cart/update-item. Body:', JSON.stringify(body), 'Nonce Header:', headers.get('X-WC-Store-API-Nonce'));
+        return this.http.post<WooCommerceStoreCart>(`${this.storeApiUrl}/cart/update-item`, body, { headers, observe: 'response', withCredentials: true });
       }),
       tap((response: HttpResponse<WooCommerceStoreCart | null>) => {
-        console.log('[WC_SERVICE_NONCE_DEBUG] updateWcCartItemQuantity: Response from POST /cart/items/:itemKey. Status:', response.status);
+        console.log('[WC_SERVICE_NONCE_DEBUG] updateWcCartItemQuantity: Response from POST /cart/update-item. Status:', response.status);
         this.updateNonceFromResponse(response);
       }),
       map((response: HttpResponse<WooCommerceStoreCart | null>) => response.body),
@@ -666,14 +666,13 @@ export class WoocommerceService {
     console.log(`[WC_SERVICE_NONCE_DEBUG] removeWcCartItem: INIT. ItemKey: ${itemKey}`);
     return from(this.ensureNoncePresent()).pipe(
       switchMap((nonceValueFromEnsure) => {
-        console.log(`[WC_SERVICE_NONCE_DEBUG] removeWcCartItem: switchMap after ensureNoncePresent. Nonce: '${nonceValueFromEnsure}'. Current this.storeApiNonce: '${this.storeApiNonce}'`);
         const headers = this.getStoreApiHeaders();
-        // Nonce aus Query-Parametern entfernt
-        console.log('[WC_SERVICE_NONCE_DEBUG] removeWcCartItem: Sending DELETE to /cart/items/:itemKey. Nonce Header (from headers.get("X-WC-Store-API-Nonce")):', headers.get('X-WC-Store-API-Nonce'));
-        return this.http.delete<WooCommerceStoreCart>(`${this.storeApiUrl}/cart/items/${itemKey}`, { headers, observe: 'response', withCredentials: true });
+        const body = { key: itemKey }; // Gemäß cart.md (POST /cart/remove-item)
+        console.log('[WC_SERVICE_NONCE_DEBUG] removeWcCartItem: Sending POST to /cart/remove-item. Body:', JSON.stringify(body), 'Nonce Header:', headers.get('X-WC-Store-API-Nonce'));
+        return this.http.post<WooCommerceStoreCart>(`${this.storeApiUrl}/cart/remove-item`, body, { headers, observe: 'response', withCredentials: true });
       }),
       tap((response: HttpResponse<WooCommerceStoreCart | null>) => {
-        console.log('[WC_SERVICE_NONCE_DEBUG] removeWcCartItem: Response from DELETE /cart/items/:itemKey. Status:', response.status);
+        console.log('[WC_SERVICE_NONCE_DEBUG] removeWcCartItem: Response from POST /cart/remove-item. Status:', response.status);
         this.updateNonceFromResponse(response);
       }),
       map((response: HttpResponse<WooCommerceStoreCart | null>) => response.body),
@@ -688,11 +687,9 @@ export class WoocommerceService {
     console.log(`[WC_SERVICE_NONCE_DEBUG] clearWcCart: INIT.`);
     return from(this.ensureNoncePresent()).pipe(
       switchMap((nonceValueFromEnsure) => {
-        console.log(`[WC_SERVICE_NONCE_DEBUG] clearWcCart: switchMap after ensureNoncePresent. Nonce: '${nonceValueFromEnsure}'. Current this.storeApiNonce: '${this.storeApiNonce}'`);
         const headers = this.getStoreApiHeaders();
-        const body = {}; // Nonce aus Body entfernt
-        console.log('[WC_SERVICE_NONCE_DEBUG] clearWcCart: Sending POST to /cart/clear. Body:', JSON.stringify(body), 'Nonce Header (from headers.get("X-WC-Store-API-Nonce")):', headers.get('X-WC-Store-API-Nonce'));
-        return this.http.post<WooCommerceStoreCart>(`${this.storeApiUrl}/cart/clear`, body, { headers, observe: 'response', withCredentials: true });
+        console.log('[WC_SERVICE_NONCE_DEBUG] clearWcCart: Sending POST to /cart/clear. Nonce Header:', headers.get('X-WC-Store-API-Nonce'));
+        return this.http.post<WooCommerceStoreCart>(`${this.storeApiUrl}/cart/clear`, {}, { headers, observe: 'response', withCredentials: true }); // Leerer Body
       }),
       tap((response: HttpResponse<WooCommerceStoreCart | null>) => {
         console.log('[WC_SERVICE_NONCE_DEBUG] clearWcCart: Response from POST /cart/clear. Status:', response.status);
