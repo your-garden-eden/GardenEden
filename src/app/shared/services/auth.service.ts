@@ -57,7 +57,7 @@ export class AuthService implements OnDestroy {
 
   ngOnDestroy(): void {
     this.authSubscription?.unsubscribe();
-    console.log('AuthService destroyed, auth subscription unsubscribed.');
+    console.log('AuthService destroyed, auth subscription unsubscribed.' );
   }
 
   async login(email: string, password: string): Promise<UserCredential> {
