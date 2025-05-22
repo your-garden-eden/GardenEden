@@ -1,7 +1,6 @@
-Pravila o privatnosti
-Posljednje ažuriranje: 29. travnja 2025. (Napomena: Datum prema potrebi prilagoditi)
 
-Ova Pravila o privatnosti opisuju kako Your-Garden-Eden (dalje u tekstu: „Stranica“, „mi“, „nas“ ili „naše“) prikuplja, koristi i otkriva vaše osobne podatke kada posjetite stygej-6u.myshopify.com (dalje u tekstu: „Stranica“), koristite naše usluge, obavite kupnju na njoj ili na drugi način komunicirate s nama u vezi sa Stranicom (zajedno, „Usluge“). Za potrebe ovih Pravila o privatnosti, „vi“ i „vaše“ odnosi se na vas kao korisnika Usluga, bez obzira jeste li kupac, posjetitelj web stranice ili druga osoba čije smo podatke prikupili u skladu s ovim Pravilima o privatnosti.
+Zadnje ažuriranje: 29. travnja 2025.
+Ova Pravila o privatnosti opisuju kako Your-Garden-Eden („Stranica“, „mi“ ili „naš“) prikuplja, koristi i otkriva vaše osobne podatke kada posjetite www.Your-Garden-Eden.de („Stranica“), koristite naše usluge, obavite kupnju ili na drugi način komunicirate s nama u vezi sa Stranicom (zajedno, „Usluge“). U svrhu ovih Pravila o privatnosti, „vi“ i „vaš“ odnose se na vas kao korisnika Usluga, bez obzira jeste li kupac, posjetitelj web stranice ili druga osoba čije smo podatke prikupili sukladno ovim Pravilima o privatnosti.
 
 Molimo vas da pažljivo pročitate ova Pravila o privatnosti.
 
