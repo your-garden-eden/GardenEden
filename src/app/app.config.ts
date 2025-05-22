@@ -2,8 +2,8 @@
 import { ApplicationConfig, LOCALE_ID, isDevMode, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { provideRouter, withComponentInputBinding, withViewTransitions } from '@angular/router';
-import { provideClientHydration, withHttpTransferCacheOptions } from '@angular/platform-browser'; // Wichtig für SSR Cache
-import { provideHttpClient, withFetch } from '@angular/common/http'; // withFetch hier noch importiert lassen, aber unten nicht verwenden
+import { provideClientHydration, withHttpTransferCacheOptions } from '@angular/platform-browser';
+import { provideHttpClient /* HIER WIRD withFetch ENTFERNT */ } from '@angular/common/http'; // withFetch hier importiert lassen, aber unten nicht verwenden
 
 // Firebase-Imports (Kern)
 import { initializeApp, provideFirebaseApp, getApp } from '@angular/fire/app';
@@ -12,7 +12,7 @@ import { environment } from '../environments/environment';
 // Firebase-Imports (Module/Features)
 import { getAuth, provideAuth } from '@angular/fire/auth';
 import { getFirestore, provideFirestore } from '@angular/fire/firestore';
-import { getFunctions, provideFunctions } from '@angular/fire/functions'; // Importiere getFunctions und provideFunctions
+import { getFunctions, provideFunctions } from '@angular/fire/functions';
 import { getStorage, provideStorage } from '@angular/fire/storage';
 import { provideAnalytics, getAnalytics, ScreenTrackingService, UserTrackingService } from '@angular/fire/analytics';
 
@@ -51,7 +51,6 @@ export class NoOpStorage {
 }
 
 // Funktion zur Bestimmung der Firebase Functions Region
-// Passe dies an, falls deine functionsUrl Struktur anders ist oder du die Region explizit in environment.ts hast
 function getFirebaseRegion(): string {
   if (environment.firebase.functionsUrl) {
     if (environment.firebase.functionsUrl.includes('europe-west1')) return 'europe-west1';
@@ -66,29 +65,24 @@ function getFirebaseRegion(): string {
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes, withComponentInputBinding(), withViewTransitions()),
-    provideClientHydration(
-      withHttpTransferCacheOptions({
-        includeHeaders: [
-          'Nonce',                // Wichtigster Header, den dein Server sendet
-          'X-WP-Nonce',           // Vorsichtshalber
-          'X-WC-Store-API-Nonce', // Vorsichtshalber
-          'Cart-Token',           // Wenn du diesen auch clientseitig aus Cache lesen willst
-          // 'ETag',              // Standardmäßig oft schon drin, aber schadet nicht
-          // 'Last-Modified'      // Standardmäßig oft schon drin
-        ],
-      })
-    ),
-    // --- BEGIN TEST AKTION 2: withFetch() temporär deaktivieren ---
-    //provideHttpClient(), // Ohne withFetch()
-    // --- END TEST AKTION 2 ---
-    provideHttpClient(withFetch()), // Originalzeile auskommentiert für den Test
+    // provideClientHydration(  // TEMPORÄR GANZ AUSKOMMENTIERT FÜR DEN TEST (war schon auskommentiert)
+    //   withHttpTransferCacheOptions({
+    //     includeHeaders: [
+    //       // 'Nonce',
+    //       // 'X-WP-Nonce',
+    //       // 'X-WC-Store-API-Nonce',
+    //       'Cart-Token',
+    //     ],
+    //   })
+    // ),
+    provideHttpClient(), // GEÄNDERT: withFetch() entfernt, um XMLHttpRequest zu verwenden
     { provide: LOCALE_ID, useValue: 'de-DE' },
     CurrencyPipe,
     provideMarkdown(),
     provideFirebaseApp(() => initializeApp(environment.firebase)),
     provideAuth(() => getAuth()),
     provideFirestore(() => getFirestore()),
-    provideFunctions(() => getFunctions(getApp(), getFirebaseRegion())), // Region dynamisch oder korrekt setzen
+    provideFunctions(() => getFunctions(getApp(), getFirebaseRegion())),
     provideStorage(() => getStorage()),
     provideAnalytics(() => getAnalytics()),
     ScreenTrackingService,

@@ -1,0 +1,375 @@
+<div class="checkout-details-page-container">
+  <h1>{{ 'checkoutDetailsPage.title' | transloco }}</h1>
+
+  @if (addressError(); as errorMsg) {
+    <div class="error-message page-error general-error">
+      <p>{{ errorMsg }}</p>
+    </div>
+  }
+
+  <div class="checkout-content-grid" [class.loading]="isLoadingAddress() || isLoadingShipping()">
+    @if (isLoadingAddress() || isLoadingShipping()) {
+      <div class="loading-overlay">
+        <div class="spinner"></div>
+        <span>{{ 'checkoutDetailsPage.loadingData' | transloco }}</span>
+      </div>
+    }
+
+    <div class="address-forms">
+      <form [formGroup]="billingForm" (ngSubmit)="handleAddressFormSubmit()" novalidate>
+        <h2>{{ 'checkoutDetailsPage.billingAddress.title' | transloco }}</h2>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label for="billing_first_name">{{ 'checkoutDetailsPage.billingAddress.firstNameLabel' | transloco }} *</label>
+            <input type="text" id="billing_first_name" formControlName="first_name"
+                   [placeholder]="'checkoutDetailsPage.billingAddress.firstNamePlaceholder' | transloco"
+                   [attr.aria-invalid]="bf['first_name'].invalid && (bf['first_name'].touched || formSubmitted())">
+            @if (bf['first_name'].invalid && (bf['first_name'].touched || formSubmitted())) {
+              <div class="error-container">
+                @if (bf['first_name'].errors?.['required']) {
+                  <small>{{ 'checkoutDetailsPage.errors.firstNameRequired' | transloco }}</small>
+                }
+              </div>
+            }
+          </div>
+          <div class="form-field">
+            <label for="billing_last_name">{{ 'checkoutDetailsPage.billingAddress.lastNameLabel' | transloco }} *</label>
+            <input type="text" id="billing_last_name" formControlName="last_name"
+                   [placeholder]="'checkoutDetailsPage.billingAddress.lastNamePlaceholder' | transloco"
+                   [attr.aria-invalid]="bf['last_name'].invalid && (bf['last_name'].touched || formSubmitted())">
+            @if (bf['last_name'].invalid && (bf['last_name'].touched || formSubmitted())) {
+              <div class="error-container">
+                @if (bf['last_name'].errors?.['required']) {
+                  <small>{{ 'checkoutDetailsPage.errors.lastNameRequired' | transloco }}</small>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label for="billing_company">{{ 'checkoutDetailsPage.billingAddress.companyLabel' | transloco }}</label>
+          <input type="text" id="billing_company" formControlName="company"
+                 [placeholder]="'checkoutDetailsPage.billingAddress.companyPlaceholder' | transloco">
+        </div>
+
+        <div class="form-field">
+          <label for="billing_address_1">{{ 'checkoutDetailsPage.billingAddress.address1Label' | transloco }} *</label>
+          <input #billingAddressStreetInput type="text" id="billing_address_1" formControlName="address_1"
+                 [placeholder]="'checkoutDetailsPage.billingAddress.address1Placeholder' | transloco"
+                 [attr.aria-invalid]="bf['address_1'].invalid && (bf['address_1'].touched || formSubmitted())">
+          @if (bf['address_1'].invalid && (bf['address_1'].touched || formSubmitted())) {
+            <div class="error-container">
+              @if (bf['address_1'].errors?.['required']) {
+                <small>{{ 'checkoutDetailsPage.errors.address1Required' | transloco }}</small>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="form-field">
+          <label for="billing_address_2">{{ 'checkoutDetailsPage.billingAddress.address2Label' | transloco }}</label>
+          <input type="text" id="billing_address_2" formControlName="address_2"
+                 [placeholder]="'checkoutDetailsPage.billingAddress.address2Placeholder' | transloco">
+        </div>
+
+        <div class="form-row">
+          <div class="form-field zip-field">
+            <label for="billing_postcode">{{ 'checkoutDetailsPage.billingAddress.postcodeLabel' | transloco }} *</label>
+            <input type="text" id="billing_postcode" formControlName="postcode" inputmode="numeric"
+                   [placeholder]="'checkoutDetailsPage.billingAddress.postcodePlaceholder' | transloco"
+                   [attr.aria-invalid]="bf['postcode'].invalid && (bf['postcode'].touched || formSubmitted())">
+            @if (bf['postcode'].invalid && (bf['postcode'].touched || formSubmitted())) {
+              <div class="error-container">
+                @if (bf['postcode'].errors?.['required']) {
+                  <small>{{ 'checkoutDetailsPage.errors.postcodeRequired' | transloco }}</small>
+                }
+                @if (bf['postcode'].errors?.['pattern']) {
+                  <small>{{ 'checkoutDetailsPage.errors.postcodePattern' | transloco }}</small>
+                }
+              </div>
+            }
+          </div>
+          <div class="form-field city-field">
+            <label for="billing_city">{{ 'checkoutDetailsPage.billingAddress.cityLabel' | transloco }} *</label>
+            <input type="text" id="billing_city" formControlName="city"
+                   [placeholder]="'checkoutDetailsPage.billingAddress.cityPlaceholder' | transloco"
+                   [attr.aria-invalid]="bf['city'].invalid && (bf['city'].touched || formSubmitted())">
+            @if (bf['city'].invalid && (bf['city'].touched || formSubmitted())) {
+              <div class="error-container">
+                @if (bf['city'].errors?.['required']) {
+                  <small>{{ 'checkoutDetailsPage.errors.cityRequired' | transloco }}</small>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label for="billing_country">{{ 'checkoutDetailsPage.billingAddress.countryLabel' | transloco }} *</label>
+          <input type="text" id="billing_country" formControlName="country"
+                 [attr.aria-invalid]="bf['country'].invalid && (bf['country'].touched || formSubmitted())">
+        </div>
+         <div class="form-field">
+          <label for="billing_state">{{ 'checkoutDetailsPage.billingAddress.stateLabel' | transloco }}</label>
+          <input type="text" id="billing_state" formControlName="state"
+                 [placeholder]="'checkoutDetailsPage.billingAddress.statePlaceholder' | transloco">
+        </div>
+
+        <div class="form-field">
+          <label for="billing_email">{{ 'checkoutDetailsPage.billingAddress.emailLabel' | transloco }} *</label>
+          <input type="email" id="billing_email" formControlName="email"
+                 [placeholder]="'checkoutDetailsPage.billingAddress.emailPlaceholder' | transloco"
+                 [attr.aria-invalid]="bf['email'].invalid && (bf['email'].touched || formSubmitted())">
+          @if (bf['email'].invalid && (bf['email'].touched || formSubmitted())) {
+            <div class="error-container">
+              @if (bf['email'].errors?.['required']) {
+                <small>{{ 'checkoutDetailsPage.errors.emailRequired' | transloco }}</small>
+              }
+              @if (bf['email'].errors?.['email']) {
+                <small>{{ 'checkoutDetailsPage.errors.emailInvalid' | transloco }}</small>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="form-field">
+          <label for="billing_phone">{{ 'checkoutDetailsPage.billingAddress.phoneLabel' | transloco }} *</label>
+          <input type="tel" id="billing_phone" formControlName="phone"
+                 [placeholder]="'checkoutDetailsPage.billingAddress.phonePlaceholder' | transloco"
+                 [attr.aria-invalid]="bf['phone'].invalid && (bf['phone'].touched || formSubmitted())">
+          @if (bf['phone'].invalid && (bf['phone'].touched || formSubmitted())) {
+            <div class="error-container">
+              @if (bf['phone'].errors?.['required']) {
+                <small>{{ 'checkoutDetailsPage.errors.phoneRequired' | transloco }}</small>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="form-field checkbox-field">
+          <input type="checkbox" id="show_shipping_form_checkbox"
+                 [checked]="showShippingForm()"
+                 (change)="handleShowShippingChange($event)"> <!-- KORRIGIERT -->
+          <label for="show_shipping_form_checkbox">{{ 'checkoutDetailsPage.useDifferentShippingAddress' | transloco }}</label>
+        </div>
+      </form>
+
+      @if (showShippingForm()) {
+        <form [formGroup]="shippingForm" (ngSubmit)="handleAddressFormSubmit()" novalidate class="shipping-address-form">
+          <h2>{{ 'checkoutDetailsPage.shippingAddress.title' | transloco }}</h2>
+
+          <div class="form-row">
+            <div class="form-field">
+              <label for="shipping_first_name">{{ 'checkoutDetailsPage.shippingAddress.firstNameLabel' | transloco }} *</label>
+              <input type="text" id="shipping_first_name" formControlName="first_name"
+                     [placeholder]="'checkoutDetailsPage.shippingAddress.firstNamePlaceholder' | transloco"
+                     [attr.aria-invalid]="sf['first_name'].invalid && (sf['first_name'].touched || formSubmitted())">
+              @if (sf['first_name'].invalid && (sf['first_name'].touched || formSubmitted())) {
+              <div class="error-container">
+                @if (sf['first_name'].errors?.['required']) {
+                <small>{{ 'checkoutDetailsPage.errors.firstNameRequired' | transloco }}</small>
+                }
+              </div>
+              }
+            </div>
+            <div class="form-field">
+              <label for="shipping_last_name">{{ 'checkoutDetailsPage.shippingAddress.lastNameLabel' | transloco }} *</label>
+              <input type="text" id="shipping_last_name" formControlName="last_name"
+                     [placeholder]="'checkoutDetailsPage.shippingAddress.lastNamePlaceholder' | transloco"
+                     [attr.aria-invalid]="sf['last_name'].invalid && (sf['last_name'].touched || formSubmitted())">
+              @if (sf['last_name'].invalid && (sf['last_name'].touched || formSubmitted())) {
+              <div class="error-container">
+                @if (sf['last_name'].errors?.['required']) {
+                <small>{{ 'checkoutDetailsPage.errors.lastNameRequired' | transloco }}</small>
+                }
+              </div>
+              }
+            </div>
+          </div>
+
+           <div class="form-field">
+            <label for="shipping_company">{{ 'checkoutDetailsPage.shippingAddress.companyLabel' | transloco }}</label>
+            <input type="text" id="shipping_company" formControlName="company"
+                  [placeholder]="'checkoutDetailsPage.shippingAddress.companyPlaceholder' | transloco">
+          </div>
+
+          <div class="form-field">
+            <label for="shipping_address_1">{{ 'checkoutDetailsPage.shippingAddress.address1Label' | transloco }} *</label>
+            <input #shippingAddressStreetInput type="text" id="shipping_address_1" formControlName="address_1"
+                   [placeholder]="'checkoutDetailsPage.shippingAddress.address1Placeholder' | transloco"
+                   [attr.aria-invalid]="sf['address_1'].invalid && (sf['address_1'].touched || formSubmitted())">
+            @if (sf['address_1'].invalid && (sf['address_1'].touched || formSubmitted())) {
+            <div class="error-container">
+              @if (sf['address_1'].errors?.['required']) {
+              <small>{{ 'checkoutDetailsPage.errors.address1Required' | transloco }}</small>
+              }
+            </div>
+            }
+          </div>
+           <div class="form-field">
+            <label for="shipping_address_2">{{ 'checkoutDetailsPage.shippingAddress.address2Label' | transloco }}</label>
+            <input type="text" id="shipping_address_2" formControlName="address_2"
+                  [placeholder]="'checkoutDetailsPage.shippingAddress.address2Placeholder' | transloco">
+          </div>
+
+          <div class="form-row">
+            <div class="form-field zip-field">
+              <label for="shipping_postcode">{{ 'checkoutDetailsPage.shippingAddress.postcodeLabel' | transloco }} *</label>
+              <input type="text" id="shipping_postcode" formControlName="postcode" inputmode="numeric"
+                     [placeholder]="'checkoutDetailsPage.shippingAddress.postcodePlaceholder' | transloco"
+                     [attr.aria-invalid]="sf['postcode'].invalid && (sf['postcode'].touched || formSubmitted())">
+              @if (sf['postcode'].invalid && (sf['postcode'].touched || formSubmitted())) {
+              <div class="error-container">
+                @if (sf['postcode'].errors?.['required']) {
+                <small>{{ 'checkoutDetailsPage.errors.postcodeRequired' | transloco }}</small>
+                }
+                @if (sf['postcode'].errors?.['pattern']) {
+                <small>{{ 'checkoutDetailsPage.errors.postcodePattern' | transloco }}</small>
+                }
+              </div>
+              }
+            </div>
+            <div class="form-field city-field">
+              <label for="shipping_city">{{ 'checkoutDetailsPage.shippingAddress.cityLabel' | transloco }} *</label>
+              <input type="text" id="shipping_city" formControlName="city"
+                     [placeholder]="'checkoutDetailsPage.shippingAddress.cityPlaceholder' | transloco"
+                     [attr.aria-invalid]="sf['city'].invalid && (sf['city'].touched || formSubmitted())">
+              @if (sf['city'].invalid && (sf['city'].touched || formSubmitted())) {
+              <div class="error-container">
+                @if (sf['city'].errors?.['required']) {
+                <small>{{ 'checkoutDetailsPage.errors.cityRequired' | transloco }}</small>
+                }
+              </div>
+              }
+            </div>
+          </div>
+           <div class="form-field">
+            <label for="shipping_country">{{ 'checkoutDetailsPage.shippingAddress.countryLabel' | transloco }} *</label>
+            <input type="text" id="shipping_country" formControlName="country"
+                  [attr.aria-invalid]="sf['country'].invalid && (sf['country'].touched || formSubmitted())">
+          </div>
+          <div class="form-field">
+            <label for="shipping_state">{{ 'checkoutDetailsPage.shippingAddress.stateLabel' | transloco }}</label>
+            <input type="text" id="shipping_state" formControlName="state"
+                  [placeholder]="'checkoutDetailsPage.shippingAddress.statePlaceholder' | transloco">
+          </div>
+        </form>
+      }
+
+      <button type="button" class="submit-button address-submit-button"
+              (click)="handleAddressFormSubmit()" [disabled]="isLoadingAddress()">
+        @if (isLoadingAddress()) {
+          <span class="button-loading-spinner"></span>
+          <span>{{ 'checkoutDetailsPage.buttons.savingAddresses' | transloco }}</span>
+        } @else {
+          <span>{{ 'checkoutDetailsPage.buttons.saveAddressesAndShipping' | transloco }}</span>
+        }
+      </button>
+      @if (addressErrorKey() && addressError(); as errorMsg) {
+        <div class="error-message form-error">
+          <p>{{ errorMsg }}</p>
+        </div>
+      }
+    </div>
+
+    <div class="order-summary-column">
+      <h2>{{ 'checkoutDetailsPage.orderSummary.title' | transloco }}</h2>
+      @if (orderSummary(); as summary) {
+        <div class="summary-box">
+          @for (item of summary.items; track item.key) {
+            <div class="summary-item">
+              <span class="item-name">{{ item.quantity }}x {{ item.name }}</span>
+              <span class="item-price">{{ item.totals.line_total | formatPrice : item.totals.currency_code }}</span>
+            </div>
+            @if (item.variation && item.variation.length > 0) {
+              <div class="summary-item-variations">
+                @for (variant of item.variation; track variant.attribute) {
+                  <small>{{ variant.attribute }}: {{ variant.value }}</small>
+                }
+              </div>
+            }
+          }
+          <hr>
+          <div class="summary-row">
+            <span>{{ 'checkoutDetailsPage.orderSummary.subtotal' | transloco }}:</span>
+            <span class="amount">{{ summary.totals.total_items | formatPrice : summary.totals.currency_code }}</span>
+          </div>
+
+          <div class="summary-row shipping-info-display">
+            <span>{{ 'checkoutDetailsPage.orderSummary.shipping' | transloco }}:</span>
+            <span class="amount">
+              @switch (true) {
+                @case (isLoadingShipping()) {
+                  {{ 'checkoutDetailsPage.shipping.loading' | transloco }}
+                }
+                @case (shippingInfo() === 'not_needed') {
+                  {{ 'checkoutDetailsPage.shipping.notNeeded' | transloco }}
+                }
+                @case (shippingInfo() === 'error') {
+                  <span class="error-text">{{ shippingError() || ('checkoutDetailsPage.shipping.errorDefault' | transloco) }}</span>
+                }
+                @case (!!displayableShippingInfoObject()) { <!-- KORRIGIERT -->
+                  @if (displayableShippingInfoObject(); as dispInfo) { <!-- KORRIGIERT -->
+                    {{ dispInfo.packageName }}
+                    ({{ dispInfo.isFree ? ('general.free' | transloco) : (dispInfo.price | formatPrice : dispInfo.currencyCode) }})
+                  }
+                }
+                @case (summary.selectedShippingRateDisplay && !displayableShippingInfoObject()) {
+                  {{ summary.selectedShippingRateDisplay }}
+                }
+                @case (cartService.cart()?.needs_shipping) {
+                  {{ 'checkoutDetailsPage.shipping.pleaseEnterAddress' | transloco }}
+                }
+                @default {
+                  {{ 'checkoutDetailsPage.shipping.notCalculated' | transloco }}
+                }
+              }
+            </span>
+          </div>
+          @if (shippingErrorKey() && shippingInfo() === 'error' && shippingError(); as sErrorMsg) {
+            <div class="error-message shipping-error">
+                <p>{{ sErrorMsg }}</p>
+            </div>
+          }
+
+           @if (summary.totals.total_tax && summary.totals.total_tax !== '0.00') {
+            <div class="summary-row">
+                <span>{{ 'checkoutDetailsPage.orderSummary.tax' | transloco }} ({{ 'checkoutDetailsPage.orderSummary.taxIncludedInTotal' | transloco }}):</span>
+                <span class="amount">{{ summary.totals.total_tax | formatPrice : summary.totals.currency_code }}</span>
+            </div>
+           }
+
+          <hr class="total-separator">
+          <div class="summary-row total">
+            <span>{{ 'checkoutDetailsPage.orderSummary.total' | transloco }}:</span>
+            <span class="amount total-amount">{{ summary.totals.total_price | formatPrice : summary.totals.currency_code }}</span>
+          </div>
+          <p class="vat-info">{{ 'cartPage.summary.vatInfo' | transloco }}</p>
+
+          <button class="checkout-button primary-button"
+                  (click)="proceedToPayment()"
+                  [disabled]="isRedirecting() || isLoadingAddress() || isLoadingShipping() || billingForm.invalid || (showShippingForm() && shippingForm.invalid) || (cartService.cart()?.needs_shipping && (shippingInfo() === null || shippingInfo() === 'error' || !displayableShippingInfoObject()))">
+            @if(isRedirecting()){
+              <span class="button-loading-spinner"></span>
+              <span>{{ 'checkoutDetailsPage.buttons.redirecting' | transloco }}</span>
+            } @else {
+              <span>{{ 'checkoutDetailsPage.buttons.proceedToPayment' | transloco }}</span>
+            }
+          </button>
+        </div>
+      } @else if (cartService.cartItemCount() === 0 && !cartService.isLoading()){
+         <div class="empty-cart-message">
+            <h2>{{ 'cartPage.empty.title' | transloco }}</h2>
+            <p>{{ 'checkoutDetailsPage.emptyCartMessage' | transloco }}</p>
+            <a routerLink="/warenkorb" class="secondary-button">{{ 'checkoutDetailsPage.backToCart' | transloco }}</a>
+        </div>
+      } @else {
+        <div class="summary-box placeholder">
+            <p>{{ 'checkoutDetailsPage.orderSummary.loading' | transloco }}</p>
+        </div>
+      }
+    </div>
+  </div>
+</div>
