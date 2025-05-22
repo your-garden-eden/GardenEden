@@ -25,7 +25,7 @@ import {
   WoocommerceService,
   WooCommerceProduct,
   WooCommerceProductsResponse,
-  WooCommerceMetaData, // Importiert
+  WooCommerceMetaData,
 } from '../../core/services/woocommerce.service';
 import { ProductCardComponent } from '../../shared/components/product-card/product-card.component';
 import {
@@ -108,7 +108,8 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
     this.bestsellerProducts.set([]);
 
     let httpApiParams = new HttpParams();
-    httpApiParams = httpApiParams.set('orderby', 'total_sales');
+    // KORRIGIERT: 'total_sales' zu 'sales' geändert, basierend auf der Fehlermeldung
+    httpApiParams = httpApiParams.set('orderby', 'sales'); 
     httpApiParams = httpApiParams.set('order', 'desc');
 
     const bestsellerSub = this.woocommerceService
@@ -148,9 +149,10 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
     });
     const shuffled = this.shuffleArray(allSubItems);
     this.shuffledSubCategoryItems.set(shuffled.slice(0, 15));
-    this.cdr.markForCheck();
+    this.cdr.markForCheck(); // Sicherstellen, dass die UI aktualisiert wird
     if (isPlatformBrowser(this.platformId) && this.swiperContainer?.nativeElement && this.shuffledSubCategoryItems().length > 0) {
-        this.initSwiper();
+        // Verzögere Swiper-Initialisierung leicht, um sicherzustellen, dass DOM-Elemente bereit sind
+        setTimeout(() => this.initSwiper(), 0);
     }
   }
 
@@ -181,12 +183,13 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
         centeredSlides: false,
         grabCursor: true,
         autoplay: {
-          delay: 1,
+          delay: 1, // Sehr kurze Verzögerung für kontinuierliches Scrollen
           disableOnInteraction: false,
           pauseOnMouseEnter: true,
         },
-        speed: 5000,
-        freeMode: true,
+        speed: 5000, // Geschwindigkeit der Animation
+        freeMode: true, // Erlaubt "freies" Scrollen ohne Einrasten
+        // freeModeMomentum: false, // Optional: Verhindert den "Schwung" nach dem Loslassen
         breakpoints: {
           320: { spaceBetween: 15 },
           768: { spaceBetween: 20 },
@@ -205,11 +208,9 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
       : undefined;
   }
 
-  // NEUE METHODEN für ProductCard
   extractPriceRange(product: WooCommerceProduct): { min: string, max: string } | null {
     if (product.type === 'variable') {
       if (product.price_html) {
-        // Verbesserter Regex, um verschiedene Währungsformate und "ab"-Texte zu berücksichtigen
         const rangeMatch = product.price_html.match(/([\d.,]+)[^\d.,<]*?(?:–|-)[^\d.,<]*?([\d.,]+)/);
         if (rangeMatch && rangeMatch[1] && rangeMatch[2]) {
           return { 
@@ -217,14 +218,13 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
             max: rangeMatch[2].replace(',', '.') 
           };
         }
-        // Regex für einzelnen Preis (z.B. "Ab 19,99€" oder nur "19,99€")
         const singlePriceMatch = product.price_html.match(/([\d.,]+)/);
         if (singlePriceMatch && singlePriceMatch[1]) {
           const priceVal = singlePriceMatch[1].replace(',', '.');
           return { min: priceVal, max: priceVal };
         }
       }
-      if (product.price) { // Fallback auf product.price, wenn price_html nicht passt
+      if (product.price) {
         return { min: product.price, max: product.price };
       }
     }
@@ -238,8 +238,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
     if (product.price_html) {
       if (product.price_html.includes('€')) return '€';
       if (product.price_html.includes('$')) return '$';
-      // Hier weitere Währungssymbole bei Bedarf hinzufügen
     }
-    return '€'; // Standard-Fallback
+    return '€';
   }
 }

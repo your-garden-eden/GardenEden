@@ -6,7 +6,8 @@
     "noResults": "Keine Ergebnisse gefunden",
     "searchPrompt": "Bitte mindestens 3 Zeichen eingeben.",
     "close": "Schließen",
-    "locale": "de-DE"
+    "locale": "de-DE",
+    "free": "Kostenlos"
   },
   "header": {
     "searchPlaceholder": "Produkte suchen...",
@@ -337,7 +338,8 @@
     "errorRemoveItem": "Artikel konnte nicht entfernt werden.",
     "errorCheckoutNotPossible": "Weiterleitung zur Kasse ist derzeit nicht möglich.",
     "errorFromService": "Ein Fehler ist aufgetreten: {serviceErrorMsg}",
-    "errorGlobalDefault": "Ein unbekannter Fehler im Warenkorb ist aufgetreten."
+    "errorGlobalDefault": "Ein unbekannter Fehler im Warenkorb ist aufgetreten.",
+    "errorEmptyCartCheckout": "Ihr Warenkorb ist leer. Bitte fügen Sie zuerst Produkte hinzu."
   },
   "wishlistPage": {
     "title": "Meine Wunschliste - Your Garden Eden",
@@ -428,5 +430,107 @@
     "outOfStock": "Ausverkauft",
     "availableInVariants": "In mehreren Varianten",
     "priceFrom": "Ab"
+  },
+  "checkoutDetailsPage": {
+    "title": "Bestelldetails & Adresse",
+    "loadingData": "Daten werden geladen...",
+    "billingAddress": {
+      "title": "Rechnungsadresse",
+      "firstNameLabel": "Vorname",
+      "firstNamePlaceholder": "Max",
+      "lastNameLabel": "Nachname",
+      "lastNamePlaceholder": "Mustermann",
+      "companyLabel": "Firma (optional)",
+      "companyPlaceholder": "Firmenname",
+      "address1Label": "Straße & Hausnr.",
+      "address1Placeholder": "Musterstraße 123",
+      "address2Label": "Adresszusatz (optional)",
+      "address2Placeholder": "z.B. Hinterhaus, App. 42",
+      "postcodeLabel": "PLZ",
+      "postcodePlaceholder": "12345",
+      "cityLabel": "Ort",
+      "cityPlaceholder": "Musterstadt",
+      "countryLabel": "Land",
+      "stateLabel": "Bundesland (optional)",
+      "statePlaceholder": "z.B. Bayern",
+      "emailLabel": "E-Mail-Adresse",
+      "emailPlaceholder": "max.mustermann@beispiel.de",
+      "phoneLabel": "Telefonnummer",
+      "phonePlaceholder": "0123 4567890"
+    },
+    "shippingAddress": {
+      "title": "Lieferadresse",
+      "firstNameLabel": "Vorname",
+      "firstNamePlaceholder": "Maria",
+      "lastNameLabel": "Nachname",
+      "lastNamePlaceholder": "Musterfrau",
+      "companyLabel": "Firma (optional)",
+      "companyPlaceholder": "Firmenname",
+      "address1Label": "Straße & Hausnr.",
+      "address1Placeholder": "Beispielweg 45a",
+      "address2Label": "Adresszusatz (optional)",
+      "address2Placeholder": "z.B. c/o Schmidt",
+      "postcodeLabel": "PLZ",
+      "postcodePlaceholder": "54321",
+      "cityLabel": "Ort",
+      "cityPlaceholder": "Beispielstadt",
+      "countryLabel": "Land",
+      "stateLabel": "Bundesland (optional)",
+      "statePlaceholder": "z.B. Hessen"
+    },
+    "useDifferentShippingAddress": "An eine andere Adresse liefern",
+    "orderSummary": {
+      "title": "Bestellübersicht",
+      "subtotal": "Zwischensumme",
+      "shipping": "Versand",
+      "tax": "MwSt.",
+      "taxIncludedInTotal": "im Gesamtbetrag enthalten",
+      "total": "Gesamtsumme",
+      "loading": "Übersicht wird geladen..."
+    },
+    "shipping": {
+      "loading": "Versand wird berechnet...",
+      "notNeeded": "Kein Versand notwendig",
+      "errorDefault": "Versand konnte nicht berechnet werden.",
+      "noRatesFound": "Keine Versandmethoden für Ihre Adresse gefunden.",
+      "noRatesInPackage": "Keine Versandraten im Paket gefunden.",
+      "noPackages": "Keine Versandpakete gefunden.",
+      "selectError": "Fehler bei der Auswahl der Versandmethode.",
+      "pleaseEnterAddress": "Bitte geben Sie eine gültige Adresse für die Versandberechnung ein.",
+      "notCalculated": "Noch nicht berechnet"
+    },
+    "buttons": {
+      "savingAddresses": "Speichere Adressen...",
+      "saveAddressesAndShipping": "Adressen speichern & Versand aktualisieren",
+      "proceedToPayment": "Weiter zur Bezahlung",
+      "redirecting": "Leite weiter..."
+    },
+    "errors": {
+      "fillRequiredFields": "Bitte füllen Sie alle Pflichtfelder (*) korrekt aus.",
+      "selectShipping": "Bitte wählen Sie eine Versandmethode aus oder korrigieren Sie Ihre Adresse.",
+      "addressSaveFailed": "Adressen konnten nicht gespeichert werden. Details: {details}",
+      "firstNameRequired": "Vorname ist ein Pflichtfeld.",
+      "lastNameRequired": "Nachname ist ein Pflichtfeld.",
+      "address1Required": "Straße und Hausnummer sind ein Pflichtfeld.",
+      "postcodeRequired": "Postleitzahl ist ein Pflichtfeld.",
+      "postcodePattern": "Bitte geben Sie eine gültige 5-stellige Postleitzahl ein.",
+      "cityRequired": "Ort ist ein Pflichtfeld.",
+      "emailRequired": "E-Mail ist ein Pflichtfeld.",
+      "emailInvalid": "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
+      "phoneRequired": "Telefonnummer ist ein Pflichtfeld.",
+      "globalCart": "Ein Problem mit Ihrem Warenkorb ist aufgetreten: {serviceErrorMsg}",
+      "loadDataFailed": "Die Checkout-Daten konnten nicht geladen werden. Bitte versuchen Sie es erneut."
+    },
+    "emptyCartMessage": "Ihr Warenkorb ist leer. Bitte fügen Sie Produkte hinzu, bevor Sie fortfahren.",
+    "backToCart": "Zurück zum Warenkorb"
+  },
+  "cartService": {
+    "errorLoadingCart": "Warenkorb konnte nicht geladen werden.",
+    "errorAddingItem": "Fehler beim Hinzufügen zum Warenkorb.",
+    "errorUpdatingQuantity": "Menge konnte nicht aktualisiert werden.",
+    "errorRemovingItem": "Artikel konnte nicht entfernt werden.",
+    "errorClearingCart": "Warenkorb konnte nicht geleert werden.",
+    "errorLoadingWithToken": "Warenkorb konnte mit dem Token nicht geladen werden.",
+    "errorUnknown": "Ein unbekannter Fehler im Warenkorb ist aufgetreten."
   }
 }

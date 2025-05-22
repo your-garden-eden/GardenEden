@@ -9,6 +9,12 @@ import { RegisterPageComponent } from './features/auth/register-page/register-pa
 // ProfilePageComponent wird lazy geladen
 import { authGuard } from './core/guards/auth.guard';
 
+// Importiere deine neue CheckoutDetailsPageComponent
+// Der Pfad muss exakt stimmen, je nachdem wo `ng generate` die Komponente abgelegt hat.
+// Standardmäßig sollte es so etwas sein wie:
+import { CheckoutDetailsPageComponent } from './features/checkout/checkout-details-page/checkout-details-page.component';
+
+
 export const routes: Routes = [
   // --- Bestehende Routen ---
   { path: '', component: HomeComponent, data: { titleKey: 'home.title' }, title: 'Your Garden Eden - Startseite' },
@@ -17,7 +23,6 @@ export const routes: Routes = [
   { path: 'category/:slug', component: CategoryOverviewComponent, title: 'Kategorie' },
 
   // --- Statische Seiten Routen ---
-  // contentFile: Nur Basisname, titleKey für Übersetzung
   {
     path: 'impressum',
     component: StaticPageComponent,
@@ -39,7 +44,7 @@ export const routes: Routes = [
   {
     path: 'widerrufsrecht',
     component: StaticPageComponent,
-    data: { contentFile: 'widerruf', titleKey: 'staticPage.widerrufsrecht.title' }, // Basisname 'widerruf'
+    data: { contentFile: 'widerruf', titleKey: 'staticPage.widerrufsrecht.title' },
     title: 'Widerrufsrecht'
   },
   {
@@ -91,6 +96,17 @@ export const routes: Routes = [
     data: { titleKey: 'cartPage.title' },
     title: 'Warenkorb'
   },
+
+  // +++ NEUE CHECKOUT-DETAILS-ROUTE +++
+  {
+    path: 'checkout-details', // Pfad für die Checkout-Detailseite
+    component: CheckoutDetailsPageComponent, // Direkt geladen, da --standalone
+    data: { titleKey: 'checkoutDetailsPage.title' }, // Für Übersetzung, z.B. 'checkoutDetailsPage.title'
+    title: 'Bestelldetails', // Fallback-Titel
+    // Optional: canActivate: [authGuard], falls der Checkout nur für eingeloggte Nutzer sein soll
+    // oder eine andere Logik, die sicherstellt, dass der Warenkorb nicht leer ist.
+  },
+  // +++++++++++++++++++++++++++++++++++
 
   // --- WUNSCHLISTE-ROUTE ---
   {

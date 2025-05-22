@@ -1,0 +1,481 @@
+// /src/app/features/checkout/checkout-details-page/checkout-details-page.component.scss
+@use "sass:color"; // Beibehalten, falls an anderer Stelle SASS-Farbmanipulationen mit SASS-Variablen verwendet werden.
+
+// --- Breakpoint-Variablen (könnten auch global definiert sein) ---
+$breakpoint-large: 1024px !default;
+$breakpoint-medium: 768px !default;
+$breakpoint-small: 600px !default;
+$breakpoint-xs: 480px !default;
+
+// --- Basiskomponente ---
+:host {
+  display: block;
+  padding: var(--spacing-lg, 1.5rem);
+  max-width: 1200px;
+  margin: var(--spacing-xxxl, 3rem) auto;
+  position: relative;
+}
+
+// --- Allgemeine Styles ---
+h1 {
+  text-align: center;
+  margin-bottom: var(--spacing-xl, 2rem);
+  font-size: clamp(1.8em, 4vw, 2.2em);
+  color: var(--text-color-headings);
+  font-family: var(--font-family-headings);
+  font-weight: var(--font-weight-semibold);
+}
+
+h2 {
+  font-size: clamp(1.3em, 3vw, 1.6em);
+  color: var(--text-color-headings);
+  font-family: var(--font-family-headings);
+  font-weight: var(--font-weight-semibold);
+  margin-top: 0;
+  margin-bottom: var(--spacing-lg, 1.5rem);
+  padding-bottom: var(--spacing-sm, 0.5rem);
+  border-bottom: 1px solid var(--border-color-light, #eee);
+
+  .address-forms &:first-of-type {
+    margin-top:0;
+  }
+
+  &:not(:first-child) {
+    margin-top: var(--spacing-xl, 2rem);
+  }
+}
+
+// --- Lade-Overlay ---
+.loading-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(255, 255, 255, 0.85);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: var(--z-index-modal-backdrop, 1040);
+  border-radius: var(--border-radius-lg, 8px);
+  backdrop-filter: blur(3px);
+  pointer-events: auto;
+
+  .spinner {
+    border: 4px solid var(--primary-color-text-rgba-03, rgba(255,255,255,0.3));
+    width: 40px;
+    height: 40px;
+    border-radius: var(--border-radius-circle, 50%);
+    border-left-color: var(--primary-color, #A1B48A);
+    margin-bottom: var(--spacing-md, 1rem);
+    animation: spin 1s linear infinite;
+  }
+
+  span {
+    font-weight: var(--font-weight-medium, 500);
+    color: var(--text-color-muted, #6c757d);
+    font-size: var(--font-size-base, 1rem);
+  }
+}
+
+.checkout-content-grid.loading .address-forms,
+.checkout-content-grid.loading .order-summary-column {
+  filter: blur(2px);
+  pointer-events: none;
+}
+
+
+// --- Grid-Layout ---
+.checkout-content-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: var(--spacing-xxl, 3rem);
+  position: relative;
+
+  @media (max-width: $breakpoint-large) {
+     gap: var(--spacing-xl, 2rem);
+  }
+
+  @media (max-width: $breakpoint-medium) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// --- Adressformulare ---
+.address-forms {
+  form {
+    background-color: var(--background-color-component, #FFFFFF);
+    padding: var(--spacing-lg, 1.5rem);
+    border-radius: var(--border-radius-lg, 8px);
+    box-shadow: var(--box-shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05));
+    margin-bottom: var(--spacing-xl, 2rem);
+
+    &:last-of-type {
+      margin-bottom: 0;
+    }
+  }
+
+  .shipping-address-form {
+    margin-top: var(--spacing-xl, 2rem);
+  }
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs, 0.25rem);
+  margin-bottom: var(--spacing-lg, 1.5rem);
+
+  label {
+    font-weight: var(--font-weight-semibold, 600);
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--text-color-base, #333333);
+    margin-bottom: var(--spacing-xxs, 0.125rem);
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"] {
+    padding: var(--spacing-sm, 0.75rem) var(--spacing-md, 1rem);
+    border: 1px solid var(--border-color-base, #dee2e6);
+    border-radius: var(--border-radius-md, 5px);
+    font-size: var(--font-size-base, 1rem);
+    font-family: var(--font-family-base, 'Roboto', sans-serif);
+    color: var(--text-color-base, #333333);
+    background-color: var(--background-color-component, #FFFFFF);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+    &::placeholder {
+      color: var(--text-color-muted, #6c757d);
+      opacity: 0.6;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      /* KORRIGIERT: Verwendung von rgba mit CSS-Variable für RGB-Werte */
+      /* Stelle sicher, dass --primary-color-rgb in :root definiert ist, z.B. --primary-color-rgb: 161, 180, 138; */
+      box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb, 161, 180, 138), 0.25);
+    }
+
+    &[readonly] {
+      background-color: var(--background-color-disabled, #e9ecef);
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+
+    &[aria-invalid="true"] {
+      border-color: var(--error-color);
+      &:focus {
+        /* KORRIGIERT: Verwendung von rgba mit CSS-Variable für RGB-Werte */
+        /* Stelle sicher, dass --error-color-rgb in :root definiert ist, z.B. --error-color-rgb: 220, 53, 69; */
+        box-shadow: 0 0 0 3px rgba(var(--error-color-rgb, 220, 53, 69), 0.25);
+      }
+    }
+  }
+}
+
+.form-row {
+  display: flex;
+  gap: var(--spacing-lg, 1.5rem);
+  .zip-field { flex: 1 1 120px; }
+  .city-field { flex: 2 1 auto; }
+
+   @media (max-width: $breakpoint-small) {
+    flex-direction: column;
+    gap: var(--spacing-lg, 1.5rem);
+    .zip-field, .city-field { flex: 1 1 auto; }
+  }
+}
+
+.checkbox-field {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--spacing-sm, 0.75rem);
+  margin-top: var(--spacing-md, 1rem);
+  margin-bottom: var(--spacing-lg, 1.5rem);
+
+  input[type="checkbox"] {
+    margin: 0;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    flex-shrink: 0;
+    accent-color: var(--primary-color, #A1B48A);
+  }
+  label {
+    font-weight: var(--font-weight-normal, 400);
+    font-size: var(--font-size-base, 1rem);
+    color: var(--text-color-base, #333333);
+    cursor: pointer;
+    line-height: 1.4;
+    margin-bottom: 0;
+  }
+}
+
+.error-container {
+  min-height: 1.2em;
+  margin-top: var(--spacing-xs, 0.25rem);
+  small {
+    color: var(--error-text-color, #721c24);
+    font-size: var(--font-size-sm, 0.875rem);
+    display: block;
+  }
+}
+
+.error-message {
+  border-radius: var(--border-radius-md, 5px);
+  padding: var(--spacing-md, 1rem);
+  font-size: var(--font-size-base, 1rem);
+  margin-bottom: var(--spacing-lg, 1.5rem);
+
+  &.page-error.general-error {
+    background-color: var(--error-background-color, #f8d7da);
+    color: var(--error-text-color, #721c24);
+    /* Stelle sicher, dass --error-color-rgb in :root definiert ist */
+    border: 1px solid rgba(var(--error-color-rgb, 220, 53, 69), 0.5);
+    text-align: center;
+    p { margin: 0; line-height: 1.5; }
+  }
+
+  &.form-error {
+    margin-top: var(--spacing-lg, 1.5rem);
+    background-color: var(--error-background-color, #f8d7da);
+    color: var(--error-text-color, #721c24);
+    border: 1px solid var(--error-color, #dc3545);
+    text-align: left;
+    p { margin: 0; }
+  }
+
+  &.shipping-error {
+    margin-top: var(--spacing-sm, 0.5rem);
+    color: var(--error-text-color, #721c24);
+    font-size: var(--font-size-sm, 0.875rem);
+    background-color: var(--error-background-color, #f8d7da);
+    padding: var(--spacing-sm, 0.5rem);
+    border-radius: var(--border-radius-sm, 3px);
+    p { margin: 0; }
+  }
+}
+.error-text {
+  color: var(--error-color, #dc3545);
+}
+
+
+.submit-button.address-submit-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm, 0.75rem);
+  padding: var(--spacing-md, 1rem) var(--spacing-lg, 1.5rem);
+  background-color: var(--secondary-color, #4E342E);
+  color: var(--secondary-color-text, #FFFFFF);
+  border: 1px solid transparent;
+  border-radius: var(--border-radius-md, 5px);
+  font-size: var(--font-size-base, 1rem);
+  font-weight: var(--font-weight-medium, 500);
+  cursor: pointer;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+  margin-top: var(--spacing-lg, 1.5rem);
+
+  &:hover:not(:disabled) {
+    background-color: var(--secondary-color-dark, #3E2723);
+  }
+
+  &:disabled {
+    background-color: var(--disabled-background-color, #e0e0e0);
+    color: var(--text-color-muted, #6c757d);
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+
+  .button-loading-spinner {
+    border: 2px solid var(--primary-color-text-rgba-03, rgba(255,255,255,0.3));
+    border-radius: var(--border-radius-circle, 50%);
+    border-top-color: var(--secondary-color-text, #FFFFFF);
+    width: 16px;
+    height: 16px;
+    animation: spin 1s linear infinite;
+  }
+}
+
+
+// --- Bestellübersicht ---
+.order-summary-column {
+  h2 { margin-top: 0; }
+}
+
+.summary-box {
+  background-color: var(--background-color-component, #FFFFFF);
+  padding: var(--spacing-lg, 1.5rem);
+  border-radius: var(--border-radius-lg, 8px);
+  border: 1px solid var(--border-color-light, #eee);
+  box-shadow: var(--box-shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05));
+  height: fit-content;
+  position: sticky;
+  top: var(--spacing-lg, 1.5rem);
+
+  @media (max-width: $breakpoint-medium) {
+    position: static;
+    top: auto;
+    margin-top: var(--spacing-xl, 2rem);
+  }
+
+  .summary-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: var(--font-size-base, 1rem);
+    margin-bottom: var(--spacing-xs, 0.25rem);
+    padding: var(--spacing-xs, 0.25rem) 0;
+    .item-name {
+      color: var(--text-color-base, #333333);
+      flex-grow: 1;
+      margin-right: var(--spacing-sm, 0.5rem);
+      line-height: 1.4;
+    }
+    .item-price {
+      font-weight: var(--font-weight-medium, 500);
+      color: var(--text-color-base, #333333);
+      white-space: nowrap;
+    }
+  }
+  .summary-item-variations {
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--text-color-muted, #6c757d);
+    padding-left: var(--spacing-md, 1rem);
+    margin-bottom: var(--spacing-md, 1rem);
+    margin-top: calc(-1 * var(--spacing-xs, 0.25rem));
+    small { display: block; line-height: 1.4; }
+  }
+
+  hr {
+    border: none;
+    border-top: 1px solid var(--border-color-light, #eee);
+    margin: var(--spacing-md, 1rem) 0;
+  }
+  hr.total-separator {
+    border-top-width: 2px;
+    border-top-color: var(--border-color-base, #dee2e6);
+    margin: var(--spacing-lg, 1.5rem) 0;
+  }
+
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md, 1rem);
+    font-size: var(--font-size-base, 1rem);
+    padding: var(--spacing-xs, 0.25rem) 0;
+
+    span:first-child { color: var(--text-color-muted, #6c757d); }
+    span.amount {
+      font-weight: var(--font-weight-medium, 500);
+      color: var(--text-color-base, #333333);
+      text-align: right;
+    }
+    &.total span {
+      font-weight: var(--font-weight-bold, 700);
+      font-size: var(--font-size-lg, 1.125rem);
+      color: var(--text-color-headings, var(--secondary-color));
+    }
+    &.total span.amount {
+        color: var(--price-color, #2e6b2e);
+    }
+  }
+  .shipping-info-display {
+    .amount {
+      font-style: italic;
+      color: var(--text-color-base);
+    }
+  }
+
+  .vat-info {
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--text-color-muted, #6c757d);
+    text-align: center;
+    margin-top: var(--spacing-sm, 0.5rem);
+    margin-bottom: var(--spacing-lg, 1.5rem);
+  }
+
+  .checkout-button.primary-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm, 0.75rem);
+    width: 100%;
+    padding: var(--spacing-md, 1rem) var(--spacing-lg, 1.5rem);
+    background-color: var(--primary-color, #A1B48A);
+    color: var(--primary-color-text, #FFFFFF);
+    border: 1px solid transparent;
+    border-radius: var(--border-radius-md, 5px);
+    font-size: var(--font-size-lg, 1.125rem);
+    font-weight: var(--font-weight-semibold, 600);
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color 0.2s ease, opacity 0.2s ease;
+    margin-top: var(--spacing-lg, 1.5rem);
+
+    &:hover:not(:disabled) {
+      background-color: var(--primary-color-dark, #798C67);
+    }
+
+    &:disabled {
+      background-color: var(--disabled-background-color, #e0e0e0);
+      color: var(--text-color-muted, #6c757d);
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+    .button-loading-spinner {
+      border-color: var(--primary-color-text-rgba-03, rgba(255,255,255,0.3));
+      border-top-color: var(--primary-color-text, #FFFFFF);
+      width: 18px;
+      height: 18px;
+      border-width: 2px;
+      animation: spin 1s linear infinite;
+    }
+  }
+}
+
+.empty-cart-message {
+  text-align: center;
+  padding: calc(var(--spacing-xl, 2rem) * 2) var(--spacing-xl, 2rem);
+  border: 1px dashed var(--border-color-light, #eee);
+  border-radius: var(--border-radius-lg, 8px);
+  background-color: var(--background-color-light-gray, #f8f9fa);
+  margin-top: var(--spacing-xl, 2rem);
+
+  h2 {
+    margin-bottom: var(--spacing-md, 1rem);
+    color: var(--text-color-base, #333333);
+  }
+  p {
+    margin-bottom: var(--spacing-lg, 1.5rem);
+    color: var(--text-color-muted, #6c757d);
+  }
+  .secondary-button {
+    display: inline-block;
+    padding: var(--spacing-sm, 0.75rem) var(--spacing-lg, 1.5rem);
+    background-color: transparent;
+    color: var(--primary-color, #A1B48A);
+    border: 1px solid var(--primary-color, #A1B48A);
+    border-radius: var(--border-radius-md, 5px);
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease;
+     &:hover {
+        /* KORRIGIERT: Verwendung einer RGBA-CSS-Variable für den Hover-Effekt */
+        /* Stelle sicher, dass --primary-color-rgb in :root definiert ist */
+        background-color: rgba(var(--primary-color-rgb, 161, 180, 138), 0.1);
+        color: var(--primary-color-dark, #798C67);
+     }
+  }
+}
+
+.placeholder {
+  text-align: center;
+  color: var(--text-color-muted, #6c757d);
+  padding: var(--spacing-xl, 2rem);
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

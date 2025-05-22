@@ -1,4 +1,5 @@
 // /src/app/features/auth/register-page/register-page.component.scss
+// @use "sass:color"; // Nur nötig, wenn color.adjust mit SASS-Variablen verwendet wird
 
 // Basis-Styling für die Auth-Seiten
 .auth-page-container {
@@ -59,6 +60,12 @@
 
     &[aria-invalid="true"] {
       border-color: var(--error-color);
+       // KORRIGIERT: Verwendung von rgba mit CSS-Variable für RGB-Werte
+       // Stelle sicher, dass --error-color-rgb in :root definiert ist, z.B. --error-color-rgb: 220, 53, 69;
+      &:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(var(--error-color-rgb, 220, 53, 69), 0.25);
+      }
     }
   }
 }
@@ -152,7 +159,7 @@
   }
 
   .button-loading-spinner {
-    border: 2px solid var(--primary-color-text-rgba-03); // <<< KORRIGIERT
+    border: 2px solid var(--primary-color-text-rgba-03);
     border-radius: var(--border-radius-circle);
     border-top-color: var(--primary-color-text);
     width: 16px;

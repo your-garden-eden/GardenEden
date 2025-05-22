@@ -12,10 +12,6 @@ export const environment = {
     measurementId: 'G-15H8CCF2WT',
     functionsUrl: 'https://europe-west1-your-garden-eden.cloudfunctions.net',
   },
-  // shopify: {
-  //   storefrontEndpoint: 'https://stygej-6u.myshopify.com/api/2024-04/graphql.json',
-  //   storefrontAccessToken: 'de4ef2d4b85379d8746fa07f77322638'
-  // },
   woocommerce: {
     // FÜR PRODUKTION: Ersetze diese mit deinen Live-WooCommerce-Daten, wenn du live gehst.
     // Fürs Erste kannst du hier dieselben Staging-Daten wie in environment.development.ts verwenden,
