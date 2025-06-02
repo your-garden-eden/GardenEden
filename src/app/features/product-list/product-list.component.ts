@@ -11,9 +11,11 @@ import {
   ElementRef,
   ChangeDetectorRef,
   afterNextRender,
+  HostListener, // HINZUGEFÜGT
+  PLATFORM_ID   // Sicherstellen, dass es importiert ist
 } from '@angular/core';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common'; // isPlatformBrowser sicherstellen
 import { Title } from '@angular/platform-browser';
 import { Subscription, of, combineLatest, Observable, EMPTY } from 'rxjs';
 import {
@@ -33,7 +35,7 @@ import {
   WooCommerceProduct,
   WooCommerceCategory,
   WooCommerceProductsResponse,
-  WooCommerceMetaData, // Importiert für Währung
+  WooCommerceMetaData,
 } from '../../core/services/woocommerce.service';
 import { ProductCardComponent } from '../../shared/components/product-card/product-card.component';
 import {
@@ -58,6 +60,7 @@ export class ProductListPageComponent implements OnInit, OnDestroy {
   private titleService = inject(Title);
   private translocoService = inject(TranslocoService);
   private cdr = inject(ChangeDetectorRef);
+  private platformId = inject(PLATFORM_ID); // HINZUGEFÜGT (falls noch nicht vorhanden)
 
   products: WritableSignal<WooCommerceProduct[]> = signal([]);
   categoryTitle: WritableSignal<string | null> = signal(null);
@@ -85,9 +88,19 @@ export class ProductListPageComponent implements OnInit, OnDestroy {
   private currentFoundSubItem: NavSubItem | undefined;
   private currentMainCategoryNavItem: NavItem | undefined;
 
+  // --- HINZUGEFÜGT: Für Scroll-to-Top Button ---
+  showScrollToTopButton: WritableSignal<boolean> = signal(false);
+  private scrollThreshold = 300; // Zeige Button nach 300px Scroll
+  // --- ENDE Scroll-to-Top Button ---
+
   constructor() {
     afterNextRender(() => {
       this.trySetupIntersectionObserver();
+      // --- HINZUGEFÜGT: Initialer Check für Scroll-to-Top ---
+      if (isPlatformBrowser(this.platformId)) {
+        this.checkScrollPosition();
+      }
+      // --- ENDE Initialer Check ---
     });
   }
 
@@ -266,6 +279,7 @@ export class ProductListPageComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
     this.disconnectObserver();
+    // Kein explizites Entfernen des window:scroll Listeners nötig, da @HostListener das managed.
   }
 
   private setupIntersectionObserver(targetElement: HTMLElement): void {
@@ -361,7 +375,6 @@ export class ProductListPageComponent implements OnInit, OnDestroy {
     return product.images && product.images.length > 0 ? product.images[0].src : undefined;
   }
 
-  // NEUE METHODEN für ProductCard
   extractPriceRange(product: WooCommerceProduct): { min: string, max: string } | null {
     if (product.type === 'variable') {
       if (product.price_html) {
@@ -375,10 +388,7 @@ export class ProductListPageComponent implements OnInit, OnDestroy {
           return { min: priceVal, max: priceVal };
         }
       }
-      // Fallback: Wenn price_html keine Spanne liefert, aber es ein variabler Typ ist,
-      // könnte man hier die Varianten laden und min/max ermitteln (zu aufwendig für Listenseite)
-      // oder den Standardpreis des Produkts als min/max nehmen, wenn verfügbar.
-      if (product.price) { // product.price ist der "active price"
+      if (product.price) {
         return { min: product.price, max: product.price };
       }
     }
@@ -391,8 +401,40 @@ export class ProductListPageComponent implements OnInit, OnDestroy {
     if (product.price_html) {
       if (product.price_html.includes('€')) return '€';
       if (product.price_html.includes('$')) return '$';
-      // Weitere Symbole hier...
     }
-    return '€'; // Default
+    return '€';
   }
+
+  // --- HINZUGEFÜGT: Methoden für Scroll-to-Top Button ---
+  @HostListener('window:scroll', [])
+  onWindowScroll(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      this.checkScrollPosition();
+    }
+  }
+
+  private checkScrollPosition(): void {
+    const scrollPosition = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+    if (scrollPosition > this.scrollThreshold) {
+      if (!this.showScrollToTopButton()) { // Nur setzen, wenn sich der Zustand ändert
+        this.showScrollToTopButton.set(true);
+        this.cdr.detectChanges(); // Manchmal nötig bei HostListener außerhalb von Angular Zonen Trigger
+      }
+    } else {
+      if (this.showScrollToTopButton()) { // Nur setzen, wenn sich der Zustand ändert
+        this.showScrollToTopButton.set(false);
+        this.cdr.detectChanges(); // Manchmal nötig
+      }
+    }
+  }
+
+  scrollToTop(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+  }
+  // --- ENDE Scroll-to-Top Button Methoden ---
 }

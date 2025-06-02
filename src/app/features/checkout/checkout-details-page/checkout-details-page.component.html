@@ -1,3 +1,4 @@
+<!-- /src/app/features/checkout/checkout-details-page/checkout-details-page.component.html -->
 <div class="checkout-details-page-container">
   <h1>{{ 'checkoutDetailsPage.title' | transloco }}</h1>
 
@@ -7,11 +8,17 @@
     </div>
   }
 
-  <div class="checkout-content-grid" [class.loading]="isLoadingAddress() || isLoadingShipping()">
-    @if (isLoadingAddress() || isLoadingShipping()) {
-      <div class="loading-overlay">
+  <div class="checkout-content-grid" [class.loading]="isLoadingAddress() || isLoadingShipping() || isRedirecting()">
+    @if (isLoadingAddress() || isLoadingShipping() || isRedirecting()) {
+      <div class="loading-overlay global-checkout-loading">
         <div class="spinner"></div>
-        <span>{{ 'checkoutDetailsPage.loadingData' | transloco }}</span>
+        <span>
+          @if(isRedirecting()){
+            {{ 'checkoutDetailsPage.buttons.redirecting' | transloco }}
+          } @else {
+            {{ 'checkoutDetailsPage.loadingData' | transloco }}
+          }
+        </span>
       </div>
     }
 
@@ -151,7 +158,7 @@
         <div class="form-field checkbox-field">
           <input type="checkbox" id="show_shipping_form_checkbox"
                  [checked]="showShippingForm()"
-                 (change)="handleShowShippingChange($event)"> <!-- KORRIGIERT -->
+                 (change)="handleShowShippingChange($event)">
           <label for="show_shipping_form_checkbox">{{ 'checkoutDetailsPage.useDifferentShippingAddress' | transloco }}</label>
         </div>
       </form>
@@ -159,7 +166,6 @@
       @if (showShippingForm()) {
         <form [formGroup]="shippingForm" (ngSubmit)="handleAddressFormSubmit()" novalidate class="shipping-address-form">
           <h2>{{ 'checkoutDetailsPage.shippingAddress.title' | transloco }}</h2>
-
           <div class="form-row">
             <div class="form-field">
               <label for="shipping_first_name">{{ 'checkoutDetailsPage.shippingAddress.firstNameLabel' | transloco }} *</label>
@@ -168,9 +174,7 @@
                      [attr.aria-invalid]="sf['first_name'].invalid && (sf['first_name'].touched || formSubmitted())">
               @if (sf['first_name'].invalid && (sf['first_name'].touched || formSubmitted())) {
               <div class="error-container">
-                @if (sf['first_name'].errors?.['required']) {
-                <small>{{ 'checkoutDetailsPage.errors.firstNameRequired' | transloco }}</small>
-                }
+                @if (sf['first_name'].errors?.['required']) { <small>{{ 'checkoutDetailsPage.errors.firstNameRequired' | transloco }}</small> }
               </div>
               }
             </div>
@@ -181,20 +185,16 @@
                      [attr.aria-invalid]="sf['last_name'].invalid && (sf['last_name'].touched || formSubmitted())">
               @if (sf['last_name'].invalid && (sf['last_name'].touched || formSubmitted())) {
               <div class="error-container">
-                @if (sf['last_name'].errors?.['required']) {
-                <small>{{ 'checkoutDetailsPage.errors.lastNameRequired' | transloco }}</small>
-                }
+                @if (sf['last_name'].errors?.['required']) { <small>{{ 'checkoutDetailsPage.errors.lastNameRequired' | transloco }}</small> }
               </div>
               }
             </div>
           </div>
-
            <div class="form-field">
             <label for="shipping_company">{{ 'checkoutDetailsPage.shippingAddress.companyLabel' | transloco }}</label>
             <input type="text" id="shipping_company" formControlName="company"
                   [placeholder]="'checkoutDetailsPage.shippingAddress.companyPlaceholder' | transloco">
           </div>
-
           <div class="form-field">
             <label for="shipping_address_1">{{ 'checkoutDetailsPage.shippingAddress.address1Label' | transloco }} *</label>
             <input #shippingAddressStreetInput type="text" id="shipping_address_1" formControlName="address_1"
@@ -202,9 +202,7 @@
                    [attr.aria-invalid]="sf['address_1'].invalid && (sf['address_1'].touched || formSubmitted())">
             @if (sf['address_1'].invalid && (sf['address_1'].touched || formSubmitted())) {
             <div class="error-container">
-              @if (sf['address_1'].errors?.['required']) {
-              <small>{{ 'checkoutDetailsPage.errors.address1Required' | transloco }}</small>
-              }
+              @if (sf['address_1'].errors?.['required']) { <small>{{ 'checkoutDetailsPage.errors.address1Required' | transloco }}</small> }
             </div>
             }
           </div>
@@ -213,7 +211,6 @@
             <input type="text" id="shipping_address_2" formControlName="address_2"
                   [placeholder]="'checkoutDetailsPage.shippingAddress.address2Placeholder' | transloco">
           </div>
-
           <div class="form-row">
             <div class="form-field zip-field">
               <label for="shipping_postcode">{{ 'checkoutDetailsPage.shippingAddress.postcodeLabel' | transloco }} *</label>
@@ -222,12 +219,8 @@
                      [attr.aria-invalid]="sf['postcode'].invalid && (sf['postcode'].touched || formSubmitted())">
               @if (sf['postcode'].invalid && (sf['postcode'].touched || formSubmitted())) {
               <div class="error-container">
-                @if (sf['postcode'].errors?.['required']) {
-                <small>{{ 'checkoutDetailsPage.errors.postcodeRequired' | transloco }}</small>
-                }
-                @if (sf['postcode'].errors?.['pattern']) {
-                <small>{{ 'checkoutDetailsPage.errors.postcodePattern' | transloco }}</small>
-                }
+                @if (sf['postcode'].errors?.['required']) { <small>{{ 'checkoutDetailsPage.errors.postcodeRequired' | transloco }}</small> }
+                @if (sf['postcode'].errors?.['pattern']) { <small>{{ 'checkoutDetailsPage.errors.postcodePattern' | transloco }}</small> }
               </div>
               }
             </div>
@@ -238,9 +231,7 @@
                      [attr.aria-invalid]="sf['city'].invalid && (sf['city'].touched || formSubmitted())">
               @if (sf['city'].invalid && (sf['city'].touched || formSubmitted())) {
               <div class="error-container">
-                @if (sf['city'].errors?.['required']) {
-                <small>{{ 'checkoutDetailsPage.errors.cityRequired' | transloco }}</small>
-                }
+                @if (sf['city'].errors?.['required']) { <small>{{ 'checkoutDetailsPage.errors.cityRequired' | transloco }}</small> }
               </div>
               }
             </div>
@@ -275,78 +266,61 @@
     </div>
 
     <div class="order-summary-column">
-      <h2>{{ 'checkoutDetailsPage.orderSummary.title' | transloco }}</h2>
-      @if (orderSummary(); as summary) {
-        <div class="summary-box">
-          @for (item of summary.items; track item.key) {
-            <div class="summary-item">
-              <span class="item-name">{{ item.quantity }}x {{ item.name }}</span>
-              <span class="item-price">{{ item.totals.line_total | formatPrice : item.totals.currency_code }}</span>
-            </div>
-            @if (item.variation && item.variation.length > 0) {
-              <div class="summary-item-variations">
-                @for (variant of item.variation; track variant.attribute) {
-                  <small>{{ variant.attribute }}: {{ variant.value }}</small>
-                }
-              </div>
-            }
-          }
-          <hr>
-          <div class="summary-row">
-            <span>{{ 'checkoutDetailsPage.orderSummary.subtotal' | transloco }}:</span>
-            <span class="amount">{{ summary.totals.total_items | formatPrice : summary.totals.currency_code }}</span>
-          </div>
+      @if (orderSummary(); as summaryDetails) {
+        <div class="summary-box checkout-summary-box">
+          <h2>{{ 'cartPage.summary.title' | transloco }}</h2> <!-- Geändert zu "Übersicht" -->
 
-          <div class="summary-row shipping-info-display">
-            <span>{{ 'checkoutDetailsPage.orderSummary.shipping' | transloco }}:</span>
-            <span class="amount">
-              @switch (true) {
-                @case (isLoadingShipping()) {
-                  {{ 'checkoutDetailsPage.shipping.loading' | transloco }}
-                }
-                @case (shippingInfo() === 'not_needed') {
-                  {{ 'checkoutDetailsPage.shipping.notNeeded' | transloco }}
-                }
-                @case (shippingInfo() === 'error') {
-                  <span class="error-text">{{ shippingError() || ('checkoutDetailsPage.shipping.errorDefault' | transloco) }}</span>
-                }
-                @case (!!displayableShippingInfoObject()) { <!-- KORRIGIERT -->
-                  @if (displayableShippingInfoObject(); as dispInfo) { <!-- KORRIGIERT -->
-                    {{ dispInfo.packageName }}
-                    ({{ dispInfo.isFree ? ('general.free' | transloco) : (dispInfo.price | formatPrice : dispInfo.currencyCode) }})
-                  }
-                }
-                @case (summary.selectedShippingRateDisplay && !displayableShippingInfoObject()) {
-                  {{ summary.selectedShippingRateDisplay }}
-                }
-                @case (cartService.cart()?.needs_shipping) {
-                  {{ 'checkoutDetailsPage.shipping.pleaseEnterAddress' | transloco }}
-                }
-                @default {
-                  {{ 'checkoutDetailsPage.shipping.notCalculated' | transloco }}
-                }
+          @if (summaryDetails.items && summaryDetails.items.length > 0) {
+            <ul class="checkout-summary-items-list">
+              @for (item of summaryDetails.items; track item.key) {
+                <li class="checkout-summary-item">
+                  <div class="summary-item-image">
+                    @if (getProductImageForItem(item); as imgUrl) {
+                      <img [src]="imgUrl" [alt]="item.name | slice:0:30" loading="lazy"/>
+                    } @else {
+                      <div class="no-image-placeholder small">
+                        <span class="material-symbols-outlined" [title]="'productPage.noImageAvailable' | transloco">image</span>
+                      </div>
+                    }
+                  </div>
+                  <div class="summary-item-info">
+                    <span class="item-name">{{ item.quantity }}x {{ item.name | slice:0:40 }}{{ item.name.length > 40 ? '...' : '' }}</span>
+                    @if (item.variation && item.variation.length > 0) {
+                      <div class="summary-item-variations">
+                        @for (variant of item.variation; track variant.attribute) {
+                          <small>{{ variant.attribute }}: {{ variant.value }}</small>
+                        }
+                      </div>
+                    }
+                  </div>
+                  <span class="item-price">{{ item.totals.line_total | formatPrice : summaryDetails.totals.currency_code }}</span>
+                </li>
               }
-            </span>
-          </div>
-          @if (shippingErrorKey() && shippingInfo() === 'error' && shippingError(); as sErrorMsg) {
-            <div class="error-message shipping-error">
-                <p>{{ sErrorMsg }}</p>
-            </div>
+            </ul>
+            <hr class="items-totals-separator">
           }
 
-           @if (summary.totals.total_tax && summary.totals.total_tax !== '0.00') {
+          <div class="summary-row shipping"> <!-- Klasse .shipping hinzugefügt -->
+            <span>{{ 'cartPage.summary.shipping' | transloco }}:</span>
+            <span class="amount free-shipping">{{ 'general.free' | transloco }}</span> <!-- Immer kostenlos -->
+          </div>
+          <!-- @if (shippingErrorKey() ... ) entfernt, da Versand immer kostenlos -->
+
+           @if (summaryDetails.totals.total_tax && summaryDetails.totals.total_tax !== '0.00' && summaryDetails.totals.total_tax !== '0') {
             <div class="summary-row">
                 <span>{{ 'checkoutDetailsPage.orderSummary.tax' | transloco }} ({{ 'checkoutDetailsPage.orderSummary.taxIncludedInTotal' | transloco }}):</span>
-                <span class="amount">{{ summary.totals.total_tax | formatPrice : summary.totals.currency_code }}</span>
+                <span class="amount">{{ summaryDetails.totals.total_tax | formatPrice : summaryDetails.totals.currency_code }}</span>
             </div>
            }
 
           <hr class="total-separator">
           <div class="summary-row total">
             <span>{{ 'checkoutDetailsPage.orderSummary.total' | transloco }}:</span>
-            <span class="amount total-amount">{{ summary.totals.total_price | formatPrice : summary.totals.currency_code }}</span>
+            <div class="total-price-block">
+                <span class="amount total-amount">{{ summaryDetails.totals.total_price | formatPrice : summaryDetails.totals.currency_code }}</span>
+                <span class="vat-summary-subtext"> {{ 'cartPage.summary.inclVatShort' | transloco }}</span>
+            </div>
           </div>
-          <p class="vat-info">{{ 'cartPage.summary.vatInfo' | transloco }}</p>
 
           <button class="checkout-button primary-button"
                   (click)="proceedToPayment()"
@@ -366,7 +340,8 @@
             <a routerLink="/warenkorb" class="secondary-button">{{ 'checkoutDetailsPage.backToCart' | transloco }}</a>
         </div>
       } @else {
-        <div class="summary-box placeholder">
+        <div class="summary-box checkout-summary-box placeholder">
+            <div class="spinner"></div>
             <p>{{ 'checkoutDetailsPage.orderSummary.loading' | transloco }}</p>
         </div>
       }

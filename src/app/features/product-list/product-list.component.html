@@ -1,4 +1,4 @@
-<!-- /src/app/features/product-list/product-list-page/product-list-page.component.html -->
+<!-- /src/app/features/product-list/product-list-page/product-list.component.html -->
 <div class="category-page-content">
   <div class="page-header-with-back-button">
     @if (mainCategoryLink(); as categoryLink) {
@@ -70,4 +70,19 @@
       </div>
     }
   </ng-container>
+
+  <!-- HINZUGEFÜGT: Scroll-to-Top Button -->
+  <button
+    *ngIf="showScrollToTopButton()"
+    (click)="scrollToTop()"
+    class="scroll-to-top-button"
+    [class.show]="showScrollToTopButton()"
+    type="button"
+    [title]="'general.scrollToTop' | transloco"
+    aria-label="'general.scrollToTop' | transloco"
+  >
+    <span class="material-symbols-outlined">arrow_upward</span>
+  </button>
+  <!-- ENDE Scroll-to-Top Button -->
+
 </div>

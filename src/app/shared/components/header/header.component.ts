@@ -14,7 +14,7 @@ import {
   computed,
   ChangeDetectorRef,
 } from '@angular/core';
-import { RouterModule, Router, RouterLinkActive, NavigationEnd } from '@angular/router';
+import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { CommonModule, isPlatformBrowser, AsyncPipe } from '@angular/common';
 import { Observable, Subscription, of } from 'rxjs';
 import {
@@ -26,16 +26,16 @@ import {
   catchError,
   startWith,
   finalize,
-  map, // map importiert
+  map,
+  take,
 } from 'rxjs/operators';
-import { User } from '@angular/fire/auth';
 import { ReactiveFormsModule, FormControl, FormsModule } from '@angular/forms';
 
 // Komponenten
 import { MiniCartComponent } from '../mini-cart/mini-cart.component';
 
 // Services & Daten
-import { AuthService } from '../../../shared/services/auth.service';
+import { AuthService, WordPressUser } from '../../../shared/services/auth.service';
 import { CartService } from '../../../shared/services/cart.service';
 import { UiStateService } from '../../../shared/services/ui-state.service';
 import { WishlistService } from '../../../shared/services/wishlist.service';
@@ -43,7 +43,7 @@ import { navItems, NavItem } from '../../../core/data/navigation.data';
 import {
   WoocommerceService,
   WooCommerceProduct,
-  WooCommerceProductsResponse, // Importiert
+  WooCommerceProductsResponse,
 } from '../../../core/services/woocommerce.service';
 
 // Breakpoint-Erkennung
@@ -70,7 +70,7 @@ import { HttpParams } from '@angular/common/http';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HeaderComponent implements OnInit, OnDestroy {
-  private authService = inject(AuthService);
+  public authService = inject(AuthService);
   public cartService = inject(CartService);
   public uiStateService = inject(UiStateService);
   private wishlistService = inject(WishlistService);
@@ -82,18 +82,19 @@ export class HeaderComponent implements OnInit, OnDestroy {
   private cdr = inject(ChangeDetectorRef);
   public translocoService = inject(TranslocoService);
 
-  currentUser$: Observable<User | null> = this.authService.authState$;
+  currentUser$: Observable<WordPressUser | null> = this.authService.currentWordPressUser$;
   itemCount$: Signal<number> = this.cartService.cartItemCount;
   isMobileMenuOpen = false;
   public navItems = navItems;
 
   isMiniCartOpen$: Signal<boolean> = this.uiStateService.isMiniCartOpen$;
   isWishlistEmpty: Signal<boolean> = this.wishlistService.isEmpty;
-  isLoggedIn$: Observable<boolean> = this.authService.isLoggedIn();
+  isLoggedIn$: Observable<boolean> = this.authService.isLoggedIn$;
 
-  searchControl = new FormControl('');
+  searchControl = new FormControl(''); // FormControl kann string | null emittieren
   searchResults: WritableSignal<WooCommerceProduct[]> = signal([]);
   isSearchLoading: WritableSignal<boolean> = signal(false);
+  isSearchLoadingMore: WritableSignal<boolean> = signal(false);
   isSearchOverlayVisible: WritableSignal<boolean> = signal(false);
   searchError: WritableSignal<string | null> = signal(null);
   private subscriptions = new Subscription();
@@ -103,9 +104,15 @@ export class HeaderComponent implements OnInit, OnDestroy {
   availableLangsSignal: WritableSignal<{ id: string; label: string }[]> = signal([]);
   activeLang: WritableSignal<string> = signal(this.translocoService.getActiveLang());
 
+  private currentSearchPage: WritableSignal<number> = signal(1);
+  private totalSearchPages: WritableSignal<number> = signal(1);
+  private currentSearchTerm: string | null = null; // Bleibt string | null für interne Zwecke
+  private readonly SEARCH_RESULTS_PER_PAGE = 8;
+
   constructor() {
     effect(() => {
-      if (this.searchControl.value === '') {
+      const searchValue = this.searchControl.value;
+      if (searchValue === '' || searchValue === null) { // Expliziter Check für null
         this.closeSearchOverlay(false);
       }
     });
@@ -186,10 +193,17 @@ export class HeaderComponent implements OnInit, OnDestroy {
   private setupSearchDebounce(): void {
     const searchSub = this.searchControl.valueChanges
       .pipe(
-        filter(term => {
-          if (!term || (term as string).length < 3) {
+        // Type Guard, um sicherzustellen, dass 'term' in nachfolgenden Operatoren 'string' ist
+        // und dass der String die Mindestlänge hat.
+        filter((termValue: string | null): termValue is string => {
+          if (termValue === null || termValue.length < 3) {
             this.searchResults.set([]);
-            if (!(term as string)) {
+            this.isSearchLoading.set(false);
+            this.isSearchLoadingMore.set(false);
+            this.currentSearchPage.set(1);
+            this.totalSearchPages.set(1);
+            this.currentSearchTerm = null;
+            if (termValue === null || termValue === '') {
                 this.closeSearchOverlay(false);
             }
             return false;
@@ -197,23 +211,33 @@ export class HeaderComponent implements OnInit, OnDestroy {
           return true;
         }),
         debounceTime(400),
-        distinctUntilChanged(),
-        tap(() => {
+        distinctUntilChanged(), // Arbeitet jetzt mit 'string'
+        tap((term: string) => { // term ist hier definitiv 'string'
           this.isSearchLoading.set(true);
+          this.isSearchLoadingMore.set(false);
           this.isSearchOverlayVisible.set(true);
           this.searchResults.set([]);
           this.searchError.set(null);
+          this.currentSearchPage.set(1);
+          this.totalSearchPages.set(1);
+          this.currentSearchTerm = term;
         }),
-        switchMap(term => {
-          const params = new HttpParams().set('search', term as string).set('per_page', '8');
-          return this.woocommerceService.getProducts(undefined, 8, 1, params).pipe(
+        switchMap((term: string) => { // term ist hier definitiv 'string'
+          const params = new HttpParams()
+            .set('search', term) // term ist jetzt sicher ein string
+            .set('per_page', this.SEARCH_RESULTS_PER_PAGE.toString());
+          return this.woocommerceService.getProducts(undefined, this.SEARCH_RESULTS_PER_PAGE, 1, params).pipe(
             catchError(err => {
-              console.error('Fehler bei Produktsuche:', err);
+              console.error('Fehler bei initialer Produktsuche:', err);
               this.searchError.set(this.translocoService.translate('header.searchError'));
-              // return of([] as WooCommerceProduct[]); // Alt
-              return of({ products: [], totalPages: 0, totalCount: 0 } as WooCommerceProductsResponse); // KORRIGIERT: Gibt das Response-Objekt zurück
+              this.currentSearchTerm = null;
+              this.isSearchOverlayVisible.set(true);
+              return of({ products: [], totalPages: 0, totalCount: 0 } as WooCommerceProductsResponse);
             }),
-            map((response: WooCommerceProductsResponse) => response.products), // *** KORRIGIERT: Produkte hier extrahieren ***
+            tap((response: WooCommerceProductsResponse) => {
+              this.totalSearchPages.set(response.totalPages);
+            }),
+            map((response: WooCommerceProductsResponse) => response.products),
             finalize(() => {
                 this.isSearchLoading.set(false);
                 this.cdr.markForCheck();
@@ -221,15 +245,16 @@ export class HeaderComponent implements OnInit, OnDestroy {
           );
         })
       )
-      .subscribe((results: WooCommerceProduct[]) => { // *** Erwartet jetzt WooCommerceProduct[] ***
+      .subscribe((results: WooCommerceProduct[]) => {
         this.searchResults.set(results);
       });
     this.subscriptions.add(searchSub);
   }
 
   onSearchFocus(): void {
-    if (this.searchControl.value && (this.searchControl.value as string).length > 2) {
-        this.isSearchOverlayVisible.set(true);
+    const currentSearchValue = this.searchControl.value;
+    if (currentSearchValue && currentSearchValue.length > 2) {
+      this.isSearchOverlayVisible.set(true);
     }
   }
 
@@ -243,8 +268,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
     }
     this.isSearchOverlayVisible.set(false);
     this.isSearchLoading.set(false);
+    this.isSearchLoadingMore.set(false);
     this.searchError.set(null);
     this.searchResults.set([]);
+    this.currentSearchPage.set(1);
+    this.totalSearchPages.set(1);
+    this.currentSearchTerm = null;
   }
 
   onSearchResultClick(): void {
@@ -282,14 +311,18 @@ export class HeaderComponent implements OnInit, OnDestroy {
     }
   }
 
-  async performLogout(): Promise<void> {
+  performLogout(): void {
     this.closeMobileMenu();
-    try {
-      await this.authService.logout();
-      this.router.navigate(['/'], { queryParams: { loggedOut: 'true' } });
-    } catch (error) {
-      console.error('Fehler beim Logout:', error);
-    }
+    this.authService.logout().subscribe({
+        next: () => {
+            this.router.navigate(['/'], { queryParams: { loggedOut: 'true' } });
+            // console.log('Header: Logout-Aktion abgeschlossen.');
+        },
+        error: (error) => {
+             console.error('Header: Fehler beim Logout im Service:', error);
+             this.router.navigate(['/']);
+        }
+    });
   }
 
   toggleMobileMenu(): void {
@@ -326,5 +359,52 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   getSearchResultImage(product: WooCommerceProduct): string | undefined {
     return product.images && product.images.length > 0 ? product.images[0].src : undefined;
+  }
+
+  loadMoreSearchResults(): void {
+    if (this.isSearchLoading() || this.isSearchLoadingMore() || !this.currentSearchTerm) {
+      return;
+    }
+    if (this.currentSearchPage() >= this.totalSearchPages()) {
+      return;
+    }
+
+    this.isSearchLoadingMore.set(true);
+    const nextPageToLoad = this.currentSearchPage() + 1;
+    // this.currentSearchTerm ist hier sicher ein string, da dieser Pfad nur bei gültiger Erstsuche erreicht wird
+    const params = new HttpParams()
+      .set('search', this.currentSearchTerm)
+      .set('per_page', this.SEARCH_RESULTS_PER_PAGE.toString());
+
+    this.woocommerceService.getProducts(undefined, this.SEARCH_RESULTS_PER_PAGE, nextPageToLoad, params)
+      .pipe(
+        take(1),
+        catchError(err => {
+          console.error('Fehler beim Nachladen weiterer Suchergebnisse:', err);
+          return of(null);
+        }),
+        finalize(() => {
+          this.isSearchLoadingMore.set(false);
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe((response: WooCommerceProductsResponse | null) => {
+        if (response && response.products && response.products.length > 0) {
+          this.searchResults.update(currentResults => [...currentResults, ...response.products]);
+          this.currentSearchPage.set(nextPageToLoad);
+        }
+      });
+  }
+
+  onSearchOverlayScroll(event: Event): void {
+    const target = event.target as HTMLElement;
+    const threshold = 80;
+    const nearBottom = target.scrollTop + target.offsetHeight + threshold >= target.scrollHeight;
+
+    if (nearBottom) {
+      if (this.currentSearchPage() < this.totalSearchPages() && !this.isSearchLoadingMore() && !this.isSearchLoading()) {
+        this.loadMoreSearchResults();
+      }
+    }
   }
 }

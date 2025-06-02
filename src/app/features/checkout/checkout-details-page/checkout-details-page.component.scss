@@ -1,31 +1,51 @@
 // /src/app/features/checkout/checkout-details-page/checkout-details-page.component.scss
-@use "sass:color"; // Beibehalten, falls an anderer Stelle SASS-Farbmanipulationen mit SASS-Variablen verwendet werden.
+@use "sass:color";
 
-// --- Breakpoint-Variablen (könnten auch global definiert sein) ---
+// --- Breakpoint-Variablen ---
 $breakpoint-large: 1024px !default;
 $breakpoint-medium: 768px !default;
 $breakpoint-small: 600px !default;
 $breakpoint-xs: 480px !default;
 
+// --- Sass-Variablen für Fallback-Farben (konsistent mit cart-page) ---
+$error-color-fallback: #dc3545;
+$warning-color-fallback: #ffc107;
+$background-color-light-gray-fallback: #f8f9fa;
+$success-color-fallback: #28a745;
+$your-garden-eden-green-fallback: #4CAF50;
+$border-color-base-fallback: #ced4da;
+$primary-color-fallback: #007bff;
+$disabled-color-fallback: #adb5bd;
+$text-color-base-fallback: #212529;
+$text-color-muted-fallback: #6c757d;
+$text-color-link-fallback: #007bff;
+$text-color-link-hover-fallback: #0056b3;
+$primary-color-dark-fallback: #0056b3;
+$background-color-component-fallback: #fff;
+$border-color-light-fallback: #e9ecef;
+$primary-color-text-fallback: #fff;
+
+
 // --- Basiskomponente ---
 :host {
   display: block;
-  padding: var(--spacing-lg, 1.5rem);
-  max-width: 1200px;
-  margin: var(--spacing-xxxl, 3rem) auto;
+  padding: var(--spacing-lg, 1.5rem); // Konsistent mit cart-page (ggf. anpassen)
+  max-width: 1200px; // Konsistent mit cart-page (ggf. anpassen)
+  margin: var(--spacing-xxxl, 3rem) auto; // Konsistent mit cart-page (ggf. anpassen, z.B. var(--spacing-xl))
   position: relative;
 }
 
 // --- Allgemeine Styles ---
-h1 {
-  text-align: center;
-  margin-bottom: var(--spacing-xl, 2rem);
-  font-size: clamp(1.8em, 4vw, 2.2em);
-  color: var(--text-color-headings);
+h1 { // Hauptüberschrift der Seite ("Bestelldetails & Adresse")
+  text-align: center; // Angleichen an cart-page h1
+  margin-bottom: var(--spacing-xl, 2rem); // Angleichen an cart-page h1
+  font-size: clamp(1.8em, 4vw, 2.4em); // Beispiel: Angleichen an cart-page h1 (oder Ihre spezifische Größe)
+  color: var(--text-color-headings, var(--primary-color-dark, $primary-color-dark-fallback));
   font-family: var(--font-family-headings);
   font-weight: var(--font-weight-semibold);
 }
 
+// h2 für Sektionen innerhalb der Seite
 h2 {
   font-size: clamp(1.3em, 3vw, 1.6em);
   color: var(--text-color-headings);
@@ -34,15 +54,16 @@ h2 {
   margin-top: 0;
   margin-bottom: var(--spacing-lg, 1.5rem);
   padding-bottom: var(--spacing-sm, 0.5rem);
-  border-bottom: 1px solid var(--border-color-light, #eee);
+  border-bottom: 1px solid var(--border-color-light, $border-color-light-fallback);
 
-  .address-forms &:first-of-type {
+  .address-forms &:first-of-type { // Spezifisch für die erste h2 in den Adressformularen
     margin-top:0;
   }
 
-  &:not(:first-child) {
+  .address-forms &:not(:first-of-type) { // z.B. für "Lieferadresse"
     margin-top: var(--spacing-xl, 2rem);
   }
+  // H2 in der .summary-box wird dort separat gestylt
 }
 
 // --- Lade-Overlay ---
@@ -59,19 +80,23 @@ h2 {
   backdrop-filter: blur(3px);
   pointer-events: auto;
 
+  &.global-checkout-loading {
+    border-radius: 0;
+  }
+
   .spinner {
     border: 4px solid var(--primary-color-text-rgba-03, rgba(255,255,255,0.3));
     width: 40px;
     height: 40px;
     border-radius: var(--border-radius-circle, 50%);
-    border-left-color: var(--primary-color, #A1B48A);
+    border-left-color: var(--primary-color, $primary-color-fallback);
     margin-bottom: var(--spacing-md, 1rem);
     animation: spin 1s linear infinite;
   }
 
   span {
     font-weight: var(--font-weight-medium, 500);
-    color: var(--text-color-muted, #6c757d);
+    color: var(--text-color-muted, $text-color-muted-fallback);
     font-size: var(--font-size-base, 1rem);
   }
 }
@@ -81,7 +106,6 @@ h2 {
   filter: blur(2px);
   pointer-events: none;
 }
-
 
 // --- Grid-Layout ---
 .checkout-content-grid {
@@ -102,7 +126,7 @@ h2 {
 // --- Adressformulare ---
 .address-forms {
   form {
-    background-color: var(--background-color-component, #FFFFFF);
+    background-color: var(--background-color-component, $background-color-component-fallback);
     padding: var(--spacing-lg, 1.5rem);
     border-radius: var(--border-radius-lg, 8px);
     box-shadow: var(--box-shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05));
@@ -112,7 +136,7 @@ h2 {
       margin-bottom: 0;
     }
   }
-
+  // H2-Styling ist oben, allgemeiner für .address-forms h2
   .shipping-address-form {
     margin-top: var(--spacing-xl, 2rem);
   }
@@ -127,7 +151,7 @@ h2 {
   label {
     font-weight: var(--font-weight-semibold, 600);
     font-size: var(--font-size-sm, 0.875rem);
-    color: var(--text-color-base, #333333);
+    color: var(--text-color-base, $text-color-base-fallback);
     margin-bottom: var(--spacing-xxs, 0.125rem);
   }
 
@@ -135,25 +159,23 @@ h2 {
   input[type="email"],
   input[type="tel"] {
     padding: var(--spacing-sm, 0.75rem) var(--spacing-md, 1rem);
-    border: 1px solid var(--border-color-base, #dee2e6);
+    border: 1px solid var(--border-color-base, $border-color-base-fallback);
     border-radius: var(--border-radius-md, 5px);
     font-size: var(--font-size-base, 1rem);
     font-family: var(--font-family-base, 'Roboto', sans-serif);
-    color: var(--text-color-base, #333333);
-    background-color: var(--background-color-component, #FFFFFF);
+    color: var(--text-color-base, $text-color-base-fallback);
+    background-color: var(--background-color-component, $background-color-component-fallback);
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
     &::placeholder {
-      color: var(--text-color-muted, #6c757d);
+      color: var(--text-color-muted, $text-color-muted-fallback);
       opacity: 0.6;
     }
 
     &:focus {
       outline: none;
-      border-color: var(--primary-color);
-      /* KORRIGIERT: Verwendung von rgba mit CSS-Variable für RGB-Werte */
-      /* Stelle sicher, dass --primary-color-rgb in :root definiert ist, z.B. --primary-color-rgb: 161, 180, 138; */
-      box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb, 161, 180, 138), 0.25);
+      border-color: var(--primary-color, $primary-color-fallback);
+      box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb, 0, 123, 255), 0.25);
     }
 
     &[readonly] {
@@ -163,10 +185,8 @@ h2 {
     }
 
     &[aria-invalid="true"] {
-      border-color: var(--error-color);
+      border-color: var(--error-color, $error-color-fallback);
       &:focus {
-        /* KORRIGIERT: Verwendung von rgba mit CSS-Variable für RGB-Werte */
-        /* Stelle sicher, dass --error-color-rgb in :root definiert ist, z.B. --error-color-rgb: 220, 53, 69; */
         box-shadow: 0 0 0 3px rgba(var(--error-color-rgb, 220, 53, 69), 0.25);
       }
     }
@@ -200,12 +220,12 @@ h2 {
     height: 18px;
     cursor: pointer;
     flex-shrink: 0;
-    accent-color: var(--primary-color, #A1B48A);
+    accent-color: var(--primary-color, $primary-color-fallback);
   }
   label {
     font-weight: var(--font-weight-normal, 400);
     font-size: var(--font-size-base, 1rem);
-    color: var(--text-color-base, #333333);
+    color: var(--text-color-base, $text-color-base-fallback);
     cursor: pointer;
     line-height: 1.4;
     margin-bottom: 0;
@@ -231,7 +251,6 @@ h2 {
   &.page-error.general-error {
     background-color: var(--error-background-color, #f8d7da);
     color: var(--error-text-color, #721c24);
-    /* Stelle sicher, dass --error-color-rgb in :root definiert ist */
     border: 1px solid rgba(var(--error-color-rgb, 220, 53, 69), 0.5);
     text-align: center;
     p { margin: 0; line-height: 1.5; }
@@ -241,7 +260,7 @@ h2 {
     margin-top: var(--spacing-lg, 1.5rem);
     background-color: var(--error-background-color, #f8d7da);
     color: var(--error-text-color, #721c24);
-    border: 1px solid var(--error-color, #dc3545);
+    border: 1px solid var(--error-color, $error-color-fallback);
     text-align: left;
     p { margin: 0; }
   }
@@ -257,7 +276,7 @@ h2 {
   }
 }
 .error-text {
-  color: var(--error-color, #dc3545);
+  color: var(--error-color, $error-color-fallback);
 }
 
 
@@ -283,7 +302,7 @@ h2 {
 
   &:disabled {
     background-color: var(--disabled-background-color, #e0e0e0);
-    color: var(--text-color-muted, #6c757d);
+    color: var(--text-color-muted, $text-color-muted-fallback);
     cursor: not-allowed;
     opacity: 0.7;
   }
@@ -298,21 +317,20 @@ h2 {
   }
 }
 
-
-// --- Bestellübersicht ---
+// --- Bestellübersicht (rechte Spalte) ---
 .order-summary-column {
-  h2 { margin-top: 0; }
+  // Stile für die Spalte selbst, falls benötigt
 }
 
-.summary-box {
-  background-color: var(--background-color-component, #FFFFFF);
+.summary-box.checkout-summary-box {
+  background-color: var(--background-color-light-gray, $background-color-light-gray-fallback);
   padding: var(--spacing-lg, 1.5rem);
   border-radius: var(--border-radius-lg, 8px);
-  border: 1px solid var(--border-color-light, #eee);
+  border: 1px solid var(--border-color-light, $border-color-light-fallback);
   box-shadow: var(--box-shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05));
   height: fit-content;
   position: sticky;
-  top: var(--spacing-lg, 1.5rem);
+  top: calc(var(--header-height, 60px) + var(--spacing-lg, 1.5rem));
 
   @media (max-width: $breakpoint-medium) {
     position: static;
@@ -320,116 +338,171 @@ h2 {
     margin-top: var(--spacing-xl, 2rem);
   }
 
-  .summary-item {
-    display: flex;
-    justify-content: space-between;
-    font-size: var(--font-size-base, 1rem);
-    margin-bottom: var(--spacing-xs, 0.25rem);
-    padding: var(--spacing-xs, 0.25rem) 0;
-    .item-name {
-      color: var(--text-color-base, #333333);
-      flex-grow: 1;
-      margin-right: var(--spacing-sm, 0.5rem);
-      line-height: 1.4;
-    }
-    .item-price {
-      font-weight: var(--font-weight-medium, 500);
-      color: var(--text-color-base, #333333);
-      white-space: nowrap;
-    }
-  }
-  .summary-item-variations {
-    font-size: var(--font-size-sm, 0.875rem);
-    color: var(--text-color-muted, #6c757d);
-    padding-left: var(--spacing-md, 1rem);
-    margin-bottom: var(--spacing-md, 1rem);
-    margin-top: calc(-1 * var(--spacing-xs, 0.25rem));
-    small { display: block; line-height: 1.4; }
+  h2 { // Überschrift INNERHALB der Box ("Übersicht")
+    font-size: clamp(1.3em, 3vw, 1.6em); // Konsistent mit cart-page summary h2
+    color: var(--text-color-headings, var(--primary-color-dark, $primary-color-dark-fallback));
+    font-family: var(--font-family-headings);
+    font-weight: var(--font-weight-semibold);
+    margin-top: 0;
+    margin-bottom: var(--spacing-lg, 1.5rem);
+    padding-bottom: var(--spacing-sm, 0.5rem);
+    border-bottom: 1px solid var(--border-color-light, $border-color-light-fallback);
   }
 
-  hr {
-    border: none;
-    border-top: 1px solid var(--border-color-light, #eee);
-    margin: var(--spacing-md, 1rem) 0;
+  .checkout-summary-items-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 var(--spacing-md, 1rem) 0;
+
+    .checkout-summary-item {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md, 1rem);
+      padding: var(--spacing-sm, 0.75rem) 0;
+      border-bottom: 1px solid var(--border-color-light, $border-color-light-fallback);
+
+      &:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+      }
+
+      .summary-item-image {
+        flex-shrink: 0;
+        width: 45px;
+        height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        img {
+          max-width: 100%;
+          max-height: 100%;
+          object-fit: contain;
+          border-radius: var(--border-radius-sm, 3px);
+        }
+        .no-image-placeholder.small {
+          width: 100%; height: 100%;
+          background-color: var(--background-color-light-gray, $background-color-light-gray-fallback);
+          border-radius: var(--border-radius-sm);
+          display: flex; align-items: center; justify-content: center;
+          color: var(--border-color-base, $border-color-base-fallback);
+          border: 1px solid var(--border-color-light, $border-color-light-fallback);
+          .material-symbols-outlined { font-size: 20px; }
+        }
+      }
+
+      .summary-item-info {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        .item-name {
+          font-weight: var(--font-weight-medium, 500);
+          color: var(--text-color-base, $text-color-base-fallback);
+          font-size: 0.9em;
+          line-height: 1.3;
+          margin-bottom: var(--spacing-xxs, 0.125rem);
+        }
+        .summary-item-variations small {
+          font-size: 0.8em;
+          color: var(--text-color-muted, $text-color-muted-fallback);
+          display: block;
+          line-height: 1.3;
+        }
+      }
+      .item-price {
+        font-weight: var(--font-weight-medium, 500);
+        color: var(--text-color-base, $text-color-base-fallback);
+        white-space: nowrap;
+        font-size: 0.9em;
+        margin-left: var(--spacing-sm, 0.5rem);
+      }
+    }
   }
-  hr.total-separator {
-    border-top-width: 2px;
-    border-top-color: var(--border-color-base, #dee2e6);
-    margin: var(--spacing-lg, 1.5rem) 0;
+
+  hr.items-totals-separator {
+    border: none;
+    border-top: 1px solid var(--border-color-base, $border-color-base-fallback);
+    margin: var(--spacing-md, 1rem) 0;
   }
 
   .summary-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--spacing-md, 1rem);
-    font-size: var(--font-size-base, 1rem);
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: var(--spacing-md, 1rem); font-size: var(--font-size-base, 1rem);
     padding: var(--spacing-xs, 0.25rem) 0;
 
-    span:first-child { color: var(--text-color-muted, #6c757d); }
+    span:first-child { color: var(--text-color-muted, $text-color-muted-fallback); }
     span.amount {
       font-weight: var(--font-weight-medium, 500);
-      color: var(--text-color-base, #333333);
+      color: var(--text-color-base, $text-color-base-fallback);
       text-align: right;
     }
     &.total span {
       font-weight: var(--font-weight-bold, 700);
       font-size: var(--font-size-lg, 1.125rem);
-      color: var(--text-color-headings, var(--secondary-color));
+      color: var(--text-color-headings, var(--secondary-color, $primary-color-dark-fallback));
     }
-    &.total span.amount {
-        color: var(--price-color, #2e6b2e);
+     &.total .amount.total-amount {
+        color: var(--price-color, $your-garden-eden-green-fallback);
+    }
+    &.shipping .amount.free-shipping {
+      color: var(--your-garden-eden-green, $your-garden-eden-green-fallback);
+      font-weight: var(--font-weight-semibold, 600);
     }
   }
   .shipping-info-display {
     .amount {
-      font-style: italic;
-      color: var(--text-color-base);
+      font-style: normal;
     }
   }
+  .total-price-block {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      text-align: right;
 
-  .vat-info {
-    font-size: var(--font-size-sm, 0.875rem);
-    color: var(--text-color-muted, #6c757d);
-    text-align: center;
-    margin-top: var(--spacing-sm, 0.5rem);
-    margin-bottom: var(--spacing-lg, 1.5rem);
+      .amount.total-amount {
+         color: var(--primary-color-dark, $primary-color-dark-fallback);
+      }
+      .vat-summary-subtext {
+        font-size: 0.75em;
+        font-weight: var(--font-weight-normal);
+        color: var(--text-color-muted, $text-color-muted-fallback);
+        line-height: 1.2;
+        margin-top: 2px;
+      }
+  }
+   hr.total-separator {
+    border-top-width: 2px;
+    border-top-color: var(--border-color-base, $border-color-base-fallback);
+    margin: var(--spacing-lg, 1.5rem) 0;
   }
 
   .checkout-button.primary-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--spacing-sm, 0.75rem);
-    width: 100%;
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: var(--spacing-sm, 0.75rem); width: 100%;
     padding: var(--spacing-md, 1rem) var(--spacing-lg, 1.5rem);
-    background-color: var(--primary-color, #A1B48A);
-    color: var(--primary-color-text, #FFFFFF);
+    background-color: var(--primary-color, $primary-color-fallback);
+    color: var(--primary-color-text, $primary-color-text-fallback);
     border: 1px solid transparent;
     border-radius: var(--border-radius-md, 5px);
     font-size: var(--font-size-lg, 1.125rem);
     font-weight: var(--font-weight-semibold, 600);
-    text-transform: uppercase;
-    cursor: pointer;
+    text-transform: uppercase; cursor: pointer;
     transition: background-color 0.2s ease, opacity 0.2s ease;
     margin-top: var(--spacing-lg, 1.5rem);
 
     &:hover:not(:disabled) {
-      background-color: var(--primary-color-dark, #798C67);
+      background-color: var(--primary-color-dark, color.adjust($primary-color-fallback, $lightness: -10%));
     }
-
     &:disabled {
       background-color: var(--disabled-background-color, #e0e0e0);
-      color: var(--text-color-muted, #6c757d);
-      cursor: not-allowed;
-      opacity: 0.7;
+      color: var(--text-color-muted, $text-color-muted-fallback);
+      cursor: not-allowed; opacity: 0.7;
     }
     .button-loading-spinner {
       border-color: var(--primary-color-text-rgba-03, rgba(255,255,255,0.3));
-      border-top-color: var(--primary-color-text, #FFFFFF);
-      width: 18px;
-      height: 18px;
-      border-width: 2px;
+      border-top-color: var(--primary-color-text, $primary-color-text-fallback);
+      width: 18px; height: 18px; border-width: 2px;
       animation: spin 1s linear infinite;
     }
   }
@@ -438,41 +511,53 @@ h2 {
 .empty-cart-message {
   text-align: center;
   padding: calc(var(--spacing-xl, 2rem) * 2) var(--spacing-xl, 2rem);
-  border: 1px dashed var(--border-color-light, #eee);
+  border: 1px dashed var(--border-color-light, $border-color-light-fallback);
   border-radius: var(--border-radius-lg, 8px);
-  background-color: var(--background-color-light-gray, #f8f9fa);
+  background-color: var(--background-color-light-gray, $background-color-light-gray-fallback);
   margin-top: var(--spacing-xl, 2rem);
 
   h2 {
     margin-bottom: var(--spacing-md, 1rem);
-    color: var(--text-color-base, #333333);
+    color: var(--text-color-base, $text-color-base-fallback);
   }
   p {
     margin-bottom: var(--spacing-lg, 1.5rem);
-    color: var(--text-color-muted, #6c757d);
+    color: var(--text-color-muted, $text-color-muted-fallback);
   }
   .secondary-button {
     display: inline-block;
     padding: var(--spacing-sm, 0.75rem) var(--spacing-lg, 1.5rem);
     background-color: transparent;
-    color: var(--primary-color, #A1B48A);
-    border: 1px solid var(--primary-color, #A1B48A);
+    color: var(--primary-color, $primary-color-fallback);
+    border: 1px solid var(--primary-color, $primary-color-fallback);
     border-radius: var(--border-radius-md, 5px);
     text-decoration: none;
     transition: background-color 0.2s ease, color 0.2s ease;
      &:hover {
-        /* KORRIGIERT: Verwendung einer RGBA-CSS-Variable für den Hover-Effekt */
-        /* Stelle sicher, dass --primary-color-rgb in :root definiert ist */
-        background-color: rgba(var(--primary-color-rgb, 161, 180, 138), 0.1);
-        color: var(--primary-color-dark, #798C67);
+        background-color: rgba(var(--primary-color-rgb, 0, 123, 255), 0.1);
+        color: var(--primary-color-dark, $primary-color-dark-fallback);
      }
   }
 }
 
 .placeholder {
   text-align: center;
-  color: var(--text-color-muted, #6c757d);
+  color: var(--text-color-muted, $text-color-muted-fallback);
   padding: var(--spacing-xl, 2rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+   .spinner {
+    border: 4px solid var(--primary-color-text-rgba-03, rgba(108, 117, 125, 0.1));
+    width: 36px;
+    height: 36px;
+    border-radius: var(--border-radius-circle, 50%);
+    border-left-color: var(--primary-color, $primary-color-fallback);
+    margin-bottom: var(--spacing-md, 1rem);
+    animation: spin 1s linear infinite;
+  }
 }
 
 @keyframes spin {

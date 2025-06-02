@@ -1,151 +1,215 @@
-<!-- /src/app/features/account/profile-page/profile-page.component.html -->
+<!-- src/app/features/account/profile-page/profile-page.component.html -->
 <div class="profile-page-container">
   <h1>{{ 'profilePage.mainTitle' | transloco }}</h1>
 
-  <div *ngIf="isLoading()" class="loading-indicator">
+  <div *ngIf="isLoading() && !selectedOrder() && activeSection() !== 'orderDetails'" class="loading-indicator full-page-loader">
     <p>{{ 'profilePage.loadingData' | transloco }}</p>
   </div>
 
-  <div *ngIf="errorMessage() && !isEditing()" class="error-message general-error profile-load-error">
-    <p>{{ errorMessage() }}</p> <!-- Kommt schon übersetzt aus TS -->
+  <div *ngIf="errorMessage() && !isLoading() && activeSection() === 'overview' && !wpUser()" class="error-message general-error profile-load-error">
+    <p>{{ errorMessage() }}</p>
     <a routerLink="/">{{ 'profilePage.backToHome' | transloco }}</a>
   </div>
 
-  <ng-container *ngIf="userProfile() as profile; else noProfile">
-    <div class="profile-content">
+  <ng-container *ngIf="!isLoading() || activeSection() === 'orderDetails'">
+    <ng-container *ngIf="wpUser() as userBaseInfo">
+      <div class="profile-layout">
+        <!-- Tab Navigation -->
+        <nav class="profile-nav">
+          <ul>
+            <li><button (click)="setActiveSection('overview')" [class.active]="activeSection() === 'overview'"><span class="material-symbols-outlined">dashboard</span> {{ 'profilePage.navOverview' | transloco }}</button></li>
+            <li><button (click)="setActiveSection('personalData')" [class.active]="activeSection() === 'personalData'"><span class="material-symbols-outlined">badge</span> {{ 'profilePage.navPersonalData' | transloco }}</button></li>
+            <li><button (click)="setActiveSection('addresses')" [class.active]="activeSection() === 'addresses'"><span class="material-symbols-outlined">home_pin</span> {{ 'profilePage.navAddresses' | transloco }}</button></li>
+            <li><button (click)="setActiveSection('orders')" [class.active]="activeSection() === 'orders' && !selectedOrder()"><span class="material-symbols-outlined">receipt_long</span> {{ 'profilePage.navOrders' | transloco }}</button></li>
+            <li><button (click)="setActiveSection('changePassword')" [class.active]="activeSection() === 'changePassword'"><span class="material-symbols-outlined">password</span> {{ 'profilePage.navChangePassword' | transloco }}</button></li>
+            <!-- Logout Button ist entfernt -->
+            <!-- <li><button (click)="authService.logout()"><span class="material-symbols-outlined">logout</span> {{ 'profilePage.navLogout' | transloco }}</button></li> -->
+          </ul>
+        </nav>
 
-      <div class="edit-button-container">
-        <button type="button" class="edit-toggle-button" (click)="toggleEditMode()">
-          <span class="material-symbols-outlined">{{ isEditing() ? 'close' : 'edit' }}</span>
-          {{ (isEditing() ? 'profilePage.cancelButton' : 'profilePage.editProfileButton') | transloco }}
-        </button>
-      </div>
+        <!-- Tab Content Area -->
+        <div class="profile-content-area">
+          <div *ngIf="successMessage()" class="success-message global-message">
+            {{ successMessage() }}
+          </div>
+          <div *ngIf="errorMessage() && (isEditingPersonalData() || (activeSection() !== 'overview' && !wpUser() && !isLoading() && activeSection() !== 'orders' && activeSection() !== 'orderDetails'))" class="error-message global-message form-action-error">
+            {{ errorMessage() }}
+          </div>
 
-      <div *ngIf="successMessage()" class="success-message">
-        {{ successMessage() }} <!-- Kommt schon übersetzt aus TS -->
-      </div>
-
-      <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" novalidate class="profile-form">
-
-        <h2>{{ 'profilePage.personalDataTitle' | transloco }}</h2>
-
-        <div class="form-field">
-          <label for="profileEmail">{{ 'profilePage.emailLabel' | transloco }}</label>
-          <input type="email" id="profileEmail" formControlName="email" readonly>
-          <small class="field-hint">{{ 'profilePage.emailHint' | transloco }}</small>
-        </div>
-
-        <div class="form-field">
-          <label for="profileFirstName">{{ 'profilePage.firstNameLabel' | transloco }}</label>
-          <div class="display-field" *ngIf="!isEditing()">{{ profile.firstName }}</div>
-          <ng-container *ngIf="isEditing()">
-            <input type="text" id="profileFirstName" formControlName="firstName" required
-                   [attr.aria-invalid]="firstName?.invalid && (firstName?.touched || formSubmitted())"
-                   aria-describedby="firstNameError">
-            <div id="firstNameError" class="error-container"
-                 *ngIf="firstName?.invalid && (firstName?.touched || formSubmitted())">
-              <small *ngIf="firstName?.errors?.['required']">{{ 'profilePage.errorFirstNameRequired' | transloco }}</small>
+          <!-- Tab: Übersicht -->
+          <section *ngIf="activeSection() === 'overview'" class="profile-section overview-section">
+            <h2>{{ 'profilePage.overviewTitle' | transloco }}</h2>
+            <p>{{ 'profilePage.welcomeMessage' | transloco: { name: personalDataForm.get('firstName')?.value || userBaseInfo.username } }}</p>
+            <p>{{ 'profilePage.overviewIntro' | transloco }}</p>
+            <div class="info-message" style="margin-top: var(--spacing-lg); padding: var(--spacing-md); background-color: #eef7ff; border: 1px solid #d1e7fd; color: #055160; border-radius: var(--border-radius-md);">
+              <p>{{ 'profilePage.overviewDevelopmentNotice' | transloco }}</p>
             </div>
-          </ng-container>
-        </div>
+          </section>
 
-        <div class="form-field">
-          <label for="profileLastName">{{ 'profilePage.lastNameLabel' | transloco }}</label>
-          <div class="display-field" *ngIf="!isEditing()">{{ profile.lastName }}</div>
-          <ng-container *ngIf="isEditing()">
-            <input type="text" id="profileLastName" formControlName="lastName" required
-                   [attr.aria-invalid]="lastName?.invalid && (lastName?.touched || formSubmitted())"
-                   aria-describedby="lastNameError">
-             <div id="lastNameError" class="error-container"
-                 *ngIf="lastName?.invalid && (lastName?.touched || formSubmitted())">
-              <small *ngIf="lastName?.errors?.['required']">{{ 'profilePage.errorLastNameRequired' | transloco }}</small>
+          <!-- Tab: Persönliche Daten -->
+          <section *ngIf="activeSection() === 'personalData'" class="profile-section personal-data-section">
+            <div class="section-header">
+              <h2>{{ 'profilePage.personalDataTitle' | transloco }}</h2>
+              <button type="button" class="edit-toggle-button" (click)="isEditingPersonalData.set(!isEditingPersonalData())">
+                <span class="material-symbols-outlined">{{ isEditingPersonalData() ? 'close' : 'edit' }}</span>
+                {{ (isEditingPersonalData() ? 'profilePage.cancelButton' : 'profilePage.editButton') | transloco }}
+              </button>
             </div>
-          </ng-container>
-        </div>
-
-        <h2>{{ 'profilePage.addressTitle' | transloco }}</h2>
-
-        <div class="form-field">
-           <label for="profileAddressStreet">{{ 'profilePage.addressStreetLabel' | transloco }}</label>
-           <div class="display-field" *ngIf="!isEditing()">{{ profile.address.street || ('profilePage.notAvailable' | transloco) }}</div>
-           <ng-container *ngIf="isEditing()">
-              <input type="text" id="profileAddressStreet" formControlName="addressStreet" required
-                     [attr.aria-invalid]="addressStreet?.invalid && (addressStreet?.touched || formSubmitted())"
-                     aria-describedby="addressStreetError">
-              <div id="addressStreetError" class="error-container"
-                    *ngIf="addressStreet?.invalid && (addressStreet?.touched || formSubmitted())">
-                <small *ngIf="addressStreet?.errors?.['required']">{{ 'profilePage.errorAddressStreetRequired' | transloco }}</small>
+            <form [formGroup]="personalDataForm" (ngSubmit)="onSavePersonalData()" novalidate class="profile-form-segment">
+              <div class="form-field">
+                <label for="profileEmail">{{ 'profilePage.emailLabel' | transloco }}</label>
+                <input type="email" id="profileEmail" formControlName="email" readonly>
+                <small class="field-hint">{{ 'profilePage.emailNotChangeableHint' | transloco }}</small>
               </div>
-           </ng-container>
-         </div>
+              <div class="form-field">
+                <label for="profileFirstName">{{ 'profilePage.firstNameLabel' | transloco }} *</label>
+                <div class="display-field" *ngIf="!isEditingPersonalData()">{{ personalDataForm.get('firstName')?.value || ('profilePage.notAvailable' | transloco) }}</div>
+                <ng-container *ngIf="isEditingPersonalData()">
+                  <input type="text" id="profileFirstName" formControlName="firstName" required
+                         [attr.aria-invalid]="isControlInvalid(personalDataForm, 'firstName')">
+                  <div class="error-container" *ngIf="isControlInvalid(personalDataForm, 'firstName')">
+                    <small *ngIf="personalDataForm.get('firstName')?.errors?.['required']">{{ 'validators.firstNameRequired' | transloco }}</small>
+                  </div>
+                </ng-container>
+              </div>
+              <div class="form-field">
+                <label for="profileLastName">{{ 'profilePage.lastNameLabel' | transloco }} *</label>
+                <div class="display-field" *ngIf="!isEditingPersonalData()">{{ personalDataForm.get('lastName')?.value || ('profilePage.notAvailable' | transloco) }}</div>
+                <ng-container *ngIf="isEditingPersonalData()">
+                  <input type="text" id="profileLastName" formControlName="lastName" required
+                         [attr.aria-invalid]="isControlInvalid(personalDataForm, 'lastName')">
+                   <div class="error-container" *ngIf="isControlInvalid(personalDataForm, 'lastName')">
+                    <small *ngIf="personalDataForm.get('lastName')?.errors?.['required']">{{ 'validators.lastNameRequired' | transloco }}</small>
+                  </div>
+                </ng-container>
+              </div>
+              <div class="action-button-container" *ngIf="isEditingPersonalData()">
+                <button type="submit" class="submit-button" [disabled]="personalDataForm.invalid || isSaving()">
+                  <span *ngIf="!isSaving()">{{ 'profilePage.saveChangesButton' | transloco }}</span>
+                  <span *ngIf="isSaving()">{{ 'profilePage.savingButton' | transloco }}...</span>
+                </button>
+              </div>
+            </form>
+          </section>
 
-         <div class="form-row">
-           <div class="form-field zip-field">
-             <label for="profileAddressZip">{{ 'profilePage.addressZipLabel' | transloco }}</label>
-             <div class="display-field" *ngIf="!isEditing()">{{ profile.address.zip || ('profilePage.notAvailable' | transloco) }}</div>
-             <ng-container *ngIf="isEditing()">
-                <input type="text" id="profileAddressZip" formControlName="addressZip" required inputmode="numeric"
-                      [attr.aria-invalid]="addressZip?.invalid && (addressZip?.touched || formSubmitted())"
-                      aria-describedby="addressZipError">
-                <div id="addressZipError" class="error-container"
-                      *ngIf="addressZip?.invalid && (addressZip?.touched || formSubmitted())">
-                  <small *ngIf="addressZip?.errors?.['required']">{{ 'profilePage.errorAddressZipRequired' | transloco }}</small>
-                  <small *ngIf="addressZip?.errors?.['pattern']">{{ 'profilePage.errorAddressZipPattern' | transloco }}</small>
+          <!-- Tab: Adressen - Wartungsmodus -->
+          <section *ngIf="activeSection() === 'addresses'" class="profile-section addresses-section">
+            <h2>{{ 'profilePage.navAddresses' | transloco }}</h2>
+            <div class="maintenance-message info-message" style="padding: var(--spacing-md); background-color: #fff3cd; border: 1px solid #ffecb5; color: #664d03; border-radius: var(--border-radius-md);">
+              <h3>{{ 'profilePage.sectionUnderMaintenanceTitle' | transloco }}</h3>
+              <p>{{ 'profilePage.sectionAddressesMaintenanceMessage' | transloco }}</p>
+            </div>
+          </section>
+
+          <!-- Tab: Bestellungen -->
+          <section *ngIf="activeSection() === 'orders' && !selectedOrder()" class="profile-section orders-section">
+            <h2>{{ 'profilePage.navOrders' | transloco }}</h2>
+            <div *ngIf="orderIsLoading()" class="loading-indicator">
+              <p>{{ 'profilePage.loadingOrders' | transloco }}</p>
+            </div>
+            <div *ngIf="!orderIsLoading() && orders().length === 0" class="empty-state">
+              <p>{{ 'profilePage.noOrders' | transloco }}</p>
+              <a routerLink="/produkte" class="button-primary">{{ 'profilePage.browseProducts' | transloco }}</a>
+            </div>
+            <ul *ngIf="!orderIsLoading() && orders().length > 0" class="orders-list">
+              <li *ngFor="let order of orders()" class="order-item">
+                <div class="order-summary">
+                  <span><strong>{{ 'profilePage.orderNumber' | transloco }}:</strong> {{ order.id }}</span>
+                  <span><strong>{{ 'profilePage.orderDate' | transloco }}:</strong> {{ formatDate(order.date_created) }}</span>
+                  <span><strong>{{ 'profilePage.orderStatus' | transloco }}:</strong> {{ ('profilePage.orderStatus_' + order.status) | transloco }}</span>
+                  <span><strong>{{ 'profilePage.orderTotal' | transloco }}:</strong> {{ order.total | currency:'EUR':'symbol':'1.2-2':('general.locale' | transloco) }}</span>
                 </div>
-             </ng-container>
-           </div>
-           <div class="form-field city-field">
-             <label for="profileAddressCity">{{ 'profilePage.addressCityLabel' | transloco }}</label>
-             <div class="display-field" *ngIf="!isEditing()">{{ profile.address.city || ('profilePage.notAvailable' | transloco) }}</div>
-             <ng-container *ngIf="isEditing()">
-                <input type="text" id="profileAddressCity" formControlName="addressCity" required
-                      [attr.aria-invalid]="addressCity?.invalid && (addressCity?.touched || formSubmitted())"
-                      aria-describedby="addressCityError">
-                <div id="addressCityError" class="error-container"
-                      *ngIf="addressCity?.invalid && (addressCity?.touched || formSubmitted())">
-                  <small *ngIf="addressCity?.errors?.['required']">{{ 'profilePage.errorAddressCityRequired' | transloco }}</small>
+                <button (click)="setActiveSection('orderDetails', order.id)" class="view-details-button">{{ 'profilePage.viewOrderDetails' | transloco }}</button>
+              </li>
+            </ul>
+            <div *ngIf="totalPages() > 1 && !orderIsLoading()" class="pagination">
+              <button (click)="loadOrders(currentPage() - 1, currentUserWordPressId!)" [disabled]="currentPage() === 1 || orderIsLoading()">{{'profilePage.prevPage' | transloco}}</button>
+              <span>{{ 'profilePage.pageIndicator' | transloco: { currentPage: currentPage(), totalPages: totalPages() } }}</span>
+              <button (click)="loadOrders(currentPage() + 1, currentUserWordPressId!)" [disabled]="currentPage() === totalPages() || orderIsLoading()">{{'profilePage.nextPage' | transloco}}</button>
+            </div>
+          </section>
+
+          <!-- Tab: Bestelldetails -->
+          <section *ngIf="activeSection() === 'orderDetails' && selectedOrder() as order" class="profile-section order-details-section">
+            <div class="section-header">
+                <h2>{{ 'profilePage.orderDetailsTitle' | transloco }} #{{ order.number || order.id }}</h2>
+                <button (click)="setActiveSection('orders')" class="back-to-orders-button">
+                    <span class="material-symbols-outlined">arrow_back</span> {{ 'profilePage.backToOrders' | transloco }}
+                </button>
+            </div>
+            <div *ngIf="isLoading() && !selectedOrder()" class="loading-indicator">
+              <p>{{ 'profilePage.loadingOrderDetails' | transloco }}</p>
+            </div>
+            <div *ngIf="selectedOrder() as orderDetail" class="order-detail-content">
+              <div class="order-meta-grid">
+                <p><strong>{{ 'profilePage.orderDate' | transloco }}:</strong> {{ formatDate(orderDetail.date_created) }}</p>
+                <p><strong>{{ 'profilePage.orderStatus' | transloco }}:</strong> {{ ('profilePage.orderStatus_' + orderDetail.status) | transloco }}</p>
+                <p><strong>{{ 'profilePage.paymentMethod' | transloco }}:</strong> {{ orderDetail.payment_method_title }}</p>
+                <p><strong>{{ 'profilePage.orderTotal' | transloco }}:</strong> {{ orderDetail.total | currency:'EUR':'symbol':'1.2-2':('general.locale' | transloco) }}</p>
+              </div>
+
+              <div class="address-columns">
+                <div class="address-column">
+                    <h3>{{ 'profilePage.billingAddressTitle' | transloco }}</h3>
+                    <address class="address-display">
+                      <p>{{ orderDetail.billing?.first_name }} {{ orderDetail.billing?.last_name }}</p>
+                      <p *ngIf="orderDetail.billing?.company">{{ orderDetail.billing?.company }}</p>
+                      <p>{{ orderDetail.billing?.address_1 }}</p>
+                      <p *ngIf="orderDetail.billing?.address_2">{{ orderDetail.billing?.address_2 }}</p>
+                      <p>{{ orderDetail.billing?.postcode }} {{ orderDetail.billing?.city }}</p>
+                      <p>{{ orderDetail.billing?.country | uppercase }} <span *ngIf="orderDetail.billing?.state && orderDetail.billing?.state !== orderDetail.billing?.country">({{ orderDetail.billing?.state }})</span></p>
+                      <p *ngIf="orderDetail.billing?.phone">Tel: {{ orderDetail.billing?.phone }}</p>
+                      <p *ngIf="orderDetail.billing?.email">E-Mail: {{ orderDetail.billing?.email }}</p>
+                    </address>
                 </div>
-             </ng-container>
-           </div>
-         </div>
+                <div class="address-column" *ngIf="orderDetail.shipping && (orderDetail.shipping?.address_1 || orderDetail.shipping?.first_name)">
+                    <h3>{{ 'profilePage.shippingAddressTitle' | transloco }}</h3>
+                    <address class="address-display">
+                      <p>{{ orderDetail.shipping?.first_name }} {{ orderDetail.shipping?.last_name }}</p>
+                      <p *ngIf="orderDetail.shipping?.company">{{ orderDetail.shipping?.company }}</p>
+                      <p>{{ orderDetail.shipping?.address_1 }}</p>
+                      <p *ngIf="orderDetail.shipping?.address_2">{{ orderDetail.shipping?.address_2 }}</p>
+                      <p>{{ orderDetail.shipping?.postcode }} {{ orderDetail.shipping?.city }}</p>
+                      <p>{{ orderDetail.shipping?.country | uppercase }} <span *ngIf="orderDetail.shipping?.state && orderDetail.shipping?.state !== orderDetail.shipping?.country">({{ orderDetail.shipping?.state }})</span></p>
+                    </address>
+                </div>
+              </div>
 
-         <h2>{{ 'profilePage.settingsTitle' | transloco }}</h2>
+              <h4>{{ 'profilePage.orderItems' | transloco }}</h4>
+              <ul class="order-items-list">
+                <li *ngFor="let item of orderDetail.line_items" class="order-line-item">
+                  <div class="item-image" *ngIf="item.image?.src">
+                    <img [src]="item.image?.src" [alt]="item.name">
+                  </div>
+                  <div class="item-details">
+                    <div class="item-name">{{ item.name }}</div>
+                    <div class="item-meta">
+                      <span>{{ 'profilePage.quantity' | transloco }}: {{ item.quantity }}</span>
+                      <span *ngIf="item.sku">{{ 'profilePage.sku' | transloco }}: {{ item.sku }}</span>
+                    </div>
+                  </div>
+                  <div class="item-total">{{ item.total | currency:'EUR':'symbol':'1.2-2':('general.locale' | transloco) }}</div>
+                </li>
+              </ul>
+              <p *ngIf="orderDetail.customer_note"><strong>{{ 'profilePage.customerNote' | transloco }}:</strong> {{ orderDetail.customer_note }}</p>
+            </div>
+          </section>
 
-         <div class="form-field checkbox-field">
-             <input type="checkbox" id="profileNewsletter" formControlName="newsletter">
-             <label for="profileNewsletter">
-                 {{ 'profilePage.newsletterLabel' | transloco }}
-                 <span *ngIf="!isEditing()"> ({{ 'profilePage.statusLabel' | transloco }}: {{ profile.newsletterSubscribed ? ('profilePage.subscribed' | transloco) : ('profilePage.notSubscribed' | transloco) }})</span>
-             </label>
-         </div>
-
-         <div class="form-field">
-            <label>{{ 'profilePage.passwordLabel' | transloco }}</label>
-            <div class="display-field" *ngIf="!isEditing()">********</div>
-             <ng-container *ngIf="isEditing()">
-                 <button type="button" class="change-password-button" disabled>{{ 'profilePage.changePasswordButton' | transloco }}</button>
-                 <small class="field-hint">{{ 'profilePage.changePasswordHint' | transloco }}</small>
-             </ng-container>
-         </div>
-
-        <div *ngIf="errorMessage() && isEditing()" class="error-message general-error profile-save-error">
-          {{ errorMessage() }} <!-- Kommt schon übersetzt aus TS -->
+          <!-- Tab: Passwort ändern - Wartungsmodus -->
+          <section *ngIf="activeSection() === 'changePassword'" class="profile-section change-password-section">
+            <h2>{{ 'profilePage.navChangePassword' | transloco }}</h2>
+            <div class="maintenance-message info-message" style="padding: var(--spacing-md); background-color: #fff3cd; border: 1px solid #ffecb5; color: #664d03; border-radius: var(--border-radius-md);">
+                <h3>{{ 'profilePage.sectionUnderMaintenanceTitle' | transloco }}</h3>
+                <p>{{ 'profilePage.sectionChangePasswordMaintenanceMessage' | transloco }}</p>
+            </div>
+          </section>
         </div>
-
-        <div class="action-button-container" *ngIf="isEditing()">
-          <button type="submit" class="submit-button" [disabled]="profileForm.invalid || isSaving()">
-            <span *ngIf="!isSaving()">{{ 'profilePage.saveChangesButton' | transloco }}</span>
-            <span *ngIf="isSaving()" class="button-loading-spinner"></span>
-            <span *ngIf="isSaving()">{{ 'profilePage.savingButton' | transloco }}</span>
-          </button>
-        </div>
-      </form>
-    </div>
+      </div>
+    </ng-container>
   </ng-container>
 
-  <ng-template #noProfile>
-    <p *ngIf="!isLoading() && !errorMessage()">
-       {{ 'profilePage.profileNotAvailable' | transloco }}
-    </p>
-  </ng-template>
+  <div *ngIf="!isLoading() && !wpUser() && !errorMessage()" class="empty-state">
+    <p>{{ 'profilePage.profileNotAvailable' | transloco }}</p>
+    <a routerLink="/login" class="button-primary">{{ 'profilePage.loginButton' | transloco }}</a>
+  </div>
 </div>

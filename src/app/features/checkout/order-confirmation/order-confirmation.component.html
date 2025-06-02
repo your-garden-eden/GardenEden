@@ -1,0 +1,49 @@
+<!-- src/app/features/checkout/order-confirmation/order-confirmation.component.html -->
+<div class="order-confirmation-container">
+  <ng-container *ngIf="!isLoading; else loadingTemplate">
+    <div class="confirmation-box" [ngClass]="{'error-box': isError}">
+      <ng-container [ngSwitch]="paymentStatus">
+        <ng-container *ngSwitchCase="'success'">
+          <div class="icon success-icon">✓</div> <!-- Oder ein SVG-Icon -->
+          <h2>{{ 'orderConfirmationPage.successTitle' | transloco }}</h2>
+        </ng-container>
+        <ng-container *ngSwitchCase="'failed'">
+          <div class="icon error-icon">✗</div> <!-- Oder ein SVG-Icon -->
+          <h2>{{ 'orderConfirmationPage.failedTitle' | transloco }}</h2>
+        </ng-container>
+        <ng-container *ngSwitchCase="'cancelled'">
+          <div class="icon warning-icon">!</div> <!-- Oder ein SVG-Icon -->
+          <h2>{{ 'orderConfirmationPage.cancelledTitle' | transloco }}</h2>
+        </ng-container>
+        <ng-container *ngSwitchDefault>
+          <!-- Fallback-Titel oder Icon, falls benötigt -->
+          <h2>{{ 'orderConfirmationPage.genericTitle' | transloco }}</h2>
+        </ng-container>
+      </ng-container>
+
+      <p>{{ confirmationMessageKey | transloco: { orderId: orderId } }}</p>
+
+      <ng-container *ngIf="paymentStatus === 'success' && orderId">
+        <p>{{ 'orderConfirmationPage.orderDetailsSoon' | transloco }}</p>
+      </ng-container>
+
+      <ng-container *ngIf="paymentStatus === 'failed'">
+        <p>{{ 'orderConfirmationPage.tryAgainInstructions' | transloco }}</p>
+        <a routerLink="/checkout-details" class="button primary-button retry-button">
+          {{ 'orderConfirmationPage.retryPaymentButton' | transloco }}
+        </a>
+      </ng-container>
+
+      <a routerLink="/" class="button secondary-button home-button">
+        {{ 'orderConfirmationPage.backToHomeButton' | transloco }}
+      </a>
+    </div>
+  </ng-container>
+
+  <ng-template #loadingTemplate>
+    <div class="loading-spinner">
+      <p>{{ 'general.loading' | transloco }}</p>
+      <!-- Hier könntest du einen echten Spinner einfügen -->
+    </div>
+  </ng-template>
+</div>

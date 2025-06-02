@@ -56,11 +56,9 @@
           <h1>{{ productData.name }}</h1>
 
           <div class="price-section">
-            <!-- displayRegularPriceFormatted liefert jetzt den formatierten String inkl. Symbol -->
             @if (displayRegularPriceFormatted(); as regPriceFormatted) {
               <span class="regular-price">{{ regPriceFormatted }}</span>
             }
-            <!-- displayPriceFormatted liefert jetzt den formatierten String inkl. Symbol, ODER price_html -->
             <span class="current-price" [innerHTML]="displayPriceFormatted() | safeHtml"></span>
           </div>
 
@@ -119,10 +117,13 @@
 
             <button class="add-to-wishlist-btn action-button"
                     (click)="toggleWishlist()"
-                    [disabled]="!isLoggedIn()"
-                    [title]="!isLoggedIn() ? ('productPage.actions.wishlistLogin' | transloco) : (isOnWishlist() ? ('productPage.actions.removeFromWishlist' | transloco) : ('productPage.actions.addToWishlist' | transloco))">
+                    [disabled]="!(isLoggedIn$ | async)"
+                    [title]="!(isLoggedIn$ | async) ? ('productPage.actions.wishlistLogin' | transloco) : (isOnWishlist() ? ('productPage.actions.removeFromWishlist' | transloco) : ('productPage.actions.addToWishlist' | transloco))">
               <span class="material-symbols-outlined wishlist-icon" [class.filled]="isOnWishlist()">
                 {{ isOnWishlist() ? 'favorite' : 'favorite_border' }}
+              </span>
+              <span class="button-text">
+                {{ isOnWishlist() ? ('productPage.actions.inWishlist' | transloco) : ('productPage.actions.addToWishlist' | transloco) }}
               </span>
             </button>
           </div>

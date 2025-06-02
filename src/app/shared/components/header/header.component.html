@@ -34,12 +34,17 @@
         }
       </div>
 
+      <!-- KORRIGIERTER BLOCK FÜR SUCH-OVERLAY -->
       @if(isSearchOverlayVisible()) {
-        <div class="search-results-overlay" (click)="$event.stopPropagation()">
-          @if(isSearchLoading()) {
+        <div
+          class="search-results-overlay"
+          (click)="$event.stopPropagation()"
+          (scroll)="onSearchOverlayScroll($event)"
+        > <!-- Fehlendes schließendes ">" war hier oder falsche Blockstruktur -->
+          @if(isSearchLoading() && !isSearchLoadingMore()) {
             <div class="search-loading">{{ 'header.searchLoading' | transloco }}</div>
-          } @else if (searchError()) { <!-- KORRIGIERT: "as sError" entfernt -->
-            <div class="search-error">{{ searchError() }}</div> <!-- KORRIGIERT: searchError() direkt verwenden -->
+          } @else if (searchError() && searchResults().length === 0) {
+            <div class="search-error">{{ searchError() }}</div>
           } @else if (searchResults().length > 0) {
             <ul>
               @for(product of searchResults(); track product.id) {
@@ -55,14 +60,20 @@
                 </li>
               }
             </ul>
-          } @else if (searchControl.value && (searchControl.value.length > 2) && !isSearchLoading() && !searchError()) {
+          } @else if (searchControl.value && (searchControl.value.length > 2) && !isSearchLoading() && !searchError() && !isSearchLoadingMore()) {
               <div class="search-no-results">{{ 'header.searchNoResults' | transloco : { term: searchControl.value } }}</div>
-          } @else if (searchControl.value && (searchControl.value.length <= 2) && !isSearchLoading()) {
+          } @else if (searchControl.value && (searchControl.value.length <= 2) && !isSearchLoading() && !isSearchLoadingMore()) {
               <div class="search-prompt">{{ 'general.searchPrompt' | transloco }}</div>
           }
-        </div>
-      }
-    </div>
+
+          @if(isSearchLoadingMore()) {
+            <div class="search-loading-more">{{ 'header.searchLoadingMore' | transloco }}</div>
+          }
+        </div> <!-- Korrektes Schließen des search-results-overlay Divs -->
+      } <!-- Korrektes Schließen des @if Blocks -->
+      <!-- ENDE KORRIGIERTER BLOCK -->
+
+    </div> <!-- Schließt .search-bar-container -->
 
     <div class="user-actions">
       <a routerLink="/wunschliste"
@@ -101,8 +112,8 @@
           <span class="material-symbols-outlined">person_outline</span>
         </button>
       }
-    </div>
-  </div>
+    </div> <!-- Schließt .user-actions -->
+  </div> <!-- Schließt .top-row -->
 
   <nav class="main-nav bottom-row" [class.mobile-menu-active]="isMobileMenuOpen">
     <div class="logo-container">

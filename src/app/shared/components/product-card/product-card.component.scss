@@ -3,71 +3,82 @@
 // Host-Styling
 :host {
   display: block;
-  height: 100%;
+  height: 100%; // Stellt sicher, dass die Komponente den verfügbaren Platz im Grid/Flex-Container einnimmt
 }
 
 // Der Hauptcontainer der Karte
 .product-card {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: 100%; // Wichtig, damit flex-grow im Link funktioniert und die Karte füllt
   border: 1px solid var(--border-color-light);
   border-radius: var(--border-radius-lg);
   background-color: var(--background-color-component);
-  overflow: hidden;
+  overflow: hidden; // Verhindert, dass z.B. Bilder aus dem Radius ragen
   position: relative;
-  transition: box-shadow 0.3s ease, opacity 0.3s ease, filter 0.3s ease;
+  // Hinzugefügt: transform für optionalen Hover-Effekt
+  transition: box-shadow 0.3s ease, transform 0.3s ease, opacity 0.3s ease, filter 0.3s ease;
+
+  // Dauerhafter Schatten für die Karte
+  box-shadow: var(--box-shadow-sm); // Du kannst hier auch --box-shadow-md verwenden, wenn du einen stärkeren Standardschatten möchtest
 
   &:hover {
-    box-shadow: var(--box-shadow-md);
+    // Verstärkter Schatten und optionales leichtes Anheben beim Hovern
+    box-shadow: var(--box-shadow-lg);
+    // transform: translateY(-3px); // Optional: Aktivieren für einen leichten "Anhebe"-Effekt
   }
 
+  // Styling für nicht vorrätige Produkte
   &.is-out-of-stock {
     opacity: 0.6;
-    filter: grayscale(80%);
+    filter: grayscale(80%); // Macht das Bild grau
+    cursor: not-allowed; // Zeigt an, dass nicht klickbar (obwohl der Link noch da ist)
+
     &:hover {
-      box-shadow: var(--box-shadow-sm);
+      box-shadow: var(--box-shadow-sm); // Behält den Standardschatten bei oder einen minimalen Hover-Effekt
+      // transform: none; // Kein Anheben bei "out-of-stock"
     }
   }
+
   // Optional: Spezifisches Styling für variable Produktkarten
   // &.is-variable {
   //   border-left: 3px solid var(--primary-color);
   // }
 }
 
+// Der Link, der die meiste Karte umspannt
 .product-link {
   display: flex;
   flex-direction: column;
-  text-decoration: none !important;
-  color: var(--text-color-base) !important;
-  flex-grow: 1;
-  height: 100%;
-
-  &:hover {
-    // Bild-Zoom-Effekt wird weiter unten spezifischer gesteuert
-  }
+  text-decoration: none !important; // Wichtig, um Standard-Link-Unterstreichungen zu entfernen
+  color: var(--text-color-base) !important; // Stellt sicher, dass Textfarbe nicht vom Link-Standard überschrieben wird
+  flex-grow: 1; // Erlaubt diesem Element, den verfügbaren Platz im Flex-Container .product-card auszufüllen
+  height: 100%; // Versucht, die volle Höhe zu nutzen (abhängig von .product-card height: 100%)
 }
 
-.product-card:not(.is-out-of-stock) .product-link:hover .product-image {
-  // transform: scale(1.03); // Aktiviere dies, wenn du den Zoom-Effekt möchtest
+// Bild-Zoom-Effekt beim Hovern des Links (wenn Produkt nicht ausverkauft)
+.product-card:not(.is-out-of-stock) .product-link:hover .product-image-container .product-image {
+  // transform: scale(1.03); // Aktiviere dies, wenn du den leichten Zoom-Effekt für das Bild möchtest
 }
 
+// Container für das Produktbild
 .product-image-container {
   width: 100%;
-  aspect-ratio: 1 / 1;
-  overflow: hidden;
+  aspect-ratio: 1 / 1; // Stellt ein quadratisches Verhältnis sicher
+  overflow: hidden; // Wichtig, damit das skalierte Bild nicht übersteht
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: transparent;
-  position: relative;
+  background-color: transparent; // Oder eine Placeholder-Farbe wie var(--background-color-hover-light)
+  position: relative; // Für die Positionierung der Badges
 
   .product-image {
     display: block;
     width: 100%;
     height: 100%;
-    object-fit: contain;
-    transition: transform 0.3s ease;
+    object-fit: contain; // Stellt sicher, dass das ganze Bild sichtbar ist, passt Seitenverhältnis an
+    // object-fit: cover; // Alternative: Füllt den Container, schneidet ggf. Teile des Bildes ab
+    transition: transform 0.3s ease; // Für den optionalen Zoom-Effekt
   }
 
   .no-image-placeholder {
@@ -76,85 +87,89 @@
     align-items: center;
     width: 100%;
     height: 100%;
-    background-color: var(--background-color-hover-light);
+    background-color: var(--background-color-hover-light); // Heller Hintergrund für Placeholder
 
     .material-symbols-outlined {
-      font-size: clamp(2.5rem, 10vw, 4rem);
+      font-size: clamp(2.5rem, 10vw, 4rem); // Responsive Icon-Größe
       color: var(--border-color-base);
     }
   }
 
+  // Badges für "Sale" oder "Nicht vorrätig"
   .sale-badge,
   .out-of-stock-badge {
     position: absolute;
     top: var(--spacing-sm);
     padding: var(--spacing-xs) var(--spacing-sm);
     border-radius: var(--border-radius-sm);
-    font-size: 0.75rem;
+    font-size: 0.75rem; // ca. 12px
     font-weight: var(--font-weight-semibold);
-    color: var(--text-color-on-accent);
-    z-index: 1;
+    color: var(--text-color-on-accent); // Textfarbe, die auf Akzentfarben gut lesbar ist
+    z-index: 1; // Stellt sicher, dass Badges über dem Bild liegen
   }
 
   .sale-badge {
     left: var(--spacing-sm);
-    background-color: var(--accent-color-sale, #e74c3c);
+    background-color: var(--accent-color-sale, #e74c3c); // Fallback-Farbe Rot
   }
 
   .out-of-stock-badge {
     right: var(--spacing-sm);
-    background-color: var(--neutral-color-dark, #7f8c8d);
+    background-color: var(--neutral-color-dark, #7f8c8d); // Fallback-Farbe Grau
   }
 }
 
+// Informationsbereich unter dem Bild
 .product-info {
   padding: var(--spacing-md);
-  flex-grow: 1;
+  flex-grow: 1; // Nimmt den restlichen Platz in der Karte ein (wichtig für gleich hohe Karten in einem Grid)
   display: flex;
-  flex-direction: column;
-  background-color: var(--background-color-light-gray);
-  border-top: 1px solid var(--border-color-extra-light);
+  flex-direction: column; // Ordnet Titel und Preisbereich untereinander an
+  background-color: var(--background-color-light-gray); // Leichter Hintergrund zur Abgrenzung
+  border-top: 1px solid var(--border-color-extra-light); // Dezente Trennlinie zum Bild
 }
 
 .product-title {
-  font-size: 1rem;
+  font-size: 1rem; // ca. 16px
   font-weight: var(--font-weight-semibold);
   line-height: var(--line-height-base, 1.5);
-  margin: 0 0 var(--spacing-sm) 0;
+  margin: 0 0 var(--spacing-sm) 0; // Abstand nach unten
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 2; // Beschränkt den Titel auf 2 Zeilen
   -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
-  min-height: calc(1rem * var(--line-height-base, 1.5) * 2);
-  color: inherit;
+  text-overflow: ellipsis; // Fügt "..." hinzu, wenn der Text zu lang ist
+  min-height: calc(1rem * var(--line-height-base, 1.5) * 2); // Stellt sicher, dass der Bereich immer Platz für 2 Zeilen hat
+  color: inherit; // Erbt die Farbe vom .product-link
 }
 
+// Container für den Preisbereich
 .product-price-container {
   display: flex;
-  align-items: baseline;
-  gap: var(--spacing-xs);
-  margin: 0;
-  padding-top: var(--spacing-sm);
-  margin-top: auto;
+  align-items: baseline; // Richtet regulären Preis und Sale-Preis an der Grundlinie aus
+  gap: var(--spacing-xs); // Kleiner Abstand zwischen den Preisen
+  margin: 0; // Entfernt Standard-Margin von p (falls als p-Tag verwendet)
+  padding-top: var(--spacing-sm); // Abstand zum Titel
+  margin-top: auto; // Schiebt den Preis an das untere Ende des .product-info Containers
 }
 
 .product-price-regular {
-  font-size: 0.875rem;
+  font-size: 0.875rem; // ca. 14px
   color: var(--text-color-light);
-  text-decoration: line-through;
+  text-decoration: line-through; // Durchgestrichen für den alten Preis
   font-weight: var(--font-weight-normal);
 }
 
 .product-price {
-  font-size: 1rem;
+  font-size: 1rem; // ca. 16px
   font-weight: var(--font-weight-bold);
-  color: var(--price-color);
+  color: var(--price-color); // Spezifische Preisfarbe (z.B. Rot oder Akzentfarbe)
 }
 
+// Info für variable Produkte (z.B. "Ab X €")
 .variable-product-info {
-  font-size: 0.8rem;
+  font-size: 0.8rem; // ca. 12.8px
   color: var(--text-color-muted);
-  margin-top: var(--spacing-xxs);
+  margin-top: var(--spacing-xxs); // Sehr kleiner Abstand zum Preis
   font-style: italic;
 }

@@ -200,3 +200,68 @@ $back-button-placeholder-width: 200px; // Beispielwert
         gap: var(--spacing-md);
     }
 }
+
+// --- HINZUGEFÜGT: Scroll-to-Top Button ---
+.scroll-to-top-button {
+  position: fixed;
+  bottom: 25px; // Etwas Abstand vom unteren Rand
+  right: 25px;  // Etwas Abstand vom rechten Rand
+  z-index: 1050; // Sollte über den meisten Elementen liegen (Bootstrap Modal z-index ist oft 1040/1050)
+  background-color: var(--primary-color, #A1B48A); // Deine Primärfarbe, mit Fallback
+  color: var(--primary-color-text, white); // Textfarbe für Primärbutton
+  border: none;
+  border-radius: 50%; // Macht den Button rund
+  width: 50px;        // Feste Breite
+  height: 50px;       // Feste Höhe
+  font-size: 24px;    // Größe des Icons
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--box-shadow-md, 0 4px 8px rgba(0,0,0,0.2)); // Ein etwas stärkerer Schatten
+  opacity: 0;         // Standardmäßig unsichtbar
+  visibility: hidden; // Standardmäßig nicht im Layout-Fluss
+  transform: translateY(20px) scale(0.9); // Startposition für Einblend-Effekt (etwas kleiner)
+  transition: opacity 0.3s ease-in-out,
+              visibility 0.3s ease-in-out,
+              transform 0.3s ease-in-out,
+              background-color 0.2s ease-in-out;
+
+  // Wird durch [class.show] im HTML gesteuert
+  &.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+  }
+
+  &:hover {
+    background-color: var(--primary-color-dark, #8A9E74); // Dunklere Variante beim Hovern, mit Fallback
+    // Optional: transform: scale(1.05); // Leichte Vergrößerung beim Hover
+  }
+
+  &:active {
+    // Optional: transform: scale(0.95); // Leichte Verkleinerung beim Klick
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--primary-color-dark, #8A9E74);
+    outline-offset: 2px;
+  }
+
+  .material-symbols-outlined {
+    font-size: inherit; // Übernimmt die Schriftgröße vom Button
+    line-height: 1;     // Stellt sicher, dass das Icon vertikal zentriert ist
+  }
+}
+
+// Optional: Anpassung für kleinere Bildschirme, falls der Button zu groß wirkt
+@media (max-width: $mobile-breakpoint-small) {
+  .scroll-to-top-button {
+    width: 45px;
+    height: 45px;
+    font-size: 22px;
+    bottom: 20px;
+    right: 20px;
+  }
+}
+// --- ENDE Scroll-to-Top Button ---
