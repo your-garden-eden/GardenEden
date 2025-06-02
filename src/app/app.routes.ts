@@ -9,17 +9,25 @@ import { RegisterPageComponent } from './features/auth/register-page/register-pa
 // ProfilePageComponent wird lazy geladen
 import { authGuard } from './core/guards/auth.guard';
 
-// Importiere deine neue CheckoutDetailsPageComponent
-// Der Pfad muss exakt stimmen, je nachdem wo `ng generate` die Komponente abgelegt hat.
-// Standardmäßig sollte es so etwas sein wie:
+// Importiere deine CheckoutDetailsPageComponent
 import { CheckoutDetailsPageComponent } from './features/checkout/checkout-details-page/checkout-details-page.component';
+
+// +++ IMPORT FÜR ORDER CONFIRMATION EINKOMMENTIERT UND PFAD ÜBERPRÜFEN +++
+import { OrderConfirmationComponent } from './features/checkout/order-confirmation/order-confirmation.component';
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
 export const routes: Routes = [
   // --- Bestehende Routen ---
   { path: '', component: HomeComponent, data: { titleKey: 'home.title' }, title: 'Your Garden Eden - Startseite' },
-  { path: 'product-list/:slug', component: ProductListPageComponent, title: 'Produkte' },
-  { path: 'product/:handle', component: ProductPageComponent, title: 'Produkt' },
+  {
+    path: 'product-list/:slug',
+    component: ProductListPageComponent,
+    // HIER DIE ERGÄNZUNG FÜR DIE ROUTE REUSE STRATEGY
+    data: { reuseComponent: true, titleKey: 'productList.pageTitle' }, // titleKey optional, falls du es so nutzt
+    title: 'Produkte' // Dieser Titel wird dynamisch in der Komponente gesetzt
+  },
+  { path: 'product/:handle', component: ProductPageComponent, title: 'Produkt' }, // Produktseite wird typischerweise nicht wiederverwendet
   { path: 'category/:slug', component: CategoryOverviewComponent, title: 'Kategorie' },
 
   // --- Statische Seiten Routen ---
@@ -97,16 +105,19 @@ export const routes: Routes = [
     title: 'Warenkorb'
   },
 
-  // +++ NEUE CHECKOUT-DETAILS-ROUTE +++
+  // --- Checkout-Routen ---
   {
-    path: 'checkout-details', // Pfad für die Checkout-Detailseite
-    component: CheckoutDetailsPageComponent, // Direkt geladen, da --standalone
-    data: { titleKey: 'checkoutDetailsPage.title' }, // Für Übersetzung, z.B. 'checkoutDetailsPage.title'
-    title: 'Bestelldetails', // Fallback-Titel
-    // Optional: canActivate: [authGuard], falls der Checkout nur für eingeloggte Nutzer sein soll
-    // oder eine andere Logik, die sicherstellt, dass der Warenkorb nicht leer ist.
+    path: 'checkout-details',
+    component: CheckoutDetailsPageComponent,
+    data: { titleKey: 'checkoutDetailsPage.title' },
+    title: 'Bestelldetails',
   },
-  // +++++++++++++++++++++++++++++++++++
+  {
+    path: 'order-confirmation',
+    component: OrderConfirmationComponent,
+    data: { titleKey: 'orderConfirmationPage.title' },
+    title: 'Bestellbestätigung'
+  },
 
   // --- WUNSCHLISTE-ROUTE ---
   {

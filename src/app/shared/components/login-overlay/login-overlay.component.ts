@@ -1,155 +1,118 @@
 // /src/app/shared/components/login-overlay/login-overlay.component.ts
-import { Component, OnInit, inject, signal, WritableSignal, AfterViewInit, OnDestroy, ViewChild, ElementRef, NgZone, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, signal, WritableSignal, OnDestroy, ViewChild, ElementRef, NgZone, ChangeDetectorRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { AuthService } from '../../services/auth.service';
+import { AuthService, WordPressUser } from '../../services/auth.service'; // WordPressUser importieren
 import { UiStateService } from '../../services/ui-state.service';
-import { environment } from '../../../../environments/environment';
 import { TranslocoService, TranslocoModule } from '@ngneat/transloco';
-import { Subscription } from 'rxjs'; // Subscription importieren
+import { Subscription } from 'rxjs';
+// import { environment } from '../../../../environments/environment'; // Vorerst nicht für Google Client ID benötigt
+// declare var google: any; // Vorerst nicht für Google Sign-In benötigt
 
-declare var google: any;
 
 @Component({
   selector: 'app-login-overlay',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterModule, TranslocoModule],
   templateUrl: './login-overlay.component.html',
-  styleUrl: './login-overlay.component.scss'
+  styleUrls: ['./login-overlay.component.scss'] // styleUrl zu styleUrls korrigiert (üblicher Standard)
 })
-export class LoginOverlayComponent implements OnInit, AfterViewInit, OnDestroy {
+export class LoginOverlayComponent implements OnInit, OnDestroy { // AfterViewInit entfernt, da Google Sign-In auskommentiert
   private fb = inject(FormBuilder);
-  private authService = inject(AuthService);
+  public authService = inject(AuthService);
   private router = inject(Router);
   private uiStateService = inject(UiStateService);
-  private ngZone = inject(NgZone);
   private translocoService = inject(TranslocoService);
   private cdr = inject(ChangeDetectorRef);
+  // private ngZone = inject(NgZone); // Vorerst nicht für Google Sign-In benötigt
 
   loginForm!: FormGroup;
-  isLoading: WritableSignal<boolean> = signal(false);
-  errorMessage: WritableSignal<string | null> = signal(null);
-  private errorMessageKey: WritableSignal<string | null> = signal(null);
   formSubmitted: WritableSignal<boolean> = signal(false);
+  private errorMessageKey: WritableSignal<string | null> = signal(null); // Für spezifische Übersetzungsschlüssel
 
-  @ViewChild('googleBtnContainerOverlay') googleBtnContainer!: ElementRef<HTMLDivElement>;
-  private googleClientId = environment.googleClientId;
-  
-  // KORRIGIERTE TYPISIERUNG
+  // @ViewChild('googleBtnContainerOverlay') googleBtnContainer!: ElementRef<HTMLDivElement>; // Google-Login auskommentiert
+  // private googleClientId = environment.googleClientId; // Google-Login auskommentiert
+
   private langChangeSubscription: Subscription | null = null;
 
   ngOnInit(): void {
     this.loginForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
+      emailOrUsername: ['', [Validators.required]],
       password: ['', Validators.required]
     });
 
-    if (!this.googleClientId) {
-        console.error('LoginOverlay: Google Client ID ist nicht konfiguriert!');
-    }
-
     this.langChangeSubscription = this.translocoService.langChanges$.subscribe(() => {
-      if (this.errorMessageKey()) {
-        this.errorMessage.set(this.translocoService.translate(this.errorMessageKey()!));
-        this.cdr.detectChanges();
+      // Wenn ein Fehler-Key gesetzt wurde, die Nachricht im AuthService mit der neuen Übersetzung aktualisieren
+      if (this.errorMessageKey() && this.authService.authError()) {
+         this.authService.authError.set(this.translocoService.translate(this.errorMessageKey()!));
+         this.cdr.detectChanges(); // Sicherstellen, dass die UI die Änderung mitbekommt
       }
     });
-  }
-
-  ngAfterViewInit(): void {
-      this.initializeGoogleSignIn();
   }
 
   ngOnDestroy(): void {
       if (this.langChangeSubscription) {
           this.langChangeSubscription.unsubscribe();
       }
-      // if (typeof google !== 'undefined' && google.accounts && google.accounts.id) { 
-      //   google.accounts.id.cancel(); 
-      // }
   }
 
-  get email() { return this.loginForm.get('email'); }
+  get emailOrUsername() { return this.loginForm.get('emailOrUsername'); }
   get password() { return this.loginForm.get('password'); }
 
-  async onSubmit(): Promise<void> {
+  onSubmit(): void {
     this.formSubmitted.set(true);
-    this.errorMessage.set(null);
-    this.errorMessageKey.set(null);
+    this.authService.authError.set(null); // Fehler vor neuem Versuch zurücksetzen
+    this.errorMessageKey.set(null); // Key zurücksetzen
     this.loginForm.markAllAsTouched();
 
     if (this.loginForm.invalid) { return; }
 
-    this.isLoading.set(true);
-    try {
-      await this.authService.login(this.loginForm.value.email, this.loginForm.value.password);
-      this.closeOverlay();
-    } catch (error: any) {
-      console.error('Login-Overlay fehlgeschlagen:', error);
-      let errorKey = 'loginOverlay.errorUnknown';
-      if (error.code === 'auth/invalid-credential' || error.code === 'auth/invalid-email' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
-         errorKey = 'loginOverlay.errorInvalidCredentials';
-      }
-      this.errorMessageKey.set(errorKey);
-      this.errorMessage.set(this.translocoService.translate(errorKey));
-    } finally {
-      this.isLoading.set(false);
-    }
-  }
+    const credentials = {
+      emailOrUsername: this.loginForm.value.emailOrUsername,
+      password: this.loginForm.value.password
+    };
 
-  private initializeGoogleSignIn(): void {
-      if (!this.googleClientId) return;
-      if (typeof google === 'undefined' || !google.accounts || !google.accounts.id) {
-          console.error('LoginOverlay: Google Identity Services client library not loaded.');
-          return;
-      }
-      try {
-          google.accounts.id.initialize({
-              client_id: this.googleClientId,
-              callback: this.handleGoogleCredentialResponse.bind(this)
-          });
-          if (this.googleBtnContainer?.nativeElement) {
-               google.accounts.id.renderButton(
-                 this.googleBtnContainer.nativeElement,
-                 { theme: "outline", size: "large", type: 'standard', text: 'signin_with' }
-               );
+    this.authService.login(credentials).subscribe({
+        next: (user) => { // user ist WordPressUser | null (oder nur WordPressUser)
+          if (user) {
+            console.log('Login-Overlay: Login erfolgreich über WordPress JWT Plugin', user);
+            this.closeOverlay();
+            // Optional: Intelligente Weiterleitung basierend auf vorheriger Seite oder zu "Mein Konto"
+            // const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/mein-konto';
+            // this.router.navigateByUrl(returnUrl);
           } else {
-              console.error('LoginOverlay: Google Button Container nicht gefunden.');
+            // Dieser Block sollte seltener getroffen werden, wenn authService.login bei Fehlern (auch success:false)
+            // einen Fehler wirft, der im error-Callback unten behandelt wird.
+            // Falls doch, setzen wir hier einen generischen Fehler.
+            if (!this.authService.authError()) {
+                this.errorMessageKey.set('loginOverlay.errorUnknown');
+                this.authService.authError.set(this.translocoService.translate(this.errorMessageKey()!));
+            }
           }
-      } catch (error) {
-          console.error("LoginOverlay: Fehler bei der Initialisierung von Google Sign-In:", error);
-      }
-    }
-
-    private async handleGoogleCredentialResponse(response: any): Promise<void> {
-      this.isLoading.set(true);
-      this.errorMessage.set(null);
-      this.errorMessageKey.set(null);
-
-      if (!response?.credential) {
-          console.error('LoginOverlay: Ungültige Credential Response von Google.');
-          const errorKey = 'loginOverlay.errorGoogleInvalidResponse';
-          this.errorMessageKey.set(errorKey);
-          this.errorMessage.set(this.translocoService.translate(errorKey));
-          this.isLoading.set(false);
-          return;
-      }
-
-      this.ngZone.run(async () => {
-          try {
-              await this.authService.signInWithGoogleCredential(response.credential);
-              this.closeOverlay();
-          } catch (error) {
-              console.error('LoginOverlay: Firebase Login mit Google Credential fehlgeschlagen:', error);
-              const errorKey = 'loginOverlay.errorGoogleFirebase';
-              this.errorMessageKey.set(errorKey);
-              this.errorMessage.set(this.translocoService.translate(errorKey));
-          } finally {
-              this.isLoading.set(false);
+        },
+        error: (err) => {
+          // Der AuthService setzt authError. Hier können wir den errorMessageKey setzen für spezifische Übersetzungen.
+          console.error('Login-Overlay: Fehler Detail von authService.login:', err.message);
+          // Beispiel für spezifischere Fehlermeldung basierend auf der Nachricht vom Service:
+          if (err && err.message) {
+            const lowerCaseError = err.message.toLowerCase();
+            if (lowerCaseError.includes('invalid') || lowerCaseError.includes('ungültig') || lowerCaseError.includes('credentials') || lowerCaseError.includes('password') || lowerCaseError.includes('benutzername')) {
+              this.errorMessageKey.set('loginOverlay.errorInvalidCredentials');
+            } else {
+              this.errorMessageKey.set('loginOverlay.errorUnknown');
+            }
+          } else {
+            this.errorMessageKey.set('loginOverlay.errorUnknown');
           }
+          // Stelle sicher, dass der authError im Service mit der übersetzten Nachricht aktualisiert wird,
+          // falls er im Service selbst nicht schon übersetzt wurde oder wir hier eine spezifischere wollen.
+          if (this.errorMessageKey()) {
+             this.authService.authError.set(this.translocoService.translate(this.errorMessageKey()!));
+          }
+        }
       });
-    }
+  }
 
   closeOverlay(): void {
     this.uiStateService.closeLoginOverlay();
@@ -162,7 +125,6 @@ export class LoginOverlayComponent implements OnInit, AfterViewInit, OnDestroy {
 
    navigateToForgotPassword(): void {
      this.closeOverlay();
-     console.warn('Navigation zu /forgot-password noch nicht implementiert.');
-     // this.router.navigate(['/passwort-vergessen']);
+     this.router.navigate(['/passwort-vergessen']);
    }
 }

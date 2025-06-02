@@ -5,8 +5,16 @@
   <div *ngIf="registrationSuccessMessage()" class="success-message registration-success">
     <span class="material-symbols-outlined icon-large">mark_email_read</span>
     <h2>{{ 'registerPage.successHeadline' | transloco }}</h2>
-    <p>{{ registrationSuccessMessage() }}</p> <!-- Kommt schon übersetzt aus TS mit E-Mail -->
-    <p>{{ 'registerPage.successRedirectMessage' | transloco }} <a routerLink="/">{{ 'registerPage.successRedirectLink' | transloco }}</a>.</p>
+    <p>{{ registrationSuccessMessage() }}</p>
+    <!-- KORRIGIERT: Negation um die async Pipe -->
+    <p *ngIf="!(authService.isLoggedIn$ | async)"> <!-- Zeige ggf. Hinweis zum Einloggen, falls kein Auto-Login -->
+      {{ 'registerPage.successLoginPrompt' | transloco }}
+      <a href="#" (click)="openLoginOverlay($event)">{{ 'registerPage.loginHereLink' | transloco }}</a>.
+    </p>
+    <p *ngIf="authService.isLoggedIn$ | async"> <!-- Nachricht, wenn direkt eingeloggt -->
+      {{ 'registerPage.successRedirectMessage' | transloco }}
+      <a routerLink="/mein-konto">{{ 'registerPage.myAccountLink' | transloco }}</a>.
+    </p>
   </div>
 
   <ng-container *ngIf="!registrationSuccessMessage()">
@@ -135,14 +143,14 @@
          </div>
       </div>
 
-      <div *ngIf="errorMessage() && !registrationSuccessMessage()" class="error-message general-error">
-        {{ errorMessage() }} <!-- Kommt schon übersetzt aus TS -->
+      <div *ngIf="authService.authError() && !registrationSuccessMessage()" class="error-message general-error">
+        {{ authService.authError() }}
       </div>
 
-      <button type="submit" class="submit-button" [disabled]="registerForm.invalid || isLoading()">
-        <span *ngIf="!isLoading()">{{ 'registerPage.createAccountButton' | transloco }}</span>
-        <span *ngIf="isLoading()" class="button-loading-spinner"></span>
-        <span *ngIf="isLoading()">{{ 'registerPage.creatingAccountButton' | transloco }}</span>
+      <button type="submit" class="submit-button" [disabled]="registerForm.invalid || authService.isLoading()">
+        <span *ngIf="!authService.isLoading()">{{ 'registerPage.createAccountButton' | transloco }}</span>
+        <span *ngIf="authService.isLoading()" class="button-loading-spinner"></span>
+        <span *ngIf="authService.isLoading()">{{ 'registerPage.creatingAccountButton' | transloco }}</span>
       </button>
     </form>
 

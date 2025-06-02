@@ -63,7 +63,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('subCategorySwiper') swiperContainer!: ElementRef<HTMLElement>;
   private swiperInstance: Swiper | null = null;
 
-  private readonly BESTSELLER_COUNT = 8;
+  private readonly BESTSELLER_COUNT = 10;
 
   constructor() {}
 
@@ -148,7 +148,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     });
     const shuffled = this.shuffleArray(allSubItems);
-    this.shuffledSubCategoryItems.set(shuffled.slice(0, 15));
+    this.shuffledSubCategoryItems.set(shuffled.slice(0, 56));
     this.cdr.markForCheck(); // Sicherstellen, dass die UI aktualisiert wird
     if (isPlatformBrowser(this.platformId) && this.swiperContainer?.nativeElement && this.shuffledSubCategoryItems().length > 0) {
         // Verzögere Swiper-Initialisierung leicht, um sicherzustellen, dass DOM-Elemente bereit sind
@@ -187,7 +187,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
           disableOnInteraction: false,
           pauseOnMouseEnter: true,
         },
-        speed: 5000, // Geschwindigkeit der Animation
+        speed: 3000, // Geschwindigkeit der Animation
         freeMode: true, // Erlaubt "freies" Scrollen ohne Einrasten
         // freeModeMomentum: false, // Optional: Verhindert den "Schwung" nach dem Loslassen
         breakpoints: {

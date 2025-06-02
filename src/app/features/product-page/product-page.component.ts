@@ -1,23 +1,25 @@
 // /src/app/features/product-page/product-page.component.ts
 import {
   Component, OnInit, inject, signal, WritableSignal, ChangeDetectionStrategy,
-  ChangeDetectorRef, OnDestroy, computed, Signal, effect
+  ChangeDetectorRef, OnDestroy, computed, Signal, effect, AfterViewInit,
+  PLATFORM_ID, // KORRIGIERT: PLATFORM_ID importiert
+  untracked    // KORRIGIERT: untracked importiert
 } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
-import { CommonModule, CurrencyPipe, Location, NgClass } from '@angular/common';
-import { Title } from '@angular/platform-browser';
-import { Subscription, of, combineLatest, EMPTY, forkJoin } from 'rxjs';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { CommonModule, CurrencyPipe, Location, NgClass, isPlatformBrowser } from '@angular/common'; // isPlatformBrowser importiert
+import { Title, Meta, MetaDefinition } from '@angular/platform-browser'; // MetaDefinition importiert
+import { Subscription, of, combineLatest, EMPTY, forkJoin, BehaviorSubject, Observable } from 'rxjs'; // Observable importiert
 import {
   switchMap, tap, catchError, map, filter, distinctUntilChanged, startWith, take, finalize
 } from 'rxjs/operators';
 
 import {
   WoocommerceService, WooCommerceProduct, WooCommerceImage,
-  WooCommerceAttribute, WooCommerceProductVariation, WooCommerceMetaData
+  WooCommerceAttribute, WooCommerceProductVariation, WooCommerceMetaData, WooCommerceCategory
 } from '../../core/services/woocommerce.service';
 import { CartService } from '../../shared/services/cart.service';
 import { WishlistService } from '../../shared/services/wishlist.service';
-import { AuthService } from '../../shared/services/auth.service';
+import { AuthService, WordPressUser } from '../../shared/services/auth.service';
 import { UiStateService } from '../../shared/services/ui-state.service';
 import { ImageTransformPipe } from '../../shared/pipes/image-transform.pipe';
 import { FormatPricePipe } from '../../shared/pipes/format-price.pipe';
@@ -25,6 +27,7 @@ import { SafeHtmlPipe } from '../../shared/pipes/safe-html.pipe';
 
 import { TranslocoModule, TranslocoService } from '@ngneat/transloco';
 import { FormsModule } from '@angular/forms';
+
 
 interface SelectedOptions {
   [attributeSlug: string]: string;
@@ -34,26 +37,36 @@ interface SelectedOptions {
   selector: 'app-product-page',
   standalone: true,
   imports: [
-    CommonModule, RouterLink, ImageTransformPipe, FormatPricePipe,
-    SafeHtmlPipe, TranslocoModule, FormsModule, NgClass
+    CommonModule,
+    RouterLink,
+    ImageTransformPipe,
+    FormatPricePipe,
+    SafeHtmlPipe,
+    TranslocoModule,
+    FormsModule,
+    NgClass
   ],
   templateUrl: './product-page.component.html',
   styleUrls: ['./product-page.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [CurrencyPipe],
 })
-export class ProductPageComponent implements OnInit, OnDestroy {
+export class ProductPageComponent implements OnInit, OnDestroy, AfterViewInit {
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private woocommerceService = inject(WoocommerceService);
-  private titleService = inject(Title);
-  private cdr = inject(ChangeDetectorRef);
-  private location = inject(Location);
-  private cartService = inject(CartService);
-  private wishlistService = inject(WishlistService);
-  private authService = inject(AuthService);
-  private translocoService = inject(TranslocoService);
+  public cartService = inject(CartService);
+  public wishlistService = inject(WishlistService);
+  public authService = inject(AuthService);
   private uiStateService = inject(UiStateService);
+  private titleService = inject(Title);
+  private metaService = inject(Meta);
+  private translocoService = inject(TranslocoService);
+  private location = inject(Location);
+  private platformId = inject(PLATFORM_ID);
+  private cdr = inject(ChangeDetectorRef);
   private currencyPipe = inject(CurrencyPipe);
+
 
   product: WritableSignal<WooCommerceProduct | null> = signal(null);
   variations: WritableSignal<WooCommerceProductVariation[]> = signal([]);
@@ -110,7 +123,7 @@ export class ProductPageComponent implements OnInit, OnDestroy {
       priceToFormat = product.price;
     }
 
-    if (priceHtmlToUse && (priceHtmlToUse.includes('€') || priceHtmlToUse.includes('$'))) {
+    if (priceHtmlToUse && (priceHtmlToUse.includes('€') || priceHtmlToUse.includes('$') || priceHtmlToUse.includes(currencyCode))) {
       return priceHtmlToUse;
     }
 
@@ -124,7 +137,7 @@ export class ProductPageComponent implements OnInit, OnDestroy {
         }
       }
     }
-    return '';
+    return product?.price_html || '';
   });
 
   displayRegularPriceFormatted: Signal<string | undefined> = computed(() => {
@@ -152,13 +165,13 @@ export class ProductPageComponent implements OnInit, OnDestroy {
       if (!isNaN(numRegPrice)) {
         try {
             const formatted = this.currencyPipe.transform(numRegPrice, currencyCode, 'symbol', '1.2-2', lang);
-            return formatted === null ? undefined : formatted; // *** KORRIGIERT ***
+            return formatted === null ? undefined : formatted;
         } catch (e) {
             return `${numRegPrice.toFixed(2)}${this.getProductCurrencySymbolFromCode(currencyCode)}`;
         }
       }
     }
-    return undefined; // *** KORRIGIERT ***
+    return undefined;
   });
 
   displayOnSale: Signal<boolean> = computed(() => {
@@ -174,62 +187,66 @@ export class ProductPageComponent implements OnInit, OnDestroy {
   private addToCartErrorKey: WritableSignal<string | null> = signal(null);
 
   readonly isOnWishlist: Signal<boolean> = computed(() => {
-    const slug = this.product()?.slug;
+    const slug = this.product()?.slug; // Beachte: Produkt-Slug wird hier verwendet, nicht der Routen-Parameter-Name
     return slug ? this.wishlistService.isOnWishlist(slug) : false;
   });
 
-  isLoggedIn: WritableSignal<boolean> = signal(false);
+  readonly isLoggedIn$: Observable<boolean> = this.authService.isLoggedIn$;
   private subscriptions = new Subscription();
-  private productSlugFromRoute: string | null = null;
+  private productSlugFromRoute: string | null = null; // Diese Variable speichert den Wert aus der Route
 
   constructor() {
     effect(() => {
       const currentVar = this.currentSelectedVariation();
       const mainProduct = this.product();
-      if (currentVar && currentVar.image && currentVar.image.src) {
-        this.selectedImage.set(currentVar.image);
-      } else if (mainProduct && mainProduct.images && mainProduct.images.length > 0) {
-        this.selectedImage.set(mainProduct.images[0]);
-      } else {
-        this.selectedImage.set(null);
-      }
+      untracked(() => {
+        if (currentVar && currentVar.image && currentVar.image.src) {
+          this.selectedImage.set(currentVar.image);
+        } else if (mainProduct && mainProduct.images && mainProduct.images.length > 0) {
+          this.selectedImage.set(mainProduct.images[0]);
+        } else {
+          this.selectedImage.set(null);
+        }
+      });
       this.cdr.markForCheck();
     });
   }
 
   ngOnInit(): void {
-    const authSub = this.authService.isLoggedIn().subscribe(loggedIn => {
-      this.isLoggedIn.set(loggedIn);
+    const authSub = this.authService.isLoggedIn$.subscribe((loggedIn: boolean) => {
+      console.log('ProductPage: User loggedIn status in ngOnInit:', loggedIn);
       this.cdr.markForCheck();
     });
     this.subscriptions.add(authSub);
 
     const handle$ = this.route.paramMap.pipe(
-      map(params => params.get('handle')),
+      // ***** KORREKTUR HIER: Zurück zu 'handle' oder an deinen Routenparameter anpassen *****
+      map(params => params.get('handle')), // Angenommen, dein Routenparameter heißt 'handle'
       distinctUntilChanged(),
-      tap(slug => {
-        this.productSlugFromRoute = slug;
+      tap(routeParamValue => { // Umbenannt zu routeParamValue für Klarheit
+        console.log('ProductPageComponent Route Param from URL:', routeParamValue);
+        this.productSlugFromRoute = routeParamValue; // Speichert den Wert aus der Route
         this.resetStateAndLoadInitialTitle();
       })
     );
 
     const productDataLoadingSub = handle$.pipe(
-      filter((slug): slug is string => {
-        if (!slug) {
+      filter((paramValue): paramValue is string => { // Umbenannt zu paramValue
+        if (!paramValue) {
           this.setErrorStateAndTitle('productPage.errorNoHandle', 'productPage.errorTitle');
           return false;
         }
         return true;
       }),
-      switchMap(slug =>
-        this.woocommerceService.getProductBySlug(slug).pipe(
+      switchMap(actualSlugToLoad => // Umbenannt zu actualSlugToLoad
+        this.woocommerceService.getProductBySlug(actualSlugToLoad).pipe( // Verwende den Wert aus der Route
           switchMap(productData => {
             if (!productData) {
               this.setErrorStateAndTitle('productPage.errorNotFound', 'productPage.notFoundTitle');
               return of(null);
             }
             this.product.set(productData);
-            this.updatePageTitleOnLangChange();
+            this.updatePageTitleAndMeta(productData);
             if (productData.type === 'variable' && productData.variations && productData.variations.length > 0) {
               return this.woocommerceService.getProductVariations(productData.id).pipe(
                 tap(variationsData => {
@@ -245,7 +262,7 @@ export class ProductPageComponent implements OnInit, OnDestroy {
             }
           }),
           catchError(err => {
-            console.error(`Error loading product ${slug}:`, err);
+            console.error(`Error loading product with slug/handle ${actualSlugToLoad}:`, err);
             this.setErrorStateAndTitle('productPage.errorLoadingProduct', 'productPage.errorTitle');
             this.variations.set([]);
             this.variationAttributes.set([]);
@@ -253,12 +270,8 @@ export class ProductPageComponent implements OnInit, OnDestroy {
           }),
           finalize(() => {
             this.isLoading.set(false);
-            if (!this.product()) {
+            if (!this.product() && !this.errorKey()) {
                 this.setErrorStateAndTitle('productPage.errorNotFound', 'productPage.notFoundTitle');
-            } else {
-                if (!this.errorKey()) {
-                    this.errorKey.set(null); this.error.set(null);
-                }
             }
             this.cdr.markForCheck();
           })
@@ -270,14 +283,22 @@ export class ProductPageComponent implements OnInit, OnDestroy {
     this.subscriptions.add(productDataLoadingSub);
 
     const langSub = this.translocoService.langChanges$.pipe(
-        startWith(this.translocoService.getActiveLang())
+        startWith(this.translocoService.getActiveLang()),
     ).subscribe(() => {
-      this.updatePageTitleOnLangChange();
+      this.updatePageTitleAndMeta(this.product());
       if (this.errorKey()) { this.error.set(this.translocoService.translate(this.errorKey()!)); }
       if (this.addToCartErrorKey()) { this.addToCartError.set(this.translocoService.translate(this.addToCartErrorKey()!)); }
       this.cdr.markForCheck();
     });
     this.subscriptions.add(langSub);
+  }
+
+  ngAfterViewInit(): void {
+    // Deine Logik hier
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
   }
 
   private prepareVariationAttributes(product: WooCommerceProduct, variationsData: WooCommerceProductVariation[]): void {
@@ -309,6 +330,8 @@ export class ProductPageComponent implements OnInit, OnDestroy {
 
   onOptionSelect(attributeIdentifier: string, optionValue: string): void {
     this.selectedOptions.update(current => ({ ...current, [attributeIdentifier]: optionValue }));
+    this.addToCartError.set(null);
+    this.addToCartErrorKey.set(null);
   }
 
   isOptionSelected(attributeIdentifier: string, optionValue: string): boolean {
@@ -320,24 +343,30 @@ export class ProductPageComponent implements OnInit, OnDestroy {
   }
 
   getNormalizedOptionValue(optionString: string): string {
-    return optionString.toLowerCase().replace(/\s+/g, '-');
+    return optionString.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
   }
 
-  private updatePageTitleOnLangChange(): void {
-    const currentProduct = this.product();
+  private updatePageTitleAndMeta(productData: WooCommerceProduct | null = this.product()): void {
     const currentErrorKey = this.errorKey();
-    if (currentProduct) {
-      const pageTitle = this.translocoService.translate('productPage.pageTitle', { productName: currentProduct.name });
+    const defaultDescription = this.translocoService.translate('general.defaultMetaDescription');
+
+    if (productData) {
+      const pageTitle = this.translocoService.translate('productPage.pageTitle', { productName: productData.name });
       this.titleService.setTitle(pageTitle);
+      const descriptionContent = productData.short_description || productData.description || pageTitle || defaultDescription;
+      this.metaService.updateTag({ name: 'description', content: descriptionContent } as MetaDefinition);
     } else if (currentErrorKey) {
       let errorTitleKeyToUse = 'productPage.errorTitle';
       if (currentErrorKey === 'productPage.errorNotFound') errorTitleKeyToUse = 'productPage.notFoundTitle';
       const errorName = this.translocoService.translate(errorTitleKeyToUse);
       const pageTitle = this.translocoService.translate('productPage.pageTitleError', { errorName });
       this.titleService.setTitle(pageTitle);
+      this.metaService.updateTag({ name: 'description', content: pageTitle } as MetaDefinition);
     } else if (!this.isLoading() && !this.productSlugFromRoute) {
         const errorName = this.translocoService.translate('productPage.errorTitle');
-        this.titleService.setTitle(this.translocoService.translate('productPage.pageTitleError', { errorName }));
+        const errorPageTitle = this.translocoService.translate('productPage.pageTitleError', { errorName });
+        this.titleService.setTitle(errorPageTitle);
+        this.metaService.updateTag({ name: 'description', content: errorPageTitle } as MetaDefinition);
     }
   }
 
@@ -347,18 +376,15 @@ export class ProductPageComponent implements OnInit, OnDestroy {
     this.error.set(null); this.errorKey.set(null);
     this.addToCartError.set(null); this.addToCartErrorKey.set(null);
     this.isAddingToCart.set(false);
+    this.selectedImage.set(null);
   }
 
   private setErrorStateAndTitle(errorMsgKey: string, errorTitleKeyForInterpolation: string): void {
     this.errorKey.set(errorMsgKey);
     this.error.set(this.translocoService.translate(errorMsgKey));
     this.isLoading.set(false);
-    this.updatePageTitleOnLangChange();
+    this.updatePageTitleAndMeta(null);
     this.cdr.markForCheck();
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
   }
 
   selectImageOnClick(imageNode: WooCommerceImage | null | undefined): void {
@@ -370,7 +396,7 @@ export class ProductPageComponent implements OnInit, OnDestroy {
     if (!productData) return;
     let productIdToAdd = productData.id;
     let variationIdToAdd: number | undefined;
-    let quantity = 1;
+    const quantityToAdd = 1;
     if (productData.type === 'variable') {
       const selectedVar = this.currentSelectedVariation();
       if (!selectedVar) {
@@ -394,7 +420,7 @@ export class ProductPageComponent implements OnInit, OnDestroy {
     this.isAddingToCart.set(true);
     this.addToCartError.set(null); this.addToCartErrorKey.set(null);
     try {
-      await this.cartService.addItem(productIdToAdd, quantity, variationIdToAdd);
+      await this.cartService.addItem(productIdToAdd, quantityToAdd, variationIdToAdd);
       this.uiStateService.openMiniCartWithTimeout();
     } catch (error) {
       console.error(`ProductPage: Error adding to cart:`, error);
@@ -407,21 +433,36 @@ export class ProductPageComponent implements OnInit, OnDestroy {
   }
 
   async toggleWishlist(): Promise<void> {
-    const productSlug = this.product()?.slug;
-    if (!productSlug || !this.isLoggedIn()) return;
+    const productSlug = this.product()?.slug; // Produkt-Slug für Wishlist-Funktion
+    const productName = this.product()?.name || '';
+    const isLoggedIn = this.authService.getCurrentUserValue() !== null;
+
+    if (!productSlug) return;
+    if (!isLoggedIn) {
+        this.uiStateService.showGlobalError(this.translocoService.translate('wishlist.errorNotLoggedInProductPage'));
+        this.uiStateService.openLoginOverlay();
+        return;
+    }
+    this.isLoading.set(true);
     try {
       if (this.isOnWishlist()) {
         await this.wishlistService.removeFromWishlist(productSlug);
       } else {
         await this.wishlistService.addToWishlist(productSlug);
       }
-    } catch (error) { console.error("Error toggling wishlist:", error); }
+    } catch (error) {
+        console.error("Error toggling wishlist from product page:", error);
+        this.uiStateService.showGlobalError(this.translocoService.translate('wishlist.errorGeneral'));
+    } finally {
+        this.isLoading.set(false);
+        this.cdr.markForCheck();
+    }
   }
 
   goBack(): void { this.location.back(); }
 
   getAttributeTrackKey(attribute: WooCommerceAttribute): string {
-    const slug = attribute.slug || attribute.name.toLowerCase().replace(/\s+/g, '-');
+    const slug = attribute.slug || attribute.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
     return slug.startsWith('pa_') ? slug : `pa_${slug}`;
   }
 

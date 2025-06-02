@@ -4,13 +4,27 @@
 // --- Breakpoint-Variablen ---
 $breakpoint-large: 1024px;
 $breakpoint-medium: 768px;
-$breakpoint-small: 600px;
+$breakpoint-small: 767px;
 $breakpoint-xs: 480px;
 
-// --- Sass-Variablen für color.adjust() ---
-$error-color-sass: #dc3545;     // Entspricht var(--error-color)
-$warning-color-sass: #ffc107;   // Entspricht var(--warning-color)
-$background-color-light-sass: #f8f9fa; // Entspricht var(--background-color-light-gray)
+// --- Sass-Variablen für Fallback-Farben und color.adjust() ---
+$error-color-fallback: #dc3545;
+$warning-color-fallback: #ffc107;
+$background-color-light-gray-fallback: #f8f9fa;
+$success-color-fallback: #28a745;
+$your-garden-eden-green-fallback: #4CAF50;
+$border-color-base-fallback: #ced4da;
+$primary-color-fallback: #007bff;
+$disabled-color-fallback: #adb5bd;
+$text-color-base-fallback: #212529;
+$text-color-muted-fallback: #6c757d;
+$text-color-link-fallback: #007bff;
+$text-color-link-hover-fallback: #0056b3;
+$primary-color-dark-fallback: #0056b3;
+$background-color-component-fallback: #fff;
+$border-color-light-fallback: #e9ecef;
+$primary-color-text-fallback: #fff;
+
 
 // --- Basiskomponente ---
 :host {
@@ -23,28 +37,28 @@ $background-color-light-sass: #f8f9fa; // Entspricht var(--background-color-ligh
 
 // --- Allgemeine Styles ---
 h1, h2 {
-  color: var(--primary-color-dark);
+  color: var(--text-color-headings, var(--primary-color-dark, $primary-color-dark-fallback));
   margin-bottom: var(--spacing-md);
   font-weight: var(--font-weight-semibold);
 }
 
 h1 {
   text-align: center;
-  margin-bottom: var(--spacing-lg);
-  font-size: 2.2em;
+  margin-bottom: var(--spacing-xl);
+  font-size: clamp(1.8em, 4vw, 2.4em);
 }
 
 h2 {
-  font-size: 1.5em;
-  border-bottom: 1px solid var(--border-color-light);
+  font-size: clamp(1.3em, 3vw, 1.6em);
+  border-bottom: 1px solid var(--border-color-light, $border-color-light-fallback);
   padding-bottom: var(--spacing-sm);
 }
 
 a {
-  color: var(--text-color-link);
+  color: var(--text-color-link, $text-color-link-fallback);
   text-decoration: none;
   &:hover {
-    color: var(--text-color-link-hover);
+    color: var(--text-color-link-hover, $text-color-link-hover-fallback);
     text-decoration: underline;
   }
 }
@@ -58,7 +72,7 @@ a {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  z-index: var(--z-index-modal-backdrop);
+  z-index: var(--z-index-modal-backdrop, 1040);
   border-radius: var(--border-radius-lg);
   backdrop-filter: blur(2px);
 
@@ -67,14 +81,14 @@ a {
     width: 36px;
     height: 36px;
     border-radius: var(--border-radius-circle);
-    border-left-color: var(--primary-color);
+    border-left-color: var(--primary-color, $primary-color-fallback);
     margin-bottom: var(--spacing-md);
     animation: spin 1s ease infinite;
   }
 
   span {
     font-weight: var(--font-weight-medium);
-    color: var(--text-color-muted);
+    color: var(--text-color-muted, $text-color-muted-fallback);
   }
 }
 
@@ -91,19 +105,24 @@ a {
   font-size: 0.95em;
 
   &.global-cart-error {
-    background-color: color.adjust($error-color-sass, $alpha: -0.85);
-    border-color: color.adjust($error-color-sass, $alpha: -0.7);
-    color: var(--error-text-color);
+    background-color: color.adjust($error-color-fallback, $alpha: -0.85);
+    border-color: color.adjust($error-color-fallback, $alpha: -0.7);
+    color: var(--error-text-color, color.adjust($error-color-fallback, $lightness: -10%));
     text-align: center;
   }
 
   &.line-update-error {
-    background-color: color.adjust($warning-color-sass, $alpha: -0.85);
-    border-color: color.adjust($warning-color-sass, $alpha: -0.7);
-    color: var(--warning-text-color);
+    background-color: color.adjust($warning-color-fallback, $alpha: -0.85);
+    border-color: color.adjust($warning-color-fallback, $alpha: -0.7);
+    color: var(--warning-text-color, color.adjust($warning-color-fallback, $blackness: 20%));
     text-align: center;
     margin-top: var(--spacing-sm);
   }
+}
+.page-loading, .page-error {
+  text-align: center;
+  padding: var(--spacing-xl);
+  font-size: 1.1em;
 }
 
 // --- Warenkorb-Layout ---
@@ -112,12 +131,9 @@ a {
   grid-template-columns: minmax(0, 2.5fr) minmax(0, 1fr);
   gap: var(--spacing-xl);
 
-  @media (max-width: $breakpoint-large) {
-     gap: var(--spacing-lg);
-  }
-
   @media (max-width: $breakpoint-medium) {
     grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
   }
 }
 
@@ -125,316 +141,366 @@ a {
 .cart-items-list {
   h2 { margin-top: 0; }
 
-  table {
+  .cart-table.desktop-only {
     width: 100%;
     border-collapse: collapse;
+    display: table;
+
+    @media (max-width: $breakpoint-small) {
+      display: none;
+    }
 
     thead th {
       text-align: left;
-      padding-bottom: var(--spacing-md);
-      color: var(--text-color-muted);
+      padding: var(--spacing-sm) var(--spacing-md);
+      color: var(--text-color-muted, $text-color-muted-fallback);
       font-weight: var(--font-weight-medium);
-      font-size: 0.9em;
+      font-size: 0.85em;
       text-transform: uppercase;
-      border-bottom: 2px solid var(--border-color-base);
+      border-bottom: 2px solid var(--border-color-base, $border-color-base-fallback);
 
-      &:nth-child(1) { width: 90px; } // Bild
-      &:nth-child(2) { padding-left: var(--spacing-sm); } // Details
-      &:nth-child(3), &:nth-child(5) { text-align: right; width: 15%; } // Einzelpreis, Zeilengesamt
-      &:nth-child(4) { text-align: center; width: 18%; } // Menge
-      &:nth-child(6) { text-align: center; width: 8%; } // Entfernen
+      &:nth-child(1) { width: 100px; text-align: left; }
+      &:nth-child(2) { /* Produktdetails */ }
+      &:nth-child(3) { text-align: right; width: 130px; }
+      &:nth-child(4) { text-align: center; width: 150px; }
+      &:nth-child(5) { text-align: center; width: 60px; }
     }
 
     tbody tr.cart-item {
-      border-bottom: 1px solid var(--border-color-light);
+      border-bottom: 1px solid var(--border-color-light, $border-color-light-fallback);
       transition: opacity 0.3s ease;
 
-      &.updating {
-        opacity: 0.6;
-        pointer-events: none;
+      &.updating { opacity: 0.5; pointer-events: none; }
+      td { padding: var(--spacing-md); vertical-align: middle; }
+
+      td.item-image-cell {
+        width: 100px;
+        padding-right: var(--spacing-md);
+        img {
+          display: block; max-width: 80px; max-height: 80px;
+          width: auto; height: auto; object-fit: contain;
+          border: 1px solid var(--border-color-light, $border-color-light-fallback);
+          border-radius: var(--border-radius-sm);
+          background-color: var(--background-color-component, $background-color-component-fallback);
+          margin: 0;
+        }
+        .placeholder-image {
+          width: 80px; height: 80px; margin: 0;
+          background-color: var(--background-color-light-gray, $background-color-light-gray-fallback);
+          border-radius: var(--border-radius-sm);
+          display: flex; align-items: center; justify-content: center;
+          color: var(--border-color-base, $border-color-base-fallback);
+          border: 1px solid var(--border-color-light, $border-color-light-fallback);
+          .material-symbols-outlined { font-size: 40px; }
+        }
       }
 
-      td {
-        padding: var(--spacing-md) 0;
-        vertical-align: middle;
+      td.item-price-cell {
+        text-align: right;
+        .price-block.item-single-price {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
 
-        &:first-child { padding-right: var(--spacing-sm); }
-        &:not(:first-child):not(:last-child) { padding-left: var(--spacing-sm); padding-right: var(--spacing-sm); }
-        &:last-child { padding-left: var(--spacing-sm); }
+          .price-value {
+            font-weight: var(--font-weight-medium);
+            color: var(--your-garden-eden-green, $your-garden-eden-green-fallback);
+            white-space: nowrap;
+          }
+          .vat-subtext {
+            font-size: 0.75em;
+            color: var(--text-color-muted, $text-color-muted-fallback);
+            font-weight: var(--font-weight-normal);
+            line-height: 1.2;
+            margin-top: 2px;
+          }
+        }
       }
+    }
+  }
+
+  .cart-list.mobile-only {
+    list-style: none;
+    padding: 0; margin: 0;
+    display: none;
+
+    @media (max-width: $breakpoint-small) {
+      display: block;
+    }
+
+    .cart-item-mobile {
+      display: grid;
+      grid-template-columns: 70px 1fr auto;
+      grid-template-areas:
+        "image info    actions"
+        "image price   actions"
+        ".     error   error";
+      gap: var(--spacing-xs) var(--spacing-md);
+      padding: var(--spacing-md) 0;
+      border-bottom: 1px solid var(--border-color-light, $border-color-light-fallback);
+      position: relative;
+
+      &.updating { opacity: 0.5; pointer-events: none; }
+
+      .item-image {
+        grid-area: image; width: 70px; height: 70px;
+        display: flex; align-items: center; justify-content: center;
+        img {
+          display: block; max-width: 100%; max-height: 100%;
+          object-fit: contain; border: 1px solid var(--border-color-light, $border-color-light-fallback);
+          border-radius: var(--border-radius-sm);
+          background-color: var(--background-color-component, $background-color-component-fallback);
+        }
+        .placeholder-image.small {
+          width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+          background-color: var(--background-color-light-gray, $background-color-light-gray-fallback);
+          border-radius: var(--border-radius-sm);
+          color: var(--border-color-base, $border-color-base-fallback);
+          border: 1px solid var(--border-color-light, $border-color-light-fallback);
+          .material-symbols-outlined { font-size: 30px; }
+        }
+      }
+      .item-info {
+        grid-area: info;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      .item-price-mobile.price-block.item-single-price {
+          grid-area: price;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          text-align: left;
+          margin-top: var(--spacing-xs);
+
+          .price-value {
+            font-weight: var(--font-weight-medium);
+            color: var(--your-garden-eden-green, $your-garden-eden-green-fallback);
+          }
+          .vat-subtext {
+            font-size: 0.75em;
+            color: var(--text-color-muted, $text-color-muted-fallback);
+            font-weight: var(--font-weight-normal);
+            line-height: 1.2;
+            margin-top: 2px;
+          }
+      }
+      .item-actions-mobile {
+        grid-area: actions; display: flex; flex-direction: column;
+        align-items: flex-end; justify-content: space-around;
+        padding-left: var(--spacing-sm);
+      }
+      .mobile-line-error { grid-area: error; font-size: 0.85em; margin-top: var(--spacing-xs); padding-left: var(--spacing-md); }
     }
   }
 }
 
-// --- Styles für Tabellenzellen ---
-.item-image {
-  a { display: block; }
-  img {
-    display: block;
-    width: 80px;
-    height: auto;
-    max-height: 80px;
-    object-fit: contain;
-    border: 1px solid var(--border-color-light);
-    border-radius: var(--border-radius-sm);
-    background-color: var(--background-color-component);
-  }
-  .placeholder-image {
-    width: 80px;
-    height: 80px;
-    background-color: var(--background-color-light-gray);
-    border-radius: var(--border-radius-sm);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--border-color-base);
-    border: 1px solid var(--border-color-light);
-    .material-symbols-outlined { font-size: 40px; }
-  }
+.product-title {
+  display: block; font-weight: var(--font-weight-medium);
+  color: var(--text-color-base, $text-color-base-fallback);
+  margin-bottom: var(--spacing-xs); line-height: 1.3;
+  &:hover { color: var(--text-color-link, $text-color-link-fallback); }
 }
 
-.item-details {
-  vertical-align: top;
-  .product-title {
-    display: block;
-    font-weight: var(--font-weight-medium);
-    color: var(--text-color-base);
-    margin-bottom: var(--spacing-xs);
-    &:hover { color: var(--text-color-link); }
-  }
-  .variant-title {
-    display: block;
-    font-size: 0.9em;
-    color: var(--text-color-muted);
-  }
+.variant-title {
+  display: block; font-size: 0.85em;
+  color: var(--text-color-muted, $text-color-muted-fallback);
+  span { display: block; &:not(:last-child) { margin-bottom: var(--spacing-xxs); } }
 }
+.variant-detail-mobile { font-size: 0.9em; }
 
-.item-price, .item-total-price {
-  text-align: right;
-  white-space: nowrap;
-  font-weight: var(--font-weight-medium);
-  color: var(--price-color);
-}
+.quantity-control.modern {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
 
-.item-quantity {
-  text-align: center;
-  .quantity-control {
-    display: inline-flex;
-    align-items: center;
-    border: 1px solid var(--border-color-base);
-    border-radius: var(--border-radius-md);
-    overflow: hidden;
-
-    .quantity-button {
-      background: none;
-      border: none;
-      padding: var(--spacing-xs);
-      margin: 0;
-      color: var(--text-color-muted);
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      line-height: 1;
-      background-color: var(--background-color-light-gray);
-      transition: background-color 0.2s ease, color 0.2s ease;
-
-      &:first-of-type { border-right: 1px solid var(--border-color-base); }
-      &:last-of-type { border-left: 1px solid var(--border-color-base); }
-
-      &:hover:not(:disabled) {
-        background-color: color.adjust($background-color-light-sass, $lightness: -5%);
-        color: var(--primary-color);
-      }
-      &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-        background-color: transparent;
-      }
-      .material-symbols-outlined {
-        font-size: 20px;
-        display: block;
-        vertical-align: middle;
-      }
-    }
-
-    .quantity-value {
-      padding: 0 var(--spacing-md);
-      font-weight: var(--font-weight-medium);
-      min-width: 2.5em;
-      text-align: center;
-      line-height: calc(20px + (2 * var(--spacing-xs, 8px))); // Korrektur: Fallback-Wert für var
-      display: inline-block;
-      vertical-align: middle;
-    }
-  }
-
-  .loading-indicator {
-     display: block;
-     font-size: 0.8em;
-     color: var(--text-color-muted);
-     margin-top: var(--spacing-xs);
-     text-align: center;
-     min-height: 1.2em;
-  }
-}
-
-.item-remove {
-  text-align: center;
-  .remove-button {
-    background: none;
-    border: none;
-    padding: var(--spacing-xs);
-    margin: 0;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-    // Standardfarbe für das Icon ist jetzt rot
-    color: var(--error-color); // GEÄNDERT
+  .quantity-button {
+    background-color: var(--background-color-light-gray, $background-color-light-gray-fallback);
+    border: 1px solid var(--border-color-base, $border-color-base-fallback);
     border-radius: var(--border-radius-circle);
-    transition: background-color 0.2s ease, color 0.2s ease, opacity 0.2s ease; // opacity hinzugefügt
+    width: 32px; height: 32px;
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 
     &:hover:not(:disabled) {
-      color: var(--error-color-dark);
-      background-color: color.adjust($error-color-sass, $alpha: -0.85); // Leichterer Hover-Effekt
+      background-color: color.adjust($background-color-light-gray-fallback, $lightness: -5%);
+      border-color: color.adjust($border-color-base-fallback, $lightness: -10%);
     }
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      background-color: transparent !important;
-      color: var(--disabled-color) !important; // Ausgegrautes Icon im disabled Zustand
+    &:active:not(:disabled) {
+      background-color: color.adjust($background-color-light-gray-fallback, $lightness: -10%);
     }
-    .material-symbols-outlined { font-size: 22px; display: block; }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .material-symbols-outlined {
+      font-size: 20px;
+      &.icon-plus {
+        color: var(--success-color, $success-color-fallback);
+        &:hover:not(:disabled) {
+            color: color.adjust($success-color-fallback, $lightness: -10%);
+        }
+      }
+      &.icon-minus {
+        color: var(--error-color, $error-color-fallback);
+         &:hover:not(:disabled) {
+            color: color.adjust($error-color-fallback, $lightness: -10%);
+        }
+      }
+    }
   }
+  .quantity-value { font-weight: var(--font-weight-medium); min-width: 1.5em; text-align: center; }
+}
+.quantity-loading-indicator {
+   display: block; font-size: 0.8em;
+   color: var(--text-color-muted, $text-color-muted-fallback);
+   margin-top: var(--spacing-xs); text-align: center; min-height: 1.2em;
+}
+
+.remove-button.modern-remove-btn.icon-delete {
+  background: none; border: none; padding: var(--spacing-xs);
+  cursor: pointer;
+  color: var(--error-color, $error-color-fallback);
+  border-radius: var(--border-radius-circle);
+  transition: color 0.2s ease, background-color 0.2s ease;
+
+  &:hover:not(:disabled) {
+    color: color.adjust($error-color-fallback, $lightness: -10%);
+    background-color: color.adjust($error-color-fallback, $alpha: -0.85);
+  }
+  &:disabled {
+    opacity: 0.5; cursor: not-allowed;
+    color: var(--disabled-color, $disabled-color-fallback) !important;
+    background-color: transparent !important;
+  }
+  .material-symbols-outlined { font-size: 24px; }
 }
 
 // --- Warenkorb-Zusammenfassung (Rechts) ---
+// Stile werden an die .summary-box der checkout-details-page angepasst
 .cart-summary {
-  background-color: var(--background-color-light-gray);
-  padding: var(--spacing-lg);
-  border-radius: var(--border-radius-lg);
-  border: 1px solid var(--border-color-light);
+  background-color: var(--background-color-light-gray, $background-color-light-gray-fallback);
+  padding: var(--spacing-lg, 1.5rem); // Konsistentes Padding
+  border-radius: var(--border-radius-lg, 8px); // Konsistenter Radius
+  border: 1px solid var(--border-color-light, $border-color-light-fallback); // Konsistenter Border
+  box-shadow: var(--box-shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05)); // Optional: Leichter Schatten wie Checkout
   height: fit-content;
   position: sticky;
-  top: var(--spacing-lg);
+  top: calc(var(--header-height, 60px) + var(--spacing-lg, 1.5rem)); // Sticky Positionierung
 
-  h2 { margin-top: 0; }
+  h2 {
+    margin-top: 0;
+    // Ggf. weitere h2 Anpassungen, um mit checkout-details übereinzustimmen
+  }
 
   .summary-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: var(--spacing-md);
-    font-size: 1em;
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: var(--spacing-md, 1rem); font-size: var(--font-size-base, 1rem);
+    padding: var(--spacing-xs, 0.25rem) 0;
+    span:first-child { color: var(--text-color-muted, $text-color-muted-fallback); }
+    .amount {
+      font-weight: var(--font-weight-medium, 500);
+      color: var(--text-color-base, $text-color-base-fallback);
+      text-align: right;
+    }
 
-    span:first-child { color: var(--text-color-muted); }
-    span:last-child { font-weight: var(--font-weight-medium); }
+    &.shipping .amount.free-shipping {
+      color: var(--your-garden-eden-green, $your-garden-eden-green-fallback);
+      font-weight: var(--font-weight-semibold, 600);
+    }
   }
 
   .summary-total {
-    font-weight: var(--font-weight-semibold);
-    font-size: 1.2em;
-    margin-top: var(--spacing-lg);
-    padding-top: var(--spacing-lg);
-    border-top: 2px solid var(--border-color-base);
-  }
+    font-weight: var(--font-weight-semibold, 600); font-size: var(--font-size-lg, 1.125rem); // Konsistente Schriftgröße für Total
+    margin-top: var(--spacing-lg, 1.5rem); padding-top: var(--spacing-lg, 1.5rem);
+    border-top: 2px solid var(--border-color-base, $border-color-base-fallback); // Konsistente Trennlinie
 
-  .vat-info {
-    font-size: 0.9em;
-    color: var(--text-color-muted);
-    text-align: center;
-    margin-top: var(--spacing-sm);
-    margin-bottom: var(--spacing-lg);
+    .total-price-block { // Wiederverwendung der Struktur aus Checkout für Konsistenz
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      text-align: right;
+
+      .amount.total-amount {
+         color: var(--primary-color-dark, $primary-color-dark-fallback); // Konsistente Farbe für Gesamtbetrag
+      }
+      .vat-summary-subtext { // Konsistenter MwSt.-Hinweis
+        font-size: 0.75em;
+        font-weight: var(--font-weight-normal);
+        color: var(--text-color-muted, $text-color-muted-fallback);
+        line-height: 1.2;
+        margin-top: 2px;
+      }
+    }
   }
 
   .checkout-button {
-    display: inline-block;
-    font-weight: var(--font-weight-semibold);
-    line-height: 1.5;
-    color: var(--primary-color-text);
-    text-align: center;
-    text-decoration: none;
-    vertical-align: middle;
-    cursor: pointer;
-    user-select: none;
-    background-color: var(--primary-color);
-    border: 1px solid var(--primary-color);
-    padding: var(--spacing-md);
-    font-size: 1.1em;
-    border-radius: var(--border-radius-md);
-    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    display: block; // Volle Breite wie Checkout-Button
     width: 100%;
+    font-weight: var(--font-weight-semibold); line-height: 1.5;
+    color: var(--primary-color-text, $primary-color-text-fallback);
+    text-align: center; text-decoration: none; vertical-align: middle;
+    cursor: pointer; user-select: none;
+    background-color: var(--primary-color, $primary-color-fallback);
+    border: 1px solid var(--primary-color, $primary-color-fallback);
+    padding: var(--spacing-md, 1rem); font-size: 1.1em; // Konsistentes Padding und Schriftgröße
+    border-radius: var(--border-radius-md, 5px);
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
     text-transform: uppercase;
+    margin-top: var(--spacing-lg, 1.5rem); // Konsistenter Abstand
 
     &:hover:not(:disabled) {
-      color: var(--primary-color-text);
-      background-color: var(--primary-color-dark);
-      border-color: var(--primary-color-dark);
+      background-color: var(--primary-color-dark, color.adjust($primary-color-fallback, $lightness: -10%));
+      border-color: var(--primary-color-dark, color.adjust($primary-color-fallback, $lightness: -10%));
     }
-
     &:disabled {
-       color: var(--primary-color-text);
-       background-color: var(--primary-color);
-       border-color: var(--primary-color);
-       opacity: 0.65;
-       cursor: not-allowed;
+       opacity: 0.65; cursor: not-allowed;
     }
   }
-
+  .continue-shopping-link {
+    display: block; text-align: center;
+    margin-top: var(--spacing-md, 1rem);
+    font-size: 0.9em;
+  }
   .cart-note {
-      margin-top: var(--spacing-lg);
-      padding-top: var(--spacing-md);
-      border-top: 1px dashed var(--border-color-light);
-      font-size: 0.9em;
-      color: var(--text-color-muted);
-      strong { color: var(--text-color-base); }
+      margin-top: var(--spacing-lg, 1.5rem); padding-top: var(--spacing-md, 1rem);
+      border-top: 1px dashed var(--border-color-light, $border-color-light-fallback);
+      font-size: 0.9em; color: var(--text-color-muted, $text-color-muted-fallback);
+      display: flex; align-items: center;
+      .warning-icon {
+        font-size: 1.2em;
+        margin-right: var(--spacing-sm, 0.5rem);
+        color: var(--warning-color, $warning-color-fallback);
+      }
+      strong { color: var(--text-color-base, $text-color-base-fallback); }
   }
 }
 
 // --- Meldung für leeren Warenkorb ---
 .empty-cart-message {
-  text-align: center;
-  padding: calc(var(--spacing-xl) * 2) var(--spacing-xl);
-  border: 1px dashed var(--border-color-light);
-  border-radius: var(--border-radius-lg);
-  background-color: var(--background-color-light-gray);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  text-align: center; padding: calc(var(--spacing-xl, 2rem) * 2) var(--spacing-xl, 2rem);
+  border: 1px dashed var(--border-color-light, $border-color-light-fallback);
+  border-radius: var(--border-radius-lg, 8px);
+  background-color: var(--background-color-light-gray, $background-color-light-gray-fallback);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
   min-height: 300px;
 
-  h2 {
-    margin-bottom: var(--spacing-md);
-    color: var(--text-color-base);
-  }
-  p {
-    margin-bottom: var(--spacing-lg);
-    color: var(--text-color-muted);
-    max-width: 400px;
-  }
+  h2 { margin-bottom: var(--spacing-md, 1rem); color: var(--text-color-base, $text-color-base-fallback); }
+  p { margin-bottom: var(--spacing-lg, 1.5rem); color: var(--text-color-muted, $text-color-muted-fallback); max-width: 400px; }
   .primary-button {
-     display: inline-block;
-     font-weight: var(--font-weight-normal);
-     line-height: 1.5;
-     color: var(--primary-color-text);
-     text-align: center;
-     text-decoration: none;
-     vertical-align: middle;
-     cursor: pointer;
-     user-select: none;
-     background-color: var(--primary-color);
-     border: 1px solid var(--primary-color);
-     padding: var(--spacing-sm) var(--spacing-lg);
-     font-size: 1rem;
-     border-radius: var(--border-radius-md);
+     display: inline-block; font-weight: var(--font-weight-normal); line-height: 1.5;
+     color: var(--primary-color-text, $primary-color-text-fallback);
+     text-align: center; text-decoration: none; vertical-align: middle;
+     cursor: pointer; user-select: none;
+     background-color: var(--primary-color, $primary-color-fallback);
+     border: 1px solid var(--primary-color, $primary-color-fallback);
+     padding: var(--spacing-sm, 0.75rem) var(--spacing-lg, 1.5rem); font-size: 1rem;
+     border-radius: var(--border-radius-md, 5px);
      transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 
      &:hover {
-       color: var(--primary-color-text);
-       background-color: var(--primary-color-dark);
-       border-color: var(--primary-color-dark);
+       background-color: var(--primary-color-dark, color.adjust($primary-color-fallback, $lightness: -10%));
+       border-color: var(--primary-color-dark, color.adjust($primary-color-fallback, $lightness: -10%));
      }
   }
 }
@@ -442,55 +508,29 @@ a {
 // --- Responsive Anpassungen ---
 @media (max-width: $breakpoint-medium) {
   .cart-content { gap: var(--spacing-lg); }
-  .cart-summary { position: static; top: auto; }
-}
-
-@media (max-width: $breakpoint-small) {
-  .cart-items-list table {
-    thead { display: none; }
-    tbody tr.cart-item {
-      display: grid;
-      grid-template-columns: 80px 1fr auto auto;
-      grid-template-rows: auto auto;
-      grid-template-areas:
-        "image details   quantity remove"
-        "image price     total    remove"; // 'total' war hier, meinte wohl den Zeilenpreis
-      gap: var(--spacing-xs) var(--spacing-md);
-      padding: var(--spacing-md) 0;
-
-      td { padding: 0 !important; border: none; vertical-align: middle !important; text-align: left !important; }
-
-      .item-image { grid-area: image; align-self: stretch; padding-right: var(--spacing-md) !important; }
-      .item-details { grid-area: details; align-self: end; } // Hält Details und Preis zusammen
-      .item-price {
-         grid-area: price; align-self: start; font-size: 0.9em; color: var(--text-color-muted);
-         // "Einzelpreis:" Label hier nicht mehr nötig, da es jetzt klarer ist
-      }
-       .item-total-price { // Zeilen-Gesamtpreis wird auf Mobile ausgeblendet
-           display: none;
-        }
-      .item-quantity {
-          grid-area: quantity; text-align: center !important; display: flex; flex-direction: column;
-          align-items: center; justify-content: center; min-width: auto;
-          .quantity-control { border: none; }
-          .loading-indicator { text-align: center; }
-       }
-      .item-remove {
-          grid-area: remove; text-align: right !important; display: flex; flex-direction: column;
-          align-items: flex-end; justify-content: center;
-       }
-    }
+  .cart-summary { // Gilt jetzt auch für die cart-page summary
+    position: static;
+    top: auto;
+    margin-top: var(--spacing-lg);
   }
 }
 
 @media (max-width: $breakpoint-xs) {
-   h1 { font-size: 1.8em; }
-   :host { padding: var(--spacing-md); }
-   .cart-items-list table tbody tr.cart-item {
-     grid-template-columns: 65px 1fr auto auto; // Bild etwas kleiner
-     .item-image { width: 65px; img { width: 60px; max-height: 60px;} .placeholder-image { width: 60px; height: 60px; .material-symbols-outlined { font-size: 30px;} } }
-     .item-details .product-title { font-size: 0.95em; }
+   h1 { font-size: 1.7em; }
+   :host { padding: var(--spacing-sm); }
+   .cart-list.mobile-only .cart-item-mobile {
+     grid-template-columns: 60px 1fr auto;
+     .item-image {
+       width: 60px; height: 60px;
+       img { max-width: 100%; max-height: 100%;}
+       .placeholder-image.small { .material-symbols-outlined { font-size: 24px; } }
+     }
+     .product-title { font-size: 0.9em; }
+     .item-price-mobile.price-block.item-single-price {
+        .price-value { font-size: 1em; }
+        .vat-subtext { font-size: 0.7em; }
+     }
    }
-    .cart-summary { padding: var(--spacing-md); }
-    .empty-cart-message { padding: var(--spacing-lg); }
+    .cart-summary { padding: var(--spacing-md); } // Konsistentes Padding
+    .empty-cart-message { padding: var(--spacing-md); }
 }

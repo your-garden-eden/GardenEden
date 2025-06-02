@@ -1,9 +1,7 @@
 <!-- /src/app/shared/components/login-overlay/login-overlay.component.html -->
 <div class="login-overlay" (click)="closeOverlay()">
-
   <div class="overlay-content" (click)="$event.stopPropagation()">
-
-    <button class="close-button icon-button" (click)="closeOverlay()" [attr.aria-label]="'general.close' | transloco"> <!-- NEU: 'general.close' Key -->
+    <button class="close-button icon-button" (click)="closeOverlay()" [attr.aria-label]="'general.close' | transloco">
       <span class="material-symbols-outlined">close</span>
     </button>
 
@@ -13,16 +11,16 @@
     </div>
 
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate class="auth-form overlay-form">
-
       <div class="form-field">
-        <label for="overlayLoginEmail">{{ 'loginOverlay.emailLabel' | transloco }}</label>
-        <input type="email" id="overlayLoginEmail" formControlName="email" [placeholder]="'loginOverlay.emailPlaceholder' | transloco" required
-               [attr.aria-invalid]="email?.invalid && (email?.touched || formSubmitted())"
-               aria-describedby="overlayLoginEmailError">
-        <div id="overlayLoginEmailError" class="error-container"
-             *ngIf="email?.invalid && (email?.touched || formSubmitted())">
-          <small *ngIf="email?.errors?.['required']">{{ 'loginOverlay.emailRequiredError' | transloco }}</small>
-          <small *ngIf="email?.errors?.['email']">{{ 'loginOverlay.emailInvalidError' | transloco }}</small>
+        <label for="overlayLoginEmailOrUsername">{{ 'loginOverlay.emailOrUsernameLabel' | transloco }}</label> <!-- Label ggf. anpassen -->
+        <input type="text" id="overlayLoginEmailOrUsername" formControlName="emailOrUsername" [placeholder]="'loginOverlay.emailOrUsernamePlaceholder' | transloco" required
+               [attr.aria-invalid]="emailOrUsername?.invalid && (emailOrUsername?.touched || formSubmitted())"
+               aria-describedby="overlayLoginEmailOrUsernameError">
+        <div id="overlayLoginEmailOrUsernameError" class="error-container"
+             *ngIf="emailOrUsername?.invalid && (emailOrUsername?.touched || formSubmitted())">
+          <!-- Hier könnten spezifischere Fehler für E-Mail-Format ODER Benutzername stehen, oder ein allgemeines "Pflichtfeld" -->
+          <small *ngIf="emailOrUsername?.errors?.['required']">{{ 'loginOverlay.emailOrUsernameRequiredError' | transloco }}</small>
+          <!-- <small *ngIf="emailOrUsername?.errors?.['email']">{{ 'loginOverlay.emailInvalidError' | transloco }}</small> -->
         </div>
       </div>
 
@@ -40,28 +38,29 @@
          </div>
       </div>
 
-      <div *ngIf="errorMessage()" class="error-message general-error">
-        {{ errorMessage() }} <!-- Dynamische Fehlermeldungen werden schon im TS übersetzt -->
+      <!-- Fehlermeldung vom AuthService anzeigen -->
+      <div *ngIf="authService.authError()" class="error-message general-error">
+        {{ authService.authError() }}
       </div>
 
-      <button type="submit" class="submit-button" [disabled]="loginForm.invalid || isLoading()">
-        <span *ngIf="!isLoading()">{{ 'loginOverlay.loginButton' | transloco }}</span>
-        <span *ngIf="isLoading()" class="button-loading-spinner"></span>
-        <span *ngIf="isLoading()">{{ 'loginOverlay.loggingInButton' | transloco }}</span>
+      <button type="submit" class="submit-button" [disabled]="loginForm.invalid || authService.isLoading()">
+        <span *ngIf="!authService.isLoading()">{{ 'loginOverlay.loginButton' | transloco }}</span>
+        <span *ngIf="authService.isLoading()" class="button-loading-spinner"></span>
+        <span *ngIf="authService.isLoading()">{{ 'loginOverlay.loggingInButton' | transloco }}</span>
       </button>
-
     </form>
 
+    <!-- Google Login (vorerst auskommentiert) -->
+    <!--
     <div class="social-login-divider"><span>{{ 'loginOverlay.orDivider' | transloco }}</span></div>
     <div class="social-login-buttons">
        <div #googleBtnContainerOverlay class="google-button-container-overlay">
-           <!-- Google Button wird hier gerendert, Text kommt von Google -->
        </div>
     </div>
+    -->
 
     <div class="auth-switch-link overlay-switch-link">
       <p>{{ 'loginOverlay.noAccountPrompt' | transloco }} <button type="button" class="link-button" (click)="navigateToRegister()">{{ 'loginOverlay.registerNowLink' | transloco }}</button></p>
     </div>
-
   </div>
 </div>

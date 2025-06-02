@@ -4,77 +4,174 @@
 
   @if (isLoadingCart() && itemCount() === 0) {
     <div class="loading-indicator page-loading">
+      <div class="spinner"></div>
       <p>{{ 'cartPage.loadingCart' | transloco }}</p>
     </div>
   }
 
   @if (uiError(); as errorMsg) {
-    <div class="error-message page-error">
+    <div class="error-message global-cart-error">
       <p>{{ errorMsg }}</p>
+    </div>
+  }
+
+  @if (isUpdatingLine() || isRemovingItem()) {
+    <div class="loading-overlay">
+      <div class="spinner"></div>
+      <span>{{ 'general.processing' | transloco }}</span>
     </div>
   }
 
   @if (!isLoadingCart() || itemCount() > 0) {
     @if (itemCount() > 0) {
-      <div class="cart-content-grid">
+      <div class="cart-content">
         <div class="cart-items-list">
-          <h2>{{ 'cartPage.yourItems' | transloco }} ({{ itemCount() }})</h2>
-          <ul>
-            @for (item of cartItems; track item.key) {
-              <li class="cart-item" [class.updating]="isUpdatingLine() === item.key">
+          <table class="cart-table desktop-only">
+            <thead>
+              <tr>
+                <th colspan="2">{{ 'cartPage.table.product' | transloco }}</th>
+                <th>{{ 'cartPage.table.priceUnit' | transloco }}</th> <!-- Nur noch Einzelpreis -->
+                <th>{{ 'cartPage.table.quantity' | transloco }}</th>
+                <!-- ENTFERNT: Spalte für Zeilensumme -->
+                <th> </th> <!-- Für Entfernen-Button -->
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of cartItems(); track item.key) {
+                <tr class="cart-item" [class.updating]="isUpdatingLine() === item.key || isRemovingItem() === item.key">
+                  <td class="item-image-cell">
+                    <a [routerLink]="getProductLinkForItem(item)">
+                      @if (getProductImageForItem(item); as imgUrl) {
+                        <img [src]="imgUrl" [alt]="item.name" loading="lazy"/>
+                      } @else {
+                        <div class="placeholder-image">
+                          <span class="material-symbols-outlined" [title]="'productPage.noImageAvailable' | transloco">image</span>
+                        </div>
+                      }
+                    </a>
+                  </td>
+                  <td class="item-details-cell">
+                    <a [routerLink]="getProductLinkForItem(item)" class="product-title">
+                      {{ item.name }}
+                    </a>
+                    @if (item.variation && item.variation.length > 0) {
+                      <div class="variant-title">
+                        @for (variant of item.variation; track variant.attribute) {
+                          <span>{{ variant.attribute }}: {{ variant.value }}</span>
+                        }
+                      </div>
+                    }
+                  </td>
+                  <td class="item-price-cell"> <!-- Zeigt jetzt den Einzelpreis mit MwSt.-Hinweis darunter -->
+                    <div class="price-block item-single-price"> <!-- Neuer Container für Styling -->
+                      <span class="price-value">{{ (item.prices?.price | formatPrice : item.totals.currency_code) || ('cartPage.priceUnavailable' | transloco )}}</span>
+                      <span class="vat-subtext"> {{ 'cartPage.summary.inclVatShort' | transloco }}</span>
+                    </div>
+                  </td>
+                  <td class="item-quantity-cell">
+                    <div class="quantity-control modern">
+                      <button class="quantity-button decrease icon-button"
+                              (click)="decrementQuantity(item)"
+                              [disabled]="isUpdatingLine() === item.key || item.quantity <= 1 || isRemovingItem() === item.key"
+                              [attr.aria-label]="'cartPage.decreaseQuantityAria' | transloco">
+                        <span class="material-symbols-outlined icon-minus">remove</span>
+                      </button>
+                      <span class="quantity-value">{{ item.quantity }}</span>
+                      <button class="quantity-button increase icon-button"
+                              (click)="incrementQuantity(item)"
+                              [disabled]="isUpdatingLine() === item.key || isRemovingItem() === item.key"
+                              [attr.aria-label]="'cartPage.increaseQuantityAria' | transloco">
+                        <span class="material-symbols-outlined icon-plus">add</span>
+                      </button>
+                    </div>
+                    @if (item.key === isUpdatingLine() && lineUpdateError()) {
+                      <div class="error-message line-update-error">
+                        <p>{{ lineUpdateError() }}</p>
+                      </div>
+                    } @else {
+                      <div class="loading-indicator quantity-loading-indicator">
+                         {{ isUpdatingLine() === item.key ? ('general.updating' | transloco) : '' }}
+                      </div>
+                    }
+                  </td>
+                  <!-- ENTFERNT: Zelle für item.totals.line_total -->
+                  <td class="item-remove-cell">
+                    <button class="remove-button modern-remove-btn icon-button icon-delete"
+                            (click)="removeItem(item.key)"
+                            [disabled]="isUpdatingLine() === item.key || isRemovingItem() === item.key"
+                            [attr.aria-label]="'cartPage.removeItemAria' | transloco : { itemName: item.name }">
+                      <span class="material-symbols-outlined">delete</span>
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+
+          <ul class="cart-list mobile-only">
+            @for (item of cartItems(); track item.key) {
+              <li class="cart-item-mobile" [class.updating]="isUpdatingLine() === item.key || isRemovingItem() === item.key">
                 <div class="item-image">
                   <a [routerLink]="getProductLinkForItem(item)">
                     @if (getProductImageForItem(item); as imgUrl) {
                       <img [src]="imgUrl" [alt]="item.name" loading="lazy"/>
                     } @else {
-                      <div class="no-image-placeholder small">
+                      <div class="placeholder-image small">
                         <span class="material-symbols-outlined" [title]="'productPage.noImageAvailable' | transloco">image</span>
                       </div>
                     }
                   </a>
                 </div>
-                <div class="item-details">
-                  <a [routerLink]="getProductLinkForItem(item)" class="item-title">
+                <div class="item-info">
+                  <a [routerLink]="getProductLinkForItem(item)" class="product-title">
                     {{ item.name }}
                   </a>
                   @if (item.variation && item.variation.length > 0) {
-                    <div class="item-variants">
+                    <div class="variant-title">
                       @for (variant of item.variation; track variant.attribute) {
-                        <span class="variant-detail">{{ variant.attribute }}: {{ variant.value }}</span>
+                        <span class="variant-detail-mobile">{{ variant.attribute }}: {{ variant.value }}</span>
                       }
                     </div>
                   }
-                  <span class="item-unit-price">
-                    <!-- Einzelpreis: item.totals.line_total / item.quantity -->
-                    {{ (item.prices?.price | formatPrice : item.totals.currency_code) || ('cartPage.priceUnavailable' | transloco )}}
-                  </span>
+                  <!-- Nur noch Einzelpreis anzeigen -->
+                  <div class="item-price-mobile price-block item-single-price">
+                     <span class="price-value">{{ (item.prices?.price | formatPrice : item.totals.currency_code) || ('cartPage.priceUnavailable' | transloco )}}</span>
+                     <span class="vat-subtext"> {{ 'cartPage.summary.inclVatShort' | transloco }}</span>
+                  </div>
+                  <!-- ENTFERNT: item-line-total-mobile -->
                 </div>
-                <div class="item-quantity-controls">
-                  <button class="quantity-btn icon-button"
-                          (click)="decrementQuantity(item)"
-                          [disabled]="isUpdatingLine() === item.key || item.quantity <= 1"
-                          [attr.aria-label]="'cartPage.decreaseQuantityAria' | transloco">
-                    <span class="material-symbols-outlined">remove</span>
-                  </button>
-                  <span class="quantity-value">{{ item.quantity }}</span>
-                  <button class="quantity-btn icon-button"
-                          (click)="incrementQuantity(item)"
-                          [disabled]="isUpdatingLine() === item.key"
-                          [attr.aria-label]="'cartPage.increaseQuantityAria' | transloco">
-                    <span class="material-symbols-outlined">add</span>
-                  </button>
+                <div class="item-actions-mobile">
+                   <div class="quantity-control modern">
+                    <button class="quantity-button decrease icon-button"
+                            (click)="decrementQuantity(item)"
+                            [disabled]="isUpdatingLine() === item.key || item.quantity <= 1 || isRemovingItem() === item.key"
+                            [attr.aria-label]="'cartPage.decreaseQuantityAria' | transloco">
+                      <span class="material-symbols-outlined icon-minus">remove</span>
+                    </button>
+                    <span class="quantity-value">{{ item.quantity }}</span>
+                    <button class="quantity-button increase icon-button"
+                            (click)="incrementQuantity(item)"
+                            [disabled]="isUpdatingLine() === item.key || isRemovingItem() === item.key"
+                            [attr.aria-label]="'cartPage.increaseQuantityAria' | transloco">
+                      <span class="material-symbols-outlined icon-plus">add</span>
+                    </button>
+                  </div>
+                   <button class="remove-button modern-remove-btn icon-button icon-delete"
+                            (click)="removeItem(item.key)"
+                            [disabled]="isUpdatingLine() === item.key || isRemovingItem() === item.key"
+                            [attr.aria-label]="'cartPage.removeItemAria' | transloco : { itemName: item.name }">
+                      <span class="material-symbols-outlined">delete</span>
+                    </button>
                 </div>
-                <div class="item-line-total">
-                  {{ item.totals.line_total | formatPrice : item.totals.currency_code }}
-                </div>
-                <div class="item-remove">
-                  <button class="remove-btn icon-button"
-                          (click)="removeItem(item.key)"
-                          [disabled]="isUpdatingLine() === item.key"
-                          [attr.aria-label]="'cartPage.removeItemAria' | transloco : { itemName: item.name }">
-                    <span class="material-symbols-outlined">delete</span>
-                  </button>
-                </div>
+                 @if (item.key === isUpdatingLine() && lineUpdateError()) {
+                  <div class="error-message line-update-error mobile-line-error">
+                    <p>{{ lineUpdateError() }}</p>
+                  </div>
+                } @else if (isUpdatingLine() === item.key) {
+                  <div class="loading-indicator quantity-loading-indicator mobile-line-error">
+                      {{ 'general.updating' | transloco }}
+                  </div>
+                }
               </li>
             }
           </ul>
@@ -82,30 +179,43 @@
 
         <div class="cart-summary">
           <h2>{{ 'cartPage.summary.title' | transloco }}</h2>
-          <div class="summary-row subtotal">
-            <span>{{ 'cartPage.summary.subtotal' | transloco }} ({{itemCount()}} {{ itemCount() === 1 ? ('cartPage.summary.itemSingular' | transloco) : ('cartPage.summary.itemPlural' | transloco) }}):</span>
-            @if (totalPriceDisplay(); as total) {
-              <span class="amount">{{ total.amount | formatPrice : total.currencyCode }}</span>
+
+          <div class="summary-row shipping">
+            <span>{{ 'cartPage.summary.shipping' | transloco }}:</span>
+            @if (cart()?.needs_shipping === false || (cartTotals()?.total_shipping && cartTotals()!.total_shipping === '0')) {
+              <span class="amount free-shipping">{{ 'general.free' | transloco }}</span>
+            } @else if (showShippingCosts() && cartTotals()?.total_shipping) {
+              <span class="amount">{{ cartTotals()!.total_shipping | formatPrice : cartTotals()!.currency_code }}</span>
             } @else {
-              <span class="amount">...</span>
+              <span class="amount">{{ cart()?.needs_shipping ? ('cartPage.summary.shippingText' | transloco) : ('general.free' | transloco) }}</span>
             }
           </div>
-          <!-- Ggf. Platz für Versandkosten, Steuern, Gutscheine etc. -->
-          <div class="summary-row total">
+
+          <div class="summary-row summary-total">
             <span>{{ 'cartPage.summary.total' | transloco }}:</span>
-             @if (totalPriceDisplay(); as total) {
-              <span class="amount total-amount">{{ total.amount | formatPrice : total.currencyCode }}</span>
+             @if (cartTotals(); as totals) {
+              <div class="total-price-block">
+                <span class="amount total-amount">
+                  {{ totals.total_price | formatPrice : totals.currency_code }}
+                </span>
+                <span class="vat-summary-subtext"> {{ 'cartPage.summary.inclVatShort' | transloco }}</span>
+              </div>
             } @else {
               <span class="amount total-amount">...</span>
             }
           </div>
-          <p class="vat-info">{{ 'cartPage.summary.vatInfo' | transloco }}</p>
-          <button class="checkout-button primary-button"
-                  (click)="goToCheckout()"
-                  [disabled]="isLoadingCart() || itemCount() === 0">
+
+          <button class="checkout-button" (click)="goToCheckout()" [disabled]="isLoadingCart() || itemCount() === 0">
             {{ 'cartPage.summary.checkoutButton' | transloco }}
           </button>
           <a routerLink="/" class="continue-shopping-link">{{ 'cartPage.summary.continueShopping' | transloco }}</a>
+
+           @if(cartService.cart()?.needs_shipping && (!cartService.cart()?.shipping_address?.postcode || !cartService.cart()?.shipping_address?.country)) {
+            <p class="cart-note">
+              <span class="material-symbols-outlined warning-icon">warning</span>
+              {{ 'cartPage.summary.shippingAddressNote' | transloco }}
+            </p>
+          }
         </div>
       </div>
     } @else {

@@ -78,26 +78,26 @@
 }
 
 .error-container {
-  min-height: 1.2em;
+  min-height: 1.2em; // Stellt sicher, dass der Platz für die Fehlermeldung reserviert ist, um Layout-Sprünge zu minimieren
   small {
     color: var(--error-color);
     font-size: 0.8rem;
-    display: block;
+    display: block; // Stellt sicher, dass jede Fehlermeldung in einer neuen Zeile ist
   }
 }
 
 .checkbox-field {
   flex-direction: row;
-  align-items: flex-start;
+  align-items: flex-start; // Bessere Ausrichtung, wenn Label mehrzeilig wird
   gap: var(--spacing-sm, 0.8rem);
   margin-top: var(--spacing-sm, 0.5rem);
 
   input[type="checkbox"] {
-    margin-top: 0.2em;
+    margin-top: 0.2em; // Kleine Anpassung für vertikale Ausrichtung mit dem Text
     width: 16px;
     height: 16px;
     cursor: pointer;
-    flex-shrink: 0;
+    flex-shrink: 0; // Verhindert, dass die Checkbox schrumpft
   }
   label {
     font-weight: var(--font-weight-normal);
@@ -116,7 +116,7 @@
   }
 
   &.terms-field {
-    margin-top: var(--spacing-lg, 1rem);
+    margin-top: var(--spacing-lg, 1rem); // Etwas mehr Abstand für die AGB-Checkbox
   }
 }
 
@@ -128,7 +128,8 @@
   padding: var(--spacing-sm, 10px) var(--spacing-md, 15px);
   text-align: center;
   font-size: 0.9rem;
-  margin-top: var(--spacing-sm, 0.5rem);
+  margin-top: var(--spacing-sm, 0.5rem); // Abstand nach oben, falls es nach einem Feld kommt
+  margin-bottom: var(--spacing-lg, 1.25rem); // Abstand zum Button
 }
 
 .submit-button {
@@ -159,9 +160,9 @@
   }
 
   .button-loading-spinner {
-    border: 2px solid var(--primary-color-text-rgba-03);
+    border: 2px solid var(--primary-color-text-rgba-03); // Stelle sicher, dass diese Variable existiert
     border-radius: var(--border-radius-circle);
-    border-top-color: var(--primary-color-text);
+    border-top-color: var(--primary-color-text); // Oder eine hellere Akzentfarbe
     width: 16px;
     height: 16px;
     animation: spin 1s ease infinite;
@@ -189,9 +190,9 @@
 }
 
 .success-message.registration-success {
-  background-color: var(--success-background-color);
-  color: var(--success-text-color);
-  border: 1px solid var(--success-color);
+  background-color: var(--success-background-color); // Stelle sicher, dass diese Variable existiert
+  color: var(--success-text-color); // Stelle sicher, dass diese Variable existiert
+  border: 1px solid var(--success-color); // Stelle sicher, dass diese Variable existiert
   padding: var(--spacing-lg);
   border-radius: var(--border-radius-lg);
   text-align: center;
@@ -201,14 +202,14 @@
     font-size: 48px;
     display: block;
     margin: 0 auto var(--spacing-md);
-    color: var(--success-text-color);
+    color: var(--success-text-color); // Oder var(--success-color)
   }
 
   h2 {
     margin-top: 0;
     margin-bottom: var(--spacing-md);
     font-size: 1.5rem;
-    color: var(--success-text-color);
+    color: var(--success-text-color); // Oder var(--success-color-dark)
   }
 
   p {
@@ -220,13 +221,14 @@
   }
 
   a {
-    color: var(--text-color-link);
+    color: var(--text-color-link); // Oder eine spezifische Linkfarbe für Erfolgsmeldungen
     font-weight: var(--font-weight-semibold);
     text-decoration: underline;
     &:hover { color: var(--text-color-link-hover); }
   }
 }
 
+// Media Query für kleinere Bildschirme
 @media (max-width: 600px) {
   .auth-page-container {
     margin: var(--spacing-lg) var(--spacing-md);
@@ -234,8 +236,8 @@
   }
   .form-row {
     flex-direction: column;
-    gap: var(--spacing-lg);
-    .zip-field, .city-field { flex: 1 1 auto; }
+    gap: var(--spacing-lg); // Behalte den Gap bei, wenn untereinander
+    .zip-field, .city-field { flex: 1 1 auto; } // Volle Breite für beide Felder
   }
   .success-message.registration-success {
     padding: var(--spacing-md);
