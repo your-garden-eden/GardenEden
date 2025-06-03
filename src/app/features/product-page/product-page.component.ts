@@ -2,13 +2,13 @@
 import {
   Component, OnInit, inject, signal, WritableSignal, ChangeDetectionStrategy,
   ChangeDetectorRef, OnDestroy, computed, Signal, effect, AfterViewInit,
-  PLATFORM_ID, // KORRIGIERT: PLATFORM_ID importiert
-  untracked    // KORRIGIERT: untracked importiert
+  PLATFORM_ID,
+  untracked
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { CommonModule, CurrencyPipe, Location, NgClass, isPlatformBrowser } from '@angular/common'; // isPlatformBrowser importiert
-import { Title, Meta, MetaDefinition } from '@angular/platform-browser'; // MetaDefinition importiert
-import { Subscription, of, combineLatest, EMPTY, forkJoin, BehaviorSubject, Observable } from 'rxjs'; // Observable importiert
+import { CommonModule, CurrencyPipe, Location, NgClass, isPlatformBrowser } from '@angular/common';
+import { Title, Meta, MetaDefinition } from '@angular/platform-browser';
+import { Subscription, of, combineLatest, EMPTY, forkJoin, BehaviorSubject, Observable } from 'rxjs';
 import {
   switchMap, tap, catchError, map, filter, distinctUntilChanged, startWith, take, finalize
 } from 'rxjs/operators';
@@ -20,7 +20,7 @@ import {
 import { CartService } from '../../shared/services/cart.service';
 import { WishlistService } from '../../shared/services/wishlist.service';
 import { AuthService, WordPressUser } from '../../shared/services/auth.service';
-import { UiStateService } from '../../shared/services/ui-state.service';
+import { UiStateService } from '../../shared/services/ui-state.service'; // UiStateService bleibt für globale Nachrichten etc.
 import { ImageTransformPipe } from '../../shared/pipes/image-transform.pipe';
 import { FormatPricePipe } from '../../shared/pipes/format-price.pipe';
 import { SafeHtmlPipe } from '../../shared/pipes/safe-html.pipe';
@@ -185,13 +185,13 @@ export class ProductPageComponent implements OnInit, OnDestroy, AfterViewInit {
   private addToCartErrorKey: WritableSignal<string | null> = signal(null);
 
   readonly isOnWishlist: Signal<boolean> = computed(() => {
-    const slug = this.product()?.slug; // Beachte: Produkt-Slug wird hier verwendet, nicht der Routen-Parameter-Name
+    const slug = this.product()?.slug;
     return slug ? this.wishlistService.isOnWishlist(slug) : false;
   });
 
   readonly isLoggedIn$: Observable<boolean> = this.authService.isLoggedIn$;
   private subscriptions = new Subscription();
-  private productSlugFromRoute: string | null = null; // Diese Variable speichert den Wert aus der Route
+  private productSlugFromRoute: string | null = null;
 
   constructor() {
     effect(() => {
@@ -212,32 +212,31 @@ export class ProductPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnInit(): void {
     const authSub = this.authService.isLoggedIn$.subscribe((loggedIn: boolean) => {
-      console.log('ProductPage: User loggedIn status in ngOnInit:', loggedIn);
+      // console.log('ProductPage: User loggedIn status in ngOnInit:', loggedIn); // Optional: Logging
       this.cdr.markForCheck();
     });
     this.subscriptions.add(authSub);
 
     const handle$ = this.route.paramMap.pipe(
-      // ***** KORREKTUR HIER: Zurück zu 'handle' oder an deinen Routenparameter anpassen *****
-      map(params => params.get('handle')), // Angenommen, dein Routenparameter heißt 'handle'
+      map(params => params.get('handle')),
       distinctUntilChanged(),
-      tap(routeParamValue => { // Umbenannt zu routeParamValue für Klarheit
-        console.log('ProductPageComponent Route Param from URL:', routeParamValue);
-        this.productSlugFromRoute = routeParamValue; // Speichert den Wert aus der Route
+      tap(routeParamValue => {
+        // console.log('ProductPageComponent Route Param from URL:', routeParamValue); // Optional: Logging
+        this.productSlugFromRoute = routeParamValue;
         this.resetStateAndLoadInitialTitle();
       })
     );
 
     const productDataLoadingSub = handle$.pipe(
-      filter((paramValue): paramValue is string => { // Umbenannt zu paramValue
+      filter((paramValue): paramValue is string => {
         if (!paramValue) {
           this.setErrorStateAndTitle('productPage.errorNoHandle', 'productPage.errorTitle');
           return false;
         }
         return true;
       }),
-      switchMap(actualSlugToLoad => // Umbenannt zu actualSlugToLoad
-        this.woocommerceService.getProductBySlug(actualSlugToLoad).pipe( // Verwende den Wert aus der Route
+      switchMap(actualSlugToLoad =>
+        this.woocommerceService.getProductBySlug(actualSlugToLoad).pipe(
           switchMap(productData => {
             if (!productData) {
               this.setErrorStateAndTitle('productPage.errorNotFound', 'productPage.notFoundTitle');
@@ -419,7 +418,9 @@ export class ProductPageComponent implements OnInit, OnDestroy, AfterViewInit {
     this.addToCartError.set(null); this.addToCartErrorKey.set(null);
     try {
       await this.cartService.addItem(productIdToAdd, quantityToAdd, variationIdToAdd);
-      this.uiStateService.openMiniCartWithTimeout();
+      // ENTFERNT: this.uiStateService.openMiniCartWithTimeout();
+      // Stattdessen könntest du hier eine globale Erfolgsmeldung anzeigen, wenn gewünscht:
+      this.uiStateService.showGlobalSuccess(this.translocoService.translate('productPage.successAddToCart', { productName: productData.name }));
     } catch (error) {
       console.error(`ProductPage: Error adding to cart:`, error);
       this.addToCartErrorKey.set('productPage.errorAddingToCart');
@@ -431,7 +432,7 @@ export class ProductPageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   async toggleWishlist(): Promise<void> {
-    const productSlug = this.product()?.slug; // Produkt-Slug für Wishlist-Funktion
+    const productSlug = this.product()?.slug;
     const productName = this.product()?.name || '';
     const isLoggedIn = this.authService.getCurrentUserValue() !== null;
 

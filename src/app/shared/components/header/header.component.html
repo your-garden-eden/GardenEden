@@ -34,13 +34,12 @@
         }
       </div>
 
-      <!-- KORRIGIERTER BLOCK FÜR SUCH-OVERLAY -->
       @if(isSearchOverlayVisible()) {
         <div
           class="search-results-overlay"
           (click)="$event.stopPropagation()"
           (scroll)="onSearchOverlayScroll($event)"
-        > <!-- Fehlendes schließendes ">" war hier oder falsche Blockstruktur -->
+        >
           @if(isSearchLoading() && !isSearchLoadingMore()) {
             <div class="search-loading">{{ 'header.searchLoading' | transloco }}</div>
           } @else if (searchError() && searchResults().length === 0) {
@@ -69,11 +68,10 @@
           @if(isSearchLoadingMore()) {
             <div class="search-loading-more">{{ 'header.searchLoadingMore' | transloco }}</div>
           }
-        </div> <!-- Korrektes Schließen des search-results-overlay Divs -->
-      } <!-- Korrektes Schließen des @if Blocks -->
-      <!-- ENDE KORRIGIERTER BLOCK -->
+        </div>
+      }
 
-    </div> <!-- Schließt .search-bar-container -->
+    </div>
 
     <div class="user-actions">
       <a routerLink="/wunschliste"
@@ -90,14 +88,14 @@
         </span>
       </a>
 
-      <a routerLink="/warenkorb" [title]="'header.cart' | transloco" class="icon-button cart-button"
-         (mouseenter)="onCartIconMouseEnter()" (mouseleave)="onCartIconMouseLeave()">
+      <!-- WARENKORB-ICON OHNE MINI-WARENKORB FUNKTIONALITÄT -->
+      <a routerLink="/warenkorb" [title]="'header.cart' | transloco" class="icon-button cart-button">
         <span class="material-symbols-outlined">shopping_cart</span>
         @if (itemCount$() > 0) {
           <span class="cart-badge">{{ itemCount$() }}</span>
         }
       </a>
-      <app-mini-cart *ngIf="isMiniCartOpen$()"></app-mini-cart>
+      <!-- ENTFERNT: <app-mini-cart *ngIf="isMiniCartOpen$()"></app-mini-cart> -->
 
       @if (currentUser$ | async; as user) {
         <a routerLink="/mein-konto" [title]="'header.account' | transloco" class="icon-button account-button">
@@ -112,8 +110,8 @@
           <span class="material-symbols-outlined">person_outline</span>
         </button>
       }
-    </div> <!-- Schließt .user-actions -->
-  </div> <!-- Schließt .top-row -->
+    </div>
+  </div>
 
   <nav class="main-nav bottom-row" [class.mobile-menu-active]="isMobileMenuOpen">
     <div class="logo-container">

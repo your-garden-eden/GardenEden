@@ -1,8 +1,8 @@
 // /src/app/features/home/home.component.scss
 
 // Basis Swiper Styles
-@import 'swiper/scss';
-// @import 'swiper/scss/navigation'; // Navigation-Import ist nicht mehr nötig, da Pfeile entfernt wurden
+@use 'swiper/scss'; // GEÄNDERT von @import zu @use
+// @use 'swiper/scss/navigation'; // Falls du spezifische Module laden müsstest, wäre es auch @use
 
 .content-container {
   max-width: 1400px;
