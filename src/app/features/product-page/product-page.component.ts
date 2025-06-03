@@ -39,8 +39,6 @@ interface SelectedOptions {
   imports: [
     CommonModule,
     RouterLink,
-    ImageTransformPipe,
-    FormatPricePipe,
     SafeHtmlPipe,
     TranslocoModule,
     FormsModule,
