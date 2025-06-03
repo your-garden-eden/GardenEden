@@ -1,6 +1,7 @@
 # Polityka prywatności
-Ostatnia aktualizacja: 29 kwietnia 2025 r. *(Uwaga: w razie potrzeby dostosować datę)*
-Niniejsza polityka prywatności opisuje, w jaki sposób Your-Garden-Eden („Witryna”, „my”, „nas” lub „nasz”) gromadzi, wykorzystuje i przekazuje dane osobowe użytkowników podczas odwiedzania witryny stygej-6u.myshopify.com („Witryna”), korzystania z naszych usług, dokonywania zakupów lub komunikowania się z nami w inny sposób w związku z Witryną (łącznie „Usługi”). W niniejszej Polityce prywatności terminy „użytkownik” i „użytkownik” odnoszą się do użytkownika korzystającego z Usług, niezależnie od tego, czy jest on klientem, odwiedzającym stronę internetową, czy inną osobą, której dane zostały zebrane przez nas zgodnie z niniejszą Polityką prywatności.
+Ostatnia aktualizacja: 29 kwietnia 2025
+
+Niniejsza Polityka Prywatności opisuje, w jaki sposób Your-Garden-Eden („Witryna”, „my” lub „nasz”) gromadzi, wykorzystuje i udostępnia Twoje dane osobowe, gdy odwiedzasz stronę www.Your-Garden-Eden.de („Witryna”), korzystasz z naszych usług, dokonujesz tam zakupu lub w inny sposób komunikujesz się z nami w związku z Witryną (łącznie „Usługi”). W rozumieniu niniejszej Polityki Prywatności, „Ty” i „Twój” odnoszą się do Ciebie jako użytkownika Usług, niezależnie od tego, czy jesteś klientem, odwiedzającym Witrynę, czy inną osobą, której dane zebraliśmy zgodnie z niniejszą Polityką Prywatności.
 Prosimy o uważne zapoznanie się z niniejszą Polityką prywatności.
 ## Zmiany w niniejszej Polityce prywatności
 Możemy od czasu do czasu aktualizować niniejszą Politykę prywatności, między innymi w celu odzwierciedlenia zmian w naszych praktykach lub z innych powodów operacyjnych, prawnych lub regulacyjnych. Zaktualizowaną Politykę prywatności opublikujemy na stronie, zaktualizujemy datę „Ostatniej aktualizacji” i podejmiemy wszelkie inne kroki wymagane przez prawo.

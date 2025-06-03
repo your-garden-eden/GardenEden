@@ -7,7 +7,7 @@
 ### Nuestras raíces: la dirección de Your-Garden-Eden:
 Your-Garden-Eden
 Schmölln 49
-17291 Randowtal-Schölln
+17291 Randowtal-Schmölln
 Alemania
 Nuestro hogar está enclavado en la belleza natural del valle de Randowtal. Este lugar nos inspira cada día en nuestro trabajo para Your-Garden-Eden.
 **Tenga en cuenta:** Puede ponerse en contacto con nosotros por correo postal, pero nuestra ubicación física no es una tienda abierta al público.
