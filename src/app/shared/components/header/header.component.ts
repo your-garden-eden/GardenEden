@@ -31,13 +31,13 @@ import {
 } from 'rxjs/operators';
 import { ReactiveFormsModule, FormControl, FormsModule } from '@angular/forms';
 
-// Komponenten
-import { MiniCartComponent } from '../mini-cart/mini-cart.component';
+// ENTFERNT: Komponenten-Import für MiniCartComponent
+// import { MiniCartComponent } from '../mini-cart/mini-cart.component';
 
 // Services & Daten
 import { AuthService, WordPressUser } from '../../../shared/services/auth.service';
 import { CartService } from '../../../shared/services/cart.service';
-import { UiStateService } from '../../../shared/services/ui-state.service';
+import { UiStateService } from '../../../shared/services/ui-state.service'; // Bleibt für Login-Overlay etc.
 import { WishlistService } from '../../../shared/services/wishlist.service';
 import { navItems, NavItem } from '../../../core/data/navigation.data';
 import {
@@ -62,7 +62,7 @@ import { HttpParams } from '@angular/common/http';
     ReactiveFormsModule,
     FormsModule,
     AsyncPipe,
-    MiniCartComponent,
+    // ENTFERNT: MiniCartComponent, // Da es nicht mehr im Template ist
     TranslocoModule,
   ],
   templateUrl: './header.component.html',
@@ -87,7 +87,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   isMobileMenuOpen = false;
   public navItems = navItems;
 
-  isMiniCartOpen$: Signal<boolean> = this.uiStateService.isMiniCartOpen$;
+  // ENTFERNT: isMiniCartOpen$: Signal<boolean> = this.uiStateService.isMiniCartOpen$;
   isWishlistEmpty: Signal<boolean> = this.wishlistService.isEmpty;
   isLoggedIn$: Observable<boolean> = this.authService.isLoggedIn$;
 
@@ -130,9 +130,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
           if (wasMobile && !this.isMobileScreen() && this.isMobileMenuOpen) {
             this.closeMobileMenu();
           }
-          if (this.isMobileScreen() && this.isMiniCartOpen$()) {
-            this.uiStateService.closeMiniCart();
-          }
+          // ENTFERNT: Logik bezüglich MiniCart bei Screen-Wechsel
+          // if (this.isMobileScreen() && this.isMiniCartOpen$()) { // isMiniCartOpen$ existiert nicht mehr
+          //   this.uiStateService.closeMiniCart(); // Methode existiert ggf. nicht mehr im UiStateService
+          // }
           this.cdr.markForCheck();
         });
       this.subscriptions.add(breakpointSubscription);
@@ -193,8 +194,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
   private setupSearchDebounce(): void {
     const searchSub = this.searchControl.valueChanges
       .pipe(
-        // Type Guard, um sicherzustellen, dass 'term' in nachfolgenden Operatoren 'string' ist
-        // und dass der String die Mindestlänge hat.
         filter((termValue: string | null): termValue is string => {
           if (termValue === null || termValue.length < 3) {
             this.searchResults.set([]);
@@ -211,8 +210,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
           return true;
         }),
         debounceTime(400),
-        distinctUntilChanged(), // Arbeitet jetzt mit 'string'
-        tap((term: string) => { // term ist hier definitiv 'string'
+        distinctUntilChanged(),
+        tap((term: string) => {
           this.isSearchLoading.set(true);
           this.isSearchLoadingMore.set(false);
           this.isSearchOverlayVisible.set(true);
@@ -222,9 +221,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
           this.totalSearchPages.set(1);
           this.currentSearchTerm = term;
         }),
-        switchMap((term: string) => { // term ist hier definitiv 'string'
+        switchMap((term: string) => {
           const params = new HttpParams()
-            .set('search', term) // term ist jetzt sicher ein string
+            .set('search', term)
             .set('per_page', this.SEARCH_RESULTS_PER_PAGE.toString());
           return this.woocommerceService.getProducts(undefined, this.SEARCH_RESULTS_PER_PAGE, 1, params).pipe(
             catchError(err => {
@@ -287,7 +286,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
         this.closeSearchOverlay();
         this.closeMobileMenu();
         this.uiStateService.closeLoginOverlay();
-        this.uiStateService.closeMiniCart();
+        // ENTFERNT: Aufruf von this.uiStateService.closeMiniCart();
       });
     this.subscriptions.add(routeSub);
   }
@@ -299,24 +298,25 @@ export class HeaderComponent implements OnInit, OnDestroy {
     if (this.isMobileMenuOpen) this.closeMobileMenu();
   }
 
-  onCartIconMouseEnter(): void {
-    if (!this.isMobileScreen()) {
-      this.uiStateService.openMiniCart();
-    }
-  }
+  // ENTFERNT: onCartIconMouseEnter Methode
+  // onCartIconMouseEnter(): void {
+  //   if (!this.isMobileScreen()) {
+  //     this.uiStateService.openMiniCart();
+  //   }
+  // }
 
-  onCartIconMouseLeave(): void {
-    if (!this.isMobileScreen()) {
-      this.uiStateService.startCloseTimeout(300);
-    }
-  }
+  // ENTFERNT: onCartIconMouseLeave Methode
+  // onCartIconMouseLeave(): void {
+  //   if (!this.isMobileScreen()) {
+  //     this.uiStateService.startCloseTimeout(300);
+  //   }
+  // }
 
   performLogout(): void {
     this.closeMobileMenu();
     this.authService.logout().subscribe({
         next: () => {
             this.router.navigate(['/'], { queryParams: { loggedOut: 'true' } });
-            // console.log('Header: Logout-Aktion abgeschlossen.');
         },
         error: (error) => {
              console.error('Header: Fehler beim Logout im Service:', error);
@@ -371,9 +371,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
     this.isSearchLoadingMore.set(true);
     const nextPageToLoad = this.currentSearchPage() + 1;
-    // this.currentSearchTerm ist hier sicher ein string, da dieser Pfad nur bei gültiger Erstsuche erreicht wird
     const params = new HttpParams()
-      .set('search', this.currentSearchTerm)
+      .set('search', this.currentSearchTerm) // currentSearchTerm ist hier sicher string
       .set('per_page', this.SEARCH_RESULTS_PER_PAGE.toString());
 
     this.woocommerceService.getProducts(undefined, this.SEARCH_RESULTS_PER_PAGE, nextPageToLoad, params)

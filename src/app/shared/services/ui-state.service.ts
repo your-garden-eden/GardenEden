@@ -20,24 +20,23 @@ export class UiStateService {
   private _isLoginOverlayOpen: WritableSignal<boolean> = signal(false);
   public readonly isLoginOverlayOpen$: Signal<boolean> = this._isLoginOverlayOpen.asReadonly();
 
-  // --- Zustand für Mini-Cart ---
-  private _isMiniCartOpen: WritableSignal<boolean> = signal(false);
-  public readonly isMiniCartOpen$: Signal<boolean> = this._isMiniCartOpen.asReadonly();
-  private closeTimeoutId: ReturnType<typeof setTimeout> | null = null;
-  private readonly DEFAULT_MINI_CART_DISPLAY_DURATION = 3000; // 3 Sekunden
+  // --- ENTFERNT: Zustand für Mini-Cart ---
+  // private _isMiniCartOpen: WritableSignal<boolean> = signal(false);
+  // public readonly isMiniCartOpen$: Signal<boolean> = this._isMiniCartOpen.asReadonly();
+  // private closeTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  // private readonly DEFAULT_MINI_CART_DISPLAY_DURATION = 3000; // 3 Sekunden
 
-  // --- NEU: Zustand für globale Nachrichten ---
+  // --- Zustand für globale Nachrichten (bleibt) ---
   private _globalMessage: WritableSignal<GlobalMessage | null> = signal(null);
   public readonly globalMessage$ = this._globalMessage.asReadonly();
   private globalMessageTimeoutId: ReturnType<typeof setTimeout> | null = null;
-  // --- ENDE NEU ---
 
   constructor() {}
 
-  // --- Methoden für Login-Overlay ---
+  // --- Methoden für Login-Overlay (angepasst) ---
   openLoginOverlay(): void {
     this._isLoginOverlayOpen.set(true);
-    this.closeMiniCart();
+    // ENTFERNT: this.closeMiniCart(); // Nicht mehr nötig, da Mini-Cart entfernt wird
   }
 
   closeLoginOverlay(): void {
@@ -46,50 +45,47 @@ export class UiStateService {
 
   toggleLoginOverlay(): void {
     this._isLoginOverlayOpen.update(value => !value);
-    if (this._isLoginOverlayOpen()) {
-      this.closeMiniCart();
-    }
+    // ENTFERNT: if (this._isLoginOverlayOpen()) { this.closeMiniCart(); }
   }
 
-  // --- Methoden für Mini-Cart ---
-  openMiniCart(): void {
-    if (!isPlatformBrowser(this.platformId)) return;
-    this.cancelCloseTimeout();
-    this._isMiniCartOpen.set(true);
-  }
+  // --- ENTFERNT: Methoden für Mini-Cart ---
+  // openMiniCart(): void {
+  //   if (!isPlatformBrowser(this.platformId)) return;
+  //   this.cancelCloseTimeout();
+  //   this._isMiniCartOpen.set(true);
+  // }
 
-  closeMiniCart(): void {
-    if (!isPlatformBrowser(this.platformId) || !this._isMiniCartOpen()) return;
-    this.cancelCloseTimeout();
-    this._isMiniCartOpen.set(false);
-  }
+  // closeMiniCart(): void {
+  //   if (!isPlatformBrowser(this.platformId) || !this._isMiniCartOpen()) return;
+  //   this.cancelCloseTimeout();
+  //   this._isMiniCartOpen.set(false);
+  // }
 
-  startCloseTimeout(delay: number = 500): void {
-    if (!isPlatformBrowser(this.platformId)) return;
-    this.cancelCloseTimeout();
-    this.closeTimeoutId = setTimeout(() => {
-      this._isMiniCartOpen.set(false);
-      this.closeTimeoutId = null;
-    }, delay);
-  }
+  // startCloseTimeout(delay: number = 500): void {
+  //   if (!isPlatformBrowser(this.platformId)) return;
+  //   this.cancelCloseTimeout();
+  //   this.closeTimeoutId = setTimeout(() => {
+  //     this._isMiniCartOpen.set(false);
+  //     this.closeTimeoutId = null;
+  //   }, delay);
+  // }
 
-  cancelCloseTimeout(): void {
-    if (this.closeTimeoutId) {
-      clearTimeout(this.closeTimeoutId);
-      this.closeTimeoutId = null;
-    }
-  }
+  // cancelCloseTimeout(): void {
+  //   if (this.closeTimeoutId) {
+  //     clearTimeout(this.closeTimeoutId);
+  //     this.closeTimeoutId = null;
+  //   }
+  // }
 
-  public openMiniCartWithTimeout(duration: number = this.DEFAULT_MINI_CART_DISPLAY_DURATION): void {
-    if (!isPlatformBrowser(this.platformId)) return;
-    this.openMiniCart();
-    this.closeTimeoutId = setTimeout(() => {
-      this._isMiniCartOpen.set(false);
-      this.closeTimeoutId = null;
-    }, duration);
-  }
+  // public openMiniCartWithTimeout(duration: number = this.DEFAULT_MINI_CART_DISPLAY_DURATION): void {
+  //   if (!isPlatformBrowser(this.platformId)) return;
+  //   this.openMiniCart(); // Würde Fehler werfen, da openMiniCart entfernt wird
+  //   // Stattdessen: Wenn diese Funktionalität (etwas für eine Dauer anzeigen) anderweitig gebraucht wird,
+  //   // müsste sie allgemeiner implementiert werden oder spezifisch für den neuen Zweck.
+  //   // Für den Mini-Cart Zweck ist sie jetzt obsolet.
+  // }
 
-  // --- NEUE METHODEN für globale Nachrichten ---
+  // --- Methoden für globale Nachrichten (bleiben unverändert) ---
   public showGlobalMessage(
     message: string,
     type: GlobalMessage['type'] = 'info',
@@ -134,5 +130,4 @@ export class UiStateService {
       this.globalMessageTimeoutId = null;
     }
   }
-  // --- ENDE NEUE METHODEN ---
 }

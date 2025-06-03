@@ -5,8 +5,8 @@ $mobile-breakpoint-medium: 768px;
 $mobile-breakpoint-small: 576px;
 
 // Spezifische Layout-Variablen für diese Seite
-$card-min-width-list-desktop: 280px;
-$card-min-width-list-medium: 200px;
+// $card-min-width-list-desktop: 280px; // Wird weniger relevant, wenn wir feste Spalten für Desktop nehmen
+$card-min-width-list-medium: 200px; // Bleibt für kleinere Viewports relevant
 // Annahme für die ungefähre Breite des Zurück-Buttons,
 // um die Zentrierung des Titels zu unterstützen.
 // Diesen Wert an den längsten "Zurück zu..." Text anpassen oder
@@ -23,39 +23,30 @@ $back-button-placeholder-width: 200px; // Beispielwert
 .page-header-with-back-button {
   display: flex;
   align-items: center;
-  justify-content: space-between; // Button links, Platzhalter rechts, Titel mittig
+  justify-content: space-between;
   margin-bottom: var(--spacing-xl);
-  min-height: 40px; // Eine Mindesthöhe für die Zeile
+  min-height: 40px;
 
   .back-button.product-list-back-button,
   .back-button-placeholder,
   .title-align-placeholder {
-    // flex: 0 1 $back-button-placeholder-width; // Basis, kann wachsen, nicht schrumpfen
-    flex-basis: $back-button-placeholder-width; // Feste Basisbreite für die Platzhalter/Button-Bereiche
-    flex-shrink: 0; // Verhindert Schrumpfen
-    // Für Debugging kann man hier temporär einen Rand hinzufügen:
-    // border: 1px dashed red;
+    flex-basis: $back-button-placeholder-width;
+    flex-shrink: 0;
   }
 
   .back-button-placeholder,
   .title-align-placeholder {
-    visibility: hidden; // Macht Platzhalter unsichtbar, aber sie nehmen Platz ein
-    // Wenn der Platzhalter leer ist (also kein Zurück-Button da),
-    // könnte der rechte Platzhalter eine geringere oder keine Breite haben,
-    // je nachdem, wie der Titel zentriert werden soll.
-    // Für eine echte Symmetrie sollte er dieselbe Basisbreite haben.
+    visibility: hidden;
   }
 
   .product-list-title {
-    flex-grow: 1; // Nimmt den verfügbaren Platz in der Mitte
+    flex-grow: 1;
     text-align: center;
-    margin: 0 var(--spacing-sm); // Kleiner horizontaler Abstand zu den seitlichen Elementen
-    padding: 0; // Zurücksetzen, falls h1 globale Paddings hat
-    // Um Überlappung bei sehr langen Titeln zu vermeiden:
+    margin: 0 var(--spacing-sm);
+    padding: 0;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap; // Verhindert Umbruch, wenn Titel sehr lang ist und Platz knapp
-                         // Alternative: Mehrzeiligkeit erlauben und Höhe anpassen.
+    white-space: nowrap;
   }
 }
 
@@ -74,11 +65,11 @@ $back-button-placeholder-width: 200px; // Beispielwert
   text-decoration: none;
   cursor: pointer;
   transition: all 0.25s ease-out;
-  white-space: nowrap; // Verhindert Umbruch im Button-Text
+  white-space: nowrap;
 
   .material-symbols-outlined {
     font-size: 18px;
-    font-weight: normal; // Verhindert, dass Icon fett wird, wenn Button fett ist
+    font-weight: normal;
   }
 
   &:hover {
@@ -127,7 +118,8 @@ $back-button-placeholder-width: 200px; // Beispielwert
 
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax($card-min-width-list-desktop, 1fr));
+  // Standard für Desktop: 5 Spalten
+  grid-template-columns: repeat(5, 1fr); // GEÄNDERT für 5 Spalten
   gap: var(--spacing-xl);
 }
 
@@ -145,45 +137,50 @@ $back-button-placeholder-width: 200px; // Beispielwert
 }
 
 // Responsive Anpassungen
-@media (max-width: $mobile-breakpoint-medium) {
+@media (max-width: 1200px) { // Ein neuer Breakpoint, um von 5 auf 4 Spalten zu wechseln (optional)
+  .product-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: $mobile-breakpoint-medium) { // 768px
     .category-page-content {
         padding: var(--spacing-lg);
     }
 
     .page-header-with-back-button {
-        flex-direction: column; // Button und Titel untereinander
-        align-items: flex-start; // Linksbündig
-        gap: var(--spacing-md); // Abstand zwischen Button und Titel
-        margin-bottom: var(--spacing-lg); // Angepasster Abstand zum Grid
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-md);
+        margin-bottom: var(--spacing-lg);
 
         .back-button.product-list-back-button,
         .back-button-placeholder,
         .title-align-placeholder {
-            flex-basis: auto; // Breite automatisch
-            min-width: 0;     // Mindestbreite zurücksetzen
+            flex-basis: auto;
+            min-width: 0;
         }
-
-        // Auf Mobile, wenn untereinander, sind die Platzhalter nicht unbedingt nötig
-        // oder sollten kein display: none haben, wenn der Titel linksbündig sein soll.
-        // Wenn der Button fehlt und der Titel linksbündig ist, ist .back-button-placeholder:empty nicht relevant.
         .title-align-placeholder {
-             display: none; // Rechten Platzhalter auf Mobile ausblenden
+             display: none;
         }
-         .back-button-placeholder:not(:empty) { // Wenn der linke Button fehlt (also der Placeholder Inhalt hätte)
-             display: none; // Linken Platzhalter auch ausblenden, Titel ist dann einfach links
+         .back-button-placeholder:not(:empty) {
+             display: none;
          }
-
-
         .product-list-title {
-            text-align: left; // Titel linksbündig
-            width: 100%;    // Volle Breite
-            font-size: 1.8rem; // Schriftgröße für Titel auf Mobile
-            margin: 0;      // Reset margin, da im Flex-column
+            text-align: left;
+            width: 100%;
+            font-size: 1.8rem;
+            margin: 0;
         }
     }
 
     .product-grid {
-        grid-template-columns: repeat(auto-fill, minmax($card-min-width-list-medium, 1fr));
+        // Bei 768px und darunter, könnten wir 3 oder 2 Spalten wollen, je nach $card-min-width-list-medium
+        // Aktuell: repeat(auto-fill, minmax(200px, 1fr)); was bei ~700px Breite zu 3 Spalten führen würde.
+        // Wenn wir hier präziser sein wollen:
+        grid-template-columns: repeat(3, 1fr); // Z.B. 3 Spalten
+        // ODER die auto-fill Logik beibehalten, wenn sie gut funktioniert:
+        // grid-template-columns: repeat(auto-fill, minmax($card-min-width-list-medium, 1fr));
         gap: var(--spacing-lg);
     }
     .load-more-trigger {
@@ -191,43 +188,42 @@ $back-button-placeholder-width: 200px; // Beispielwert
     }
 }
 
-@media (max-width: $mobile-breakpoint-small) {
+@media (max-width: $mobile-breakpoint-small) { // 576px
     .page-header-with-back-button .product-list-title {
-        font-size: 1.5rem; // Kleinere Schrift für Titel auf sehr kleinen Screens
+        font-size: 1.5rem;
     }
     .product-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, 1fr); // Hier bleiben 2 Spalten
         gap: var(--spacing-md);
     }
 }
 
-// --- HINZUGEFÜGT: Scroll-to-Top Button ---
+// --- Scroll-to-Top Button (unverändert) ---
 .scroll-to-top-button {
   position: fixed;
-  bottom: 25px; // Etwas Abstand vom unteren Rand
-  right: 25px;  // Etwas Abstand vom rechten Rand
-  z-index: 1050; // Sollte über den meisten Elementen liegen (Bootstrap Modal z-index ist oft 1040/1050)
-  background-color: var(--primary-color, #A1B48A); // Deine Primärfarbe, mit Fallback
-  color: var(--primary-color-text, white); // Textfarbe für Primärbutton
+  bottom: 25px;
+  right: 25px;
+  z-index: 1050;
+  background-color: var(--primary-color, #A1B48A);
+  color: var(--primary-color-text, white);
   border: none;
-  border-radius: 50%; // Macht den Button rund
-  width: 50px;        // Feste Breite
-  height: 50px;       // Feste Höhe
-  font-size: 24px;    // Größe des Icons
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  font-size: 24px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--box-shadow-md, 0 4px 8px rgba(0,0,0,0.2)); // Ein etwas stärkerer Schatten
-  opacity: 0;         // Standardmäßig unsichtbar
-  visibility: hidden; // Standardmäßig nicht im Layout-Fluss
-  transform: translateY(20px) scale(0.9); // Startposition für Einblend-Effekt (etwas kleiner)
+  box-shadow: var(--box-shadow-md, 0 4px 8px rgba(0,0,0,0.2));
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(20px) scale(0.9);
   transition: opacity 0.3s ease-in-out,
               visibility 0.3s ease-in-out,
               transform 0.3s ease-in-out,
               background-color 0.2s ease-in-out;
 
-  // Wird durch [class.show] im HTML gesteuert
   &.show {
     opacity: 1;
     visibility: visible;
@@ -235,13 +231,10 @@ $back-button-placeholder-width: 200px; // Beispielwert
   }
 
   &:hover {
-    background-color: var(--primary-color-dark, #8A9E74); // Dunklere Variante beim Hovern, mit Fallback
-    // Optional: transform: scale(1.05); // Leichte Vergrößerung beim Hover
+    background-color: var(--primary-color-dark, #8A9E74);
   }
 
-  &:active {
-    // Optional: transform: scale(0.95); // Leichte Verkleinerung beim Klick
-  }
+  &:active {}
 
   &:focus-visible {
     outline: 2px solid var(--primary-color-dark, #8A9E74);
@@ -249,16 +242,15 @@ $back-button-placeholder-width: 200px; // Beispielwert
   }
 
   .material-symbols-outlined {
-    font-size: inherit; // Übernimmt die Schriftgröße vom Button
-    line-height: 1;     // Stellt sicher, dass das Icon vertikal zentriert ist
+    font-size: inherit;
+    line-height: 1;
   }
 }
 
-// Optional: Anpassung für kleinere Bildschirme, falls der Button zu groß wirkt
-@media (max-width: $mobile-breakpoint-small) {
-  .scroll-to-top-button {
-    width: 45px;
-    height: 45px;
+@media (max-width: $mobile-breakpoint-small) { // Stellt sicher, dass dies NACH der Hauptdefinition für .scroll-to-top-button kommt
+  .scroll-to-top-button {              // oder spezifischer ist, falls es Konflikte gibt.
+    width: 45px;                       // Da es dieselbe Media Query ist wie für .product-grid,
+    height: 45px;                      // sollte die Reihenfolge in der Datei ausreichen.
     font-size: 22px;
     bottom: 20px;
     right: 20px;

@@ -22,8 +22,6 @@
             <li><button (click)="setActiveSection('addresses')" [class.active]="activeSection() === 'addresses'"><span class="material-symbols-outlined">home_pin</span> {{ 'profilePage.navAddresses' | transloco }}</button></li>
             <li><button (click)="setActiveSection('orders')" [class.active]="activeSection() === 'orders' && !selectedOrder()"><span class="material-symbols-outlined">receipt_long</span> {{ 'profilePage.navOrders' | transloco }}</button></li>
             <li><button (click)="setActiveSection('changePassword')" [class.active]="activeSection() === 'changePassword'"><span class="material-symbols-outlined">password</span> {{ 'profilePage.navChangePassword' | transloco }}</button></li>
-            <!-- Logout Button ist entfernt -->
-            <!-- <li><button (click)="authService.logout()"><span class="material-symbols-outlined">logout</span> {{ 'profilePage.navLogout' | transloco }}</button></li> -->
           </ul>
         </nav>
 
@@ -152,25 +150,29 @@
                 <div class="address-column">
                     <h3>{{ 'profilePage.billingAddressTitle' | transloco }}</h3>
                     <address class="address-display">
-                      <p>{{ orderDetail.billing?.first_name }} {{ orderDetail.billing?.last_name }}</p>
-                      <p *ngIf="orderDetail.billing?.company">{{ orderDetail.billing?.company }}</p>
-                      <p>{{ orderDetail.billing?.address_1 }}</p>
-                      <p *ngIf="orderDetail.billing?.address_2">{{ orderDetail.billing?.address_2 }}</p>
-                      <p>{{ orderDetail.billing?.postcode }} {{ orderDetail.billing?.city }}</p>
-                      <p>{{ orderDetail.billing?.country | uppercase }} <span *ngIf="orderDetail.billing?.state && orderDetail.billing?.state !== orderDetail.billing?.country">({{ orderDetail.billing?.state }})</span></p>
-                      <p *ngIf="orderDetail.billing?.phone">Tel: {{ orderDetail.billing?.phone }}</p>
-                      <p *ngIf="orderDetail.billing?.email">E-Mail: {{ orderDetail.billing?.email }}</p>
+                      <!-- ANPASSUNGEN HIER: ?. entfernt -->
+                      <p>{{ orderDetail.billing.first_name }} {{ orderDetail.billing.last_name }}</p>
+                      <p *ngIf="orderDetail.billing.company">{{ orderDetail.billing.company }}</p>
+                      <p>{{ orderDetail.billing.address_1 }}</p>
+                      <p *ngIf="orderDetail.billing.address_2">{{ orderDetail.billing.address_2 }}</p>
+                      <p>{{ orderDetail.billing.postcode }} {{ orderDetail.billing.city }}</p>
+                      <p>{{ orderDetail.billing.country | uppercase }} <span *ngIf="orderDetail.billing.state && orderDetail.billing.state !== orderDetail.billing.country">({{ orderDetail.billing.state }})</span></p>
+                      <p *ngIf="orderDetail.billing.phone">Tel: {{ orderDetail.billing.phone }}</p>
+                      <p *ngIf="orderDetail.billing.email">E-Mail: {{ orderDetail.billing.email }}</p>
                     </address>
                 </div>
-                <div class="address-column" *ngIf="orderDetail.shipping && (orderDetail.shipping?.address_1 || orderDetail.shipping?.first_name)">
+                <div class="address-column" *ngIf="orderDetail.shipping && (orderDetail.shipping.address_1 || orderDetail.shipping.first_name)">
                     <h3>{{ 'profilePage.shippingAddressTitle' | transloco }}</h3>
                     <address class="address-display">
-                      <p>{{ orderDetail.shipping?.first_name }} {{ orderDetail.shipping?.last_name }}</p>
-                      <p *ngIf="orderDetail.shipping?.company">{{ orderDetail.shipping?.company }}</p>
-                      <p>{{ orderDetail.shipping?.address_1 }}</p>
-                      <p *ngIf="orderDetail.shipping?.address_2">{{ orderDetail.shipping?.address_2 }}</p>
-                      <p>{{ orderDetail.shipping?.postcode }} {{ orderDetail.shipping?.city }}</p>
-                      <p>{{ orderDetail.shipping?.country | uppercase }} <span *ngIf="orderDetail.shipping?.state && orderDetail.shipping?.state !== orderDetail.shipping?.country">({{ orderDetail.shipping?.state }})</span></p>
+                      <!-- ANPASSUNGEN HIER: ?. entfernt (außer bei phone, falls es optional im Interface ist) -->
+                      <p>{{ orderDetail.shipping.first_name }} {{ orderDetail.shipping.last_name }}</p>
+                      <p *ngIf="orderDetail.shipping.company">{{ orderDetail.shipping.company }}</p>
+                      <p>{{ orderDetail.shipping.address_1 }}</p>
+                      <p *ngIf="orderDetail.shipping.address_2">{{ orderDetail.shipping.address_2 }}</p>
+                      <p>{{ orderDetail.shipping.postcode }} {{ orderDetail.shipping.city }}</p>
+                      <p>{{ orderDetail.shipping.country | uppercase }} <span *ngIf="orderDetail.shipping.state && orderDetail.shipping.state !== orderDetail.shipping.country">({{ orderDetail.shipping.state }})</span></p>
+                      <!-- Für phone in shipping ist ?. korrekt, da es im Interface optional ist: shipping.phone?: string -->
+                      <p *ngIf="orderDetail.shipping.phone">Tel: {{ orderDetail.shipping.phone }}</p>
                     </address>
                 </div>
               </div>
