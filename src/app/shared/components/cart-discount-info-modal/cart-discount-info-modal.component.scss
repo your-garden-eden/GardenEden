@@ -1,0 +1,207 @@
+// Inhalt ist identisch zu src/app/shared/components/maintenance-info-modal/maintenance-info-modal.component.scss
+// Bitte den Code von dort hierher kopieren.
+// Hier nochmal zur Sicherheit der Vollständigkeit halber:
+:host {
+  display: contents; 
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--background-color-dark-overlay, rgba(0, 0, 0, 0.5));
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: var(--z-index-modal-backdrop, 1040);
+  padding: var(--spacing-lg); 
+}
+
+.modal-content {
+  background-color: var(--background-color-component, #fff);
+  padding: var(--spacing-xl);
+  border-radius: var(--border-radius-lg, 8px);
+  box-shadow: var(--box-shadow-xl, 0 20px 25px -5px rgba(0, 0, 0, 0.25), 0 10px 10px -5px rgba(0, 0, 0, 0.19));
+  position: relative;
+  width: 100%;
+  max-width: 500px; 
+  color: var(--text-color-base);
+  animation: fadeInModal 0.3s ease-out;
+}
+
+@keyframes fadeInModal {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-close-button {
+  position: absolute;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  color: var(--text-color-muted);
+  line-height: 1; 
+
+  .material-symbols-outlined {
+    font-size: 28px; 
+    display: block; 
+  }
+
+  &:hover {
+    color: var(--text-color-base);
+  }
+}
+
+.modal-title {
+  font-size: var(--font-size-h3); 
+  color: var(--text-color-headings);
+  margin-bottom: var(--spacing-lg);
+  padding-right: calc(var(--spacing-md) + 28px + var(--spacing-xs)); 
+  text-align: center; 
+}
+
+.modal-body {
+  margin-bottom: var(--spacing-xl);
+  font-size: var(--font-size-base);
+
+  p {
+    margin-bottom: var(--spacing-md);
+    line-height: var(--line-height-base);
+  }
+}
+
+.coupon-code-section {
+  margin-top: var(--spacing-lg);
+  padding: var(--spacing-md);
+  background-color: var(--background-color-light-gray, #f8f9fa);
+  border: 1px solid var(--border-color-light, #eeeeee);
+  border-radius: var(--border-radius-md);
+  display: flex;
+  flex-direction: column; 
+  align-items: center; 
+  gap: var(--spacing-sm);
+}
+
+.coupon-code-label {
+  font-size: var(--font-size-base);
+  color: var(--text-color-muted);
+}
+
+.coupon-with-copy {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.coupon-code {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--primary-color-dark, #798C67); 
+  background-color: var(--primary-color-light);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+}
+
+.button-icon-only {
+  background: none;
+  border: none;
+  padding: var(--spacing-xs); 
+  color: var(--text-color-muted); 
+  cursor: pointer;
+  line-height: 1; 
+
+  .material-symbols-outlined {
+    font-size: 20px; 
+    display: block;
+  }
+
+  &:hover {
+    color: var(--text-color-base); 
+  }
+  &:focus-visible {
+    outline: 2px solid var(--primary-color-dark);
+    outline-offset: 1px;
+    border-radius: var(--border-radius-circle); 
+  }
+}
+
+.button-copy-code {
+  color: var(--primary-color-dark);
+
+  &:hover {
+    color: var(--primary-color);
+  }
+}
+
+.copy-feedback {
+  font-size: var(--font-size-sm);
+  color: var(--success-color);
+  margin-top: var(--spacing-xxs);
+  min-height: 1.2em; 
+
+  &.error {
+    color: var(--error-text-color);
+  }
+  &.warning {
+    color: var(--warning-text-color);
+  }
+}
+
+
+.button, button:not(.button-icon-only) { 
+  padding: var(--spacing-sm) var(--spacing-lg);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  border: 1px solid transparent;
+  display: inline-flex; 
+  align-items: center;
+  gap: var(--spacing-xs); 
+
+  .material-symbols-outlined {
+    font-size: 1.2em; 
+  }
+}
+
+.button-primary {
+  background-color: var(--primary-color);
+  color: var(--primary-color-text);
+  border-color: var(--primary-color);
+
+  &:hover:not(:disabled) {
+    background-color: var(--primary-color-dark);
+    border-color: var(--primary-color-dark);
+  }
+
+  &:focus-visible { 
+    outline: 2px solid var(--primary-color-dark);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    background-color: var(--disabled-background-color);
+    border-color: var(--disabled-background-color);
+    color: var(--text-color-muted);
+    cursor: not-allowed;
+  }
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: center; 
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-lg); 
+}

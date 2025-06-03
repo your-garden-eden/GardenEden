@@ -12,14 +12,15 @@
     "scrollToTop": "Nach oben scrollen",
     "updating": "Aktualisiere...",
     "not": "Nicht",
-    "defaultMetaDescription": "Entdecken Sie hochwertige Gartenmöbel und Zubehör bei Your Garden Eden."
+    "defaultMetaDescription": "Entdecken Sie hochwertige Gartenmöbel und Zubehör bei Your Garden Eden.",
+    "notSupported": "Nicht unterstützt"
   },
   "header": {
     "searchPlaceholder": "Produkte suchen...",
     "wishlist": "Wunschliste",
     "cart": "Warenkorb",
     "account": "Mein Konto",
-    "searchLoadingMore": "Weitere Ergebnisse laden..." , 
+    "searchLoadingMore": "Weitere Ergebnisse laden..." ,
     "login": "Anmelden",
     "logout": "Abmelden",
     "register": "Registrieren",
@@ -565,6 +566,41 @@
       },
       "tokenValidationFailed": "Token-Validierung fehlgeschlagen. Details: {{details}}",
       "tokenValidationApiError": "Fehler bei der Token-Validierungsanfrage. Details: {{details}}"
+    }
+  },
+  "modals": {
+    "maintenance": {
+      "title": "Information zu aktuellen Wartungsarbeiten",
+      "paragraph1": "Wir optimieren gerade unseren Online-Shop für Sie! Bestellungen sind weiterhin problemlos möglich. Sollten wider Erwarten kleinere Unannehmlichkeiten auftreten, bitten wir um Ihr Verständnis.",
+      "paragraph2": "Als kleines Dankeschön für Ihre Geduld erhalten Sie 5% Rabatt auf Ihren aktuellen Einkauf.",
+      "couponCodeLabel": "Rabattcode:",
+      "couponCodeValue": "DeinGartenEden",
+      "copyCodeButton": {
+        "ariaLabelIdle": "Gutscheincode {{code}} kopieren",
+        "ariaLabelCopied": "Gutscheincode {{code}} kopiert",
+        "titleIdle": "Code kopieren",
+        "titleCopied": "Kopiert!",
+        "feedbackCopied": "Kopiert!"
+      },
+      "confirmButton": "Verstanden"
+    },
+    "cartDiscount": {
+      "title": "Ihr 5% Rabatt!",
+      "paragraph1": "Vielen Dank für Ihren Einkauf! Aufgrund aktueller Optimierungen an unserer Webseite möchten wir Ihnen 5% Rabatt schenken.",
+      "paragraph2": "Bitte geben Sie hierfür einfach den Gutscheincode im entsprechenden Feld auf der Kassenseite ein.",
+      "couponCodeLabel": "Gutscheincode:",
+      "couponCodeValue": "DeinGartenEden",
+      "copyCodeButton": {
+        "ariaLabelIdle": "Gutscheincode {{code}} kopieren",
+        "ariaLabelCopied": "Gutscheincode {{code}} kopiert",
+        "titleIdle": "Code kopieren",
+        "titleCopied": "Kopiert!",
+        "feedbackCopied": "Kopiert!"
+      },
+      "confirmButton": "Verstanden"
+    },
+    "shared": {
+      "closeButtonAriaLabel": "Schließen"
     }
   }
 }

@@ -1,0 +1,49 @@
+<div class="modal-overlay" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <button 
+      class="modal-close-button" 
+      (click)="closeModal()" 
+      [attr.aria-label]="'modals.shared.closeButtonAriaLabel' | transloco">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+
+    <h2 class="modal-title">{{ 'modals.cartDiscount.title' | transloco }}</h2>
+    <div class="modal-body">
+      <p>{{ 'modals.cartDiscount.paragraph1' | transloco }}</p>
+      <p>{{ 'modals.cartDiscount.paragraph2' | transloco }}</p>
+      
+      <div class="coupon-code-section">
+        <span class="coupon-code-label">{{ 'modals.cartDiscount.couponCodeLabel' | transloco }}</span>
+        <div class="coupon-with-copy">
+          <strong class="coupon-code">{{ couponCode }}</strong>
+          <button
+            type="button"
+            class="button-icon-only button-copy-code"
+            (click)="copyCouponCode()"
+            [attr.aria-label]="getCopyButtonAriaLabel()"
+            [title]="getCopyButtonTitle()"
+          >
+            <span class="material-symbols-outlined">
+              {{ copyStatus() === 'copied' ? 'done' : 'content_copy' }}
+            </span>
+          </button>
+        </div>
+        <span *ngIf="copyStatus() === 'copied'" class="copy-feedback">
+          {{ 'modals.cartDiscount.copyCodeButton.feedbackCopied' | transloco }}
+        </span>
+         <span *ngIf="copyStatus() === 'error'" class="copy-feedback error">
+          {{ 'general.error' | transloco }} 
+        </span>
+         <span *ngIf="copyStatus() === 'unsupported'" class="copy-feedback warning">
+          {{ 'general.notSupported' | transloco }} <!-- Annahme: "general.notSupported" existiert oder wird hinzugefügt -->
+        </span>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="button button-primary" (click)="closeModal()">
+        {{ 'modals.cartDiscount.confirmButton' | transloco }}
+      </button>
+    </div>
+  </div>
+</div>

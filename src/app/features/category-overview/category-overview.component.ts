@@ -7,11 +7,12 @@ import {
   WritableSignal,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
-  inject, // DestroyRef hier nicht direkt verwendet, aber gut für takeUntilDestroyed
-  DestroyRef
+  inject,
+  DestroyRef,
+  PLATFORM_ID
 } from '@angular/core';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Title } from '@angular/platform-browser';
 import { Subscription, forkJoin, of, Observable } from 'rxjs';
 import {
@@ -22,9 +23,8 @@ import {
   tap,
   finalize,
 } from 'rxjs/operators';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop'; // Import für takeUntilDestroyed
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-// Daten und Typen
 import {
   navItems,
   NavSubItem,
@@ -34,13 +34,10 @@ import {
   WoocommerceService,
   WooCommerceProduct,
   WooCommerceProductsResponse,
-  WooCommerceMetaData, // Importiert, aber in dieser Datei nicht direkt verwendet
+  WooCommerceMetaData, // Nicht direkt verwendet, aber Teil des Imports
 } from '../../core/services/woocommerce.service';
 
-// Komponenten
 import { ProductCardComponent } from '../../shared/components/product-card/product-card.component';
-
-// Transloco
 import { TranslocoModule, TranslocoService } from '@ngneat/transloco';
 
 @Component({
@@ -57,11 +54,8 @@ export class CategoryOverviewComponent implements OnInit, OnDestroy {
   private woocommerceService = inject(WoocommerceService);
   private translocoService = inject(TranslocoService);
   private cdr = inject(ChangeDetectorRef);
-  private destroyRef = inject(DestroyRef); // DestroyRef für takeUntilDestroyed injizieren
-
-  // subscriptions wird beibehalten, falls es noch Subscriptions gibt, die nicht mit takeUntilDestroyed verwaltet werden können
-  // Für die routeSub und langSub wäre takeUntilDestroyed aber besser.
-  private subscriptions = new Subscription(); 
+  private destroyRef = inject(DestroyRef);
+  private platformId = inject(PLATFORM_ID);
 
   currentParentCategory: WritableSignal<NavItem | null> = signal(null);
   categoryTitle: WritableSignal<string | null> = signal(null);
@@ -72,30 +66,23 @@ export class CategoryOverviewComponent implements OnInit, OnDestroy {
   isLoadingPreview: WritableSignal<boolean> = signal(false);
   previewError: WritableSignal<string | null> = signal(null);
 
-  
-  private readonly TARGET_PREVIEW_COUNT = 100;
-  private readonly FETCH_PRODUCTS_PER_SUBCATEGORY = 5;
+  private readonly TARGET_PREVIEW_COUNT = 100; // Max. Produkte in der Vorschau gesamt
+  // Anzahl Produkte pro Unterkategorie von API holen (ggf. erhöhen, wenn Filter stark reduzieren)
+  private readonly FETCH_PRODUCTS_PER_SUBCATEGORY = 7;
 
   ngOnInit(): void {
-    // Verwendung von takeUntilDestroyed für routeSub
     this.route.paramMap
       .pipe(
-        takeUntilDestroyed(this.destroyRef), // Automatische Abmeldung
+        takeUntilDestroyed(this.destroyRef),
         map(params => params.get('slug')),
         tap(() => this.resetState()),
         switchMap(slug => {
           if (!slug) {
-            this.handleCategoryNotFound(
-              this.translocoService.translate(
-                'categoryOverview.errorNoParentSlug'
-              )
-            );
+            this.handleCategoryNotFound(this.translocoService.translate('categoryOverview.errorNoParentSlug'));
             return of(null);
           }
           const expectedLink = `/category/${slug}`;
-          const foundParentCategory = navItems.find(
-            item => item.link === expectedLink
-          );
+          const foundParentCategory = navItems.find(item => item.link === expectedLink);
 
           if (foundParentCategory) {
             this.currentParentCategory.set(foundParentCategory);
@@ -106,52 +93,56 @@ export class CategoryOverviewComponent implements OnInit, OnDestroy {
               this.loadProductPreviewForParent(foundParentCategory.subItems);
             } else {
               this.productPreview.set([]);
+              this.isLoadingPreview.set(false);
             }
-            return of(foundParentCategory); // of(null) hier nicht nötig, da switchMap das Ergebnis weitergibt
+            return of(foundParentCategory);
           } else {
-            this.handleCategoryNotFound(
-              this.translocoService.translate(
-                'categoryOverview.notFoundError',
-                { categorySlug: slug }
-              )
-            );
-            return of(null); // Wichtig, um den Stream hier abzuschließen oder einen Nullwert weiterzugeben
+            this.handleCategoryNotFound(this.translocoService.translate('categoryOverview.notFoundError', { categorySlug: slug }));
+            return of(null);
           }
         }),
         catchError(err => {
           console.error('Error in CategoryOverview OnInit route subscription:', err);
-          this.handleCategoryNotFound(
-            this.translocoService.translate('categoryOverview.genericError')
-          );
-          return of(null); // Fehler behandeln und Observable abschließen
+          this.handleCategoryNotFound(this.translocoService.translate('categoryOverview.genericError'));
+          return of(null);
         })
       )
-      .subscribe(foundParentCategory => {
-        // Optionale Logik hier, wenn foundParentCategory nicht null ist.
-        // Da die Hauptlogik im switchMap passiert, ist hier oft nichts weiter nötig.
-      });
-    // this.subscriptions.add(routeSub); // Nicht mehr nötig, wenn takeUntilDestroyed verwendet wird
+      .subscribe();
 
-    // Verwendung von takeUntilDestroyed für langSub
     this.translocoService.langChanges$.pipe(
-      takeUntilDestroyed(this.destroyRef) // Automatische Abmeldung
+      takeUntilDestroyed(this.destroyRef)
     ).subscribe(() => {
       const cat = this.currentParentCategory();
-      if (cat) {
-        this.updateTitles(cat);
-      }
-      // Fehlertexte nur aktualisieren, wenn ein Fehler-Key gesetzt ist
-      const currentErrorKey = this.error();
-      if (currentErrorKey && currentErrorKey === this.translocoService.translate('categoryOverview.genericError')) { // Prüfen ob es der generische Fehler war
+      if (cat) this.updateTitles(cat);
+      if (this.error() && this.error() === this.translocoService.translate('categoryOverview.genericError')) {
          this.error.set(this.translocoService.translate('categoryOverview.genericError'));
       }
-      const currentPreviewErrorKey = this.previewError();
-      if (currentPreviewErrorKey && currentPreviewErrorKey === this.translocoService.translate('categoryOverview.previewLoadError')) {
+      if (this.previewError() && this.previewError() === this.translocoService.translate('categoryOverview.previewLoadError')) {
          this.previewError.set(this.translocoService.translate('categoryOverview.previewLoadError'));
       }
       this.cdr.markForCheck();
     });
-    // this.subscriptions.add(langSub); // Nicht mehr nötig
+  }
+
+  private filterProductsWithNoImageArray(products: WooCommerceProduct[]): WooCommerceProduct[] {
+    if (!products) return [];
+    return products.filter(product => product.images && product.images.length > 0 && product.images[0]?.src);
+  }
+
+  private filterProductsByStockStatus(products: WooCommerceProduct[]): WooCommerceProduct[] {
+    if (!products) return [];
+    return products.filter(product => product.stock_status === 'instock');
+  }
+
+  private async verifyImageLoad(url: string): Promise<boolean> {
+    if (!isPlatformBrowser(this.platformId)) return false;
+    return new Promise((resolve) => {
+      if (!url || typeof url !== 'string') { resolve(false); return; }
+      const img = new Image();
+      img.onload = () => resolve(true);
+      img.onerror = () => resolve(false);
+      img.src = url;
+    });
   }
 
   private updateTitles(parentCategory: NavItem): void {
@@ -161,8 +152,7 @@ export class CategoryOverviewComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    // this.subscriptions.unsubscribe(); // Nicht mehr nötig, da takeUntilDestroyed verwendet wird
-    // Wenn es noch andere manuelle Subscriptions gäbe, müssten sie hier oder über takeUntilDestroyed verwaltet werden.
+    // Handled by takeUntilDestroyed
   }
 
   private resetState(): void {
@@ -173,15 +163,13 @@ export class CategoryOverviewComponent implements OnInit, OnDestroy {
     this.productPreview.set([]);
     this.isLoadingPreview.set(false);
     this.previewError.set(null);
-    this.cdr.detectChanges(); // Hier kann detectChanges sinnvoll sein, um die UI sofort zu aktualisieren
+    this.cdr.detectChanges();
   }
 
   private handleCategoryNotFound(errorMessage: string): void {
     this.error.set(errorMessage);
     this.titleService.setTitle(
-      `${this.translocoService.translate(
-        'categoryOverview.notFoundTitle'
-      )} - Your Garden Eden`
+      `${this.translocoService.translate('categoryOverview.notFoundTitle')} - Your Garden Eden`
     );
     this.currentParentCategory.set(null);
     this.categoryTitle.set(null);
@@ -189,7 +177,7 @@ export class CategoryOverviewComponent implements OnInit, OnDestroy {
     this.productPreview.set([]);
     this.isLoadingPreview.set(false);
     this.previewError.set(null);
-    this.cdr.detectChanges(); // Auch hier kann detectChanges sinnvoll sein
+    this.cdr.detectChanges();
   }
 
   getIconPath(filename: string | undefined): string | null {
@@ -197,8 +185,9 @@ export class CategoryOverviewComponent implements OnInit, OnDestroy {
   }
 
   private loadProductPreviewForParent(subItems: NavSubItem[]): void {
-    if (subItems.length === 0) {
+    if (!subItems || subItems.length === 0) {
       this.productPreview.set([]);
+      this.isLoadingPreview.set(false);
       return;
     }
 
@@ -207,90 +196,102 @@ export class CategoryOverviewComponent implements OnInit, OnDestroy {
     this.productPreview.set([]);
 
     const subCategorySlugs = subItems
-      .map(sub => sub.link.split('/').pop()) // Extrahiert den letzten Teil des Links als Slug
-      .filter((slug): slug is string => !!slug); // Stellt sicher, dass nur gültige Strings weitergegeben werden
+      .map(sub => sub.link.split('/').pop())
+      .filter((slug): slug is string => !!slug);
 
     if (subCategorySlugs.length === 0) {
       this.isLoadingPreview.set(false);
-      // this.cdr.detectChanges(); // Nicht unbedingt hier nötig, da isLoadingPreview das Template triggert
       return;
     }
 
-    // Observables, um Kategorie-IDs für jeden Slug zu holen
     const categoryObservables: Observable<number | undefined>[] = subCategorySlugs.map(slug =>
       this.woocommerceService.getCategoryBySlug(slug).pipe(
-        map(wcCategory => wcCategory?.id), // Nur die ID extrahieren
-        catchError(() => {
-          console.warn(`Kategorie mit Slug "${slug}" nicht gefunden oder Fehler beim Abrufen.`);
-          return of(undefined); // Bei Fehler undefined zurückgeben, damit forkJoin nicht abbricht
-        })
+        map(wcCategory => wcCategory?.id),
+        catchError(() => of(undefined))
       )
     );
 
-    // forkJoin ausführen, wenn categoryObservables nicht leer ist
     if (categoryObservables.length > 0) {
       forkJoin(categoryObservables).pipe(
-        takeUntilDestroyed(this.destroyRef), // Automatische Abmeldung
+        takeUntilDestroyed(this.destroyRef),
         switchMap((categoryIds: (number | undefined)[]) => {
           const validCategoryIds = categoryIds.filter((id): id is number => id !== undefined);
-          if (validCategoryIds.length === 0) {
-            console.log('Keine gültigen WooCommerce Kategorie-IDs für Produktvorschau gefunden.');
-            return of([] as WooCommerceProductsResponse[]); // Leeres Array von Responses zurückgeben
-          }
+          if (validCategoryIds.length === 0) return of([] as WooCommerceProductsResponse[]);
 
           const productObservables: Observable<WooCommerceProductsResponse>[] = validCategoryIds.map(catId =>
             this.woocommerceService.getProducts(catId, this.FETCH_PRODUCTS_PER_SUBCATEGORY, 1).pipe(
-              catchError(err => {
-                console.error(`Fehler beim Laden von Produkten für Kategorie-ID ${catId}:`, err);
-                return of({ products: [], totalPages: 0, totalCount: 0 } as WooCommerceProductsResponse); // Leere Response bei Fehler
-              })
+              map(response => ({ // Filter hier direkt anwenden
+                ...response,
+                products: this.filterProductsByStockStatus( // Zuerst Lagerstatus
+                  this.filterProductsWithNoImageArray(response.products) // Dann Bilddaten
+                )
+              })),
+              catchError(() => of({ products: [], totalPages: 0, totalCount: 0 } as WooCommerceProductsResponse))
             )
           );
           return productObservables.length > 0 ? forkJoin(productObservables) : of([] as WooCommerceProductsResponse[]);
         }),
-        map((responsesArray: WooCommerceProductsResponse[]) => {
-          const allFetchedProducts: WooCommerceProduct[] = [];
+        switchMap(async (responsesArray: WooCommerceProductsResponse[]) => {
+          console.log(`[PerfTest CatOverview] API responses, candidates after initial filters:`, responsesArray.reduce((sum, r) => sum + (r.products?.length || 0), 0));
+          const startTime = performance.now();
+          let allCandidateProductsForImageValidation: WooCommerceProduct[] = [];
           const uniqueProductIds = new Set<string | number>();
-          responsesArray.forEach(response => { // response kann hier WooCommerceProductsResponse sein
-            if (response && response.products) {
+
+          responsesArray.forEach(response => {
+            if (response && response.products) { // Produkte sind hier schon vor-gefiltert (Bilddaten, Lagerstatus)
               response.products.forEach(p => {
-                if (p && !uniqueProductIds.has(p.id)) { // Zusätzliche Prüfung für p
-                  allFetchedProducts.push(p);
+                if (p && !uniqueProductIds.has(p.id)) {
+                  allCandidateProductsForImageValidation.push(p);
                   uniqueProductIds.add(p.id);
                 }
               });
             }
           });
-          return allFetchedProducts;
+
+          if (allCandidateProductsForImageValidation.length === 0) {
+            const endTime = performance.now();
+            console.log(`[PerfTest CatOverview] Image validation took ${endTime - startTime}ms (no candidates for image validation).`);
+            return [];
+          }
+
+          const verificationPromises = allCandidateProductsForImageValidation.map(product =>
+            this.verifyImageLoad(product.images[0].src) // product.images[0].src sollte existieren
+          );
+          const verificationResults = await Promise.allSettled(verificationPromises);
+
+          const verifiedProducts: WooCommerceProduct[] = [];
+          allCandidateProductsForImageValidation.forEach((product, index) => {
+            const result = verificationResults[index];
+            if (result.status === 'fulfilled' && result.value === true) {
+              verifiedProducts.push(product);
+            }
+          });
+          const endTime = performance.now();
+          console.log(`[PerfTest CatOverview] Image validation took ${endTime - startTime}ms. Found ${verifiedProducts.length} displayable from ${allCandidateProductsForImageValidation.length}.`);
+          return verifiedProducts;
         }),
-        // take(1) ist nicht mehr nötig, da takeUntilDestroyed den Stream bei Zerstörung beendet.
-        // Wenn du nur den ersten Emissionswert von forkJoin willst, kannst du es aber drin lassen.
-        // Für Produktvorschau ist es meistens nur eine Emission.
         catchError((err: any) => {
-          console.error('Fehler beim Laden der Produktvorschau (im äußeren catchError):', err);
+          console.error('Fehler beim Laden der Produktvorschau (äußeres catchError):', err);
           this.previewError.set(this.translocoService.translate('categoryOverview.previewLoadError'));
-          return of([] as WooCommerceProduct[]); // Leeres Array bei Fehler
+          return of([] as WooCommerceProduct[]);
         }),
         finalize(() => {
           this.isLoadingPreview.set(false);
-          this.cdr.markForCheck(); // Sicherstellen, dass UI nach dem Laden aktualisiert wird
+          this.cdr.markForCheck();
         })
       ).subscribe({
-        next: (allProducts: WooCommerceProduct[]) => {
-          if (allProducts.length > 0) {
-            const shuffledProducts = this.shuffleArray(allProducts);
+        next: (finalProductsForPreview: WooCommerceProduct[]) => {
+          if (finalProductsForPreview.length > 0) {
+            const shuffledProducts = this.shuffleArray(finalProductsForPreview);
             this.productPreview.set(shuffledProducts.slice(0, this.TARGET_PREVIEW_COUNT));
           } else {
             this.productPreview.set([]);
-            console.log('Keine Produkte für Vorschau gefunden nach API-Abfragen.');
+            console.log('Keine Produkte mit ladbaren Bildern und Lagerbestand für Vorschau gefunden.');
           }
         },
-        // error-Callback ist hier nicht mehr zwingend nötig, da catchError in der Pipe den Fehler abfängt
-        // und ein leeres Array zurückgibt. Der finalize Block wird immer ausgeführt.
       });
-      // previewSub muss nicht mehr zu this.subscriptions hinzugefügt werden, wenn takeUntilDestroyed verwendet wird.
     } else {
-        this.isLoadingPreview.set(false); // Falls keine categoryObservables erstellt wurden
+        this.isLoadingPreview.set(false);
     }
   }
 
@@ -304,17 +305,17 @@ export class CategoryOverviewComponent implements OnInit, OnDestroy {
   }
 
   getProductLink(product: WooCommerceProduct): string {
-    return `/product/${product.slug}`; // Annahme: product.slug ist vorhanden und korrekt
+    return `/product/${product.slug}`;
   }
 
   getProductImage(product: WooCommerceProduct): string | undefined {
-    return product.images && product.images.length > 0
+    return product.images && product.images.length > 0 && product.images[0]?.src
       ? product.images[0].src
       : undefined;
   }
 
   extractPriceRange(product: WooCommerceProduct): { min: string, max: string } | null {
-    if (product.type === 'variable') {
+     if (product.type === 'variable') {
       if (product.price_html) {
         const rangeMatch = product.price_html.match(/([\d.,]+)[^\d.,<]*?(?:–|-)[^\d.,<]*?([\d.,]+)/);
         if (rangeMatch && rangeMatch[1] && rangeMatch[2]) {
@@ -326,26 +327,20 @@ export class CategoryOverviewComponent implements OnInit, OnDestroy {
           return { min: priceVal, max: priceVal };
         }
       }
-      // Fallback auf product.price, wenn price_html keine Spanne oder Einzelpreis liefert
-      // oder wenn es ein variabler Preis ist, der aber als einzelner Wert in product.price steht
-      if (product.price) { 
+      if (product.price) {
         return { min: product.price, max: product.price };
       }
     }
-    return null; // Für einfache Produkte oder wenn keine Preisspanne extrahiert werden kann
+    return null;
   }
 
   getProductCurrencySymbol(product: WooCommerceProduct): string {
-    // Versuch, das Symbol aus den Metadaten zu lesen (falls von einem Plugin gesetzt)
     const currencyMeta = product.meta_data?.find(m => m.key === '_currency_symbol');
     if (currencyMeta?.value) return currencyMeta.value as string;
-    
-    // Fallback: Extraktion aus price_html (kann unzuverlässig sein)
     if (product.price_html) {
       if (product.price_html.includes('€')) return '€';
       if (product.price_html.includes('$')) return '$';
-      // Weitere Währungen hier hinzufügen, falls nötig
     }
-    return '€'; // Standard-Fallback-Währungssymbol
+    return '€';
   }
 }

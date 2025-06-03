@@ -1,5 +1,7 @@
 // /src/app/shared/components/header/header.component.scss
 @use "sass:color";
+@use 'sass:string';
+@use 'sass:meta';
 
 // Lokale Sass-Variablen für color.adjust() oder sehr spezifische Header-Elemente.
 $header-text-color-sass: #4E342E; // Entspricht var(--secondary-color)
@@ -58,7 +60,7 @@ $mobile-breakpoint: 1024px;
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23#{str-slice(inspect($header-text-color-sass), 2)}'%3e%3cpath d='M7 10l5 5 5-5H7z'/%3e%3c/svg%3e");
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23#{string.slice(meta.inspect($header-text-color-sass), 2)}'%3e%3cpath d='M7 10l5 5 5-5H7z'/%3e%3c/svg%3e");
     background-repeat: no-repeat;
     background-position: right var(--spacing-xs) center;
     background-size: 1em;

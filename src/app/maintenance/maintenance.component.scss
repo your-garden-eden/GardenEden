@@ -1,4 +1,6 @@
-// /src/app/features/maintenance/maintenance.component.scss
+// /src/app/maintenance/maintenance.component.scss
+@use 'sass:string';
+@use 'sass:meta';
 
 :host {
   display: block;
@@ -128,7 +130,7 @@
       -moz-appearance: none;
       appearance: none;
       // Pfeil-Icon, Farbe angepasst
-      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23#{str-slice(inspect(var(--text-color-on-gradient-base, #333333)), 2)}'%3e%3cpath d='M7 10l5 5 5-5H7z'/%3e%3c/svg%3e");
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23#{string.slice(meta.inspect(var(--text-color-on-gradient-base, #333333)), 2)}'%3e%3cpath d='M7 10l5 5 5-5H7z'/%3e%3c/svg%3e");
       background-repeat: no-repeat;
       background-position: right var(--spacing-md) center;
       background-size: 1.2em; // Größerer Pfeil

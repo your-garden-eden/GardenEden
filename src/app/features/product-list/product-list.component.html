@@ -1,4 +1,4 @@
-<!-- /src/app/features/product-list/product-list-page/product-list.component.html -->
+<!-- /src/app/features/product-list/product-list.component.html -->
 <div class="category-page-content">
   <div class="page-header-with-back-button">
     @if (mainCategoryLink(); as categoryLink) {
@@ -17,29 +17,29 @@
     <div class="title-align-placeholder"></div>
   </div>
 
-  @if (isLoading() && products().length === 0) {
+  @if (isLoading() && displayableProducts().length === 0) {
   <div class="loading-indicator">
     <p>{{ 'productList.loadingProducts' | transloco }}</p>
   </div>
   }
 
-  @if (error() && products().length === 0) {
+  @if (error() && displayableProducts().length === 0 && !isLoading()) {
   <div class="error-message">
     <p>{{ error() }}</p>
   </div>
   }
 
-  <ng-container *ngIf="!isLoading() || products().length > 0">
-    @if (products().length === 0 && !isLoadingMore() && !error() && !isLoading()) {
+  <ng-container *ngIf="!isLoading() || displayableProducts().length > 0">
+    @if (displayableProducts().length === 0 && !isLoadingMore() && !error() && !isLoading()) {
       <p class="no-products-message">
         {{ 'productList.noProductsFound' | transloco }}
       </p>
     }
 
-    @if (products().length > 0) {
+    @if (displayableProducts().length > 0) {
       <div class="product-grid">
-        <!-- *** KORRIGIERTES PRODUCT CARD BINDING *** -->
-        @for (product of products(); track product.id; let i = $index) {
+        <!-- *** KORRIGIERTE trackBy SYNTAX *** -->
+        @for (product of displayableProducts(); track trackProductById; let i = $index) {
           <app-product-card
             [productName]="product.name"
             [priceHtml]="product.price_html"
@@ -53,13 +53,13 @@
             [isLazy]="i >= 6"
             [stockStatus]="product.stock_status"
             [isVariable]="product.type === 'variable'"
-            [priceRange]="extractPriceRange(product)"
-          ></app-product-card>
+            [priceRange]="extractPriceRange(product)">
+          </app-product-card>
         }
       </div>
     }
 
-    @if (hasNextPage() && products().length > 0) {
+    @if (hasNextPage() && displayableProducts().length > 0) {
       <div #loadMoreTrigger class="load-more-trigger">
       </div>
     }
@@ -71,7 +71,6 @@
     }
   </ng-container>
 
-  <!-- HINZUGEFÜGT: Scroll-to-Top Button -->
   <button
     *ngIf="showScrollToTopButton()"
     (click)="scrollToTop()"
@@ -83,6 +82,4 @@
   >
     <span class="material-symbols-outlined">arrow_upward</span>
   </button>
-  <!-- ENDE Scroll-to-Top Button -->
-
 </div>

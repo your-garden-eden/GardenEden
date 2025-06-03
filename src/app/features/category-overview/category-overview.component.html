@@ -29,7 +29,7 @@
     }
   </div>
 
-  @if (!error() && subCategoriesToDisplay().length === 0 && categoryTitle()) {
+  @if (!error() && subCategoriesToDisplay().length === 0 && categoryTitle() && !isLoadingPreview()) {
     <p class="no-items-message">{{ 'categoryOverview.noSubcategories' | transloco: { category: categoryTitle() } }}</p>
   }
 
@@ -47,7 +47,7 @@
       </div>
     }
 
-    @if (previewError()) {
+    @if (previewError() && !isLoadingPreview()) {
       <div class="error-message preview-error">
         <p>{{ previewError() }}</p>
       </div>
@@ -69,13 +69,12 @@
             [isLazy]="i >= 4"
             [stockStatus]="product.stock_status"
             [isVariable]="product.type === 'variable'"
-            [priceRange]="extractPriceRange(product)"
-          ></app-product-card>
+            [priceRange]="extractPriceRange(product)">
+          </app-product-card> <!-- Korrigiert: Sicherstellen, dass das Tag korrekt geschlossen wird -->
         }
       </div>
     }
 
-    <!-- Meldung, wenn keine Produkte für die Vorschau gefunden wurden, aber Unterkategorien existieren -->
     @if (!isLoadingPreview() && !previewError() && productPreview().length === 0 && subCategoriesToDisplay().length > 0) {
       <p class="no-items-message">{{ 'categoryOverview.noPreviewProducts' | transloco }}</p>
     }

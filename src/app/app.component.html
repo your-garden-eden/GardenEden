@@ -17,11 +17,10 @@
       [class.visible]="isLoginOverlayOpen$()">
   </app-login-overlay>
 
-  <!-- ENTFERNT: Mini Warenkorb -->
-  <!-- <app-mini-cart *ngIf="isMiniCartOpen$()"></app-mini-cart> -->
-
-  <!-- +++ NEU: Cookie Consent Banner +++ -->
   <app-cookie-consent-banner></app-cookie-consent-banner>
+
+  <!-- +++ NEU: Wartungshinweis Modal +++ -->
+  <app-maintenance-info-modal *ngIf="showMaintenancePopup$()"></app-maintenance-info-modal>
   <!-- +++ ENDE NEU +++ -->
 
 </ng-container>

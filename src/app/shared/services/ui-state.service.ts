@@ -16,27 +16,37 @@ export interface GlobalMessage {
 export class UiStateService {
   private platformId = inject(PLATFORM_ID);
 
+  // --- GLOBALE SCHALTER FÜR POPUPS ---
+  // Setzen Sie diese auf `false`, um das entsprechende Popup global zu deaktivieren.
+  public readonly enableMaintenancePopup: boolean = true; // Schalter für Wartungshinweis-Popup
+  public readonly enableCartDiscountPopup: boolean = true; // Schalter für Rabatthinweis-Popup
+
+  // --- Session Storage Keys ---
+  private readonly MAINTENANCE_POPUP_SHOWN_KEY = 'maintenancePopupShownInSession';
+  private readonly CART_DISCOUNT_POPUP_SHOWN_KEY = 'cartDiscountPopupShownInSession';
+
   // --- Zustand für Login-Overlay ---
   private _isLoginOverlayOpen: WritableSignal<boolean> = signal(false);
   public readonly isLoginOverlayOpen$: Signal<boolean> = this._isLoginOverlayOpen.asReadonly();
 
-  // --- ENTFERNT: Zustand für Mini-Cart ---
-  // private _isMiniCartOpen: WritableSignal<boolean> = signal(false);
-  // public readonly isMiniCartOpen$: Signal<boolean> = this._isMiniCartOpen.asReadonly();
-  // private closeTimeoutId: ReturnType<typeof setTimeout> | null = null;
-  // private readonly DEFAULT_MINI_CART_DISPLAY_DURATION = 3000; // 3 Sekunden
-
-  // --- Zustand für globale Nachrichten (bleibt) ---
+  // --- Zustand für globale Nachrichten ---
   private _globalMessage: WritableSignal<GlobalMessage | null> = signal(null);
   public readonly globalMessage$ = this._globalMessage.asReadonly();
   private globalMessageTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
+  // --- Zustand für Wartungshinweis-Popup ---
+  private _showMaintenancePopup: WritableSignal<boolean> = signal(false);
+  public readonly showMaintenancePopup$: Signal<boolean> = this._showMaintenancePopup.asReadonly();
+
+  // --- Zustand für Rabatthinweis-Popup (Warenkorb) ---
+  private _showCartDiscountPopup: WritableSignal<boolean> = signal(false);
+  public readonly showCartDiscountPopup$: Signal<boolean> = this._showCartDiscountPopup.asReadonly();
+
   constructor() {}
 
-  // --- Methoden für Login-Overlay (angepasst) ---
+  // --- Methoden für Login-Overlay ---
   openLoginOverlay(): void {
     this._isLoginOverlayOpen.set(true);
-    // ENTFERNT: this.closeMiniCart(); // Nicht mehr nötig, da Mini-Cart entfernt wird
   }
 
   closeLoginOverlay(): void {
@@ -45,45 +55,68 @@ export class UiStateService {
 
   toggleLoginOverlay(): void {
     this._isLoginOverlayOpen.update(value => !value);
-    // ENTFERNT: if (this._isLoginOverlayOpen()) { this.closeMiniCart(); }
   }
 
-  // --- ENTFERNT: Methoden für Mini-Cart ---
-  // openMiniCart(): void {
-  //   if (!isPlatformBrowser(this.platformId)) return;
-  //   this.cancelCloseTimeout();
-  //   this._isMiniCartOpen.set(true);
-  // }
+  // --- Methoden für Wartungshinweis-Popup ---
+  public triggerMaintenancePopup(): void {
+    if (!isPlatformBrowser(this.platformId) || !this.enableMaintenancePopup) {
+      return;
+    }
+    try {
+      const alreadyShown = sessionStorage.getItem(this.MAINTENANCE_POPUP_SHOWN_KEY);
+      if (!alreadyShown) {
+        this._showMaintenancePopup.set(true);
+      }
+    } catch (e) {
+      // sessionStorage ist möglicherweise nicht verfügbar (z.B. private Browsing in manchen Browsern oder Cookies deaktiviert)
+      // In diesem Fall das Popup trotzdem anzeigen, aber nicht erneut versuchen zu speichern.
+      console.warn('SessionStorage nicht verfügbar für Maintenance Popup:', e);
+      if (!this._showMaintenancePopup()) { // Nur setzen, wenn nicht schon durch Fehler getriggert
+          this._showMaintenancePopup.set(true);
+      }
+    }
+  }
 
-  // closeMiniCart(): void {
-  //   if (!isPlatformBrowser(this.platformId) || !this._isMiniCartOpen()) return;
-  //   this.cancelCloseTimeout();
-  //   this._isMiniCartOpen.set(false);
-  // }
+  public hideMaintenancePopup(): void {
+    this._showMaintenancePopup.set(false);
+    if (isPlatformBrowser(this.platformId) && this.enableMaintenancePopup) {
+      try {
+        sessionStorage.setItem(this.MAINTENANCE_POPUP_SHOWN_KEY, 'true');
+      } catch (e) {
+        // Fehler beim Schreiben in sessionStorage ignorieren
+        console.warn('Fehler beim Schreiben in SessionStorage für Maintenance Popup:', e);
+      }
+    }
+  }
 
-  // startCloseTimeout(delay: number = 500): void {
-  //   if (!isPlatformBrowser(this.platformId)) return;
-  //   this.cancelCloseTimeout();
-  //   this.closeTimeoutId = setTimeout(() => {
-  //     this._isMiniCartOpen.set(false);
-  //     this.closeTimeoutId = null;
-  //   }, delay);
-  // }
+  // --- Methoden für Rabatthinweis-Popup (Warenkorb) ---
+  public triggerCartDiscountPopup(): void {
+    if (!isPlatformBrowser(this.platformId) || !this.enableCartDiscountPopup) {
+      return;
+    }
+     try {
+        const alreadyShown = sessionStorage.getItem(this.CART_DISCOUNT_POPUP_SHOWN_KEY);
+        if (!alreadyShown) {
+          this._showCartDiscountPopup.set(true);
+        }
+    } catch (e) {
+        console.warn('SessionStorage nicht verfügbar für Cart Discount Popup:', e);
+        if (!this._showCartDiscountPopup()) {
+            this._showCartDiscountPopup.set(true);
+        }
+    }
+  }
 
-  // cancelCloseTimeout(): void {
-  //   if (this.closeTimeoutId) {
-  //     clearTimeout(this.closeTimeoutId);
-  //     this.closeTimeoutId = null;
-  //   }
-  // }
-
-  // public openMiniCartWithTimeout(duration: number = this.DEFAULT_MINI_CART_DISPLAY_DURATION): void {
-  //   if (!isPlatformBrowser(this.platformId)) return;
-  //   this.openMiniCart(); // Würde Fehler werfen, da openMiniCart entfernt wird
-  //   // Stattdessen: Wenn diese Funktionalität (etwas für eine Dauer anzeigen) anderweitig gebraucht wird,
-  //   // müsste sie allgemeiner implementiert werden oder spezifisch für den neuen Zweck.
-  //   // Für den Mini-Cart Zweck ist sie jetzt obsolet.
-  // }
+  public hideCartDiscountPopup(): void {
+    this._showCartDiscountPopup.set(false);
+    if (isPlatformBrowser(this.platformId) && this.enableCartDiscountPopup) {
+      try {
+        sessionStorage.setItem(this.CART_DISCOUNT_POPUP_SHOWN_KEY, 'true');
+      } catch (e) {
+        console.warn('Fehler beim Schreiben in SessionStorage für Cart Discount Popup:', e);
+      }
+    }
+  }
 
   // --- Methoden für globale Nachrichten (bleiben unverändert) ---
   public showGlobalMessage(

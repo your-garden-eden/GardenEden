@@ -25,7 +25,7 @@ import {
   WoocommerceService,
   WooCommerceProduct,
   WooCommerceProductsResponse,
-  WooCommerceMetaData,
+  WooCommerceMetaData, // Nicht direkt verwendet, aber Teil des Imports
 } from '../../core/services/woocommerce.service';
 import { ProductCardComponent } from '../../shared/components/product-card/product-card.component';
 import {
@@ -63,7 +63,9 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('subCategorySwiper') swiperContainer!: ElementRef<HTMLElement>;
   private swiperInstance: Swiper | null = null;
 
-  private readonly BESTSELLER_COUNT = 10;
+  // Anzahl der Produkte, die von der API geholt werden (mehr, um Filterung zu kompensieren)
+  private readonly FETCH_BESTSELLER_COUNT = 20; // Erhöht, um nach Filtern genug Auswahl zu haben
+  private readonly DISPLAY_BESTSELLER_COUNT = 10; // Max. Anzahl, die nach Filterung angezeigt wird
 
   constructor() {}
 
@@ -102,42 +104,109 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
     this.titleService.setTitle(title);
   }
 
-  loadBestsellers(): void {
+  private filterProductsWithNoImageArray(products: WooCommerceProduct[]): WooCommerceProduct[] {
+    if (!products) return [];
+    return products.filter(product => product.images && product.images.length > 0 && product.images[0]?.src);
+  }
+
+  // NEUE Hilfsfunktion zum Filtern nach Lagerstatus
+  private filterProductsByStockStatus(products: WooCommerceProduct[]): WooCommerceProduct[] {
+    if (!products) return [];
+    return products.filter(product => product.stock_status === 'instock');
+  }
+
+  private async verifyImageLoad(url: string): Promise<boolean> {
+    if (!isPlatformBrowser(this.platformId)) return false;
+    return new Promise((resolve) => {
+      if (!url || typeof url !== 'string') {
+        resolve(false);
+        return;
+      }
+      const img = new Image();
+      img.onload = () => resolve(true);
+      img.onerror = () => resolve(false);
+      img.src = url;
+    });
+  }
+
+  async loadBestsellers(): Promise<void> {
     this.isLoadingBestsellers.set(true);
     this.errorBestsellers.set(null);
     this.bestsellerProducts.set([]);
 
     let httpApiParams = new HttpParams();
-    // KORRIGIERT: 'total_sales' zu 'sales' geändert, basierend auf der Fehlermeldung
-    httpApiParams = httpApiParams.set('orderby', 'sales'); 
+    httpApiParams = httpApiParams.set('orderby', 'popularity');
     httpApiParams = httpApiParams.set('order', 'desc');
+    // Optional: Produkte mit stock_status 'instock' direkt von der API anfordern, falls unterstützt
+    // httpApiParams = httpApiParams.set('stock_status', 'instock'); // Testen, ob API dies unterstützt
 
-    const bestsellerSub = this.woocommerceService
-      .getProducts(
-        undefined,
-        this.BESTSELLER_COUNT,
-        1,
-        httpApiParams
-      )
-      .pipe(
-        take(1),
-        catchError(err => {
-          console.error('HomeComponent: Bestseller Fehler:', err);
-          this.errorBestsellers.set(
-            this.translocoService.translate('home.errorLoadingBestsellers')
-          );
-          return of({ products: [], totalPages: 0, totalCount: 0 } as WooCommerceProductsResponse);
-        }),
-        map((response: WooCommerceProductsResponse) => response.products),
-        finalize(() => {
-          this.isLoadingBestsellers.set(false);
-          this.cdr.markForCheck();
-        })
-      )
-      .subscribe((products: WooCommerceProduct[]) => {
-        this.bestsellerProducts.set(products);
+    try {
+      const response = await new Promise<WooCommerceProductsResponse>((resolve, reject) => {
+        this.woocommerceService
+          .getProducts(
+            undefined,
+            this.FETCH_BESTSELLER_COUNT, // Mehr Produkte holen
+            1,
+            httpApiParams
+          )
+          .pipe(take(1))
+          .subscribe({
+            next: res => resolve(res),
+            error: err => reject(err)
+          });
       });
-    this.subscriptions.add(bestsellerSub);
+
+      console.log('[PerfTest HomeBestsellers] API response, candidates fetched:', response.products?.length || 0);
+
+      // Schritt 1: Produkte ohne Bilddaten herausfiltern
+      let candidateProducts = this.filterProductsWithNoImageArray(response.products);
+      console.log(`[PerfTest HomeBestsellers] After noImageArray filter: ${candidateProducts.length} candidates`);
+
+      // Schritt 2: Produkte nach Lagerstatus 'instock' filtern
+      candidateProducts = this.filterProductsByStockStatus(candidateProducts);
+      console.log(`[PerfTest HomeBestsellers] After stockStatus filter: ${candidateProducts.length} candidates`);
+
+
+      if (candidateProducts.length === 0) {
+        this.bestsellerProducts.set([]);
+        console.log('[PerfTest HomeBestsellers] No candidates left after initial filters.');
+        // Fehler oder Meldung "Keine Bestseller gefunden" hier nicht setzen, da es einfach keine passenden gibt
+        // this.errorBestsellers.set(this.translocoService.translate('home.noBestsellersFound')); // Optional
+        return; // finally Block wird trotzdem ausgeführt
+      }
+
+      // Schritt 3: Bildvalidierung für die verbleibenden Kandidaten
+      const startTime = performance.now();
+      const verificationPromises = candidateProducts.map(p => this.verifyImageLoad(p.images[0].src));
+      const verificationResults = await Promise.allSettled(verificationPromises);
+
+      const verifiedAndInStockProducts: WooCommerceProduct[] = [];
+      candidateProducts.forEach((product, index) => {
+        const result = verificationResults[index];
+        if (result.status === 'fulfilled' && result.value === true) {
+          verifiedAndInStockProducts.push(product);
+        }
+      });
+      const endTime = performance.now();
+      console.log(`[PerfTest HomeBestsellers] Image validation took ${endTime - startTime}ms. Found ${verifiedAndInStockProducts.length} displayable products from ${candidateProducts.length} image validation candidates.`);
+
+      this.bestsellerProducts.set(verifiedAndInStockProducts.slice(0, this.DISPLAY_BESTSELLER_COUNT));
+
+      if (verifiedAndInStockProducts.length === 0) {
+          console.log('[PerfTest HomeBestsellers] No bestsellers with loadable images and in stock found.');
+          // Optional: this.errorBestsellers.set(this.translocoService.translate('home.noBestsellersFound'));
+      }
+
+    } catch (err) {
+      console.error('HomeComponent: Bestseller Fehler:', err);
+      this.errorBestsellers.set(
+        this.translocoService.translate('home.errorLoadingBestsellers')
+      );
+      this.bestsellerProducts.set([]);
+    } finally {
+      this.isLoadingBestsellers.set(false);
+      this.cdr.markForCheck();
+    }
   }
 
   private prepareSubCategorySliderItems(): void {
@@ -149,9 +218,8 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
     });
     const shuffled = this.shuffleArray(allSubItems);
     this.shuffledSubCategoryItems.set(shuffled.slice(0, 56));
-    this.cdr.markForCheck(); // Sicherstellen, dass die UI aktualisiert wird
+    this.cdr.markForCheck();
     if (isPlatformBrowser(this.platformId) && this.swiperContainer?.nativeElement && this.shuffledSubCategoryItems().length > 0) {
-        // Verzögere Swiper-Initialisierung leicht, um sicherzustellen, dass DOM-Elemente bereit sind
         setTimeout(() => this.initSwiper(), 0);
     }
   }
@@ -183,13 +251,12 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
         centeredSlides: false,
         grabCursor: true,
         autoplay: {
-          delay: 1, // Sehr kurze Verzögerung für kontinuierliches Scrollen
+          delay: 1,
           disableOnInteraction: false,
           pauseOnMouseEnter: true,
         },
-        speed: 3000, // Geschwindigkeit der Animation
-        freeMode: true, // Erlaubt "freies" Scrollen ohne Einrasten
-        // freeModeMomentum: false, // Optional: Verhindert den "Schwung" nach dem Loslassen
+        speed: 3000,
+        freeMode: true,
         breakpoints: {
           320: { spaceBetween: 15 },
           768: { spaceBetween: 20 },
@@ -203,7 +270,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   getProductImage(product: WooCommerceProduct): string | undefined {
-    return product.images && product.images.length > 0
+    return product.images && product.images.length > 0 && product.images[0]?.src
       ? product.images[0].src
       : undefined;
   }
@@ -213,9 +280,9 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
       if (product.price_html) {
         const rangeMatch = product.price_html.match(/([\d.,]+)[^\d.,<]*?(?:–|-)[^\d.,<]*?([\d.,]+)/);
         if (rangeMatch && rangeMatch[1] && rangeMatch[2]) {
-          return { 
-            min: rangeMatch[1].replace(',', '.'), 
-            max: rangeMatch[2].replace(',', '.') 
+          return {
+            min: rangeMatch[1].replace(',', '.'),
+            max: rangeMatch[2].replace(',', '.')
           };
         }
         const singlePriceMatch = product.price_html.match(/([\d.,]+)/);
@@ -234,7 +301,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   getProductCurrencySymbol(product: WooCommerceProduct): string {
     const currencyMeta = product.meta_data?.find(m => m.key === '_currency_symbol');
     if (currencyMeta?.value) return currencyMeta.value as string;
-    
+
     if (product.price_html) {
       if (product.price_html.includes('€')) return '€';
       if (product.price_html.includes('$')) return '$';

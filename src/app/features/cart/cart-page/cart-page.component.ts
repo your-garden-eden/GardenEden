@@ -12,8 +12,9 @@ import {
   WritableSignal,
   effect,
   untracked,
+  PLATFORM_ID // +++ NEU +++
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common'; // +++ NEU: isPlatformBrowser +++
 import { Router, RouterLink } from '@angular/router';
 import { Title } from '@angular/platform-browser';
 import { TranslocoModule, TranslocoService } from '@ngneat/transloco';
@@ -21,6 +22,7 @@ import { Subscription } from 'rxjs';
 import { startWith, switchMap, tap } from 'rxjs/operators';
 
 import { CartService} from '../../../shared/services/cart.service';
+import { UiStateService } from '../../../shared/services/ui-state.service'; // +++ NEU +++
 import {
   WooCommerceStoreCart,
   WooCommerceStoreCartItem,
@@ -28,10 +30,19 @@ import {
 } from '../../../core/services/woocommerce.service';
 import { FormatPricePipe } from '../../../shared/pipes/format-price.pipe';
 
+// +++ NEU: Import für das CartDiscountInfoModalComponent +++
+import { CartDiscountInfoModalComponent } from '../../../shared/components/cart-discount-info-modal/cart-discount-info-modal.component';
+
 @Component({
   selector: 'app-cart-page',
   standalone: true,
-  imports: [ CommonModule, RouterLink, TranslocoModule, FormatPricePipe ],
+  imports: [
+    CommonModule,
+    RouterLink,
+    TranslocoModule,
+    FormatPricePipe,
+    CartDiscountInfoModalComponent // +++ NEU: Hier hinzufügen +++
+  ],
   templateUrl: './cart-page.component.html',
   styleUrls: ['./cart-page.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -42,6 +53,8 @@ export class CartPageComponent implements OnInit, OnDestroy {
   private titleService = inject(Title);
   private translocoService = inject(TranslocoService);
   private cdr = inject(ChangeDetectorRef);
+  private uiStateService = inject(UiStateService); // +++ NEU +++
+  private platformId = inject(PLATFORM_ID); // +++ NEU +++
 
   cart: Signal<WooCommerceStoreCart | null> = this.cartService.cart;
   isLoadingCart: Signal<boolean> = this.cartService.isLoading;
@@ -57,8 +70,6 @@ export class CartPageComponent implements OnInit, OnDestroy {
   cartTotals: Signal<WooCommerceStoreCartTotals | null> = computed(() => this.cart()?.totals ?? null);
   cartItems: Signal<WooCommerceStoreCartItem[]> = computed(() => this.cart()?.items ?? []);
 
-  // Dieses Signal wird für die reine Anzeige "Kostenlos" nicht mehr zwingend im Template gebraucht,
-  // kann aber für andere Logik nützlich bleiben, z.B. um zu wissen, ob Versandkosten *anfallen würden*.
   readonly showShippingCosts: Signal<boolean> = computed(() => {
     const totals = this.cartTotals();
     if (totals?.total_shipping) {
@@ -67,6 +78,9 @@ export class CartPageComponent implements OnInit, OnDestroy {
     }
     return false;
   });
+
+  // +++ NEU: Signal für das Rabatt-Popup +++
+  showCartDiscountPopup$: Signal<boolean> = this.uiStateService.showCartDiscountPopup$;
 
   private subscriptions = new Subscription();
 
@@ -111,6 +125,11 @@ export class CartPageComponent implements OnInit, OnDestroy {
         this.uiErrorKey.set('cartPage.errorFromService');
         this.uiError.set(this.translocoService.translate(this.uiErrorKey()!, { serviceErrorMsg: this.cartService.error() }));
         this.cdr.markForCheck();
+    }
+
+    // +++ NEU: Rabatt-Popup triggern +++
+    if (isPlatformBrowser(this.platformId)) {
+      this.uiStateService.triggerCartDiscountPopup();
     }
   }
 
