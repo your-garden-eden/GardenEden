@@ -1,8 +1,8 @@
 # Datenschutzerklärung
 
-Letzte Aktualisierung: 29. April 2025 *(Anmerkung: Datum ggf. anpassen)*
+Letzte Aktualisierung: 29. April 2025
+Diese Datenschutzrichtlinie beschreibt, wie Your-Garden-Eden (die „Site“, „wir“, „uns“ oder „unser“) sammelt, verwendet und gibt Ihre persönlichen Daten weiter, wenn Sie www.Your-Garden-Eden.de (die „Site“) besuchen, unsere Dienste nutzen, einen Kauf dort tätigen oder auf andere Weise bezüglich der Site mit uns kommunizieren (zusammen die „Dienste“). Im Sinne dieser Datenschutzrichtlinie beziehen sich „Sie“ und „Ihr“ auf Sie als Benutzer der Dienste, unabhängig davon, ob Sie Kunde, Website-Besucher oder eine andere Person sind, deren Informationen wir gemäß dieser Datenschutzrichtlinie erfasst haben.
 
-Diese Datenschutzrichtlinie beschreibt, wie Your-Garden-Eden (die „Site“, „wir“, „uns“ oder „unser“) Ihre persönlichen Daten sammelt, verwendet und weitergibt, wenn Sie stygej-6u.myshopify.com (die „Site“) besuchen, unsere Dienste nutzen, einen Kauf dort tätigen oder auf andere Weise bezüglich der Site mit uns kommunizieren (zusammen die „Dienste“). Im Sinne dieser Datenschutzrichtlinie beziehen sich „Sie“ und „Ihr“ auf Sie als Benutzer der Dienste, unabhängig davon, ob Sie Kunde, Website-Besucher oder eine andere Person sind, deren Informationen wir gemäß dieser Datenschutzrichtlinie erfasst haben.
 
 Bitte lesen Sie diese Datenschutzrichtlinie sorgfältig durch.
 

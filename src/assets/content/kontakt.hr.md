@@ -14,7 +14,7 @@ Willkommen in unserem "Garten Eden"! Obwohl digital erreichbar, sind wir fest ve
 
 Your-Garden-Eden
 Schmölln 49
-17291 Randowtal-Schölln
+17291 Randowtal-Schmölln
 Deutschland
 
 Unser Zuhause liegt eingebettet in die natürliche Schönheit des Randowtals. Dieser Ort inspiriert uns täglich bei unserer Arbeit für Your-Garden-Eden.

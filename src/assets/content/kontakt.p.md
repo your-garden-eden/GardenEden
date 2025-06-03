@@ -7,7 +7,7 @@ Witamy w naszym „raju ogrodowym”! Chociaż jesteśmy dostępni cyfrowo, mamy
 ### Nasze korzenie – adres Your-Garden-Eden:
 Your-Garden-Eden
 Schmölln 49
-17291 Randowtal-Schölln
+17291 Randowtal-Schmölln
 Niemcy
 Nasza siedziba położona jest w otoczeniu naturalnego piękna doliny Randowtal. To miejsce codziennie inspiruje nas do pracy dla Your-Garden-Eden.
 **Uwaga:** Można skontaktować się z nami pocztą tradycyjną, jednak nasza siedziba nie jest sklepem otwartym dla odwiedzających.

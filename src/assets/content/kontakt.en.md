@@ -7,7 +7,7 @@ Welcome to our “Garden of Eden”! Although we are digitally accessible, we ar
 ### Our roots – Your-Garden-Eden's address:
 Your-Garden-Eden
 Schmölln 49
-17291 Randowtal-Schölln
+17291 Randowtal-Schmölln
 Germany
 Our home is nestled in the natural beauty of the Randow Valley. This place inspires us every day in our work for Your-Garden-Eden.
 **Please note:** You can reach us by mail, but our physical location is not a store open to visitors.
