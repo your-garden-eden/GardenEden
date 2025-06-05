@@ -7,7 +7,7 @@ Angaben gemäß § 5 TMG
 
 Josef Ewert Inh.
 
-Randotal-Schmölln 49 
+Randowtal-Schmölln 49 
 17291 Randowtal-Schmölln
 Deutschland
 
