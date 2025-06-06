@@ -2,232 +2,217 @@
 <div class="cart-page-container">
   <h1>{{ 'cartPage.title' | transloco }}</h1>
 
-  @if (isLoadingCart() && itemCount() === 0) {
+  <ng-container *ngIf="isLoadingCartFromService() && itemCount() === 0 && !uiError()">
     <div class="loading-indicator page-loading">
       <div class="spinner"></div>
       <p>{{ 'cartPage.loadingCart' | transloco }}</p>
     </div>
-  }
+  </ng-container>
 
-  @if (uiError(); as errorMsg) {
+  <ng-container *ngIf="uiError() as errorMsg">
     <div class="error-message global-cart-error">
       <p>{{ errorMsg }}</p>
+      <button (click)="uiError.set(null)" class="close-error-btn">×</button>
     </div>
-  }
+  </ng-container>
 
-  @if (isUpdatingLine() || isRemovingItem()) {
-    <div class="loading-overlay">
-      <div class="spinner"></div>
-      <span>{{ 'general.processing' | transloco }}</span>
-    </div>
-  }
-
-  @if (!isLoadingCart() || itemCount() > 0) {
-    @if (itemCount() > 0) {
-      <div class="cart-content">
-        <div class="cart-items-list">
-          <table class="cart-table desktop-only">
-            <thead>
-              <tr>
-                <th colspan="2">{{ 'cartPage.table.product' | transloco }}</th>
-                <th>{{ 'cartPage.table.priceUnit' | transloco }}</th> <!-- Nur noch Einzelpreis -->
-                <th>{{ 'cartPage.table.quantity' | transloco }}</th>
-                <!-- ENTFERNT: Spalte für Zeilensumme -->
-                <th> </th> <!-- Für Entfernen-Button -->
-              </tr>
-            </thead>
-            <tbody>
-              @for (item of cartItems(); track item.key) {
-                <tr class="cart-item" [class.updating]="isUpdatingLine() === item.key || isRemovingItem() === item.key">
-                  <td class="item-image-cell">
-                    <a [routerLink]="getProductLinkForItem(item)">
-                      @if (getProductImageForItem(item); as imgUrl) {
-                        <img [src]="imgUrl" [alt]="item.name" loading="lazy"/>
-                      } @else {
-                        <div class="placeholder-image">
-                          <span class="material-symbols-outlined" [title]="'productPage.noImageAvailable' | transloco">image</span>
-                        </div>
-                      }
-                    </a>
-                  </td>
-                  <td class="item-details-cell">
-                    <a [routerLink]="getProductLinkForItem(item)" class="product-title">
-                      {{ item.name }}
-                    </a>
-                    @if (item.variation && item.variation.length > 0) {
-                      <div class="variant-title">
-                        @for (variant of item.variation; track variant.attribute) {
-                          <span>{{ variant.attribute }}: {{ variant.value }}</span>
-                        }
-                      </div>
-                    }
-                  </td>
-                  <td class="item-price-cell"> <!-- Zeigt jetzt den Einzelpreis mit MwSt.-Hinweis darunter -->
-                    <div class="price-block item-single-price"> <!-- Neuer Container für Styling -->
-                      <span class="price-value">{{ (item.prices?.price | formatPrice : item.totals.currency_code) || ('cartPage.priceUnavailable' | transloco )}}</span>
-                      <span class="vat-subtext"> {{ 'cartPage.summary.inclVatShort' | transloco }}</span>
-                    </div>
-                  </td>
-                  <td class="item-quantity-cell">
-                    <div class="quantity-control modern">
-                      <button class="quantity-button decrease icon-button"
-                              (click)="decrementQuantity(item)"
-                              [disabled]="isUpdatingLine() === item.key || item.quantity <= 1 || isRemovingItem() === item.key"
-                              [attr.aria-label]="'cartPage.decreaseQuantityAria' | transloco">
-                        <span class="material-symbols-outlined icon-minus">remove</span>
-                      </button>
-                      <span class="quantity-value">{{ item.quantity }}</span>
-                      <button class="quantity-button increase icon-button"
-                              (click)="incrementQuantity(item)"
-                              [disabled]="isUpdatingLine() === item.key || isRemovingItem() === item.key"
-                              [attr.aria-label]="'cartPage.increaseQuantityAria' | transloco">
-                        <span class="material-symbols-outlined icon-plus">add</span>
-                      </button>
-                    </div>
-                    @if (item.key === isUpdatingLine() && lineUpdateError()) {
-                      <div class="error-message line-update-error">
-                        <p>{{ lineUpdateError() }}</p>
-                      </div>
-                    } @else {
-                      <div class="loading-indicator quantity-loading-indicator">
-                         {{ isUpdatingLine() === item.key ? ('general.updating' | transloco) : '' }}
-                      </div>
-                    }
-                  </td>
-                  <!-- ENTFERNT: Zelle für item.totals.line_total -->
-                  <td class="item-remove-cell">
-                    <button class="remove-button modern-remove-btn icon-button icon-delete"
-                            (click)="removeItem(item.key)"
-                            [disabled]="isUpdatingLine() === item.key || isRemovingItem() === item.key"
-                            [attr.aria-label]="'cartPage.removeItemAria' | transloco : { itemName: item.name }">
-                      <span class="material-symbols-outlined">delete</span>
-                    </button>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-
-          <ul class="cart-list mobile-only">
-            @for (item of cartItems(); track item.key) {
-              <li class="cart-item-mobile" [class.updating]="isUpdatingLine() === item.key || isRemovingItem() === item.key">
-                <div class="item-image">
+  <ng-container *ngIf="itemCount() > 0 && !isLoadingCartFromService() && !uiError()">
+    <div class="cart-content">
+      <div class="cart-items-list">
+        <table class="cart-table desktop-only">
+          <thead>
+            <tr>
+              <th colspan="2">{{ 'cartPage.table.product' | transloco }}</th>
+              <th>{{ 'cartPage.table.priceUnit' | transloco }}</th>
+              <th>{{ 'cartPage.table.quantity' | transloco }}</th>
+              <th> </th>
+            </tr>
+          </thead>
+          <tbody>
+            <ng-container *ngFor="let item of cartItems(); trackBy: trackByItemKey">
+              <tr class="cart-item"
+                  [class.updating]="isUpdatingLine() === getItemIdentifierForLoadingState(item) || isRemovingItem() === getItemIdentifierForLoadingState(item)">
+                <td class="item-image-cell">
                   <a [routerLink]="getProductLinkForItem(item)">
-                    @if (getProductImageForItem(item); as imgUrl) {
+                    <ng-container *ngIf="getProductImageForItem(item) as imgUrl; else noImageDesktopTpl">
                       <img [src]="imgUrl" [alt]="item.name" loading="lazy"/>
-                    } @else {
-                      <div class="placeholder-image small">
+                    </ng-container>
+                    <ng-template #noImageDesktopTpl>
+                      <div class="placeholder-image">
                         <span class="material-symbols-outlined" [title]="'productPage.noImageAvailable' | transloco">image</span>
                       </div>
-                    }
+                    </ng-template>
                   </a>
-                </div>
-                <div class="item-info">
+                </td>
+                <td class="item-details-cell">
                   <a [routerLink]="getProductLinkForItem(item)" class="product-title">
                     {{ item.name }}
                   </a>
-                  @if (item.variation && item.variation.length > 0) {
+                  <ng-container *ngIf="item.variation && item.variation.length > 0">
                     <div class="variant-title">
-                      @for (variant of item.variation; track variant.attribute) {
-                        <span class="variant-detail-mobile">{{ variant.attribute }}: {{ variant.value }}</span>
-                      }
+                      <ng-container *ngFor="let variant of item.variation; trackBy: trackByVariationAttribute">
+                        <span>{{ variant.attribute }}: {{ variant.value }}</span>
+                      </ng-container>
                     </div>
-                  }
-                  <!-- Nur noch Einzelpreis anzeigen -->
-                  <div class="item-price-mobile price-block item-single-price">
-                     <span class="price-value">{{ (item.prices?.price | formatPrice : item.totals.currency_code) || ('cartPage.priceUnavailable' | transloco )}}</span>
-                     <span class="vat-subtext"> {{ 'cartPage.summary.inclVatShort' | transloco }}</span>
+                  </ng-container>
+                </td>
+                <td class="item-price-cell">
+                  <div class="price-block item-single-price">
+                    <span class="price-value">{{ (item.prices?.price | formatPrice : item.totals.currency_code) || ('cartPage.priceUnavailable' | transloco )}}</span>
+                    <span class="vat-subtext"> {{ 'cartPage.summary.inclVatShort' | transloco }}</span>
                   </div>
-                  <!-- ENTFERNT: item-line-total-mobile -->
-                </div>
-                <div class="item-actions-mobile">
-                   <div class="quantity-control modern">
+                </td>
+                <td class="item-quantity-cell">
+                  <div class="quantity-control modern">
                     <button class="quantity-button decrease icon-button"
                             (click)="decrementQuantity(item)"
-                            [disabled]="isUpdatingLine() === item.key || item.quantity <= 1 || isRemovingItem() === item.key"
+                            [disabled]="isUpdatingLine() === getItemIdentifierForLoadingState(item) || item.quantity <= 1 || isRemovingItem() === getItemIdentifierForLoadingState(item)"
                             [attr.aria-label]="'cartPage.decreaseQuantityAria' | transloco">
                       <span class="material-symbols-outlined icon-minus">remove</span>
                     </button>
                     <span class="quantity-value">{{ item.quantity }}</span>
                     <button class="quantity-button increase icon-button"
                             (click)="incrementQuantity(item)"
-                            [disabled]="isUpdatingLine() === item.key || isRemovingItem() === item.key"
+                            [disabled]="isUpdatingLine() === getItemIdentifierForLoadingState(item) || isRemovingItem() === getItemIdentifierForLoadingState(item)"
                             [attr.aria-label]="'cartPage.increaseQuantityAria' | transloco">
                       <span class="material-symbols-outlined icon-plus">add</span>
                     </button>
                   </div>
-                   <button class="remove-button modern-remove-btn icon-button icon-delete"
-                            (click)="removeItem(item.key)"
-                            [disabled]="isUpdatingLine() === item.key || isRemovingItem() === item.key"
-                            [attr.aria-label]="'cartPage.removeItemAria' | transloco : { itemName: item.name }">
-                      <span class="material-symbols-outlined">delete</span>
-                    </button>
-                </div>
-                 @if (item.key === isUpdatingLine() && lineUpdateError()) {
-                  <div class="error-message line-update-error mobile-line-error">
-                    <p>{{ lineUpdateError() }}</p>
-                  </div>
-                } @else if (isUpdatingLine() === item.key) {
-                  <div class="loading-indicator quantity-loading-indicator mobile-line-error">
-                      {{ 'general.updating' | transloco }}
-                  </div>
-                }
-              </li>
-            }
-          </ul>
-        </div>
+                  <ng-container *ngIf="getItemIdentifierForLoadingState(item) === isUpdatingLine()">
+                    <div *ngIf="lineUpdateError()" class="error-message line-update-error">
+                      <p>{{ lineUpdateError() }}</p>
+                    </div>
+                    <div *ngIf="!lineUpdateError()" class="loading-indicator quantity-loading-indicator">
+                       {{ 'general.updating' | transloco }}
+                    </div>
+                  </ng-container>
+                </td>
+                <td class="item-remove-cell">
+                  <button class="remove-button modern-remove-btn icon-button icon-delete"
+                          (click)="removeItem(isLoggedIn ? (item.parent_product_id || item.id) : item.key, isLoggedIn ? (item.parent_product_id ? item.id : undefined) : undefined)"
+                          [disabled]="isUpdatingLine() === getItemIdentifierForLoadingState(item) || isRemovingItem() === getItemIdentifierForLoadingState(item)"
+                          [attr.aria-label]="'cartPage.removeItemAria' | transloco : { itemName: item.name }">
+                    <span class="material-symbols-outlined">delete</span>
+                  </button>
+                </td>
+              </tr>
+            </ng-container>
+          </tbody>
+        </table>
 
-        <div class="cart-summary">
-          <h2>{{ 'cartPage.summary.title' | transloco }}</h2>
-
-          <div class="summary-row shipping">
-            <span>{{ 'cartPage.summary.shipping' | transloco }}:</span>
-            @if (cart()?.needs_shipping === false || (cartTotals()?.total_shipping && cartTotals()!.total_shipping === '0')) {
-              <span class="amount free-shipping">{{ 'general.free' | transloco }}</span>
-            } @else if (showShippingCosts() && cartTotals()?.total_shipping) {
-              <span class="amount">{{ cartTotals()!.total_shipping | formatPrice : cartTotals()!.currency_code }}</span>
-            } @else {
-              <span class="amount">{{ cart()?.needs_shipping ? ('cartPage.summary.shippingText' | transloco) : ('general.free' | transloco) }}</span>
-            }
-          </div>
-
-          <div class="summary-row summary-total">
-            <span>{{ 'cartPage.summary.total' | transloco }}:</span>
-             @if (cartTotals(); as totals) {
-              <div class="total-price-block">
-                <span class="amount total-amount">
-                  {{ totals.total_price | formatPrice : totals.currency_code }}
-                </span>
-                <span class="vat-summary-subtext"> {{ 'cartPage.summary.inclVatShort' | transloco }}</span>
+        <ul class="cart-list mobile-only">
+          <ng-container *ngFor="let item of cartItems(); trackBy: trackByItemKey">
+            <li class="cart-item-mobile"
+                [class.updating]="isUpdatingLine() === getItemIdentifierForLoadingState(item) || isRemovingItem() === getItemIdentifierForLoadingState(item)">
+              <div class="item-image">
+                <a [routerLink]="getProductLinkForItem(item)">
+                  <ng-container *ngIf="getProductImageForItem(item) as imgUrl; else noImageMobileTpl">
+                    <img [src]="imgUrl" [alt]="item.name" loading="lazy"/>
+                  </ng-container>
+                  <ng-template #noImageMobileTpl>
+                    <div class="placeholder-image small">
+                      <span class="material-symbols-outlined" [title]="'productPage.noImageAvailable' | transloco">image</span>
+                    </div>
+                  </ng-template>
+                </a>
               </div>
-            } @else {
-              <span class="amount total-amount">...</span>
-            }
-          </div>
+              <div class="item-info">
+                <a [routerLink]="getProductLinkForItem(item)" class="product-title">
+                  {{ item.name }}
+                </a>
+                <ng-container *ngIf="item.variation && item.variation.length > 0">
+                  <div class="variant-title">
+                    <ng-container *ngFor="let variant of item.variation; trackBy: trackByVariationAttribute">
+                      <span class="variant-detail-mobile">{{ variant.attribute }}: {{ variant.value }}</span>
+                    </ng-container>
+                  </div>
+                </ng-container>
+                <div class="item-price-mobile price-block item-single-price">
+                   <span class="price-value">{{ (item.prices?.price | formatPrice : item.totals.currency_code) || ('cartPage.priceUnavailable' | transloco )}}</span>
+                   <span class="vat-subtext"> {{ 'cartPage.summary.inclVatShort' | transloco }}</span>
+                </div>
+              </div>
+              <div class="item-actions-mobile">
+                 <div class="quantity-control modern">
+                  <button class="quantity-button decrease icon-button"
+                          (click)="decrementQuantity(item)"
+                          [disabled]="isUpdatingLine() === getItemIdentifierForLoadingState(item) || item.quantity <= 1 || isRemovingItem() === getItemIdentifierForLoadingState(item)"
+                          [attr.aria-label]="'cartPage.decreaseQuantityAria' | transloco">
+                    <span class="material-symbols-outlined icon-minus">remove</span>
+                  </button>
+                  <span class="quantity-value">{{ item.quantity }}</span>
+                  <button class="quantity-button increase icon-button"
+                          (click)="incrementQuantity(item)"
+                          [disabled]="isUpdatingLine() === getItemIdentifierForLoadingState(item) || isRemovingItem() === getItemIdentifierForLoadingState(item)"
+                          [attr.aria-label]="'cartPage.increaseQuantityAria' | transloco">
+                    <span class="material-symbols-outlined icon-plus">add</span>
+                  </button>
+                </div>
+                 <button class="remove-button modern-remove-btn icon-button icon-delete"
+                          (click)="removeItem(isLoggedIn ? (item.parent_product_id || item.id) : item.key, isLoggedIn ? (item.parent_product_id ? item.id : undefined) : undefined)"
+                          [disabled]="isUpdatingLine() === getItemIdentifierForLoadingState(item) || isRemovingItem() === getItemIdentifierForLoadingState(item)"
+                          [attr.aria-label]="'cartPage.removeItemAria' | transloco : { itemName: item.name }">
+                    <span class="material-symbols-outlined">delete</span>
+                  </button>
+              </div>
+              <ng-container *ngIf="getItemIdentifierForLoadingState(item) === isUpdatingLine()">
+                <div *ngIf="lineUpdateError()" class="error-message line-update-error mobile-line-error">
+                  <p>{{ lineUpdateError() }}</p>
+                </div>
+                <div *ngIf="!lineUpdateError()" class="loading-indicator quantity-loading-indicator mobile-line-error">
+                    {{ 'general.updating' | transloco }}
+                </div>
+              </ng-container>
+            </li>
+          </ng-container>
+        </ul>
+      </div>
 
-          <button class="checkout-button" (click)="goToCheckout()" [disabled]="isLoadingCart() || itemCount() === 0">
-            {{ 'cartPage.summary.checkoutButton' | transloco }}
-          </button>
-          <a routerLink="/" class="continue-shopping-link">{{ 'cartPage.summary.continueShopping' | transloco }}</a>
-
-           @if(cartService.cart()?.needs_shipping && (!cartService.cart()?.shipping_address?.postcode || !cartService.cart()?.shipping_address?.country)) {
-            <p class="cart-note">
-              <span class="material-symbols-outlined warning-icon">warning</span>
-              {{ 'cartPage.summary.shippingAddressNote' | transloco }}
-            </p>
-          }
+      <div class="cart-summary">
+        <h2>{{ 'cartPage.summary.title' | transloco }}</h2>
+        <div class="summary-row shipping">
+          <span>{{ 'cartPage.summary.shipping' | transloco }}:</span>
+          <span class="amount free-shipping">{{ 'general.free' | transloco }}</span>
         </div>
+        <div class="summary-row summary-total">
+          <span>{{ 'cartPage.summary.total' | transloco }}:</span>
+           <ng-container *ngIf="cartTotals() as totals; else noTotalsTpl">
+            <div class="total-price-block">
+              <span class="amount total-amount">
+                {{ totals.total_price | formatPrice : totals.currency_code }}
+              </span>
+              <span class="vat-summary-subtext"> {{ 'cartPage.summary.inclVatShort' | transloco }}</span>
+            </div>
+          </ng-container>
+          <ng-template #noTotalsTpl>
+            <span class="amount total-amount">...</span>
+          </ng-template>
+        </div>
+        <button class="checkout-button"
+                (click)="goToCheckoutDetails()"
+                [disabled]="isLoadingCartFromService() || isProcessingCheckout() || itemCount() === 0">
+          {{ 'cartPage.summary.addressButton' | transloco }}
+        </button>
+        <a routerLink="/" class="continue-shopping-link">{{ 'cartPage.summary.continueShopping' | transloco }}</a>
+         <!-- Versandkostenhinweis entfernt -->
       </div>
-    } @else {
-      <div class="empty-cart-message">
-        <h2>{{ 'cartPage.empty.title' | transloco }}</h2>
-        <p>{{ 'cartPage.empty.message' | transloco }}</p>
-        <a routerLink="/" class="primary-button">{{ 'cartPage.empty.continueShopping' | transloco }}</a>
-      </div>
-    }
-  }
+    </div>
+  </ng-container>
 
-  <!-- +++ NEU: Rabatthinweis Modal für Warenkorb +++ -->
+  <ng-container *ngIf="itemCount() === 0 && !isLoadingCartFromService() && !uiError()">
+    <div class="empty-cart-message">
+      <h2>{{ 'cartPage.empty.title' | transloco }}</h2>
+      <p>{{ 'cartPage.empty.message' | transloco }}</p>
+      <a routerLink="/" class="primary-button">{{ 'cartPage.empty.continueShopping' | transloco }}</a>
+    </div>
+  </ng-container>
+
+  <ng-container *ngIf="isProcessingCheckout()">
+    <div class="loading-overlay page-action-loading">
+      <div class="spinner"></div>
+      <span>{{ 'checkoutDetailsPage.buttons.redirecting' | transloco }}</span>
+    </div>
+  </ng-container>
+
   <app-cart-discount-info-modal *ngIf="showCartDiscountPopup$()"></app-cart-discount-info-modal>
-  <!-- +++ ENDE NEU +++ -->
 </div>

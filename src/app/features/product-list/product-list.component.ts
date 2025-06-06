@@ -87,7 +87,7 @@ export class ProductListPageComponent implements OnInit, OnDestroy {
   private loadMoreTriggerEl?: ElementRef<HTMLDivElement>;
   private intersectionObserver?: IntersectionObserver;
   private subscriptions = new Subscription();
-  private readonly PRODUCTS_PER_PAGE = 12;
+  private readonly PRODUCTS_PER_PAGE = 40;
 
   private currentFoundSubItem: NavSubItem | undefined;
   private currentMainCategoryNavItem: NavItem | undefined;
