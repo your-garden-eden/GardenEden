@@ -5,7 +5,7 @@ import {
   WritableSignal,
   PLATFORM_ID,
   DestroyRef,
-  Signal // KORREKTER IMPORT FÜR Signal
+  Signal
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
@@ -23,12 +23,13 @@ import {
   WooCommerceStoreCart,
   WooCommerceStoreAddress,
   WooCommerceStoreCartItem,
-  WooCommerceStoreShippingPackage,
+  // WooCommerceStoreShippingPackage, // Nicht mehr direkt benötigt, wenn wir Raten nicht laden
   StageCartPayload,
   StageCartResponse,
   WooCommerceStoreCartTotals
 } from '../../../core/services/woocommerce.service';
-import { CartService } from '../../../shared/services/cart.service';
+import { CartService, UserCartData, UserCartItem } from '../../../shared/services/cart.service';
+import { AuthService, WordPressUser } from '../../../shared/services/auth.service';
 import { FormatPricePipe } from '../../../shared/pipes/format-price.pipe';
 
 declare var google: any;
@@ -51,6 +52,7 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
   private fb = inject(FormBuilder);
   public cartService = inject(CartService);
   private woocommerceService = inject(WoocommerceService);
+  private authService = inject(AuthService);
   private router = inject(Router);
   private titleService = inject(Title);
   private translocoService = inject(TranslocoService);
@@ -70,7 +72,8 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
   addressErrorKey = signal<string | null>(null);
 
   shippingInfo = signal<{ rateId: string; packageName: string; price: string; currencyCode: string; } | null | 'not_needed' | 'error'>(null);
-  isLoadingShipping = signal(false);
+  // isLoadingShipping wird nicht mehr stark genutzt, da wir die API nicht mehr rufen, kann aber für UI-Zwecke bleiben
+  isLoadingShipping = signal(false); 
   shippingError = signal<string | null>(null);
   shippingErrorKey = signal<string | null>(null);
 
@@ -95,25 +98,15 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
 
   orderSummary = computed(() => {
     const currentCart = this.cart();
+    console.log('[CheckoutDetailsPage orderSummary] Computing. Current cart for summary:', currentCart ? `Items: ${currentCart.items_count}, Totals: ${JSON.stringify(currentCart.totals)}` : 'null');
     if (!currentCart) return null;
 
     let determinedShippingRateDisplay: string | null = null;
-    const currentDisplayableShipping = this.displayableShippingInfoObject();
-
     if (currentCart.needs_shipping === false) {
         determinedShippingRateDisplay = this.translocoService.translate('checkoutDetailsPage.shipping.notNeeded');
-    } else if (currentDisplayableShipping) {
-        const currencySymbol = currentDisplayableShipping.currencyCode === 'EUR' ? '€' : currentDisplayableShipping.currencyCode;
-        determinedShippingRateDisplay = `${currentDisplayableShipping.packageName} (${currentDisplayableShipping.isFree ? (this.translocoService.translate('general.free')) : (currentDisplayableShipping.price + ' ' + currencySymbol) })`;
-    } else if (currentCart.shipping_rates && currentCart.shipping_rates.length > 0) {
-        for (const pkg of currentCart.shipping_rates) {
-            const foundRate = pkg.shipping_rates?.find(r => r.selected);
-            if (foundRate) {
-                const currencySymbol = foundRate.currency_symbol || (currentCart.totals.currency_symbol || '€');
-                determinedShippingRateDisplay = `${foundRate.name}: ${parseFloat(foundRate.price) === 0 ? (this.translocoService.translate('general.free')) : (foundRate.price + ' ' + currencySymbol)}`;
-                break;
-            }
-        }
+    } else {
+        // Da Versand immer kostenlos ist, zeigen wir das direkt an.
+        determinedShippingRateDisplay = this.translocoService.translate('general.free');
     }
 
     return {
@@ -124,13 +117,15 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
   });
 
   displayableShippingInfoObject = computed(() => {
+    // Diese Property wird weniger relevant, wenn Versand immer kostenlos ist und direkt angezeigt wird.
+    // Sie könnte aber nützlich bleiben, falls sich die Logik ändert.
     const sInfoSignalValue = this.shippingInfo();
     if (typeof sInfoSignalValue === 'object' && sInfoSignalValue !== null &&
         'packageName' in sInfoSignalValue && 'price' in sInfoSignalValue && 'currencyCode' in sInfoSignalValue) {
         const sInfoTyped = sInfoSignalValue as { packageName: string; price: string; currencyCode: string; rateId: string; };
         return {
             packageName: sInfoTyped.packageName,
-            price: sInfoTyped.price,
+            price: sInfoTyped.price, 
             currencyCode: sInfoTyped.currencyCode,
             isFree: parseFloat(sInfoTyped.price) === 0
         };
@@ -139,12 +134,8 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
   });
 
    readonly showShippingCosts: Signal<boolean> = computed(() => {
-    const totals = this.cartTotals();
-    if (totals?.total_shipping) {
-      const shippingCost = typeof totals.total_shipping === 'string' ? parseFloat(totals.total_shipping) : totals.total_shipping;
-      return !isNaN(shippingCost) && shippingCost > 0;
-    }
-    return false;
+    // Wird nicht mehr aktiv genutzt, wenn Versand immer kostenlos und so angezeigt wird.
+    return false; 
   });
 
   constructor() {
@@ -154,7 +145,7 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
       const currentAddressErrorKeyVal = untracked(() => this.addressErrorKey());
 
       if (serviceCartError && !currentAddressError) {
-        this.setError(this.addressErrorKey, 'checkoutDetailsPage.errors.globalCart', { serviceErrorMsg: serviceCartError });
+        this.setError(this.addressError, this.addressErrorKey, 'checkoutDetailsPage.errors.globalCart', { serviceErrorMsg: serviceCartError });
       }
       else if (!serviceCartError && currentAddressErrorKeyVal === 'checkoutDetailsPage.errors.globalCart') {
           this.addressError.set(null);
@@ -182,7 +173,7 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
     if (isPlatformBrowser(this.platformId)) {
         this.loadInitialDataFromCartAndFetchShipping().catch(err => {
             console.error("Checkout ngOnInit: Error during initial data load:", err);
-            this.setError(this.addressErrorKey, 'checkoutDetailsPage.errors.loadDataFailed');
+            this.setError(this.addressError, this.addressErrorKey, 'checkoutDetailsPage.errors.loadDataFailed');
         });
     }
   }
@@ -196,6 +187,7 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
         }
       } catch (error) {
         console.error("Checkout ngAfterViewInit: Error initializing Google Maps Autocomplete:", error);
+         this.setError(this.addressError, this.addressErrorKey, 'registerPage.errorAutocompleteInitGeneral');
       }
     }
   }
@@ -227,12 +219,13 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
       first_name: ['', Validators.required], last_name: ['', Validators.required], company: [''],
       address_1: ['', Validators.required], address_2: [''], city: ['', Validators.required],
       postcode: ['', [Validators.required, Validators.pattern(/^\d{5}$/)]],
-      country: [{ value: 'DE', disabled: true }, Validators.required], state: [''],
+      country: [{ value: 'DE', disabled: false }, Validators.required],
+      state: [''],
       email: ['', [Validators.required, Validators.email]], phone: ['', Validators.required]
     });
     this.shippingForm = this.fb.group({
       first_name: [''], last_name: [''], company: [''], address_1: [''], address_2: [''],
-      city: [''], postcode: ['', Validators.pattern(/^\d{5}$/)], country: [{ value: 'DE', disabled: true }], state: ['']
+      city: [''], postcode: ['', Validators.pattern(/^\d{5}$/)], country: [{ value: 'DE', disabled: false }], state: ['']
     });
     this.updateShippingFormValidators(this.showShippingForm());
   }
@@ -264,48 +257,104 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
   }
 
   private async loadInitialDataFromCartAndFetchShipping(): Promise<void> {
-    this.isLoadingAddress.set(true); let currentCart = this.cartService.cart();
+    this.isLoadingAddress.set(true); 
+    let currentCart = this.cartService.cart();
+    console.log('[CheckoutDetailsPage loadInitialData] Initial cart from service:', currentCart ? JSON.parse(JSON.stringify(currentCart)) : 'null', 'Item Count:', this.cartService.cartItemCount());
+
     if (!currentCart && this.cartService.isLoading()) {
-      await firstValueFrom(toObservable(this.cartService.isLoading).pipe(filter(isLoading => !isLoading), take(1), takeUntilDestroyed(this.destroyRef)));
+      console.log('[CheckoutDetailsPage loadInitialData] Cart is initially null and CartService is loading. Waiting...');
+      await firstValueFrom(
+        toObservable(this.cartService.isLoading).pipe(
+          filter(isLoading => !isLoading), 
+          take(1), 
+          takeUntilDestroyed(this.destroyRef)
+        )
+      );
       currentCart = this.cartService.cart();
+      console.log('[CheckoutDetailsPage loadInitialData] CartService finished loading. Cart is now:', currentCart ? JSON.parse(JSON.stringify(currentCart)) : 'null', 'Item Count:', this.cartService.cartItemCount());
     }
+
     if (!currentCart && isPlatformBrowser(this.platformId)) {
-        await this.cartService.loadInitialCartFromServer(); currentCart = this.cartService.cart();
+        console.log('[CheckoutDetailsPage loadInitialData] Cart is still null after waiting/initial check. Calling loadInitialStoreApiCart().');
+        await this.cartService.loadInitialStoreApiCart(); 
+        currentCart = this.cartService.cart();
+        console.log('[CheckoutDetailsPage loadInitialData] Cart after loadInitialStoreApiCart:', currentCart ? JSON.parse(JSON.stringify(currentCart)) : 'null', 'Item Count:', this.cartService.cartItemCount());
     }
+    
+    console.log('[CheckoutDetailsPage loadInitialData] Final check before redirect/shipping: Cart:', currentCart ? JSON.parse(JSON.stringify(currentCart)) : 'null', 'Item Count:', this.cartService.cartItemCount());
     if (!currentCart || this.cartService.cartItemCount() === 0) {
-        if (isPlatformBrowser(this.platformId)) { this.router.navigate(['/warenkorb']); }
-        this.isLoadingAddress.set(false); return;
+        console.log('[CheckoutDetailsPage loadInitialData] No cart or cart is empty. Redirecting to /warenkorb.');
+        if (isPlatformBrowser(this.platformId)) { 
+            this.router.navigate(['/warenkorb']); 
+        }
+        this.isLoadingAddress.set(false); 
+        return;
     }
+
     if (currentCart.billing_address && Object.keys(currentCart.billing_address).length > 0) {
       this.billingForm.patchValue(this.mapAddressToForm(currentCart.billing_address, this.billingForm), { emitEvent: false });
+    } else {
+        const loggedInUser = this.authService.getCurrentUserValue();
+        if (loggedInUser) {
+            console.warn("TODO: Lade Rechnungsadresse vom eingeloggten Benutzerprofil");
+            this.billingForm.patchValue({ email: loggedInUser.email, first_name: loggedInUser.firstName, last_name: loggedInUser.lastName, country: 'DE' }, { emitEvent: false });
+        }
     }
+
     if (currentCart.shipping_address && Object.keys(currentCart.shipping_address).filter(k => !!currentCart!.shipping_address[k as keyof WooCommerceStoreAddress]).length > 0) {
       this.showShippingForm.set(this.isShippingDifferent(currentCart.billing_address, currentCart.shipping_address));
       if (this.showShippingForm()) { this.shippingForm.patchValue(this.mapAddressToForm(currentCart.shipping_address, this.shippingForm), { emitEvent: false }); }
-    } else { this.showShippingForm.set(false); }
-    this.updateShippingFormValidators(this.showShippingForm());
-    if (currentCart.needs_shipping === false) {
-        this.shippingInfo.set('not_needed'); this.isLoadingShipping.set(false); this.clearShippingError();
-    } else if (currentCart.needs_shipping === true) {
-        const addressToUseForShipping = this.showShippingForm() ? this.shippingForm.getRawValue() : this.billingForm.getRawValue();
-        const postcodeControl = this.showShippingForm() ? this.shippingForm.get('postcode') : this.billingForm.get('postcode');
-        if (addressToUseForShipping.country && addressToUseForShipping.postcode && postcodeControl?.valid) {
-            await this.processShippingForEnteredAddress(currentCart);
-        } else { this.shippingInfo.set(null); this.isLoadingShipping.set(false); }
+    } else { 
+        const isShippingDifferentCheck = this.isShippingDifferent(currentCart.billing_address, null);
+        this.showShippingForm.set(isShippingDifferentCheck);
+        if(!isShippingDifferentCheck) {
+            this.updateShippingFormValidators(false);
+        }
     }
+    if(!this.showShippingForm()){ 
+        this.updateShippingFormValidators(false);
+    }
+
+    // *** Vereinfachte Versandlogik, da Versand immer kostenlos ***
+    if (currentCart.needs_shipping === false) {
+        this.shippingInfo.set('not_needed');
+    } else {
+        // Da Versand immer kostenlos ist, setzen wir es direkt.
+        this.shippingInfo.set({
+            rateId: 'free_shipping_default', 
+            packageName: this.translocoService.translate('general.free'),
+            price: '0.00',
+            currencyCode: currentCart.totals.currency_code || 'EUR'
+        });
+    }
+    this.isLoadingShipping.set(false); // API-Call für Versand wird nicht mehr gemacht
+    this.clearShippingError();
+
     this.isLoadingAddress.set(false); this.cdr.markForCheck();
   }
 
   private mapAddressToForm(address: WooCommerceStoreAddress, form: FormGroup): Partial<WooCommerceStoreAddress> {
     const formValues: any = {};
-    Object.keys(form.controls).forEach(key => { if (address.hasOwnProperty(key)) { formValues[key] = (address as any)[key]; }});
-    formValues.country = address.country || 'DE'; formValues.state = address.state || '';
+    Object.keys(form.controls).forEach(key => { 
+        if (address.hasOwnProperty(key) && (address as any)[key] !== null && (address as any)[key] !== undefined) { 
+            formValues[key] = (address as any)[key]; 
+        }
+    });
+    if (form.get('country') && !formValues.country) {
+        formValues.country = 'DE';
+    }
+    if (form.get('state') && !formValues.state) {
+        formValues.state = address.state || '';
+    }
     return formValues;
   }
 
   private isShippingDifferent(billing: WooCommerceStoreAddress | null, shipping: WooCommerceStoreAddress | null): boolean {
-    if (!billing || !shipping) { return !!shipping; }
-    const bValues = this.mapAddressToForm(billing, this.billingForm); const sValues = this.mapAddressToForm(shipping, this.shippingForm);
+    if (!shipping || Object.keys(shipping).filter(k => !!shipping[k as keyof WooCommerceStoreAddress]).length === 0) return false;
+    if (!billing || Object.keys(billing).filter(k => !!billing[k as keyof WooCommerceStoreAddress]).length === 0) return true;
+    
+    const bValues = this.mapAddressToForm(billing, this.billingForm); 
+    const sValues = this.mapAddressToForm(shipping, this.shippingForm);
     const relevantKeys: (keyof WooCommerceStoreAddress)[] = ['first_name', 'last_name', 'company', 'address_1', 'address_2', 'city', 'postcode', 'country', 'state'];
     for (const key of relevantKeys) { if ((bValues[key] || '') !== (sValues[key] || '')) { return true; }}
     return false;
@@ -316,25 +365,40 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
 
   private async initializeBillingAutocomplete(): Promise<void> {
     if (!isPlatformBrowser(this.platformId) || !this.billingAddressStreetInput?.nativeElement || typeof google === 'undefined' || !google?.maps?.places?.Autocomplete) { return; }
-    this.ngZone.runOutsideAngular(async () => { await new Promise(resolve => setTimeout(resolve, 100));
+    this.ngZone.runOutsideAngular(async () => { 
+      await new Promise(resolve => setTimeout(resolve, 150));
       if (this.billingAddressStreetInput.nativeElement) {
         this.billingAutocomplete = new google.maps.places.Autocomplete(this.billingAddressStreetInput.nativeElement, this.autocompleteOptions);
-        if (this.billingAutocomplete) { this.billingAutocompleteListener = this.billingAutocomplete.addListener('place_changed', () => { this.ngZone.run(() => { if (this.billingAutocomplete) { this.onPlaceChanged(this.billingAutocomplete, this.billingForm); }}); });}
-      }});
+        if (this.billingAutocomplete) { 
+            this.billingAutocompleteListener = this.billingAutocomplete.addListener('place_changed', () => { 
+                this.ngZone.run(() => { if (this.billingAutocomplete) { this.onPlaceChanged(this.billingAutocomplete, this.billingForm); }}); 
+            });
+        } else { console.warn("Billing Autocomplete konnte nicht initialisiert werden."); }
+      }
+    });
   }
 
   private async initializeShippingAutocomplete(): Promise<void> {
     if (!isPlatformBrowser(this.platformId) || !this.shippingAddressStreetInput?.nativeElement || typeof google === 'undefined' || !google?.maps?.places?.Autocomplete) { return; }
-    this.ngZone.runOutsideAngular(async () => { await new Promise(resolve => setTimeout(resolve, 100));
+    this.ngZone.runOutsideAngular(async () => { 
+      await new Promise(resolve => setTimeout(resolve, 150));
       if (this.shippingAddressStreetInput.nativeElement) {
         this.shippingAutocomplete = new google.maps.places.Autocomplete(this.shippingAddressStreetInput.nativeElement, this.autocompleteOptions);
-        if (this.shippingAutocomplete) { this.shippingAutocompleteListener = this.shippingAutocomplete.addListener('place_changed', () => { this.ngZone.run(() => { if (this.shippingAutocomplete) { this.onPlaceChanged(this.shippingAutocomplete, this.shippingForm); }}); });}
-      }});
+        if (this.shippingAutocomplete) { 
+            this.shippingAutocompleteListener = this.shippingAutocomplete.addListener('place_changed', () => { 
+                this.ngZone.run(() => { if (this.shippingAutocomplete) { this.onPlaceChanged(this.shippingAutocomplete, this.shippingForm); }}); 
+            });
+        } else { console.warn("Shipping Autocomplete konnte nicht initialisiert werden."); }
+      }
+    });
   }
 
   private onPlaceChanged(autocomplete: google.maps.places.Autocomplete, form: FormGroup): void {
     const place = autocomplete.getPlace();
-    if (!place || !place.address_components) { form.get('address_1')?.setErrors({'manualEntryRequired': true}); this.cdr.markForCheck(); return; }
+    if (!place || !place.address_components) { 
+        console.warn("Google Place Autocomplete: No address components found for place:", place);
+        form.get('address_1')?.setErrors({'manualEntryRequired': true}); this.cdr.markForCheck(); return; 
+    }
     const addressDetails: Partial<WooCommerceStoreAddress> = { country: 'DE', address_1: '', city: '', postcode: '', state: '' };
     let streetNumber = ''; let route = '';
     for (const component of place.address_components) {
@@ -346,23 +410,30 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
         }
     }
     addressDetails.address_1 = `${route} ${streetNumber}`.trim();
-    Object.keys(addressDetails).forEach(key => { if (form.get(key as string)) { form.get(key as string)?.setValue((addressDetails as any)[key], { emitEvent: false }); }});
-    if (!addressDetails.address_1 && form.get('address_1') && place.formatted_address) { form.get('address_1')?.setValue(place.formatted_address, { emitEvent: false }); }
+    Object.keys(addressDetails).forEach(key => { 
+        if (form.get(key as string) && (addressDetails as any)[key] !== undefined) { 
+            form.get(key as string)?.setValue((addressDetails as any)[key], { emitEvent: false }); 
+        }
+    });
+    if (!addressDetails.address_1 && form.get('address_1') && place.formatted_address) { 
+        form.get('address_1')?.setValue(place.formatted_address, { emitEvent: false }); 
+    }
     form.markAllAsTouched(); this.cdr.markForCheck();
     const currentCart = this.cart();
     if (currentCart?.needs_shipping && form.valid && form.get('country')?.value && form.get('postcode')?.value && form.get('postcode')?.valid) {
+        // Da Versand immer kostenlos, wird processShippingForEnteredAddress die shippingInfo direkt setzen
         this.processShippingForEnteredAddress(currentCart).catch(err => console.error("Error processing shipping after autocomplete:", err));
     }
   }
 
   private destroyBillingAutocompleteListener(): void {
     if (this.billingAutocompleteListener && typeof google !== 'undefined' && google?.maps?.event) google.maps.event.removeListener(this.billingAutocompleteListener);
-    if (this.billingAutocomplete && this.billingAddressStreetInput?.nativeElement && typeof google !== 'undefined' && google?.maps?.event) { google.maps.event.clearInstanceListeners(this.billingAddressStreetInput.nativeElement); }
+    if (this.billingAutocomplete && this.billingAddressStreetInput?.nativeElement && typeof google !== 'undefined' && google?.maps?.event) { try { google.maps.event.clearInstanceListeners(this.billingAddressStreetInput.nativeElement); } catch(e) { console.warn("Error clearing billing autocomplete listeners", e);}}
     this.billingAutocompleteListener = undefined; this.billingAutocomplete = undefined;
   }
   private destroyShippingAutocompleteListener(): void {
      if (this.shippingAutocompleteListener && typeof google !== 'undefined' && google?.maps?.event) google.maps.event.removeListener(this.shippingAutocompleteListener);
-     if (this.shippingAutocomplete && this.shippingAddressStreetInput?.nativeElement && typeof google !== 'undefined' && google?.maps?.event) { google.maps.event.clearInstanceListeners(this.shippingAddressStreetInput.nativeElement); }
+     if (this.shippingAutocomplete && this.shippingAddressStreetInput?.nativeElement && typeof google !== 'undefined' && google?.maps?.event) { try { google.maps.event.clearInstanceListeners(this.shippingAddressStreetInput.nativeElement); } catch(e) { console.warn("Error clearing shipping autocomplete listeners", e);}}
      this.shippingAutocompleteListener = undefined; this.shippingAutocomplete = undefined;
   }
 
@@ -371,25 +442,97 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
     if (!this.validateForms()) {
       this.focusFirstInvalidField(this.billingForm);
       if (this.showShippingForm()) this.focusFirstInvalidField(this.shippingForm);
-      this.setError(this.addressErrorKey, 'checkoutDetailsPage.errors.fillRequiredFields'); return;
+      this.setError(this.addressError, this.addressErrorKey, 'checkoutDetailsPage.errors.fillRequiredFields'); return;
     }
-    this.isLoadingAddress.set(true); const customerData = this.prepareCustomerData();
+    this.isLoadingAddress.set(true); 
+    const customerData = this.prepareCustomerData();
+  
     try {
-      const updatedCart = await firstValueFrom(this.woocommerceService.updateCartCustomer(customerData));
-      if (updatedCart) {
-        this.cartService.cart.set(updatedCart);
-        if(updatedCart.billing_address) this.billingForm.patchValue(this.mapAddressToForm(updatedCart.billing_address, this.billingForm), { emitEvent: false });
-        if(updatedCart.shipping_address && this.showShippingForm()) this.shippingForm.patchValue(this.mapAddressToForm(updatedCart.shipping_address, this.shippingForm), { emitEvent: false });
-        if (updatedCart.needs_shipping === false) {
-          this.shippingInfo.set('not_needed'); this.isLoadingShipping.set(false); this.clearShippingError();
-        } else if (updatedCart.needs_shipping === true) { await this.processShippingForEnteredAddress(updatedCart); }
-      } else { this.setError(this.addressErrorKey, 'checkoutDetailsPage.errors.addressSaveFailed', { details: 'No cart data returned after update.' }); }
+      const storeApiCartResponse = await firstValueFrom(this.woocommerceService.updateCartCustomer(customerData));
+      console.log('[CheckoutDetailsPage] handleAddressFormSubmit - storeApiCartResponse from updateCustomer:', JSON.parse(JSON.stringify(storeApiCartResponse)));
+  
+      if (storeApiCartResponse) {
+        const currentUser = this.authService.getCurrentUserValue();
+        let cartToSetInService: WooCommerceStoreCart | null = null;
+  
+        const baseCartFromApiWithConvertedPrices = (this.cartService as any)['_convertStoreApiPricesInCart'](JSON.parse(JSON.stringify(storeApiCartResponse)));
+        console.log('[CheckoutDetailsPage] handleAddressFormSubmit - baseCartFromApiWithConvertedPrices (after conversion):', JSON.parse(JSON.stringify(baseCartFromApiWithConvertedPrices)));
+
+        if (currentUser && baseCartFromApiWithConvertedPrices) {
+          const existingUiCart = untracked(() => this.cartService.cart());
+          
+          if (existingUiCart && existingUiCart.items && existingUiCart.items.length > 0) {
+            console.log('[CheckoutDetailsPage] Logged-in user: Using existing UI cart items, updating rest from API response.');
+            console.log('[CheckoutDetailsPage] handleAddressFormSubmit - existingUiCart ITEMS:', JSON.parse(JSON.stringify(existingUiCart.items)));
+
+            const itemsToUse = existingUiCart.items; 
+            let newTotalPriceNumber = 0;
+            let newItemCount = 0;
+
+            if (itemsToUse && itemsToUse.length > 0) {
+              newItemCount = itemsToUse.reduce((sum, item) => sum + item.quantity, 0);
+              newTotalPriceNumber = itemsToUse.reduce((sum, item) => {
+                const lineTotalNum = parseFloat(item.totals.line_total); 
+                return sum + (isNaN(lineTotalNum) ? 0 : lineTotalNum);
+              }, 0);
+            }
+            
+            cartToSetInService = {
+              ...baseCartFromApiWithConvertedPrices, 
+              items: itemsToUse, 
+              items_count: newItemCount, 
+              items_weight: existingUiCart.items_weight || 0, // Sicherstellen, dass ein Wert da ist
+              totals: {
+                ...(baseCartFromApiWithConvertedPrices.totals || {currency_code: 'EUR', currency_symbol: '€', tax_lines:[]}), 
+                total_price: newTotalPriceNumber.toFixed(2), 
+                total_items: newItemCount.toString(),
+                total_items_tax: baseCartFromApiWithConvertedPrices.totals?.total_items_tax || "0",
+                total_tax: baseCartFromApiWithConvertedPrices.totals?.total_tax || "0", // Behalte Steuer von API
+              } as WooCommerceStoreCartTotals,
+            };
+          } else {
+             console.warn('[CheckoutDetailsPage] Logged-in user, but existingUiCart was null or empty. Using full CONVERTED Store API response.');
+            cartToSetInService = baseCartFromApiWithConvertedPrices;
+          }
+        } else if (baseCartFromApiWithConvertedPrices) { 
+          console.log('[CheckoutDetailsPage] Anonymous user: Using full CONVERTED Store API response for UI cart.');
+          cartToSetInService = baseCartFromApiWithConvertedPrices;
+        }
+        
+        if (cartToSetInService) {
+          console.log('[CheckoutDetailsPage] handleAddressFormSubmit - cartToSetInService before set:', JSON.parse(JSON.stringify(cartToSetInService)));
+          this.cartService.cart.set(cartToSetInService); 
+        } else {
+          console.log('[CheckoutDetailsPage] Setting cart to null as no valid cart data was constructed for UI.');
+          this.cartService.cart.set(null);
+        }
+  
+        if(storeApiCartResponse.billing_address) {
+            this.billingForm.patchValue(this.mapAddressToForm(storeApiCartResponse.billing_address, this.billingForm), { emitEvent: false });
+        }
+        if(storeApiCartResponse.shipping_address && Object.keys(storeApiCartResponse.shipping_address).length > 0 && this.showShippingForm()) {
+          this.shippingForm.patchValue(this.mapAddressToForm(storeApiCartResponse.shipping_address, this.shippingForm), { emitEvent: false });
+        } else if (!storeApiCartResponse.shipping_address || Object.keys(storeApiCartResponse.shipping_address).length === 0) {
+            const isShippingDifferentCheck = this.isShippingDifferent(storeApiCartResponse.billing_address, null); 
+            this.showShippingForm.set(isShippingDifferentCheck);
+            this.updateShippingFormValidators(isShippingDifferentCheck);
+        }
+        
+        // Da Versand immer kostenlos ist, wird processShippingForEnteredAddress nur noch shippingInfo setzen
+        await this.processShippingForEnteredAddress(cartToSetInService); // cartToSetInService übergeben, um mit dem aktuellsten Stand zu arbeiten
+  
+      } else { 
+        this.setError(this.addressError, this.addressErrorKey, 'checkoutDetailsPage.errors.addressSaveFailed', { details: 'No cart data returned after update customer.' }); 
+      }
     } catch (error: any) {
       const errorDetail = error.error?.message || error.message || 'Unknown server error';
-      this.setError(this.addressErrorKey, 'checkoutDetailsPage.errors.addressSaveFailed', { details: errorDetail });
-    } finally { this.isLoadingAddress.set(false); this.cdr.markForCheck(); }
+      this.setError(this.addressError, this.addressErrorKey, 'checkoutDetailsPage.errors.addressSaveFailed', { details: errorDetail });
+    } finally { 
+      this.isLoadingAddress.set(false); 
+      this.cdr.markForCheck(); 
+    }
   }
-
+  
   private validateForms(): boolean {
     this.billingForm.markAllAsTouched(); let isValid = this.billingForm.valid;
     if (this.showShippingForm()) { this.shippingForm.markAllAsTouched(); isValid = isValid && this.shippingForm.valid; }
@@ -397,101 +540,109 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
   }
 
   private prepareCustomerData(): { billing_address: WooCommerceStoreAddress, shipping_address: WooCommerceStoreAddress } {
-    const billing = this.billingForm.getRawValue() as WooCommerceStoreAddress; let shipping = billing;
-    if (this.showShippingForm() && (this.shippingForm.dirty || this.shippingForm.touched || Object.values(this.shippingForm.value).some(v => !!v))) {
-      shipping = this.shippingForm.getRawValue() as WooCommerceStoreAddress;
+    const billing = this.billingForm.getRawValue() as WooCommerceStoreAddress; 
+    let shipping = billing;
+    if (this.showShippingForm()) {
+        const rawShipping = this.shippingForm.getRawValue() as WooCommerceStoreAddress;
+        const cleanShipping: Partial<WooCommerceStoreAddress> = {};
+        let shippingHasValues = false;
+        for (const key in rawShipping) {
+            if (rawShipping.hasOwnProperty(key) && rawShipping[key as keyof WooCommerceStoreAddress] !== null && rawShipping[key as keyof WooCommerceStoreAddress] !== '') {
+                (cleanShipping as any)[key] = rawShipping[key as keyof WooCommerceStoreAddress];
+                shippingHasValues = true;
+            }
+        }
+        if (shippingHasValues) {
+            shipping = cleanShipping as WooCommerceStoreAddress;
+        } else if (this.showShippingForm()) { // Wenn Checkbox aktiv, aber Formular leer -> nimm billing
+             shipping = billing;
+        }
     }
     return { billing_address: billing, shipping_address: shipping };
   }
 
-  private async processShippingForEnteredAddress(cartForShipping?: WooCommerceStoreCart | null): Promise<void> {
-    const currentCart = cartForShipping || this.cart();
+  private async processShippingForEnteredAddress(cartForShippingParam?: WooCommerceStoreCart | null): Promise<void> {
+    const currentCart = cartForShippingParam || this.cartService.cart(); 
     if (!currentCart || currentCart.needs_shipping === false) {
-      this.shippingInfo.set('not_needed'); this.isLoadingShipping.set(false); this.clearShippingError(); return;
+      this.shippingInfo.set('not_needed');
+      this.isLoadingShipping.set(false); 
+      this.clearShippingError(); 
+      return;
     }
-    this.isLoadingShipping.set(true); this.clearShippingError();
-    try {
-      const shippingPackages = await firstValueFrom(this.woocommerceService.getCartShippingRates());
-      if (shippingPackages && shippingPackages.length > 0 && shippingPackages[0].shipping_rates && shippingPackages[0].shipping_rates.length > 0) {
-        const firstPackage = shippingPackages[0];
-        const rateToSelect = firstPackage.shipping_rates.find(rate => parseFloat(rate.price) === 0) || firstPackage.shipping_rates[0];
-        if (rateToSelect) {
-          await this.selectShippingRate( firstPackage.package_id, rateToSelect.rate_id, rateToSelect.name, rateToSelect.price, rateToSelect.currency_code || currentCart.totals.currency_code );
-        } else { this.setShippingError(this.shippingErrorKey, 'checkoutDetailsPage.shipping.noRatesFound'); this.shippingInfo.set('error'); }
-      } else { this.setShippingError(this.shippingErrorKey, 'checkoutDetailsPage.shipping.noRatesFound'); this.shippingInfo.set('error'); }
-    } catch (error: any) {
-      const errorDetail = error.error?.message || error.message || 'Unknown error';
-      if (error.status === 404 && error.error?.code === 'rest_no_route' && error.error?.data?.path?.includes('shipping-rates')) {
-        this.setShippingError(this.shippingErrorKey, 'checkoutDetailsPage.errors.shippingRouteNotFound');
-      } else { this.setShippingError(this.shippingErrorKey, 'checkoutDetailsPage.shipping.errorDefault', { details: errorDetail });}
-      this.shippingInfo.set('error');
-    } finally { this.isLoadingShipping.set(false); this.cdr.markForCheck(); }
+    
+    console.log('[CheckoutDetailsPage] processShippingForEnteredAddress: Setting free shipping directly (NO API CALL).');
+    this.shippingInfo.set({
+        rateId: 'free_shipping_selected', 
+        packageName: this.translocoService.translate('general.free'),
+        price: '0.00',
+        currencyCode: currentCart.totals?.currency_code || 'EUR' // Fallback auf EUR
+    });
+    this.isLoadingShipping.set(false); 
+    this.clearShippingError();
+    this.cdr.markForCheck();
   }
 
-  private async selectShippingRate(packageId: string, rateId: string, rateName: string, ratePrice: string, currencyCode: string): Promise<void> {
-    try {
-      const updatedCart = await firstValueFrom(this.woocommerceService.selectCartShippingRate(packageId, rateId));
-      if (updatedCart) {
-        this.cartService.cart.set(updatedCart);
-        this.shippingInfo.set({ rateId, packageName: rateName, price: ratePrice, currencyCode });
-        this.clearShippingError();
-      } else { throw new Error('Cart not updated after selecting shipping rate.'); }
-    } catch (error: any) {
-      const errorDetail = error.error?.message || error.message || 'Unknown error';
-      this.setShippingError(this.shippingErrorKey, 'checkoutDetailsPage.shipping.selectError', { details: errorDetail });
-      this.shippingInfo.set('error');
-    }
-  }
+  // selectShippingRate wird nicht mehr benötigt, da Versand immer kostenlos und direkt gesetzt wird.
+  // private async selectShippingRate(...) { /* ... */ }
 
   async proceedToPayment(): Promise<void> {
     this.formSubmitted.set(true);
     if (!this.validateForms()) {
       this.focusFirstInvalidField(this.billingForm);
       if (this.showShippingForm() && !this.shippingForm.valid) this.focusFirstInvalidField(this.shippingForm);
-      this.setError(this.addressErrorKey, 'checkoutDetailsPage.errors.fillRequiredFields');
+      this.setError(this.addressError, this.addressErrorKey, 'checkoutDetailsPage.errors.fillRequiredFields');
       return;
     }
 
     const currentCart = this.cart();
-    if (!currentCart || this.cartService.cartItemCount() === 0) { // cartService.itemCount() verwenden für Konsistenz
-      this.setError(this.addressErrorKey, 'checkoutDetailsPage.emptyCartMessage');
+    if (!currentCart || this.cartService.cartItemCount() === 0) {
+      this.setError(this.addressError, this.addressErrorKey, 'checkoutDetailsPage.emptyCartMessage');
       if (isPlatformBrowser(this.platformId)) this.router.navigate(['/warenkorb']);
       return;
     }
 
-    if (currentCart.needs_shipping === true && (this.shippingInfo() === null || this.shippingInfo() === 'error' || !this.displayableShippingInfoObject())) {
-        this.setShippingError(this.shippingErrorKey, 'checkoutDetailsPage.errors.selectShipping');
-        const formToFocus = (this.showShippingForm() && this.shippingForm.get('postcode')?.invalid && currentCart.needs_shipping) ? this.shippingForm : this.billingForm;
-        this.focusFirstInvalidField(formToFocus.get('postcode') || formToFocus);
+    // Da Versand immer kostenlos ist und wir shippingInfo direkt setzen,
+    // ist diese Prüfung weniger kritisch, aber schadet nicht.
+    if (currentCart.needs_shipping === true && this.shippingInfo() === 'error') {
+        this.setShippingError(this.shippingError, this.shippingErrorKey, 'checkoutDetailsPage.errors.selectShipping');
         return;
     }
+    if (currentCart.needs_shipping === true && this.shippingInfo() === null ) {
+      // Dieser Fall sollte nicht eintreten, wenn loadInitialData oder handleAddressFormSubmit shippingInfo setzt.
+      console.warn('[CheckoutDetailsPage] proceedToPayment: shippingInfo is null but shipping is needed. Forcing free shipping info.');
+      this.shippingInfo.set({
+            rateId: 'free_shipping_default',
+            packageName: this.translocoService.translate('general.free'),
+            price: '0.00',
+            currencyCode: currentCart.totals.currency_code || 'EUR'
+      });
+    }
+
 
     this.isRedirecting.set(true);
     this.clearErrors();
 
-    const cartItemsForStaging = currentCart.items.map(item => {
+    const cartItemsForStaging = currentCart.items.map((item: WooCommerceStoreCartItem) => {
       let productIdForItem: number;
-      let variationIdForItem: number = 0;
-      if (item.variation && item.variation.length > 0 && item.parent_product_id) {
+      let variationIdForItem: number | undefined = undefined;
+
+      if (item.parent_product_id && item.id !== item.parent_product_id) {
         variationIdForItem = item.id;
         productIdForItem = item.parent_product_id;
       } else {
         productIdForItem = item.id;
-        if (item.variation && item.variation.length > 0 && !item.parent_product_id) {
-          console.warn(`Checkout: Variation ${item.id} ('${item.name}') hat keine parent_product_id. Verwende item.id (${item.id}) als product_id.`);
-        }
       }
       return {
         product_id: productIdForItem,
         quantity: item.quantity,
-        variation_id: variationIdForItem > 0 ? variationIdForItem : undefined
+        variation_id: variationIdForItem 
       };
     }).filter(item => item.product_id > 0);
 
     if (cartItemsForStaging.length !== currentCart.items.length) {
         const missingIdsCount = currentCart.items.length - cartItemsForStaging.length;
         console.error(`Checkout: ${missingIdsCount} Artikel konnten nicht korrekt für Staging gemappt werden.`);
-        this.setError(this.addressErrorKey, 'checkoutDetailsPage.errors.checkoutProcessFailed', {details: `Fehler beim Vorbereiten von ${missingIdsCount} Artikel(n).`});
+        this.setError(this.addressError, this.addressErrorKey, 'checkoutDetailsPage.errors.checkoutProcessFailed', {details: `Fehler beim Vorbereiten von ${missingIdsCount} Artikel(n).`});
         this.isRedirecting.set(false);
         return;
     }
@@ -500,8 +651,12 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
     const payload: StageCartPayload = {
       items: cartItemsForStaging,
       billing_address: customerData.billing_address,
-      shipping_address: this.showShippingForm() ? customerData.shipping_address : customerData.billing_address
+      shipping_address: (this.showShippingForm() && this.shippingFormHasValues()) ? customerData.shipping_address : undefined
     };
+    if (!this.showShippingForm() || (this.showShippingForm() && !this.shippingFormHasValues())) { // Expliziter wenn showShippingForm aber keine Werte
+      delete payload.shipping_address;
+    }
+
 
     try {
       const stageResponse: StageCartResponse = await firstValueFrom(
@@ -509,7 +664,10 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
           takeUntilDestroyed(this.destroyRef),
           catchError(err => {
             console.error('CheckoutDetailsPage: Error staging cart:', err);
-            throw new Error('Fehler beim Vorbereiten des Warenkorbs. Details siehe Konsole.');
+            let errMsg = 'Fehler beim Vorbereiten des Warenkorbs.';
+            if (err.error?.message) errMsg = err.error.message;
+            else if (err.message) errMsg = err.message;
+            throw new Error(errMsg);
           })
         )
       );
@@ -521,17 +679,27 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
       const populationToken = stageResponse.token;
 
       if (isPlatformBrowser(this.platformId)) {
-        this.woocommerceService.clearLocalCartToken(); // Beibehalten, wenn dies einen temporären WC-Token löscht
-        // this.cartService.clearLocalCartStateForCheckout(); // <-- HIER IST DIE ÄNDERUNG: DIESE ZEILE IST AUSKOMMENTIERT
+        this.woocommerceService.clearLocalCartToken();
+        this.cartService.clearLocalCartStateForCheckout(); 
         window.location.href = this.woocommerceService.getCheckoutUrl(populationToken);
       }
 
     } catch (error: any) {
       console.error('Checkout: Error during proceedToPayment:', error);
-      this.setError(this.addressErrorKey, 'checkoutDetailsPage.errors.checkoutProcessFailed', {details: error.message || 'Unbekannter Fehler im Checkout-Prozess.'});
+      this.setError(this.addressError, this.addressErrorKey, 'checkoutDetailsPage.errors.checkoutProcessFailed', {details: error.message || 'Unbekannter Fehler im Checkout-Prozess.'});
       this.isRedirecting.set(false);
       this.cdr.markForCheck();
     }
+  }
+
+  private shippingFormHasValues(): boolean {
+    const rawShipping = this.shippingForm.getRawValue() as WooCommerceStoreAddress;
+    for (const key in rawShipping) {
+        if (rawShipping.hasOwnProperty(key) && key !== 'country' && rawShipping[key as keyof WooCommerceStoreAddress] !== null && rawShipping[key as keyof WooCommerceStoreAddress] !== '') {
+            return true;
+        }
+    }
+    return false;
   }
 
   private focusFirstInvalidField(form: FormGroup | AbstractControl | null): void {
@@ -557,12 +725,12 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
     this.shippingError.set(null); this.shippingErrorKey.set(null);
   }
 
-  private setError(keySignal: WritableSignal<string | null>, errorKey: string, params?: object): void {
-    keySignal.set(errorKey); this.addressError.set(this.translocoService.translate(errorKey, params));
+  private setError(errorSignal: WritableSignal<string | null>, keySignal: WritableSignal<string | null>, errorKey: string, params?: object): void {
+    keySignal.set(errorKey); errorSignal.set(this.translocoService.translate(errorKey, params));
     this.cdr.markForCheck();
   }
-  private setShippingError(keySignal: WritableSignal<string | null>, errorKey: string, params?: object): void {
-    keySignal.set(errorKey); this.shippingError.set(this.translocoService.translate(errorKey, params));
+  private setShippingError(errorSignal: WritableSignal<string | null>, keySignal: WritableSignal<string | null>, errorKey: string, params?: object): void {
+    keySignal.set(errorKey); errorSignal.set(this.translocoService.translate(errorKey, params));
     this.cdr.markForCheck();
   }
 
@@ -586,8 +754,9 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
         console.warn(`CheckoutDetailsPage: Could not parse permalink "${item.permalink}" for item "${item.name}". Error:`, e);
       }
     }
-    console.warn(`CheckoutDetailsPage: Could not determine slug for item "${item.name}" (ID: ${item.id}). Falling back to ID.`);
-    return `/product/${item.id}`;
+    const productIdForLink = item.parent_product_id || item.id;
+    console.warn(`CheckoutDetailsPage: Could not determine slug for item "${item.name}" (ID: ${item.id}, ProductID for Link: ${productIdForLink}). Falling back to ID.`);
+    return `/product/${productIdForLink}`;
   }
 
   getProductImageForItem(item: WooCommerceStoreCartItem): string | undefined {

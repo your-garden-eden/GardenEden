@@ -168,6 +168,7 @@
     "notFoundMessage": "Das angeforderte Produkt konnte nicht gefunden werden.",
     "noImageAvailable": "Kein Bild verfügbar",
     "thumbnailAlt": "Vorschaubild {{index}}",
+    "successAddToCart": "Produkt erfolgreich in den Warenkorb gelegt.",
     "availability": {
       "inStock": "Auf Lager",
       "outOfStock": "Nicht verfügbar",
@@ -406,7 +407,8 @@
       "total": "Gesamtsumme", "inclVatShort": "inkl. MwSt.", "allPricesInclVat": "Alle Preise inkl. gesetzl. MwSt.",
       "checkoutButton": "Zur Kasse gehen", "itemSingular": "Artikel", "itemPlural": "Artikel",
       "continueShopping": "Weiter einkaufen",
-      "shippingAddressNote": "Für die Berechnung der Versandkosten und die Fortsetzung des Checkouts ist eine vollständige Lieferadresse (Land und PLZ) erforderlich."
+      "shippingAddressNote": "Für die Berechnung der Versandkosten und die Fortsetzung des Checkouts ist eine vollständige Lieferadresse (Land und PLZ) erforderlich.",
+      "addressButton":  "Lieferadresse hinzufügen"
     },
     "noteLabel": "Hinweis",
     "empty": { "title": "Ihr Warenkorb ist leer.", "message": "Fügen Sie Produkte hinzu, um sie hier zu sehen.", "continueShopping": "Jetzt einkaufen" },
@@ -497,6 +499,7 @@
       "companyPlaceholder": "Firmenname", "address1Label": "Straße & Hausnr.", "address1Placeholder": "Musterstraße 123",
       "address2Label": "Adresszusatz (optional)", "address2Placeholder": "z.B. Hinterhaus, App. 42",
       "postcodeLabel": "PLZ", "postcodePlaceholder": "12345", "cityLabel": "Ort", "cityPlaceholder": "Musterstadt",
+      "buttons.proceedToPayment" : "Weiter zur Bezahlung",
       "countryLabel": "Land", "stateLabel": "Bundesland (optional)", "statePlaceholder": "z.B. Bayern",
       "emailLabel": "E-Mail-Adresse", "emailPlaceholder": "max.mustermann@beispiel.de",
       "phoneLabel": "Telefonnummer", "phonePlaceholder": "0123 4567890"
