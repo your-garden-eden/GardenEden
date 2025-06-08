@@ -1,51 +1,56 @@
-// src/app/shared/services/wishlist.service.ts
-import { Injectable, inject, signal, WritableSignal, Signal, computed, untracked, OnDestroy, PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common'; // Import für isPlatformBrowser
-import { Firestore, doc, getDoc, updateDoc, arrayUnion, arrayRemove, DocumentReference, DocumentData, setDoc } from '@angular/fire/firestore';
-import { AuthService, WordPressUser } from './auth.service'; // WordPressUser importieren
-import { CartService } from './cart.service';
-import { WoocommerceService, WooCommerceProduct } from '../../core/services/woocommerce.service';
-import { Subscription, forkJoin, of, firstValueFrom } from 'rxjs';
-import { distinctUntilChanged, map, catchError } from 'rxjs/operators';
-import { TranslocoService } from '@ngneat/transloco'; // Import für Übersetzungen
-import { UiStateService } from './ui-state.service'; // Für Erfolgs-/Fehlermeldungen
+import { Injectable, signal, computed, inject, WritableSignal, Signal, OnDestroy, PLATFORM_ID, effect, untracked } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Subscription, of, firstValueFrom } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { TranslocoService } from '@ngneat/transloco';
 
+import { AuthService, WordPressUser } from './auth.service';
+import { WoocommerceService, WooCommerceProduct, WooCommerceProductVariation } from '../../core/services/woocommerce.service';
+import { WishlistData, WishlistItem, DisplayWishlistItem } from './wishlist.models';
 
 @Injectable({
   providedIn: 'root'
 })
 export class WishlistService implements OnDestroy {
-  private firestore = inject(Firestore);
+  private http = inject(HttpClient);
   private authService = inject(AuthService);
-  private cartService = inject(CartService);
   private woocommerceService = inject(WoocommerceService);
-  private platformId = inject(PLATFORM_ID); // platformId injizieren
-  private translocoService = inject(TranslocoService); // translocoService injizieren
-  private uiStateService = inject(UiStateService); // uiStateService injizieren
+  private translocoService = inject(TranslocoService);
+  private platformId = inject(PLATFORM_ID);
 
-  private _wishlistProductSlugs: WritableSignal<string[]> = signal([]);
-  public readonly wishlistProductSlugs$: Signal<string[]> = this._wishlistProductSlugs.asReadonly();
-  public readonly isLoading: WritableSignal<boolean> = signal(false);
-  public readonly error: WritableSignal<string | null> = signal(null);
+  // --- Private State Signals ---
+  private readonly rawWishlistData: WritableSignal<WishlistData | null> = signal(null);
 
-  public readonly isEmpty: Signal<boolean> = computed(() => this._wishlistProductSlugs().length === 0);
-  private readonly wishlistMap: Signal<Record<string, boolean>> = computed(() => {
-    const slugs = this._wishlistProductSlugs();
-    const map: Record<string, boolean> = {};
-    for (const slug of slugs) {
-      map[slug] = true;
+  // --- Public State Signals ---
+  readonly displayWishlist: WritableSignal<DisplayWishlistItem[]> = signal([]);
+  readonly isLoading: WritableSignal<boolean> = signal(false);
+  readonly error: WritableSignal<string | null> = signal(null);
+
+  readonly wishlistProductIds: Signal<Set<string>> = computed(() => {
+    const data = this.rawWishlistData();
+    const ids = new Set<string>();
+    if (data?.items) {
+      for (const item of data.items) {
+        ids.add(`${item.product_id}_${item.variation_id || 0}`);
+      }
     }
-    return map;
+    return ids;
   });
 
-  private currentUserId: string | null = null; // Wird jetzt als String gespeichert (WordPress User ID)
-  private authSubscription: Subscription | null = null;
+  readonly wishlistItemCount: Signal<number> = computed(() => this.wishlistProductIds().size);
 
-  private storageKeyPrefix = 'wishlist_wp_'; // Präfix geändert, um Konflikte mit alten Firebase-Wishlists zu vermeiden
+  private authSubscription: Subscription | null = null;
+  private ygeApiBaseUrl = 'https://your-garden-eden-4ujzpfm5qt.live-website.com/wp-json/your-garden-eden/v1';
 
   constructor() {
-    if (isPlatformBrowser(this.platformId)) { // Nur im Browser ausführen
-        this.subscribeToAuthState();
+    if (isPlatformBrowser(this.platformId)) {
+      this.subscribeToAuthState();
+
+      effect(() => {
+        const data = this.rawWishlistData();
+        untracked(() => this._mapWishlistToDisplayItems(data));
+      });
     }
   }
 
@@ -54,260 +59,142 @@ export class WishlistService implements OnDestroy {
   }
 
   private subscribeToAuthState(): void {
-    if (this.authSubscription) { return; }
-
-    // KORRIGIERT: currentWordPressUser$ und user.id verwenden
-    this.authSubscription = this.authService.currentWordPressUser$.pipe(
-      map((user: WordPressUser | null) => user?.id?.toString() ?? null), // WordPress User ID als String oder null
-      distinctUntilChanged()
-    ).subscribe(userId => {
-      // const previousUserId = this.currentUserId; // Nicht unbedingt benötigt hier
-      this.currentUserId = userId;
-
-      if (userId) {
-        console.log(`[WishlistService] User logged in with WP ID: ${userId}. Loading wishlist.`);
-        this.loadWishlist(userId);
+    this.authSubscription = this.authService.currentWordPressUser$.subscribe((user: WordPressUser | null) => {
+      if (user) {
+        console.log('[WishlistService] User logged in. Loading wishlist from server.');
+        this._loadWishlistFromServer();
       } else {
-        console.log('[WishlistService] User logged out. Clearing wishlist.');
-        this.clearWishlistOnLogout();
+        console.log('[WishlistService] User logged out. Clearing wishlist data.');
+        this.rawWishlistData.set(null);
+        this.displayWishlist.set([]);
+        this.error.set(null);
       }
     });
   }
 
-  private _getUserDocRef(userId: string): DocumentReference<DocumentData> | null {
-    // Nimmt jetzt die WordPress User ID als String an (da wir sie so speichern)
-    if (!userId) return null;
-    // Die Firestore-Struktur bleibt gleich (users/{userId}), aber userId ist jetzt die WP ID.
-    // Überlege, ob du Firestore überhaupt noch für die Wishlist nutzen willst, oder ob es
-    // sinnvoller ist, die Wishlist auch über WordPress (z.B. als User Meta) zu speichern,
-    // um alles an einem Ort zu haben. Für den Moment belassen wir es bei Firestore.
-    return doc(this.firestore, `users/${userId}`);
+  private getAuthHeaders(): HttpHeaders {
+    const token = this.authService.getStoredToken();
+    if (!token) {
+      throw new Error('Nicht authentifiziert: Kein Token gefunden.');
+    }
+    return new HttpHeaders().set('Authorization', `Bearer ${token}`);
   }
 
-  async loadWishlist(userId: string): Promise<void> {
-    if (!userId) {
-      this._wishlistProductSlugs.set([]);
-      return;
-    }
+  private async _loadWishlistFromServer(): Promise<void> {
     this.isLoading.set(true);
     this.error.set(null);
-    const userDocRef = this._getUserDocRef(userId);
-    if (!userDocRef) {
-        this.isLoading.set(false);
-        this.error.set(this.translocoService.translate('wishlist.errorUserRef'));
-        this._wishlistProductSlugs.set([]);
-        return;
-    }
     try {
-      const docSnap = await getDoc(userDocRef);
-      if (docSnap.exists()) {
-        const slugs = (docSnap.data()?.['wishlist_product_slugs'] as string[] | undefined) ?? [];
-        this._wishlistProductSlugs.set(slugs);
-      } else {
-        // Wenn kein Dokument existiert, ist die Wunschliste leer (kein Fehler)
-        this._wishlistProductSlugs.set([]);
-        // Optional: Dokument erstellen, wenn es nicht existiert
-        // await setDoc(userDocRef, { wishlist_product_slugs: [] });
-      }
-    } catch (error: any) {
-      console.error('WishlistService: Error loading wishlist from Firestore:', error);
-      this.error.set(this.translocoService.translate('wishlist.errorLoading'));
-      this._wishlistProductSlugs.set([]);
+      const headers = this.getAuthHeaders();
+      const url = `${this.ygeApiBaseUrl}/wishlist`;
+      const wishlistData = await firstValueFrom(this.http.get<WishlistData>(url, { headers }));
+      this.rawWishlistData.set(wishlistData);
+    } catch (e) {
+      console.error('[WishlistService] Error loading wishlist:', e);
+      this.error.set(this.translocoService.translate('wishlist.errors.load'));
+      this.rawWishlistData.set(null);
     } finally {
       this.isLoading.set(false);
     }
   }
 
-  async addToWishlist(productSlug: string): Promise<void> {
-    const userId = this.currentUserId;
-    if (!userId) {
-        this.uiStateService.showGlobalError(this.translocoService.translate('wishlist.errorNotLoggedIn'));
-        return;
-    }
-    if (!productSlug) { console.warn('WishlistService: addToWishlist called with empty slug.'); return; }
-    if (this.isOnWishlist(productSlug)) {
-        // Produkt ist bereits auf der Wunschliste. Ggf. Info-Meldung.
-        // this.uiStateService.showGlobalInfo(this.translocoService.translate('wishlist.alreadyInWishlist'));
-        return;
+  private async _mapWishlistToDisplayItems(wishlistData: WishlistData | null): Promise<void> {
+    if (!wishlistData || wishlistData.items.length === 0) {
+      this.displayWishlist.set([]);
+      return;
     }
 
-    this.isLoading.set(true); this.error.set(null);
-    const userDocRef = this._getUserDocRef(userId);
-    if (!userDocRef) {
-        this.isLoading.set(false);
-        this.error.set(this.translocoService.translate('wishlist.errorUserRef'));
-        return;
-    }
+    this.isLoading.set(true);
     try {
-      await setDoc(userDocRef, { wishlist_product_slugs: arrayUnion(productSlug) }, { merge: true });
-      this._wishlistProductSlugs.update(currentSlugs => {
-          if (!currentSlugs.includes(productSlug)) { return [...currentSlugs, productSlug]; }
-          return currentSlugs;
-      });
-      // Erfolgsmeldung über UiStateService
-      // this.uiStateService.showGlobalSuccess(this.translocoService.translate('wishlist.addedSuccess'));
-    } catch (error: any) {
-      console.error('WishlistService: Error adding to wishlist in Firestore:', error);
-      this.error.set(this.translocoService.translate('wishlist.errorAdding'));
-    } finally {
-      this.isLoading.set(false);
-    }
-  }
-
-  async removeFromWishlist(productSlug: string): Promise<void> {
-     const userId = this.currentUserId;
-     if (!userId || !productSlug || !this.isOnWishlist(productSlug)) { return; }
-     this.isLoading.set(true); this.error.set(null);
-     const userDocRef = this._getUserDocRef(userId);
-     if (!userDocRef) {
-         this.isLoading.set(false);
-         this.error.set(this.translocoService.translate('wishlist.errorUserRef'));
-         return;
-    }
-     try {
-       await updateDoc(userDocRef, { wishlist_product_slugs: arrayRemove(productSlug) });
-       this._wishlistProductSlugs.update(currentSlugs => currentSlugs.filter(s => s !== productSlug));
-       // Erfolgsmeldung
-       // this.uiStateService.showGlobalSuccess(this.translocoService.translate('wishlist.removedSuccess'));
-     } catch (error: any) {
-       console.error('WishlistService: Error removing from wishlist in Firestore:', error);
-       this.error.set(this.translocoService.translate('wishlist.errorRemoving'));
-     } finally {
-       this.isLoading.set(false);
-     }
-  }
-
-  public isOnWishlist(productSlug: string): boolean {
-    return this.wishlistMap()[productSlug] ?? false;
-  }
-
-  private clearWishlistOnLogout(): void {
-    this._wishlistProductSlugs.set([]); // Keine Notwendigkeit für untracked hier
-    this.error.set(null);
-    this.isLoading.set(false);
-  }
-
-  async moveFromWishlistToCart(productSlug: string): Promise<void> {
-     const userId = this.currentUserId;
-     if (!userId) { this.error.set(this.translocoService.translate('wishlist.errorNotLoggedIn')); return; }
-     if (!productSlug) { return; }
-     if (!this.isOnWishlist(productSlug)) { return; }
-
-     this.isLoading.set(true); this.error.set(null);
-     try {
-        const product = await firstValueFrom(this.woocommerceService.getProductBySlug(productSlug).pipe(
-            catchError(err => {
-                console.error(`Wishlist: Produkt ${productSlug} nicht gefunden via WooCommerceService`, err);
-                throw new Error(this.translocoService.translate('wishlist.errorProductNotFound', { slug: productSlug }));
-            })
-        ));
-        if (!product) throw new Error(this.translocoService.translate('wishlist.errorProductNotFound', { slug: productSlug }));
-
-        if (product.stock_status !== 'instock' || !product.purchasable) {
-            throw new Error(this.translocoService.translate('wishlist.errorProductNotAvailable', { productName: product.name }));
-        }
-
-        let productIdToAdd = product.id;
-        let variationIdToAdd: number | undefined = undefined;
-
-        if (product.type === 'variable') {
-          console.warn(`Versuch, variables Produkt '${product.name}' ohne spezifische Variante von Wunschliste in Warenkorb zu legen.`);
-          // Hier könnte Logik hin, um den User zur Produktdetailseite zu leiten, um Varianten auszuwählen,
-          // oder die erste verfügbare Variante zu nehmen (riskant).
-          // Fürs Erste: Fehler oder Hinweis.
-          this.error.set(this.translocoService.translate('wishlist.errorVariableProductNeedsSelection', { productName: product.name }));
-          this.isLoading.set(false);
-          return;
-        }
-
-        await this.cartService.addItem(productIdToAdd, 1, variationIdToAdd);
-        await this.removeFromWishlist(productSlug); // Erst nach erfolgreichem Hinzufügen entfernen
-        // Erfolgsmeldung
-        // this.uiStateService.showGlobalSuccess(this.translocoService.translate('wishlist.movedToCartSuccess', { productName: product.name }));
-     } catch (error: any) {
-        console.error(`Error moving ${productSlug} to cart:`, error);
-        this.error.set(error.message || this.translocoService.translate('wishlist.errorMovingToCart'));
-     } finally {
-        this.isLoading.set(false);
-     }
-  }
-
-  async addAllToCartAndClearWishlist(): Promise<void> {
-    const userId = this.currentUserId;
-    const slugs = untracked(this._wishlistProductSlugs); // untracked ist hier gut, um nicht auf Änderungen während der Iteration zu reagieren
-
-    if (!userId) { this.error.set(this.translocoService.translate('wishlist.errorNotLoggedIn')); return; }
-    if (slugs.length === 0) { this.error.set(this.translocoService.translate('wishlist.isEmpty')); return; }
-
-    this.isLoading.set(true); this.error.set(null);
-    let itemsSuccessfullyAdded = 0;
-    let itemsFailed = 0;
-
-    try {
-      const productObservables = slugs.map(slug =>
-        this.woocommerceService.getProductBySlug(slug).pipe(
-          catchError(() => of(null)) // Fehler beim Laden einzelner Produkte abfangen
-        )
-      );
-      const productsOrNulls = await firstValueFrom(forkJoin(productObservables));
-      const products = productsOrNulls.filter(p => p !== null) as WooCommerceProduct[];
-
-      for (const product of products) {
-        if (product.stock_status === 'instock' && product.purchasable) {
-          let variationId: number | undefined = undefined;
-          if (product.type === 'variable') {
-            console.warn(`addAllToCart: Variables Produkt ${product.name} wird ohne spezifische Variante hinzugefügt. Überspringe...`);
-            // Hier könntest du den Benutzer informieren oder das Produkt überspringen.
-            itemsFailed++;
-            continue;
-          }
+      const displayItems: DisplayWishlistItem[] = await Promise.all(
+        wishlistData.items.map(async (item): Promise<DisplayWishlistItem | null> => {
           try {
-            await this.cartService.addItem(product.id, 1, variationId);
-            itemsSuccessfullyAdded++;
-          } catch (addItemError) {
-            console.error(`Fehler beim Hinzufügen von Produkt ${product.name} zum Warenkorb:`, addItemError);
-            itemsFailed++;
+            const productDetails = await firstValueFrom(this.woocommerceService.getProductById(item.product_id));
+            let variationDetails: WooCommerceProductVariation | undefined;
+
+            if (item.variation_id && productDetails?.type === 'variable') {
+              const variations = await firstValueFrom(this.woocommerceService.getProductVariations(item.product_id));
+              variationDetails = variations.find(v => v.id === item.variation_id);
+            }
+            return { ...item, productDetails, variationDetails };
+          } catch (e) {
+            console.error(`[WishlistService] Could not fetch details for product ID ${item.product_id}`, e);
+            return null;
           }
-        } else {
-          itemsFailed++;
-          console.log(`Produkt ${product.name} nicht verfügbar und nicht zum Warenkorb hinzugefügt.`);
-        }
-      }
+        })
+      ).then(items => items.filter((item): item is DisplayWishlistItem => item !== null));
 
-      if (itemsSuccessfullyAdded > 0) {
-        // Lösche nur die erfolgreich hinzugefügten Slugs aus der Firestore-Wunschliste
-        // und dem lokalen Signal. Dies ist komplexer, wenn `addAllToCart` ein "alles oder nichts" sein soll.
-        // Fürs Erste: Wir leeren die gesamte Wunschliste, wenn mindestens ein Artikel hinzugefügt wurde.
-        // Eine bessere Lösung wäre, nur die erfolgreich verschobenen zu entfernen.
-        await this.clearFirestoreWishlist(userId); // Dies löscht die gesamte Firestore-Wunschliste
-        this._wishlistProductSlugs.set([]); // Lokale Wunschliste leeren
-        // this.uiStateService.showGlobalSuccess(this.translocoService.translate('wishlist.allAddedToCartSuccess', { count: itemsSuccessfullyAdded }));
-      }
-
-      if (itemsFailed > 0) {
-        this.error.set(this.translocoService.translate('wishlist.someItemsNotAddedError', { count: itemsFailed }));
-      }
-
-
-    } catch (error: any) {
-      console.error("WishlistService: Error during addAllToCart:", error);
-      this.error.set(error.message || this.translocoService.translate('wishlist.errorAddingAllToCart'));
+      this.displayWishlist.set(displayItems);
+    } catch (e) {
+      this.error.set(this.translocoService.translate('wishlist.errors.display'));
+      this.displayWishlist.set([]);
     } finally {
       this.isLoading.set(false);
     }
   }
 
-  private async clearFirestoreWishlist(userId: string): Promise<void> {
-    if (!userId) { throw new Error("Benutzer-ID fehlt zum Leeren der Wunschliste."); }
-    const userDocRef = this._getUserDocRef(userId);
-    if (!userDocRef) { throw new Error("Benutzerreferenz konnte nicht erstellt werden."); }
+  public async addToWishlist(productId: number, variationId?: number): Promise<void> {
+    if (!this.authService.getStoredToken()) {
+      this.error.set(this.translocoService.translate('wishlist.errors.notLoggedIn'));
+      return;
+    }
+
+    this.isLoading.set(true);
+    this.error.set(null);
     try {
-        // Setze das Feld auf ein leeres Array, anstatt das Dokument zu löschen,
-        // falls das Dokument andere Benutzerdaten enthält.
-        await setDoc(userDocRef, { wishlist_product_slugs: [] }, { merge: true });
-    } catch (error) {
-        console.error(`WishlistService: Error clearing Firestore wishlist for user ${userId}:`, error);
-        throw new Error(this.translocoService.translate('wishlist.errorClearingDb'));
+      const headers = this.getAuthHeaders();
+      const url = `${this.ygeApiBaseUrl}/wishlist/item/add`;
+      const payload = { product_id: productId, variation_id: variationId };
+      const updatedWishlist = await firstValueFrom(this.http.post<WishlistData>(url, payload, { headers }));
+      this.rawWishlistData.set(updatedWishlist);
+    } catch (e) {
+      console.error('[WishlistService] Error adding to wishlist:', e);
+      this.error.set(this.translocoService.translate('wishlist.errors.add'));
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
+
+  public async removeFromWishlist(productId: number, variationId?: number): Promise<void> {
+    if (!this.authService.getStoredToken()) {
+      return;
+    }
+
+    this.isLoading.set(true);
+    this.error.set(null);
+    try {
+      const headers = this.getAuthHeaders();
+      const url = `${this.ygeApiBaseUrl}/wishlist/item/remove`;
+      const payload = { product_id: productId, variation_id: variationId };
+      const updatedWishlist = await firstValueFrom(this.http.post<WishlistData>(url, payload, { headers }));
+      this.rawWishlistData.set(updatedWishlist);
+    } catch (e) {
+      console.error('[WishlistService] Error removing from wishlist:', e);
+      this.error.set(this.translocoService.translate('wishlist.errors.remove'));
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
+
+  // HIER IST DIE KORREKTUR: Neue Methode zum Leeren der gesamten Wunschliste
+  public async clearWishlist(): Promise<void> {
+    if (!this.authService.getStoredToken()) {
+      return;
+    }
+
+    this.isLoading.set(true);
+    this.error.set(null);
+    try {
+      const headers = this.getAuthHeaders();
+      const url = `${this.ygeApiBaseUrl}/wishlist`;
+      await firstValueFrom(this.http.delete(url, { headers }));
+      // UI direkt und optimistisch aktualisieren
+      this.rawWishlistData.set({ items: [] });
+    } catch (e) {
+      console.error('[WishlistService] Error clearing wishlist:', e);
+      // Den Fehler an die UI weitergeben. Wir haben auch einen neuen Übersetzungsschlüssel.
+      this.error.set(this.translocoService.translate('wishlist.errors.clearAll'));
+    } finally {
+      this.isLoading.set(false);
     }
   }
 }

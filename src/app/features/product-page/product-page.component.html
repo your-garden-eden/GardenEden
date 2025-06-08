@@ -6,7 +6,9 @@
   </button>
 
   @if (isLoading()) {
-    <div class="loading-indicator"><p>{{ 'productPage.loadingDetails' | transloco }}</p></div>
+    <div class="loading-container">
+      <app-loading-spinner></app-loading-spinner>
+    </div>
   }
 
   @if (error(); as errorMsg) {
@@ -44,7 +46,7 @@
                      (click)="selectImageOnClick(image)"
                      [class.selected]="selectedImage()?.id === image.id">
                   <img [src]="image.src"
-                       [alt]="image.alt || ('productPage.thumbnailAlt' | transloco: { index: i + 1 })" />
+                       [alt]="('productPage.thumbnailAlt' | transloco: { index: i + 1 })" />
                 </div>
               }
             </div>
@@ -117,14 +119,12 @@
 
             <button class="add-to-wishlist-btn action-button"
                     (click)="toggleWishlist()"
-                    [disabled]="!(isLoggedIn$ | async)"
-                    [title]="!(isLoggedIn$ | async) ? ('productPage.actions.wishlistLogin' | transloco) : (isOnWishlist() ? ('productPage.actions.removeFromWishlist' | transloco) : ('productPage.actions.addToWishlist' | transloco))">
+                    [disabled]="!isLoggedIn()"
+                    [title]="!isLoggedIn() ? ('productPage.actions.wishlistLogin' | transloco) : (isOnWishlist() ? ('productPage.actions.removeFromWishlist' | transloco) : ('productPage.actions.addToWishlist' | transloco))">
               <span class="material-symbols-outlined wishlist-icon" [class.filled]="isOnWishlist()">
                 {{ isOnWishlist() ? 'favorite' : 'favorite_border' }}
               </span>
-              <span class="button-text">
-                {{ isOnWishlist() ? ('productPage.actions.inWishlist' | transloco) : ('productPage.actions.addToWishlist' | transloco) }}
-              </span>
+              <!-- HIER IST DIE KORREKTUR: Der Text wurde entfernt -->
             </button>
           </div>
 

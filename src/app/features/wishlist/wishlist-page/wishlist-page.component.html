@@ -2,81 +2,143 @@
 <div class="wishlist-page-container">
   <h1>{{ 'wishlistPage.title' | transloco }}</h1>
 
-  @if (isLoadingWishlistHandles() || isLoadingProducts()) {
-    <div class="loading-indicator wishlist-loading"><p>{{ 'wishlistPage.loading' | transloco }}</p></div>
-  }
-  @if (wishlistServiceError(); as errorMsg) { <p class="error-message global-wishlist-error">{{ errorMsg }}</p> }
-  @if (productsError(); as errorMsg) { <p class="error-message product-load-error">{{ errorMsg }}</p> }
-
-
-  @if (!isLoadingWishlistHandles() && !isLoadingProducts()) {
-    @if (!isEmptyWishlist()) {
+  @if (isLoading() && itemCount() === 0) {
+    <div class="loading-indicator page-loading">
+      <app-loading-spinner></app-loading-spinner>
+    </div>
+  } @else {
+    @if (serviceError(); as errorMsg) {
+      <div class="error-message global-wishlist-error">
+        <p>{{ errorMsg }}</p>
+      </div>
+    } @else if (itemCount() > 0) {
       <div class="wishlist-content">
-        <div class="wishlist-items">
-          <h2>{{ 'wishlistPage.yourProducts' | transloco }}</h2>
-          <div class="items-grid">
-            @for (product of wishlistProducts(); track product.id) {
-              <div class="wishlist-item-card">
-                <a [routerLink]="getProductLink(product)" class="item-link">
-                  <div class="item-image">
-                    @if (getProductImage(product); as imgUrl) {
-                      <img [src]="imgUrl" [alt]="product.name" loading="lazy">
-                    } @else {
-                      <div class="placeholder-image small"><span class="material-symbols-outlined" [title]="'productPage.noImageAvailable' | transloco">image</span></div>
+        <div class="wishlist-items-list">
+          <!-- Desktop Table -->
+          <table class="wishlist-table desktop-only">
+            <thead>
+              <tr>
+                <th colspan="2">{{ 'wishlistPage.table.product' | transloco }}</th>
+                <th>{{ 'wishlistPage.table.price' | transloco }}</th>
+                <!-- HIER IST KORREKTUR 1: Nur eine Spalte für Aktionen -->
+                <th class="actions-header">{{ 'wishlistPage.table.actions' | transloco }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of displayWishlist(); track trackByItemId($index, item)) {
+                <tr class="wishlist-item">
+                  <td class="item-image-cell">
+                    <a [routerLink]="getProductLink(item)">
+                      @if (getProductImage(item); as imgUrl) {
+                        <img [src]="imgUrl" [alt]="item.productDetails?.name" loading="lazy"/>
+                      } @else {
+                        <div class="placeholder-image">
+                          <span class="material-symbols-outlined">image</span>
+                        </div>
+                      }
+                    </a>
+                  </td>
+                  <td class="item-details-cell">
+                    <a [routerLink]="getProductLink(item)" class="product-title">
+                      {{ item.productDetails?.name }}
+                    </a>
+                    @if (item.variationDetails; as variation) {
+                      @if(variation.attributes) {
+                        <div class="variant-title">
+                          @for(attr of variation.attributes; track attr.name) {
+                            <span>{{ attr.name }}: {{ attr.option }}</span>
+                          }
+                        </div>
+                      }
                     }
-                  </div>
-                  <div class="item-info">
-                    <h3 class="item-title">{{ product.name }}</h3>
-                    @if (product.price_html) {
-                      <span class="item-price" [innerHTML]="product.price_html | safeHtml"></span>
-                    } @else if (product.price) {
-                      <span class="item-price">{{ product.price | formatPrice : (getProductCurrencyCode(product) ) }}</span> <!-- Nutze Hilfsmethode -->
-                    }
-                  </div>
-                </a>
-                <div class="item-actions">
-                  <!-- KORRIGIERT: Button Tag korrekt geschlossen -->
-                  <button class="action-button remove-button"
-                          [title]="'wishlistPage.actions.remove' | transloco"
-                          (click)="removeFromWishlist(product.slug)"
-                          [disabled]="isLoadingWishlistHandles()"
-                          [attr.aria-label]="'wishlistPage.actions.remove' | transloco">
-                    <span class="icon-stack">
-                      <span class="material-symbols-outlined base-icon">favorite</span>
-                      <span class="material-symbols-outlined strikethrough-icon">horizontal_rule</span>
-                    </span>
-                  </button>
+                  </td>
+                  <td class="item-price-cell">
+                    <div class="price-block" [innerHTML]="(item.variationDetails?.price_html || item.productDetails?.price_html) | safeHtml"></div>
+                  </td>
+                  <!-- HIER IST KORREKTUR 2: Beide Buttons in EINER Zelle -->
+                  <td class="item-actions-cell">
+                    <button class="action-button add-to-cart-button" (click)="moveToCart(item)" [title]="'wishlistPage.actions.moveToCart' | transloco">
+                      <span class="material-symbols-outlined">add_shopping_cart</span>
+                    </button>
+                    <button class="action-button remove-button" (click)="removeFromWishlist(item)" [title]="'wishlistPage.actions.remove' | transloco">
+                      <span class="icon-stack">
+                        <span class="material-symbols-outlined base-icon">favorite</span>
+                        <span class="material-symbols-outlined strikethrough-icon">horizontal_rule</span>
+                      </span>
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
 
-                  <button class="action-button add-to-cart-button"
-                          [title]="'wishlistPage.actions.moveToCart' | transloco"
-                          (click)="moveFromWishlistToCart(product)"
-                          [disabled]="isLoadingProducts() || product.stock_status !== 'instock' || !product.purchasable">
+          <!-- Mobile List (bleibt unverändert) -->
+          <ul class="wishlist-list mobile-only">
+            @for (item of displayWishlist(); track trackByItemId($index, item)) {
+              <li class="wishlist-item-mobile">
+                <div class="item-image">
+                  <a [routerLink]="getProductLink(item)">
+                    @if (getProductImage(item); as imgUrl) {
+                      <img [src]="imgUrl" [alt]="item.productDetails?.name" loading="lazy"/>
+                    } @else {
+                      <div class="placeholder-image small"><span class="material-symbols-outlined">image</span></div>
+                    }
+                  </a>
+                </div>
+                <div class="item-info">
+                  <a [routerLink]="getProductLink(item)" class="product-title">{{ item.productDetails?.name }}</a>
+                  @if (item.variationDetails; as variation) {
+                    @if(variation.attributes) {
+                      <div class="variant-title">
+                        @for(attr of variation.attributes; track attr.name) {
+                          <span>{{ attr.name }}: {{ attr.option }}</span>
+                        }
+                      </div>
+                    }
+                  }
+                  <div class="item-price-mobile price-block" [innerHTML]="(item.variationDetails?.price_html || item.productDetails?.price_html) | safeHtml"></div>
+                </div>
+                <div class="item-actions-mobile">
+                  <button class="action-button add-to-cart-button" (click)="moveToCart(item)" [title]="'wishlistPage.actions.moveToCart' | transloco">
                     <span class="material-symbols-outlined">add_shopping_cart</span>
                   </button>
+                  <button class="action-button remove-button" (click)="removeFromWishlist(item)" [title]="'wishlistPage.actions.remove' | transloco">
+                     <span class="icon-stack">
+                        <span class="material-symbols-outlined base-icon">favorite</span>
+                        <span class="material-symbols-outlined strikethrough-icon">horizontal_rule</span>
+                      </span>
+                  </button>
                 </div>
-              </div>
+              </li>
             }
-          </div>
+          </ul>
         </div>
 
         <div class="wishlist-summary">
           <h2>{{ 'wishlistPage.summary.title' | transloco }}</h2>
           <div class="summary-row item-count">
             <span>{{ 'wishlistPage.summary.itemCount' | transloco }}:</span>
-            <span>{{ wishlistProducts().length }}</span>
+            <span>{{ itemCount() }}</span>
           </div>
-          <div class="summary-row total-price">
-            <span>{{ 'wishlistPage.summary.totalPrice' | transloco }}:</span>
-            <span>{{ totalPrice() | currency : getGlobalCurrencyCode() : 'symbol' : '1.2-2' : ('general.locale' | transloco) }}</span> <!-- getGlobalCurrencyCode() für Konsistenz -->
+          <div class="wishlist-actions">
+              <button class="action-button primary" (click)="addAllToCart()" [disabled]="itemCount() === 0">
+                <span class="material-symbols-outlined">playlist_add_check</span>
+                <span>{{ 'wishlistPage.summary.addAllToCart' | transloco }}</span>
+              </button>
+              <button class="action-button secondary clear-wishlist" (click)="clearWishlist()" [disabled]="itemCount() === 0">
+                <span class="material-symbols-outlined">delete_forever</span>
+                <span>{{ 'wishlistPage.summary.clearAll' | transloco }}</span>
+              </button>
           </div>
-          <p class="vat-info">{{ 'wishlistPage.summary.vatInfo' | transloco }}</p>
-          <button class="add-all-to-cart-button primary-button" (click)="addAllToCart()" [disabled]="isAddAllDisabled()">
-            {{ 'wishlistPage.summary.addAllToCart' | transloco }}
-          </button>
+          <a routerLink="/" class="continue-shopping-link">
+            <span class="material-symbols-outlined">arrow_back</span>
+            <span>{{ 'wishlistPage.summary.continueShopping' | transloco }}</span>
+          </a>
         </div>
       </div>
     } @else {
       <div class="empty-wishlist-message">
+        <span class="material-symbols-outlined empty-icon">sentiment_very_dissatisfied</span>
         <h2>{{ 'wishlistPage.empty.title' | transloco }}</h2>
         <p>{{ 'wishlistPage.empty.message' | transloco }}</p>
         <a routerLink="/" class="primary-button">{{ 'wishlistPage.empty.continueShopping' | transloco }}</a>

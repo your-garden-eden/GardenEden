@@ -41,7 +41,7 @@
           (scroll)="onSearchOverlayScroll($event)"
         >
           @if(isSearchLoading() && !isSearchLoadingMore()) {
-            <div class="search-loading">{{ 'header.searchLoading' | transloco }}</div>
+            <div class="search-loading"><app-loading-spinner></app-loading-spinner></div>
           } @else if (searchError() && searchResults().length === 0) {
             <div class="search-error">{{ searchError() }}</div>
           } @else if (searchResults().length > 0) {
@@ -66,7 +66,7 @@
           }
 
           @if(isSearchLoadingMore()) {
-            <div class="search-loading-more">{{ 'header.searchLoadingMore' | transloco }}</div>
+            <div class="search-loading-more"><app-loading-spinner></app-loading-spinner></div>
           }
         </div>
       }
@@ -74,28 +74,24 @@
     </div>
 
     <div class="user-actions">
-      <a routerLink="/wunschliste"
-         [title]="(isLoggedIn$ | async)
-                    ? ((isWishlistEmpty()
-                        ? ('header.wishlist' | transloco) + ' (' + ('general.empty' | transloco) + ')'
-                        : ('header.wishlist' | transloco)))
-                    : ('header.loginForWishlist' | transloco)"
+      <!-- ANGEPASSTER WISHLIST-LINK OHNE BADGE -->
+      <a routerLink="/mein-konto/wunschliste"
+         [title]="isLoggedIn() ? ('header.wishlist' | transloco) : ('header.loginForWishlist' | transloco)"
          class="icon-button wishlist-button"
-         [class.disabled]="!(isLoggedIn$ | async)"
-         [class.active]="(isLoggedIn$ | async) && !isWishlistEmpty()">
-        <span class="material-symbols-outlined">
-          {{ (isLoggedIn$ | async) && !isWishlistEmpty() ? 'favorite' : 'favorite_border' }}
+         [class.disabled]="!isLoggedIn()"
+         [class.active]="isLoggedIn() && wishlistItemCount() > 0">
+        <span class="material-symbols-outlined" [class.filled]="isLoggedIn() && wishlistItemCount() > 0">
+          favorite
         </span>
       </a>
 
-      <!-- WARENKORB-ICON OHNE MINI-WARENKORB FUNKTIONALITÄT -->
+      <!-- WARENKORB-ICON -->
       <a routerLink="/warenkorb" [title]="'header.cart' | transloco" class="icon-button cart-button">
         <span class="material-symbols-outlined">shopping_cart</span>
         @if (itemCount$() > 0) {
           <span class="cart-badge">{{ itemCount$() }}</span>
         }
       </a>
-      <!-- ENTFERNT: <app-mini-cart *ngIf="isMiniCartOpen$()"></app-mini-cart> -->
 
       @if (currentUser$ | async; as user) {
         <a routerLink="/mein-konto" [title]="'header.account' | transloco" class="icon-button account-button">
