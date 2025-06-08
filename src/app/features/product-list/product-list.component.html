@@ -36,6 +36,7 @@
         <div class="product-grid">
           @for (product of displayableProducts(); track trackProductById; let i = $index) {
             <app-product-card
+              [productId]="product.id"
               [productName]="product.name"
               [priceHtml]="product.price_html"
               [singlePrice]="product.price"

@@ -173,3 +173,66 @@
   margin-top: var(--spacing-xxs); // Sehr kleiner Abstand zum Preis
   font-style: italic;
 }
+
+
+// --- NEU: STYLING FÜR DEN WISHLIST-BUTTON ---
+.wishlist-toggle {
+  position: absolute;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
+  z-index: 2; // Muss über dem Bild, aber ggf. unter anderen Overlays sein
+  background-color: rgba(255, 255, 255, 0.7); // Leichter Hintergrund für bessere Sichtbarkeit
+  border: 1px solid var(--border-color-light);
+  border-radius: var(--border-radius-circle);
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+
+  // Icons im Button
+  .material-symbols-outlined {
+    font-size: 24px;
+    color: var(--wishlist-icon-color);
+    transition: opacity 0.2s ease;
+  }
+
+  // Standardmäßig ist nur das Outline-Icon sichtbar
+  .icon-filled {
+    display: none;
+  }
+  .icon-outline {
+    display: inline-block;
+  }
+
+  // Hover-Effekt für eingeloggte Benutzer
+  &:not(.is-logged-out):hover {
+    background-color: var(--wishlist-hover-bg-color);
+    transform: scale(1.1);
+  }
+
+  // Zustand: Ausgeloggt (graues Icon)
+  &.is-logged-out {
+    .material-symbols-outlined {
+      color: var(--disabled-color);
+    }
+    // Hover-Effekt für ausgeloggte Benutzer deaktivieren
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.7);
+      transform: none;
+    }
+  }
+
+  // Zustand: Eingeloggt & auf Wunschliste (gefülltes Herz)
+  &.is-in-wishlist {
+    .icon-filled {
+      display: inline-block;
+    }
+    .icon-outline {
+      display: none;
+    }
+  }
+}

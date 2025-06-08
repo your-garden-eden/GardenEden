@@ -6,28 +6,20 @@ import { ProductPageComponent } from './features/product-page/product-page.compo
 import { CategoryOverviewComponent } from './features/category-overview/category-overview.component';
 import { StaticPageComponent } from './features/static-page/static-page.component';
 import { RegisterPageComponent } from './features/auth/register-page/register-page.component';
-// ProfilePageComponent wird lazy geladen
 import { authGuard } from './core/guards/auth.guard';
-
-// Importiere deine CheckoutDetailsPageComponent
 import { CheckoutDetailsPageComponent } from './features/checkout/checkout-details-page/checkout-details-page.component';
-
-// +++ IMPORT FÜR ORDER CONFIRMATION EINKOMMENTIERT UND PFAD ÜBERPRÜFEN +++
 import { OrderConfirmationComponent } from './features/checkout/order-confirmation/order-confirmation.component';
-// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
 export const routes: Routes = [
-  // --- Bestehende Routen ---
   { path: '', component: HomeComponent, data: { titleKey: 'home.title' }, title: 'Your Garden Eden - Startseite' },
   {
     path: 'product-list/:slug',
     component: ProductListPageComponent,
-    // HIER DIE ERGÄNZUNG FÜR DIE ROUTE REUSE STRATEGY
-    data: { reuseComponent: true, titleKey: 'productList.pageTitle' }, // titleKey optional, falls du es so nutzt
-    title: 'Produkte' // Dieser Titel wird dynamisch in der Komponente gesetzt
+    data: { reuseComponent: true, titleKey: 'productList.pageTitle' },
+    title: 'Produkte'
   },
-  { path: 'product/:handle', component: ProductPageComponent, title: 'Produkt' }, // Produktseite wird typischerweise nicht wiederverwendet
+  { path: 'product/:handle', component: ProductPageComponent, title: 'Produkt' },
   { path: 'category/:slug', component: CategoryOverviewComponent, title: 'Kategorie' },
 
   // --- Statische Seiten Routen ---
@@ -88,14 +80,28 @@ export const routes: Routes = [
     title: 'Registrieren'
   },
 
-  // --- Geschützte Routen ---
+  // --- Geschützte "Mein Konto" Sektion ---
   {
     path: 'mein-konto',
-    loadComponent: () => import('./features/account/profile-page/profile-page.component').then(m => m.ProfilePageComponent),
-    data: { titleKey: 'profilePage.title' },
-    title: 'Mein Konto',
-    canActivate: [authGuard]
+    canActivate: [authGuard], // Der Guard schützt alle Kind-Routen
+    children: [
+      {
+        path: '', // Die leere Route /mein-konto
+        loadComponent: () => import('./features/account/profile-page/profile-page.component').then(m => m.ProfilePageComponent),
+        data: { titleKey: 'profilePage.title' },
+        title: 'Mein Konto',
+        pathMatch: 'full' // Wichtig für leere Kind-Routen
+      },
+      {
+        path: 'wunschliste', // Die Kind-Route /mein-konto/wunschliste
+        loadComponent: () => import('./features/wishlist/wishlist-page/wishlist-page.component').then(m => m.WishlistPageComponent),
+        data: { titleKey: 'wishlistPage.title' },
+        title: 'Meine Wunschliste'
+      }
+      // Hier könnten zukünftig weitere Kind-Routen hinzukommen, z.B. 'bestellungen'
+    ]
   },
+
 
   // --- Warenkorb-Route ---
   {
@@ -119,15 +125,5 @@ export const routes: Routes = [
     title: 'Bestellbestätigung'
   },
 
-  // --- WUNSCHLISTE-ROUTE ---
-  {
-    path: 'wunschliste',
-    loadComponent: () => import('./features/wishlist/wishlist-page/wishlist-page.component').then(m => m.WishlistPageComponent),
-    data: { titleKey: 'wishlistPage.title' },
-    title: 'Meine Wunschliste',
-    canActivate: [authGuard]
-  },
-
-  // Wildcard-Route am Ende (optional, falls du eine 404-Seite hast)
-  // { path: '**', component: NotFoundComponent, data: { titleKey: 'notFound.title' }, title: 'Seite nicht gefunden' }
+  // HINWEIS: Die alte 'wunschliste'-Route wurde entfernt
 ];

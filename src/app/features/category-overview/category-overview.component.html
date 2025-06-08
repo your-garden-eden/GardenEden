@@ -1,76 +1,87 @@
 <!-- /src/app/features/category-overview/category-overview.component.html -->
 <div class="category-overview-page">
 
-  <h1 *ngIf="categoryTitle() && !error()">{{ categoryTitle() }}</h1>
-
-  <div *ngIf="error()" class="error-message">
-    <p>{{ error() }}</p>
-    <a routerLink="/">{{ 'categoryOverview.backToHome' | transloco }}</a>
-  </div>
-
-  <div *ngIf="!error() && subCategoriesToDisplay().length > 0" class="subcategories-container">
-    @for (subItem of subCategoriesToDisplay(); track subItem.link) {
-      <a [routerLink]="subItem.link" class="subcategory-item">
-        @if (subItem.iconFilename) {
-          <img
-            [src]="getIconPath(subItem.iconFilename)"
-            [alt]="subItem.i18nId | transloco"
-            class="subcategory-icon"
-            loading="lazy"
-          />
-        } @else {
-          <div class="subcategory-icon-placeholder">
-            <span class="material-symbols-outlined">category</span>
-          </div>
-        }
-        <span class="subcategory-label">{{ subItem.i18nId | transloco }}</span>
-      </a>
-    }
-  </div>
-
-  @if (!error() && subCategoriesToDisplay().length === 0 && categoryTitle() && !isLoadingPreview()) {
-    <p class="no-items-message">{{ 'categoryOverview.noSubcategories' | transloco: { category: categoryTitle() } }}</p>
-  }
-
-  <section class="product-preview-section" *ngIf="!error() && subCategoriesToDisplay().length > 0">
-    @if (!isLoadingPreview() && !previewError() && displayableProductPreview().length > 0) {
-      <h2>
-        {{ 'categoryOverview.popularProducts' | transloco }}
-      </h2>
-    }
-
-    @if (isLoadingPreview()) {
-      <div class="preview-loading-spinner-container">
-        <app-loading-spinner></app-loading-spinner>
-      </div>
-    }
-
-    @if (previewError() && !isLoadingPreview()) {
-      <div class="error-message preview-error">
-        <p>{{ previewError() }}</p>
-      </div>
-    }
-
-    <div class="product-preview-grid">
-      @for (product of displayableProductPreview(); track product.id; let i = $index) {
-        <app-product-card
-          [productName]="product.name"
-          [priceHtml]="product.price_html"
-          [singlePrice]="product.price"
-          [currencySymbol]="getProductCurrencySymbol(product)"
-          [pricePrefix]="(product.type === 'variable' && product.price_html && product.price_html.toLowerCase().includes('ab')) ? '' : (product.type === 'variable' ? ('productCard.priceFrom' | transloco) + ' ' : '')"
-          [imageUrl]="getProductImage(product)"
-          [productLink]="getProductLink(product)"
-          [onSale]="product.on_sale"
-          [regularPrice]="product.regular_price"
-          [isLazy]="i >= 4"
-          [stockStatus]="product.stock_status"
-          [isVariable]="product.type === 'variable'"
-          [priceRange]="extractPriceRange(product)">
-        </app-product-card>
-      }
+  @if (isLoading()) {
+    <div class="loading-container">
+      <app-loading-spinner></app-loading-spinner>
     </div>
+  } @else {
+    @if (error(); as errorMsg) {
+      <div class="error-message">
+        <p>{{ errorMsg }}</p>
+        <a routerLink="/">{{ 'categoryOverview.backToHome' | transloco }}</a>
+      </div>
+    } @else {
+      @if(categoryTitle()) {
+        <h1>{{ categoryTitle() }}</h1>
+      }
 
-   
-  </section>
+      @if (subCategoriesToDisplay().length > 0) {
+        <div class="subcategories-container">
+          @for (subItem of subCategoriesToDisplay(); track subItem.link) {
+            <a [routerLink]="subItem.link" class="subcategory-item">
+              @if (subItem.iconFilename) {
+                <img
+                  [src]="getIconPath(subItem.iconFilename)"
+                  [alt]="subItem.i18nId | transloco"
+                  class="subcategory-icon"
+                  loading="lazy"
+                />
+              } @else {
+                <div class="subcategory-icon-placeholder">
+                  <span class="material-symbols-outlined">category</span>
+                </div>
+              }
+              <span class="subcategory-label">{{ subItem.i18nId | transloco }}</span>
+            </a>
+          }
+        </div>
+      } @else if (categoryTitle() && !isLoadingPreview()) {
+        <p class="no-items-message">{{ 'categoryOverview.noSubcategories' | transloco: { category: categoryTitle() } }}</p>
+      }
+
+      @if (subCategoriesToDisplay().length > 0) {
+        <section class="product-preview-section">
+          @if (!isLoadingPreview() && !previewError() && displayableProductPreview().length > 0) {
+            <h2>
+              {{ 'categoryOverview.popularProducts' | transloco }}
+            </h2>
+          }
+
+          @if (isLoadingPreview()) {
+            <div class="preview-loading-spinner-container">
+              <app-loading-spinner></app-loading-spinner>
+            </div>
+          }
+
+          @if (previewError() && !isLoadingPreview()) {
+            <div class="error-message preview-error">
+              <p>{{ previewError() }}</p>
+            </div>
+          }
+
+          <div class="product-preview-grid">
+            @for (product of displayableProductPreview(); track product.id; let i = $index) {
+              <app-product-card
+                [productId]="product.id"
+                [productName]="product.name"
+                [priceHtml]="product.price_html"
+                [singlePrice]="product.price"
+                [currencySymbol]="getProductCurrencySymbol(product)"
+                [pricePrefix]="(product.type === 'variable' && product.price_html && product.price_html.toLowerCase().includes('ab')) ? '' : (product.type === 'variable' ? ('productCard.priceFrom' | transloco) + ' ' : '')"
+                [imageUrl]="getProductImage(product)"
+                [productLink]="getProductLink(product)"
+                [onSale]="product.on_sale"
+                [regularPrice]="product.regular_price"
+                [isLazy]="i >= 4"
+                [stockStatus]="product.stock_status"
+                [isVariable]="product.type === 'variable'"
+                [priceRange]="extractPriceRange(product)">
+              </app-product-card>
+            }
+          </div>
+        </section>
+      }
+    }
+  }
 </div>

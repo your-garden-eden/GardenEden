@@ -12,6 +12,7 @@ import { Subscription, of, combineLatest, EMPTY, forkJoin, BehaviorSubject, Obse
 import {
   switchMap, tap, catchError, map, filter, distinctUntilChanged, startWith, take, finalize
 } from 'rxjs/operators';
+import { toSignal } from '@angular/core/rxjs-interop'; // Import für Umwandlung von Observable in Signal
 
 import {
   WoocommerceService, WooCommerceProduct, WooCommerceImage,
@@ -20,13 +21,14 @@ import {
 import { CartService } from '../../shared/services/cart.service';
 import { WishlistService } from '../../shared/services/wishlist.service';
 import { AuthService, WordPressUser } from '../../shared/services/auth.service';
-import { UiStateService } from '../../shared/services/ui-state.service'; // UiStateService bleibt für globale Nachrichten etc.
+import { UiStateService } from '../../shared/services/ui-state.service';
 import { ImageTransformPipe } from '../../shared/pipes/image-transform.pipe';
 import { FormatPricePipe } from '../../shared/pipes/format-price.pipe';
 import { SafeHtmlPipe } from '../../shared/pipes/safe-html.pipe';
 
 import { TranslocoModule, TranslocoService } from '@ngneat/transloco';
 import { FormsModule } from '@angular/forms';
+import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component'; // HIER IST DIE KORREKTUR
 
 
 interface SelectedOptions {
@@ -42,7 +44,8 @@ interface SelectedOptions {
     SafeHtmlPipe,
     TranslocoModule,
     FormsModule,
-    NgClass
+    NgClass,
+    LoadingSpinnerComponent // HIER IST DIE KORREKTUR
   ],
   templateUrl: './product-page.component.html',
   styleUrls: ['./product-page.component.scss'],
@@ -184,12 +187,19 @@ export class ProductPageComponent implements OnInit, OnDestroy, AfterViewInit {
   addToCartError: WritableSignal<string | null> = signal(null);
   private addToCartErrorKey: WritableSignal<string | null> = signal(null);
 
+  public isLoggedIn: Signal<boolean> = toSignal(this.authService.isLoggedIn$, { initialValue: false });
+
   readonly isOnWishlist: Signal<boolean> = computed(() => {
-    const slug = this.product()?.slug;
-    return slug ? this.wishlistService.isOnWishlist(slug) : false;
+    const product = this.product();
+    if (!product) return false;
+
+    const selectedVar = this.currentSelectedVariation();
+    if (product.type === 'variable' && selectedVar) {
+      return this.wishlistService.wishlistProductIds().has(`${product.id}_${selectedVar.id}`);
+    }
+    return this.wishlistService.wishlistProductIds().has(`${product.id}_0`);
   });
 
-  readonly isLoggedIn$: Observable<boolean> = this.authService.isLoggedIn$;
   private subscriptions = new Subscription();
   private productSlugFromRoute: string | null = null;
 
@@ -211,17 +221,10 @@ export class ProductPageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnInit(): void {
-    const authSub = this.authService.isLoggedIn$.subscribe((loggedIn: boolean) => {
-      // console.log('ProductPage: User loggedIn status in ngOnInit:', loggedIn); // Optional: Logging
-      this.cdr.markForCheck();
-    });
-    this.subscriptions.add(authSub);
-
     const handle$ = this.route.paramMap.pipe(
       map(params => params.get('handle')),
       distinctUntilChanged(),
       tap(routeParamValue => {
-        // console.log('ProductPageComponent Route Param from URL:', routeParamValue); // Optional: Logging
         this.productSlugFromRoute = routeParamValue;
         this.resetStateAndLoadInitialTitle();
       })
@@ -418,8 +421,6 @@ export class ProductPageComponent implements OnInit, OnDestroy, AfterViewInit {
     this.addToCartError.set(null); this.addToCartErrorKey.set(null);
     try {
       await this.cartService.addItem(productIdToAdd, quantityToAdd, variationIdToAdd);
-      // ENTFERNT: this.uiStateService.openMiniCartWithTimeout();
-      // Stattdessen könntest du hier eine globale Erfolgsmeldung anzeigen, wenn gewünscht:
       this.uiStateService.showGlobalSuccess(this.translocoService.translate('productPage.successAddToCart', { productName: productData.name }));
     } catch (error) {
       console.error(`ProductPage: Error adding to cart:`, error);
@@ -432,22 +433,25 @@ export class ProductPageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   async toggleWishlist(): Promise<void> {
-    const productSlug = this.product()?.slug;
-    const productName = this.product()?.name || '';
-    const isLoggedIn = this.authService.getCurrentUserValue() !== null;
+    const product = this.product();
+    if (!product) return;
 
-    if (!productSlug) return;
-    if (!isLoggedIn) {
-        this.uiStateService.showGlobalError(this.translocoService.translate('wishlist.errorNotLoggedInProductPage'));
-        this.uiStateService.openLoginOverlay();
-        return;
+    if (!this.isLoggedIn()) {
+      this.uiStateService.openLoginOverlay();
+      return;
     }
-    this.isLoading.set(true);
+
+    const selectedVar = this.currentSelectedVariation();
+    const productId = product.id;
+    const variationId = product.type === 'variable' && selectedVar ? selectedVar.id : 0;
+
+    this.isLoading.set(true); 
+
     try {
       if (this.isOnWishlist()) {
-        await this.wishlistService.removeFromWishlist(productSlug);
+        await this.wishlistService.removeFromWishlist(productId, variationId);
       } else {
-        await this.wishlistService.addToWishlist(productSlug);
+        await this.wishlistService.addToWishlist(productId, variationId);
       }
     } catch (error) {
         console.error("Error toggling wishlist from product page:", error);

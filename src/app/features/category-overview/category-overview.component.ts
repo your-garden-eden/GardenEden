@@ -56,6 +56,9 @@ export class CategoryOverviewComponent implements OnInit, OnDestroy {
   private destroyRef = inject(DestroyRef);
   private platformId = inject(PLATFORM_ID);
 
+  // --- NEU: Haupt-Ladesignal ---
+  isLoading: WritableSignal<boolean> = signal(true);
+
   currentParentCategory: WritableSignal<NavItem | null> = signal(null);
   categoryTitle: WritableSignal<string | null> = signal(null);
   subCategoriesToDisplay: WritableSignal<NavSubItem[]> = signal([]);
@@ -72,8 +75,8 @@ export class CategoryOverviewComponent implements OnInit, OnDestroy {
     this.route.paramMap
       .pipe(
         takeUntilDestroyed(this.destroyRef),
+        tap(() => this.resetState()), // Setzt isLoading wieder auf true
         map(params => params.get('slug')),
-        tap(() => this.resetState()),
         switchMap(slug => {
           if (!slug) {
             this.handleCategoryNotFound(this.translocoService.translate('categoryOverview.errorNoParentSlug'));
@@ -87,12 +90,12 @@ export class CategoryOverviewComponent implements OnInit, OnDestroy {
             this.subCategoriesToDisplay.set(foundParentCategory.subItems || []);
             this.updateTitles(foundParentCategory);
 
-            // KORRIGIERTE Zeile
             if (foundParentCategory.subItems && foundParentCategory.subItems.length > 0) {
               this.loadProductPreviewForParent(foundParentCategory.subItems);
             } else {
               this.isLoadingPreview.set(false);
             }
+            this.isLoading.set(false); // Ladezustand hier beenden
             return of(foundParentCategory);
           } else {
             this.handleCategoryNotFound(this.translocoService.translate('categoryOverview.notFoundError', { categorySlug: slug }));
@@ -219,6 +222,7 @@ export class CategoryOverviewComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {}
 
   private resetState(): void {
+    this.isLoading.set(true); // Ladezustand bei jedem neuen Aufruf zurücksetzen
     this.currentParentCategory.set(null);
     this.categoryTitle.set(null);
     this.subCategoriesToDisplay.set([]);
@@ -231,6 +235,7 @@ export class CategoryOverviewComponent implements OnInit, OnDestroy {
   private handleCategoryNotFound(errorMessage: string): void {
     this.error.set(errorMessage);
     this.titleService.setTitle(`${this.translocoService.translate('categoryOverview.notFoundTitle')} - Your Garden Eden`);
+    this.isLoading.set(false); // Ladezustand auch im Fehlerfall beenden
     this.isLoadingPreview.set(false);
   }
 

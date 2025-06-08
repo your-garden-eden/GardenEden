@@ -5,6 +5,19 @@
      [class.is-variable]="isVariable">
   <a [routerLink]="productLink" class="product-link">
     <div class="product-image-container">
+
+      <!-- NEU: Wishlist Toggle Button -->
+      <button
+        type="button"
+        class="wishlist-toggle"
+        [class.is-in-wishlist]="isLoggedIn() && isInWishlist()"
+        [class.is-logged-out]="!isLoggedIn()"
+        (click)="toggleWishlist($event)"
+        [attr.aria-label]="(isInWishlist() ? 'productCard.removeFromWishlist' : 'productCard.addToWishlist') | transloco">
+        <span class="material-symbols-outlined icon-filled">favorite</span>
+        <span class="material-symbols-outlined icon-outline">favorite_border</span>
+      </button>
+
       @if (imageUrl) {
         <img
           [src]="imageUrl"

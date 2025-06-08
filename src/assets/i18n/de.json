@@ -178,8 +178,9 @@
       "addToCart": "In den Warenkorb",
       "addingToCart": "Wird hinzugefügt...",
       "wishlistLogin": "Bitte anmelden, um die Wunschliste zu nutzen",
-      "addToWishlist": "Zur Wunschliste hinzufügen",
-      "removeFromWishlist": "Von Wunschliste entfernen"
+      "addToWishlist": "Zur Wunschliste",
+      "removeFromWishlist": "Von Wunschliste entfernen",
+      "inWishlist": "Auf der Wunschliste"
     },
     "description": {
       "title": "Beschreibung",
@@ -415,22 +416,46 @@
     "errorGlobalDefault": "Ein unbekannter Fehler im Warenkorb ist aufgetreten."
   },
   "wishlistPage": {
-    "title": "Meine Wunschliste - Your Garden Eden",
-    "loading": "Wunschliste wird geladen...",
-    "yourProducts": "Ihre gemerkten Produkte",
-    "actions": { "remove": "Von Wunschliste entfernen", "moveToCart": "In den Warenkorb" },
-    "summary": {
-      "title": "Übersicht", "itemCount": "Anzahl Produkte", "totalPrice": "Geschätzter Gesamtpreis",
-      "vatInfo": "Alle Preise inkl. MwSt.", "addAllToCart": "Alle in den Warenkorb"
+    "title": "Meine Wunschliste",
+    "table": {
+      "product": "Produkt",
+      "price": "Preis",
+      "actions": "Aktionen"
     },
-    "empty": { "title": "Ihre Wunschliste ist leer.", "message": "Fügen Sie Produkte hinzu, indem Sie auf das Herz-Symbol klicken.", "continueShopping": "Weiter einkaufen" },
-    "error": {
-      "loadingProducts": "Fehler beim Laden der Wunschlisten-Produkte.",
-      "productNotAvailable": "Das Produkt '{productName}' ist derzeit nicht verfügbar.",
-      "noVariantFound": "Für das Produkt '{productName}' konnte keine passende Variante gefunden werden.",
-      "movingToCartError": "Fehler beim Verschieben von '{productName}' in den Warenkorb.",
+    "actions": {
+      "moveToCart": "In den Warenkorb",
+      "remove": "Entfernen"
+    },
+    "summary": {
+      "title": "Übersicht",
+      "itemCount": "Anzahl Produkte",
+      "addAllToCart": "Alle in den Warenkorb",
+      "clearAll": "Wunschliste leeren",
+      "continueShopping": "Weiter einkaufen"
+    },
+    "empty": {
+      "title": "Deine Wunschliste ist leer",
+      "message": "Füge Produkte hinzu, die dir gefallen, indem du auf das Herz-Icon klickst.",
+      "continueShopping": "Jetzt Produkte entdecken"
+    },
+    "confirmClear": "Möchten Sie wirklich alle Artikel von Ihrer Wunschliste entfernen?"
+  },
+  "wishlist": {
+    "errors": {
+      "load": "Ihre Wunschliste konnte nicht geladen werden.",
+      "display": "Ein Fehler ist beim Anzeigen der Wunschlisten-Produkte aufgetreten.",
+      "notLoggedIn": "Bitte melden Sie sich an, um Ihre Wunschliste zu verwenden.",
+      "add": "Das Produkt konnte nicht zur Wunschliste hinzugefügt werden.",
+      "remove": "Das Produkt konnte nicht von der Wunschliste entfernt werden.",
+      "clearAll": "Die Wunschliste konnte nicht geleert werden.",
+      "notAvailable": "Das Produkt '{productName}' ist nicht verfügbar und kann nicht in den Warenkorb gelegt werden.",
+      "moveToCartFailed": "Das Produkt '{productName}' konnte nicht in den Warenkorb verschoben werden.",
       "noneAvailableToAdd": "Keine verfügbaren Produkte zum Hinzufügen in den Warenkorb gefunden.",
-      "loading": "Fehler beim Laden der Wunschliste."
+      "addAllToCart": "Es gab einen Fehler beim Hinzufügen aller Produkte zum Warenkorb."
+    },
+    "success": {
+      "movedToCart": "'{{productName}}' wurde in den Warenkorb verschoben.",
+      "allMovedToCart": "{{count}} Artikel wurden in den Warenkorb verschoben."
     }
   },
   "loginOverlay": {
@@ -480,8 +505,12 @@
     "mysteryTextHighlight": "Seien Sie gespannt – das Warten wird sich lohnen!"
   },
   "productCard": {
-    "sale": "Angebot!", "outOfStock": "Ausverkauft",
-    "availableInVariants": "In mehreren Varianten", "priceFrom": "Ab"
+    "sale": "Angebot!",
+    "outOfStock": "Ausverkauft",
+    "availableInVariants": "In mehreren Varianten",
+    "priceFrom": "Ab",
+    "addToWishlist": "Zur Wunschliste hinzufügen",
+    "removeFromWishlist": "Von Wunschliste entfernen"
   },
   "checkoutDetailsPage": {
     "title": "Bestelldetails & Adresse", "loadingData": "Daten werden geladen...",

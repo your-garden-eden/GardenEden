@@ -43,9 +43,9 @@
   } @else {
     @if (bestsellerProducts().length > 0) {
       <div class="product-grid">
-        <!-- *** KORRIGIERTES PRODUCT CARD BINDING *** -->
         @for (product of bestsellerProducts(); track product.id; let i = $index) {
           <app-product-card
+            [productId]="product.id" 
             [productName]="product.name"
             [priceHtml]="product.price_html"
             [singlePrice]="product.price"

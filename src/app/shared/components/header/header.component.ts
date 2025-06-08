@@ -30,6 +30,7 @@ import {
   take,
 } from 'rxjs/operators';
 import { ReactiveFormsModule, FormControl, FormsModule } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 // Services & Daten
 import { AuthService, WordPressUser } from '../../../shared/services/auth.service';
@@ -49,6 +50,7 @@ import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 // Transloco
 import { TranslocoModule, TranslocoService, LangDefinition } from '@ngneat/transloco';
 import { HttpParams } from '@angular/common/http';
+import { LoadingSpinnerComponent } from '../loading-spinner/loading-spinner.component'; // HIER IST DIE KORREKTUR
 
 @Component({
   selector: 'app-header',
@@ -60,6 +62,7 @@ import { HttpParams } from '@angular/common/http';
     FormsModule,
     AsyncPipe,
     TranslocoModule,
+    LoadingSpinnerComponent, // HIER IST DIE KORREKTUR
   ],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss'],
@@ -83,11 +86,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
   isMobileMenuOpen = false;
   public navItems = navItems;
 
-  isWishlistEmpty: Signal<boolean> = this.wishlistService.isEmpty;
-  isLoggedIn$: Observable<boolean> = this.authService.isLoggedIn$;
+  wishlistItemCount: Signal<number> = this.wishlistService.wishlistItemCount;
+  
+  isLoggedIn: Signal<boolean> = toSignal(this.authService.isLoggedIn$, { initialValue: false });
 
   searchControl = new FormControl('');
-  searchResults: WritableSignal<WooCommerceProduct[]> = signal([]); // Wird mit validierten Produkten befüllt
+  searchResults: WritableSignal<WooCommerceProduct[]> = signal([]);
   isSearchLoading: WritableSignal<boolean> = signal(false);
   isSearchLoadingMore: WritableSignal<boolean> = signal(false);
   isSearchOverlayVisible: WritableSignal<boolean> = signal(false);
@@ -102,7 +106,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   private currentSearchPage: WritableSignal<number> = signal(1);
   private totalSearchPages: WritableSignal<number> = signal(1);
   private currentSearchTerm: string | null = null;
-  private readonly SEARCH_RESULTS_PER_PAGE = 8;
+  private readonly SEARCH_RESULTS_PER_PAGE = 30; // Anzahl der Ergebnisse pro Seite
 
   constructor() {
     effect(() => {
@@ -142,7 +146,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
     const langChangeSub = this.translocoService.langChanges$.subscribe(currentLang => {
       this.activeLang.set(currentLang);
-      if (this.searchError()) { // Nur übersetzen, wenn ein Fehler vorliegt
+      if (this.searchError()) {
         this.searchError.set(this.translocoService.translate('header.searchError'));
       }
       this.cdr.markForCheck();
@@ -182,7 +186,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
     }
   }
 
-  // --- NEUE Hilfsfunktionen für Bildvalidierung ---
   private filterProductsWithNoImageArray(products: WooCommerceProduct[]): WooCommerceProduct[] {
     if (!products) return [];
     return products.filter(product => product.images && product.images.length > 0 && product.images[0]?.src);
@@ -226,7 +229,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     const productsForVerification: WooCommerceProduct[] = [];
 
     candidateProducts.forEach(product => {
-      const imageUrl = product.images[0].src; // Annahme: product ist bereits durch filterProductsWithNoImageArray gegangen
+      const imageUrl = product.images[0].src;
       verificationPromises.push(this.verifyImageLoad(imageUrl));
       productsForVerification.push(product);
     });
@@ -251,7 +254,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
     }
     this.cdr.markForCheck();
   }
-  // --- ENDE Hilfsfunktionen ---
 
   private setupSearchDebounce(): void {
     const searchSub = this.searchControl.valueChanges
@@ -274,10 +276,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
         debounceTime(400),
         distinctUntilChanged(),
         tap((term: string) => {
-          this.isSearchLoading.set(true); // Haupt-Ladeindikator für Suche an
+          this.isSearchLoading.set(true);
           this.isSearchLoadingMore.set(false);
           this.isSearchOverlayVisible.set(true);
-          this.searchResults.set([]); // Leeren für neue Suche, wird durch processAndSet... befüllt
+          this.searchResults.set([]);
           this.searchError.set(null);
           this.currentSearchPage.set(1);
           this.totalSearchPages.set(1);
@@ -288,7 +290,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
             .set('search', term)
             .set('per_page', this.SEARCH_RESULTS_PER_PAGE.toString());
           return this.woocommerceService.getProducts(undefined, this.SEARCH_RESULTS_PER_PAGE, 1, params).pipe(
-            map(response => ({ // Erster Filter hier
+            map(response => ({
               ...response,
               products: this.filterProductsWithNoImageArray(response.products)
             })),
@@ -296,22 +298,20 @@ export class HeaderComponent implements OnInit, OnDestroy {
               console.error('Fehler bei initialer Produktsuche:', err);
               this.searchError.set(this.translocoService.translate('header.searchError'));
               this.currentSearchTerm = null;
-              this.isSearchOverlayVisible.set(true); // Overlay bei Fehler offen lassen
-              this.isSearchLoading.set(false); // Wichtig: Ladezustand beenden
+              this.isSearchOverlayVisible.set(true);
+              this.isSearchLoading.set(false);
               return of({ products: [], totalPages: 0, totalCount: 0 } as WooCommerceProductsResponse);
             }),
-            tap((response: WooCommerceProductsResponse) => { // response enthält hier bereits vor-gefilterte Produkte
-              this.totalSearchPages.set(response.totalPages); // Basiert auf Server-Daten
+            tap((response: WooCommerceProductsResponse) => {
+              this.totalSearchPages.set(response.totalPages);
             })
-            // finalize wird hier nicht mehr benötigt, isSearchLoading wird in processAndSet... oder catchError gesteuert
           );
         })
       )
       .subscribe(async (responseWithCandidates: WooCommerceProductsResponse) => {
-        // responseWithCandidates.products sind die Kandidaten nach dem ersten Filter
         if (responseWithCandidates.products) {
           await this.processAndSetSearchResults(responseWithCandidates.products, 'initial');
-        } else { // Sollte durch catchError abgedeckt sein
+        } else {
           this.isSearchLoading.set(false);
         }
       });
@@ -320,21 +320,20 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   onSearchFocus(): void {
     const currentSearchValue = this.searchControl.value;
-    if (currentSearchValue && currentSearchValue.length > 2 && this.searchResults().length > 0) { // Zeige Overlay nur, wenn es Ergebnisse gibt oder gerade gesucht wird
+    if (currentSearchValue && currentSearchValue.length > 2 && this.searchResults().length > 0) {
       this.isSearchOverlayVisible.set(true);
     } else if (currentSearchValue && currentSearchValue.length > 2 && !this.searchError()) {
-        // Wenn gesucht wird aber noch keine Ergebnisse/Fehler da sind (z.B. nach Tippen)
         this.isSearchOverlayVisible.set(true);
     }
   }
 
   clearSearch(): void {
-    this.searchControl.setValue(''); // Löst valueChanges aus, was closeSearchOverlay indirekt aufruft
+    this.searchControl.setValue('');
   }
 
   closeSearchOverlay(clearInput: boolean = true): void {
     if (clearInput) {
-        this.searchControl.setValue('', { emitEvent: false }); // Verhindert erneutes Auslösen von valueChanges
+        this.searchControl.setValue('', { emitEvent: false });
     }
     this.isSearchOverlayVisible.set(false);
     this.isSearchLoading.set(false);
@@ -376,7 +375,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
              console.error('Header: Fehler beim Logout im Service:', error);
-             this.router.navigate(['/']); // Fallback
+             this.router.navigate(['/']);
         }
     });
   }
@@ -390,7 +389,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
         this.renderer.removeStyle(document.body, 'overflow');
       }
     }
-    if (!this.isMobileMenuOpen) { // Reset submenu states when closing main mobile menu
+    if (!this.isMobileMenuOpen) {
       this.navItems.forEach(item => (item.isExpanded = false));
     }
   }
@@ -401,7 +400,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
       if (isPlatformBrowser(this.platformId)) {
         this.renderer.removeStyle(document.body, 'overflow');
       }
-      this.navItems.forEach(item => (item.isExpanded = false)); // Reset submenu states
+      this.navItems.forEach(item => (item.isExpanded = false));
     }
   }
 
@@ -414,8 +413,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   getSearchResultImage(product: WooCommerceProduct): string | undefined {
-    // Die Produkte in searchResults() sollten bereits validierte Bilder haben.
-    // Diese Methode liefert nur die URL für das Template.
     return product.images && product.images.length > 0 && product.images[0]?.src ? product.images[0].src : undefined;
   }
 
@@ -436,23 +433,21 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.woocommerceService.getProducts(undefined, this.SEARCH_RESULTS_PER_PAGE, nextPageToLoad, params)
       .pipe(
         take(1),
-        map(response => ({ // Erster Filter
+        map(response => ({
           ...response,
           products: this.filterProductsWithNoImageArray(response.products)
         })),
         catchError(err => {
           console.error('Fehler beim Nachladen weiterer Suchergebnisse:', err);
-          this.isSearchLoadingMore.set(false); // Wichtig: Ladezustand beenden
+          this.isSearchLoadingMore.set(false);
           return of(null);
         })
-        // finalize nicht mehr hier, da isSearchLoadingMore in processAndSet... oder catchError gesteuert wird
       )
       .subscribe(async (response: WooCommerceProductsResponse | null) => {
         if (response && response.products) {
-          // totalSearchPages wird bei der initialen Suche gesetzt und hier nicht mehr angepasst
           this.currentSearchPage.set(nextPageToLoad);
           await this.processAndSetSearchResults(response.products, 'loadMore');
-        } else { // Fehlerfall oder keine Produkte
+        } else {
           this.isSearchLoadingMore.set(false);
         }
       });
@@ -460,7 +455,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   onSearchOverlayScroll(event: Event): void {
     const target = event.target as HTMLElement;
-    const threshold = 80; // Wie weit vom Boden entfernt soll nachgeladen werden (in px)
+    const threshold = 80;
     const nearBottom = target.scrollTop + target.offsetHeight + threshold >= target.scrollHeight;
 
     if (nearBottom) {
