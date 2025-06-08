@@ -1,49 +1,93 @@
-<!-- src/app/features/checkout/order-confirmation/order-confirmation.component.html -->
-<div class="order-confirmation-container">
-  <ng-container *ngIf="!isLoading; else loadingTemplate">
-    <div class="confirmation-box" [ngClass]="{'error-box': isError}">
-      <ng-container [ngSwitch]="paymentStatus">
-        <ng-container *ngSwitchCase="'success'">
-          <div class="icon success-icon">✓</div> <!-- Oder ein SVG-Icon -->
-          <h2>{{ 'orderConfirmationPage.successTitle' | transloco }}</h2>
-        </ng-container>
-        <ng-container *ngSwitchCase="'failed'">
-          <div class="icon error-icon">✗</div> <!-- Oder ein SVG-Icon -->
-          <h2>{{ 'orderConfirmationPage.failedTitle' | transloco }}</h2>
-        </ng-container>
-        <ng-container *ngSwitchCase="'cancelled'">
-          <div class="icon warning-icon">!</div> <!-- Oder ein SVG-Icon -->
-          <h2>{{ 'orderConfirmationPage.cancelledTitle' | transloco }}</h2>
-        </ng-container>
-        <ng-container *ngSwitchDefault>
-          <!-- Fallback-Titel oder Icon, falls benötigt -->
-          <h2>{{ 'orderConfirmationPage.genericTitle' | transloco }}</h2>
-        </ng-container>
-      </ng-container>
-
-      <p>{{ confirmationMessageKey | transloco: { orderId: orderId } }}</p>
-
-      <ng-container *ngIf="paymentStatus === 'success' && orderId">
-        <p>{{ 'orderConfirmationPage.orderDetailsSoon' | transloco }}</p>
-      </ng-container>
-
-      <ng-container *ngIf="paymentStatus === 'failed'">
-        <p>{{ 'orderConfirmationPage.tryAgainInstructions' | transloco }}</p>
-        <a routerLink="/checkout-details" class="button primary-button retry-button">
-          {{ 'orderConfirmationPage.retryPaymentButton' | transloco }}
-        </a>
-      </ng-container>
-
-      <a routerLink="/" class="button secondary-button home-button">
-        {{ 'orderConfirmationPage.backToHomeButton' | transloco }}
-      </a>
+<!-- /src/app/features/checkout/order-confirmation/order-confirmation.component.html -->
+<div class="confirmation-container">
+  <!-- 1. Ladezustand -->
+  @if (orderDetailsState().isLoading) {
+    <div class="loading-wrapper">
+      <app-loading-spinner></app-loading-spinner>
+      <p class="loading-text">{{ 'orderConfirmationPage.loadingDetails' | transloco }}</p>
     </div>
-  </ng-container>
+  }
 
-  <ng-template #loadingTemplate>
-    <div class="loading-spinner">
-      <p>{{ 'general.loading' | transloco }}</p>
-      <!-- Hier könntest du einen echten Spinner einfügen -->
+  <!-- 2. Inhalt nach dem Laden (Erfolg, Fehler oder anderer Status) -->
+  @if (!orderDetailsState().isLoading) {
+    <div class="confirmation-header" [class.error-header]="isErrorPage">
+      <h1 class="title">{{ confirmationMessageKey | transloco: { orderNumber: orderDetailsState().data?.order_number } }}</h1>
+      @if (orderDetailsState().data; as order) {
+        <p class="subtitle">{{ 'orderConfirmationPage.subtitle' | transloco }}</p>
+      }
     </div>
-  </ng-template>
+
+    <!-- 2a. Fehler beim Abrufen der Bestelldetails -->
+    @if (orderDetailsState().error; as errorMsg) {
+      <div class="error-panel">
+        <p>{{ errorMsg }}</p>
+        <p>{{ 'orderConfirmationPage.fetchErrorHelp' | transloco }}</p>
+      </div>
+    }
+
+    <!-- 2b. Erfolgreich abgerufene Bestelldetails -->
+    @if (orderDetailsState().data; as order) {
+      <div class="order-summary-grid">
+        <!-- Linke Spalte: Bestelldaten -->
+        <div class="order-details-section">
+          <h2>{{ 'orderConfirmationPage.summaryTitle' | transloco }}</h2>
+          <div class="detail-item">
+            <span class="label">{{ 'orderConfirmationPage.orderNumberLabel' | transloco }}</span>
+            <span class="value">{{ order.order_number }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">{{ 'orderConfirmationPage.orderDateLabel' | transloco }}</span>
+            <span class="value">{{ order.date_created | date:'longDate' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">{{ 'orderConfirmationPage.totalLabel' | transloco }}</span>
+            <span class="value strong">{{ order.total | formatPrice:order.currency }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">{{ 'orderConfirmationPage.paymentMethodLabel' | transloco }}</span>
+            <span class="value">{{ order.payment_method_title }}</span>
+          </div>
+        </div>
+
+        <!-- Rechte Spalte: Gekaufte Artikel -->
+        <div class="order-items-section">
+          <h2>{{ 'orderConfirmationPage.itemsPurchasedTitle' | transloco }}</h2>
+          <ul class="item-list">
+            @for (item of order.line_items; track item.id) {
+              <li class="item-card">
+                <img [src]="item.image_url || 'assets/icons/Logo.png'" [alt]="item.name" class="item-image">
+                <div class="item-info">
+                  <span class="item-name">{{ item.name }}</span>
+                  <span class="item-quantity">{{ 'orderConfirmationPage.quantity' | transloco }}: {{ item.quantity }}</span>
+                </div>
+                <span class="item-price">{{ item.total | formatPrice:order.currency }}</span>
+              </li>
+            }
+          </ul>
+        </div>
+
+        <!-- Adressen über volle Breite -->
+        <div class="address-section">
+          <div class="address-column">
+            <h3>{{ 'orderConfirmationPage.billingAddressTitle' | transloco }}</h3>
+            <!-- KORREKTUR: Pipe 'safeHtml' mit [innerHTML] anwenden -->
+            <div class="address-content" [innerHTML]="order.billing_address | safeHtml"></div>
+          </div>
+          <div class="address-column">
+            <h3>{{ 'orderConfirmationPage.shippingAddressTitle' | transloco }}</h3>
+            <!-- KORREKTUR: Pipe 'safeHtml' mit [innerHTML] anwenden -->
+            <div class="address-content" [innerHTML]="order.shipping_address | safeHtml"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Zusatz-Feature: Registrierungs-Aufforderung für anonyme Nutzer -->
+      @if (isAnonymous()) {
+        <div class="register-prompt">
+          <p>{{ 'orderConfirmationPage.registerPrompt' | transloco }}</p>
+          <a routerLink="/register" class="cta-button">{{ 'orderConfirmationPage.registerButton' | transloco }}</a>
+        </div>
+      }
+    }
+  }
 </div>

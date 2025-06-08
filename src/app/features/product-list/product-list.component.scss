@@ -1,16 +1,12 @@
 // /src/app/features/product-list/product-list.component.scss
+// KORREKTUR: @use statt @import und korrekter relativer Pfad (3 Ebenen hoch)
+@use '../../../styles';
 
 // Lokale Breakpoint-Variablen (bleiben vorerst)
 $mobile-breakpoint-medium: 768px;
 $mobile-breakpoint-small: 576px;
 
 // Spezifische Layout-Variablen für diese Seite
-// $card-min-width-list-desktop: 280px; // Wird weniger relevant, wenn wir feste Spalten für Desktop nehmen
-$card-min-width-list-medium: 200px; // Bleibt für kleinere Viewports relevant
-// Annahme für die ungefähre Breite des Zurück-Buttons,
-// um die Zentrierung des Titels zu unterstützen.
-// Diesen Wert an den längsten "Zurück zu..." Text anpassen oder
-// eine fixe Breite für den Button definieren und hier verwenden.
 $back-button-placeholder-width: 200px; // Beispielwert
 
 .category-page-content {
@@ -95,6 +91,12 @@ $back-button-placeholder-width: 200px; // Beispielwert
   font-weight: var(--font-weight-semibold);
 }
 
+// NEUE KLASSE FÜR SPINNER-OVERLAY
+.product-list-wrapper {
+  position: relative; // Dies ist der entscheidende Teil für das Spinner-Overlay
+  min-height: 400px;  // Verhindert, dass der Bereich während des Ladens "zusammenfällt"
+}
+
 .loading-indicator,
 .error-message,
 .no-products-message {
@@ -118,8 +120,7 @@ $back-button-placeholder-width: 200px; // Beispielwert
 
 .product-grid {
   display: grid;
-  // Standard für Desktop: 5 Spalten
-  grid-template-columns: repeat(5, 1fr); // GEÄNDERT für 5 Spalten
+  grid-template-columns: repeat(5, 1fr);
   gap: var(--spacing-xl);
 }
 
@@ -128,16 +129,37 @@ $back-button-placeholder-width: 200px; // Beispielwert
   margin-top: var(--spacing-xl);
 }
 
-.loading-indicator.more-loading {
-  padding: var(--spacing-lg);
-  p {
-    font-style: italic;
-    color: var(--text-color-muted);
+// ÄNDERUNG HIER: Neuer Container für den "Mehr laden"-Spinner
+.more-loading-spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-xl) 0;
+  width: 100%;
+
+  // Wir überschreiben die Styles des Spinners nur in diesem spezifischen Kontext.
+  // Der Spinner wird hier kleiner sein und kein Overlay haben.
+  app-loading-spinner {
+    // ::ng-deep ist hier ein Weg, um in die Kind-Komponente zu stylen.
+    // Es ist zwar als "deprecated" markiert, aber für solche Fälle oft die einfachste Lösung.
+    ::ng-deep {
+      .spinner-overlay {
+        position: static; // Kein Overlay mehr
+        background-color: transparent; // Kein Hintergrund
+        width: auto;
+        height: auto;
+      }
+      .spinner-image {
+        // Deutlich kleinerer Spinner für das Nachladen
+        width: calc(6 * var(--spacing-unit)); // 48px
+        height: calc(6 * var(--spacing-unit)); // 48px
+      }
+    }
   }
 }
 
 // Responsive Anpassungen
-@media (max-width: 1200px) { // Ein neuer Breakpoint, um von 5 auf 4 Spalten zu wechseln (optional)
+@media (max-width: 1200px) {
   .product-grid {
     grid-template-columns: repeat(4, 1fr);
   }
@@ -175,12 +197,7 @@ $back-button-placeholder-width: 200px; // Beispielwert
     }
 
     .product-grid {
-        // Bei 768px und darunter, könnten wir 3 oder 2 Spalten wollen, je nach $card-min-width-list-medium
-        // Aktuell: repeat(auto-fill, minmax(200px, 1fr)); was bei ~700px Breite zu 3 Spalten führen würde.
-        // Wenn wir hier präziser sein wollen:
-        grid-template-columns: repeat(3, 1fr); // Z.B. 3 Spalten
-        // ODER die auto-fill Logik beibehalten, wenn sie gut funktioniert:
-        // grid-template-columns: repeat(auto-fill, minmax($card-min-width-list-medium, 1fr));
+        grid-template-columns: repeat(3, 1fr);
         gap: var(--spacing-lg);
     }
     .load-more-trigger {
@@ -193,7 +210,7 @@ $back-button-placeholder-width: 200px; // Beispielwert
         font-size: 1.5rem;
     }
     .product-grid {
-        grid-template-columns: repeat(2, 1fr); // Hier bleiben 2 Spalten
+        grid-template-columns: repeat(2, 1fr);
         gap: var(--spacing-md);
     }
 }
@@ -247,10 +264,10 @@ $back-button-placeholder-width: 200px; // Beispielwert
   }
 }
 
-@media (max-width: $mobile-breakpoint-small) { // Stellt sicher, dass dies NACH der Hauptdefinition für .scroll-to-top-button kommt
-  .scroll-to-top-button {              // oder spezifischer ist, falls es Konflikte gibt.
-    width: 45px;                       // Da es dieselbe Media Query ist wie für .product-grid,
-    height: 45px;                      // sollte die Reihenfolge in der Datei ausreichen.
+@media (max-width: $mobile-breakpoint-small) {
+  .scroll-to-top-button {
+    width: 45px;
+    height: 45px;
     font-size: 22px;
     bottom: 20px;
     right: 20px;

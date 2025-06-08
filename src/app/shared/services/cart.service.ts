@@ -1,7 +1,7 @@
 // /src/app/shared/services/cart.service.ts
 import { Injectable, signal, computed, inject, WritableSignal, Signal, OnDestroy, PLATFORM_ID, effect, untracked } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import {
   WoocommerceService,
   WooCommerceStoreCart,
@@ -95,7 +95,6 @@ export class CartService implements OnDestroy {
       distinctUntilChanged((prev, curr) => prev?.id === curr?.id)
     ).subscribe(async (user: WordPressUser | null) => {
       const newUserId = user?.id ?? null;
-      // +++ NEUER LOG +++
       console.log(`[CartService] Auth state received in subscribeToAuthState. User Object:`, user ? {...user, jwt: '***', refreshToken: '***'} : null, `New UserID: ${newUserId}`);
       const previousUserId = this.currentUserId();
       this.currentUserId.set(newUserId);
@@ -150,7 +149,6 @@ export class CartService implements OnDestroy {
       } else {
         console.log('[CartService] User is logged out or anonymous. Clearing user cart data and loading Store API cart.');
         this.userCartData.set(null);
-        this.woocommerceService.clearLocalCartToken();
         await this.loadInitialStoreApiCart();
       }
     });
@@ -187,54 +185,39 @@ export class CartService implements OnDestroy {
 
   public async loadInitialStoreApiCart(): Promise<void> {
     if (this.currentUserId()) {
-      console.log('[CartService] User is logged in, skipping Store API cart load. User cart is handled by auth state.');
       return;
     }
     if (!isPlatformBrowser(this.platformId)) return;
-    console.log('[CartService] Attempting to load initial STORE API cart (anonymous user)...');
     this.isLoading.set(true); this.error.set(null);
     try {
       const fetchedCart = await firstValueFrom(this.woocommerceService.getWcCart().pipe(
-         catchError(err => {
-           this.error.set(this.translocoService.translate('cartService.errorLoadingCart'));
-           return of(null);
-         })
+         catchError(() => of(null))
       ));
       this.cart.set(this._convertStoreApiPricesInCart(fetchedCart));
     } catch (err) {
       this.cart.set(null);
-      if (!this.error()) this.error.set(this.translocoService.translate('cartService.errorUnknown'));
     } finally {
       this.isLoading.set(false);
     }
   }
 
   async addItem(productId: number, quantity: number, variationId?: number): Promise<void> {
-    // +++ NEUER LOG +++
-    console.log(`[CartService addItem] Called. Current UserID at decision point: ${this.currentUserId()}, ProductID: ${productId}, Quantity: ${quantity}, VariationID: ${variationId}`);
     if (!isPlatformBrowser(this.platformId)) return;
     this.isLoading.set(true); this.error.set(null);
     try {
       if (this.currentUserId()) {
-        // +++ NEUER LOG +++
-        console.log('[CartService addItem] User IS LOGGED IN. Calling _addUserCartItemToServer (Custom API).');
         await this._addUserCartItemToServer({ product_id: productId, quantity, variation_id: variationId });
       } else {
-        // +++ NEUER LOG +++
-        console.log('[CartService addItem] User IS ANONYMOUS or currentUserId is null. Calling _addStoreApiCartItem (Store API).');
         await this._addStoreApiCartItem(productId, quantity, variationId);
       }
     } catch(err: any) {
       if(!this.error()) this.error.set(this.translocoService.translate('cartService.errorAddingItem', {details: err.message || 'Unknown'}));
-       console.error('[CartService] Error in addItem dispatcher:', err);
     } finally {
       this.isLoading.set(false);
     }
   }
 
   async updateItemQuantity(itemKeyOrProductId: string | number, quantity: number, variationId?: number): Promise<void> {
-    // +++ NEUER LOG (optional, aber konsistent) +++
-    console.log(`[CartService updateItemQuantity] Called. UserID: ${this.currentUserId()}, Identifier: ${itemKeyOrProductId}, Qty: ${quantity}, VarID: ${variationId}`);
     if (!isPlatformBrowser(this.platformId)) return;
     if (quantity <= 0) {
       await this.removeItem(itemKeyOrProductId, variationId); return;
@@ -242,124 +225,94 @@ export class CartService implements OnDestroy {
     this.isLoading.set(true); this.error.set(null);
     try {
       if (this.currentUserId() && typeof itemKeyOrProductId === 'number') {
-        console.log('[CartService updateItemQuantity] User IS LOGGED IN. Calling _addUserCartItemToServer (Custom API for update).');
         await this._addUserCartItemToServer({ product_id: itemKeyOrProductId, quantity, variation_id: variationId });
       } else if (!this.currentUserId() && typeof itemKeyOrProductId === 'string'){
-        console.log('[CartService updateItemQuantity] User IS ANONYMOUS. Calling _updateStoreApiItemQuantity (Store API).');
         await this._updateStoreApiItemQuantity(itemKeyOrProductId, quantity);
-      } else {
-        console.error('Invalid parameters for updateItemQuantity based on login state:', {itemKeyOrProductId, quantity, variationId, userId: this.currentUserId()});
-        throw new Error('Invalid parameters for updateItemQuantity');
       }
     } catch(err: any) {
       if(!this.error()) this.error.set(this.translocoService.translate('cartService.errorUpdatingQuantity', {details: err.message || 'Unknown'}));
-      console.error('[CartService] Error in updateItemQuantity dispatcher:', err);
     } finally {
       this.isLoading.set(false);
     }
   }
 
   async removeItem(itemKeyOrProductId: string | number, variationId?: number): Promise<void> {
-    // +++ NEUER LOG (optional, aber konsistent) +++
-    console.log(`[CartService removeItem] Called. UserID: ${this.currentUserId()}, Identifier: ${itemKeyOrProductId}, VarID: ${variationId}`);
     if (!isPlatformBrowser(this.platformId)) return;
     this.isLoading.set(true); this.error.set(null);
     try {
       if (this.currentUserId() && typeof itemKeyOrProductId === 'number') {
-        console.log('[CartService removeItem] User IS LOGGED IN. Calling _removeUserCartItemFromServer (Custom API).');
         await this._removeUserCartItemFromServer({ product_id: itemKeyOrProductId, variation_id: variationId });
       } else if (!this.currentUserId() && typeof itemKeyOrProductId === 'string') {
-        console.log('[CartService removeItem] User IS ANONYMOUS. Calling _removeStoreApiCartItem (Store API).');
         await this._removeStoreApiCartItem(itemKeyOrProductId);
-      } else {
-        console.error('Invalid parameters for removeItem based on login state:', {itemKeyOrProductId, variationId, userId: this.currentUserId()});
-        throw new Error('Invalid parameters for removeItem');
       }
     } catch(err: any) {
       if(!this.error()) this.error.set(this.translocoService.translate('cartService.errorRemovingItem', {details: err.message || 'Unknown'}));
-      console.error('[CartService] Error in removeItem dispatcher:', err);
     } finally {
       this.isLoading.set(false);
     }
   }
 
-  async clearCart(): Promise<void> {
-    // +++ NEUER LOG (optional) +++
-    console.log(`[CartService clearCart] Called. UserID: ${this.currentUserId()}`);
+  public async handleSuccessfulOrder(): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
-    this.isLoading.set(true); this.error.set(null);
+    
+    const userId = untracked(() => this.currentUserId()); 
+
+    console.log(`[CartService] handleSuccessfulOrder called. User is ${userId ? 'LOGGED-IN' : 'ANONYMOUS'}.`);
+    this.error.set(null);
+
     try {
-      if (this.currentUserId()) {
-        console.log('[CartService clearCart] User IS LOGGED IN. Calling _clearUserCartOnServer (Custom API).');
+      if (userId) {
         await this._clearUserCartOnServer();
       } else {
-        console.log('[CartService clearCart] User IS ANONYMOUS. Calling _clearStoreApiCart (Store API).');
         await this._clearStoreApiCart();
+        this.woocommerceService.clearLocalCartToken();
       }
-    } catch(err: any) {
-      if(!this.error()) this.error.set(this.translocoService.translate('cartService.errorClearingCart', {details: err.message || 'Unknown'}));
-      console.error('[CartService] Error in clearCart dispatcher:', err);
-    } finally {
-      this.isLoading.set(false);
+    } catch(e) {
+      console.error('[CartService] Error during handleSuccessfulOrder:', e);
+      this.userCartData.set({items: [], updated_at: null});
+      this.cart.set(null);
     }
   }
 
   private async _addStoreApiCartItem(productId: number, quantity: number, variationId?: number): Promise<void> {
-    const updatedCart = await firstValueFrom(this.woocommerceService.addItemToWcCart(productId, quantity, undefined, variationId)
-      .pipe(catchError(err => {
-        this.error.set(this.translocoService.translate('cartService.errorAddingItemApi'));
-        return of(this.cart());
-      }))
-    );
-    if (updatedCart !== undefined) this.cart.set(this._convertStoreApiPricesInCart(updatedCart));
+    const updatedCart = await firstValueFrom(this.woocommerceService.addItemToWcCart(productId, quantity, undefined, variationId));
+    this.cart.set(this._convertStoreApiPricesInCart(updatedCart));
   }
 
   private async _updateStoreApiItemQuantity(itemKey: string, quantity: number): Promise<void> {
-    const updatedCart = await firstValueFrom(this.woocommerceService.updateWcCartItemQuantity(itemKey, quantity)
-      .pipe(catchError(err => {
-        this.error.set(this.translocoService.translate('cartService.errorUpdatingQuantityApi'));
-        return of(this.cart());
-      }))
-    );
-    if (updatedCart !== undefined) this.cart.set(this._convertStoreApiPricesInCart(updatedCart));
+    const updatedCart = await firstValueFrom(this.woocommerceService.updateWcCartItemQuantity(itemKey, quantity));
+    this.cart.set(this._convertStoreApiPricesInCart(updatedCart));
   }
 
   private async _removeStoreApiCartItem(itemKey: string): Promise<void> {
-    const updatedCart = await firstValueFrom(this.woocommerceService.removeWcCartItem(itemKey)
-      .pipe(catchError(err => {
-        this.error.set(this.translocoService.translate('cartService.errorRemovingItemApi'));
-        return of(this.cart());
-      }))
-    );
-     if (updatedCart !== undefined) this.cart.set(this._convertStoreApiPricesInCart(updatedCart));
+    const updatedCart = await firstValueFrom(this.woocommerceService.removeWcCartItem(itemKey));
+     this.cart.set(this._convertStoreApiPricesInCart(updatedCart));
   }
 
   private async _clearStoreApiCart(): Promise<void> {
-    const clearedCart = await firstValueFrom(this.woocommerceService.clearWcCart()
-      .pipe(catchError(err => {
-        this.error.set(this.translocoService.translate('cartService.errorClearingCartApi'));
-        return of(this.cart());
-      }))
-    );
-    this.cart.set(this._convertStoreApiPricesInCart(clearedCart ?? null));
+    // *** KORREKTUR HIER ***
+    await firstValueFrom(this.woocommerceService.clearWcCart().pipe(
+      catchError(err => {
+        // Selbst wenn das Leeren fehlschlägt, setzen wir die UI auf leer.
+        console.error("Error clearing Store API cart, but clearing UI anyway.", err);
+        return of(null);
+      })
+    ));
+    this.cart.set(null);
   }
 
   private _buildUrlWithJwt(endpoint: string): string {
     const token = this.authService.getStoredToken();
-    if (!token) {
-      console.error("[CartService] Attempted to build URL with JWT, but no token found.");
-      throw new Error('User not authenticated for user cart operation.');
-    }
+    if (!token) { throw new Error('User not authenticated for user cart operation.'); }
     return `${this.ygeApiBaseUrl}${endpoint}?JWT=${encodeURIComponent(token)}`;
   }
 
   private async _fetchUserCartFromServer(): Promise<UserCartData | null> {
     const url = this._buildUrlWithJwt('/cart');
     try {
-      const cartData = await firstValueFrom(this.http.get<UserCartData>(url));
-      return cartData;
+      return await firstValueFrom(this.http.get<UserCartData>(url));
     } catch (e) {
-      this.error.set(this.translocoService.translate('cartService.errorLoadingUserCart', {details: (e as Error).message || 'Unknown'}));
+      this.error.set(this.translocoService.translate('cartService.errorLoadingUserCart'));
       return null;
     }
   }
@@ -368,10 +321,9 @@ export class CartService implements OnDestroy {
     const url = this._buildUrlWithJwt('/cart');
     try {
       const payload = { items: cartData.items };
-      const updatedCart = await firstValueFrom(this.http.post<UserCartData>(url, payload));
-      return updatedCart;
+      return await firstValueFrom(this.http.post<UserCartData>(url, payload));
     } catch (e) {
-      this.error.set(this.translocoService.translate('cartService.errorUpdatingUserCart', {details: (e as Error).message || 'Unknown'}));
+      this.error.set(this.translocoService.translate('cartService.errorUpdatingUserCart'));
       throw e;
     }
   }
@@ -382,7 +334,7 @@ export class CartService implements OnDestroy {
       const updatedUserCart = await firstValueFrom(this.http.post<UserCartData>(url, item));
       this.userCartData.set(updatedUserCart);
     } catch (e) {
-      this.error.set(this.translocoService.translate('cartService.errorAddingUserCartItem', {details: (e as Error).message || 'Unknown'}));
+      this.error.set(this.translocoService.translate('cartService.errorAddingUserCartItem'));
     }
   }
 
@@ -392,7 +344,7 @@ export class CartService implements OnDestroy {
       const updatedUserCart = await firstValueFrom(this.http.post<UserCartData>(url, itemIdentifier));
       this.userCartData.set(updatedUserCart);
     } catch (e) {
-      this.error.set(this.translocoService.translate('cartService.errorRemovingUserCartItem', {details: (e as Error).message || 'Unknown'}));
+      this.error.set(this.translocoService.translate('cartService.errorRemovingUserCartItem'));
     }
   }
 
@@ -402,18 +354,13 @@ export class CartService implements OnDestroy {
       await firstValueFrom(this.http.delete<{success: boolean, message: string}>(url));
       this.userCartData.set({ items: [], updated_at: new Date().toISOString() });
     } catch (e) {
-      this.error.set(this.translocoService.translate('cartService.errorClearingUserCart', {details: (e as Error).message || 'Unknown'}));
+      this.error.set(this.translocoService.translate('cartService.errorClearingUserCart'));
     }
   }
 
   private _mergeLocalAndServerCarts(localCart: WooCommerceStoreCart, serverCart: UserCartData): UserCartData {
     const mergedItemsMap = new Map<string, UserCartItem>();
-
-    serverCart.items.forEach(item => {
-        const key = `${item.product_id}_${item.variation_id || 0}`;
-        mergedItemsMap.set(key, { ...item });
-    });
-
+    serverCart.items.forEach(item => { mergedItemsMap.set(`${item.product_id}_${item.variation_id || 0}`, { ...item }); });
     localCart.items.forEach(localItem => {
         let baseProductId = localItem.id;
         let variationIdLocal: number | undefined = undefined;
@@ -422,168 +369,81 @@ export class CartService implements OnDestroy {
            baseProductId = localItem.parent_product_id;
         }
         const key = `${baseProductId}_${variationIdLocal || 0}`;
-        
-        const newItemData: UserCartItem = {
-            product_id: baseProductId,
-            quantity: localItem.quantity, 
-            variation_id: variationIdLocal
-        };
-        mergedItemsMap.set(key, newItemData); 
+        mergedItemsMap.set(key, { product_id: baseProductId, quantity: localItem.quantity, variation_id: variationIdLocal }); 
     });
     return { items: Array.from(mergedItemsMap.values()), updated_at: new Date().toISOString() };
   }
   
   private async mapUserCartToDisplayCart(userCart: UserCartData | null): Promise<void> {
-    if (!this.currentUserId()) {
-      if (this.cart() !== null) this.cart.set(null);
-      return;
+    if (!this.currentUserId() || !userCart) { 
+      this.cart.set(null); 
+      return; 
     }
-    if (!userCart) {
-      if (this.cart() !== null) this.cart.set(null);
-      console.log('[CartService] mapUserCartToDisplayCart: User cart is null, setting display cart to null.');
+
+    if (userCart.items.length === 0) {
+      this.cart.set({ coupons: [], items: [], items_count: 0, items_weight: 0, needs_payment: false, needs_shipping: false, shipping_address: {}, billing_address: {}, totals: { currency_code: 'EUR', currency_symbol: '€', total_items:"0", total_items_tax:"0", total_price:"0", total_tax:"0", tax_lines: [] }, errors: [], has_calculated_shipping: false, shipping_rates: [], extensions: {} });
       return;
     }
 
     this.isLoading.set(true);
-    console.log('[CartService] mapUserCartToDisplayCart: START - Mapping user cart:', JSON.parse(JSON.stringify(userCart)));
-
     try {
-      if (userCart.items.length === 0) {
-        this.cart.set({
-          coupons: [], items: [], items_count: 0, items_weight: 0, needs_payment: false, needs_shipping: false,
-          shipping_address: {}, billing_address: {},
-          totals: { 
-            currency_code: 'EUR', currency_symbol: '€', total_items:"0", total_items_tax:"0",
-            total_price:"0", total_tax:"0", tax_lines: []
-          },
-          errors: [], has_calculated_shipping: false, shipping_rates: [], extensions: {}
-        });
-        console.log('[CartService] mapUserCartToDisplayCart: Mapped empty user cart to display cart.');
-        this.isLoading.set(false);
-        return;
-      }
-
       const displayItems: WooCommerceStoreCartItem[] = await Promise.all(
-        userCart.items.map(async (uItem): Promise<WooCommerceStoreCartItem> => {
+        userCart.items.map(async (uItem): Promise<WooCommerceStoreCartItem | null> => {
           let productDetails: WooCommerceProduct | null = null;
           let variationProductDetails: WooCommerceProductVariation | null = null;
-
           try {
               productDetails = await firstValueFrom(this.woocommerceService.getProductById(uItem.product_id));
-              if (uItem.variation_id && productDetails && productDetails.type === 'variable') {
+              if (uItem.variation_id && productDetails?.type === 'variable') {
                   const variations = await firstValueFrom(this.woocommerceService.getProductVariations(uItem.product_id));
                   variationProductDetails = variations.find(v => v.id === uItem.variation_id) || null;
               }
-          } catch (e) { console.warn(`[CartService Map] Could not fetch product/variation details for P_ID ${uItem.product_id}, V_ID ${uItem.variation_id}`, e); }
+          } catch (e) { return null; }
 
-          const isVariation = !!variationProductDetails;
-          const itemName = productDetails?.name || uItem.name || `Produkt ${uItem.product_id}`; 
-          const itemShortDescription = productDetails?.short_description || (isVariation && variationProductDetails ? variationProductDetails.description : productDetails?.description) || '';
-          const itemDescription = (isVariation && variationProductDetails ? variationProductDetails.description : productDetails?.description) || '';
-          const itemSku = (isVariation && variationProductDetails ? variationProductDetails.sku : productDetails?.sku) || '';
-          const itemPermalink = (isVariation && variationProductDetails ? variationProductDetails.permalink : productDetails?.permalink) || '';
+          const sourceForPrice = variationProductDetails || productDetails;
+          const itemPrice = sourceForPrice?.price || "0";
+          const lineSubtotalNumber = (parseFloat(itemPrice) || 0) * uItem.quantity;
           
-          const itemStoreImages: WooCommerceStoreCartItemImage[] = [];
-          let sourceImageForStoreItem: WooCommerceImage | null = null; 
-          if (isVariation && variationProductDetails?.image) {
-            sourceImageForStoreItem = variationProductDetails.image;
-          } else if (productDetails?.images && productDetails.images.length > 0) {
-            sourceImageForStoreItem = productDetails.images[0];
+          let image: WooCommerceStoreCartItemImage | undefined;
+          if(variationProductDetails?.image) {
+            image = { ...variationProductDetails.image, thumbnail: variationProductDetails.image.src, srcset: '', sizes: '' };
+          } else if (productDetails?.images?.[0]) {
+            image = { ...productDetails.images[0], thumbnail: productDetails.images[0].src, srcset: '', sizes: '' };
           }
-
-          if (sourceImageForStoreItem) {
-            itemStoreImages.push({
-                id: sourceImageForStoreItem.id, src: sourceImageForStoreItem.src,
-                thumbnail: sourceImageForStoreItem.src, srcset: '', sizes: '',  
-                name: sourceImageForStoreItem.name, alt: sourceImageForStoreItem.alt,
-            });
-          }
-
-          const itemPriceFromCoreApi = variationProductDetails?.price || productDetails?.price || "0";
-          const regularPriceFromCoreApi = variationProductDetails?.regular_price || productDetails?.regular_price || itemPriceFromCoreApi;
-          const salePriceFromCoreApi = variationProductDetails?.sale_price || productDetails?.sale_price || itemPriceFromCoreApi;
-
-          const itemPriceNumber = parseFloat(itemPriceFromCoreApi);
-          const lineSubtotalNumber = !isNaN(itemPriceNumber) ? itemPriceNumber * uItem.quantity : 0;
-
-          const itemTotals: WooCommerceStoreCartItemTotals = {
-              line_subtotal: lineSubtotalNumber.toFixed(2),
-              line_subtotal_tax: "0", 
-              line_total: lineSubtotalNumber.toFixed(2),
-              line_total_tax: "0",    
-              currency_code: "EUR", currency_symbol:"€", currency_minor_unit:2,
-              currency_decimal_separator:",", currency_thousand_separator:".", currency_prefix:"", currency_suffix:" €"
-          };
-
-          const pricesForDisplay = { 
-            price: itemPriceFromCoreApi, 
-            regular_price: regularPriceFromCoreApi, 
-            sale_price: salePriceFromCoreApi,
-            price_range: null, 
-            currency_code: 'EUR'
-          };
 
           return {
             key: `${uItem.product_id}_${uItem.variation_id ?? 0}`,
             id: uItem.variation_id || uItem.product_id,
             quantity: uItem.quantity,
-            name: itemName,
-            short_description: itemShortDescription,
-            description: itemDescription,
-            sku: itemSku,
-            permalink: itemPermalink,
-            images: itemStoreImages, 
-            variation: variationProductDetails?.attributes?.map((attr: {name:string, option:string}) => ({ attribute: attr.name, value: attr.option })) || [],
-            item_data: [],
-            prices: pricesForDisplay, 
-            totals: itemTotals, 
-            parent_product_id: productDetails && variationProductDetails ? productDetails.id : undefined,
-            low_stock_remaining: (isVariation && variationProductDetails ? variationProductDetails.low_stock_amount : productDetails?.low_stock_amount) ?? null,
-            backorders_allowed: (isVariation && variationProductDetails ? variationProductDetails.backorders_allowed : productDetails?.backorders_allowed) ?? false,
-            show_backorder_badge: productDetails?.backorders_allowed && productDetails?.stock_status === 'onbackorder',
-            sold_individually: (isVariation && variationProductDetails ? (variationProductDetails as any).sold_individually : productDetails?.sold_individually) ?? false,
-            catalog_visibility: productDetails?.catalog_visibility || 'visible',
-          };
+            name: productDetails?.name || `Produkt ${uItem.product_id}`,
+            images: image ? [image] : [],
+            prices: { price: itemPrice, regular_price: sourceForPrice?.regular_price || itemPrice, sale_price: sourceForPrice?.sale_price || itemPrice } as any,
+            totals: { line_subtotal: lineSubtotalNumber.toFixed(2), line_total: lineSubtotalNumber.toFixed(2) } as WooCommerceStoreCartItemTotals,
+            variation: variationProductDetails?.attributes?.map(attr => ({ attribute: attr.name, value: attr.option })) || [],
+            parent_product_id: variationProductDetails ? productDetails?.id : undefined
+          } as WooCommerceStoreCartItem;
         })
-      );
-
+      ).then(items => items.filter((item): item is WooCommerceStoreCartItem => item !== null));
+      
       const totalItemsQuantity = displayItems.reduce((sum, item) => sum + item.quantity, 0);
-      const totalPriceValueNumber = displayItems.reduce((sum, item) => {
-          const lineTotalNum = parseFloat(item.totals.line_total);
-          return sum + (isNaN(lineTotalNum) ? 0 : lineTotalNum);
-      }, 0);
-
-      const displayCartTotals: WooCommerceStoreCartTotals = {
-          currency_code: 'EUR', currency_symbol: '€',
-          total_items: totalItemsQuantity.toString(),
-          total_items_tax: "0",
-          total_price: totalPriceValueNumber.toFixed(2), 
-          total_tax: "0",
-          tax_lines: []
-      };
-
+      const totalPriceValueNumber = displayItems.reduce((sum, item) => sum + parseFloat(item.totals.line_total), 0);
+      
       this.cart.set({
-        coupons: [], items: displayItems, items_count: totalItemsQuantity, items_weight: 0,
-        needs_payment: true, needs_shipping: true, shipping_address: {}, billing_address: {},
-        totals: displayCartTotals,
-        errors: [], has_calculated_shipping: false, shipping_rates: [], extensions: {}
+        items: displayItems,
+        items_count: totalItemsQuantity,
+        items_weight: 0,
+        totals: { total_price: totalPriceValueNumber.toFixed(2), currency_code: 'EUR', currency_symbol: '€', total_items: totalItemsQuantity.toString(), total_items_tax: '0', total_tax: '0', tax_lines: [] },
+        coupons: [], shipping_rates: [], shipping_address: {}, billing_address: {}, needs_payment: true, needs_shipping: true, has_calculated_shipping: false, errors: [], extensions: {}
       });
-      console.log('[CartService] mapUserCartToDisplayCart: FINISHED - Mapped user cart to display cart structure:', JSON.parse(JSON.stringify(this.cart())));
     } catch (e) {
-      this.error.set(this.translocoService.translate('cartService.errorDisplayingUserCart', {details: (e as Error).message || 'Unknown'}));
+      this.error.set(this.translocoService.translate('cartService.errorDisplayingUserCart'));
       this.cart.set(null);
-       console.error('[CartService] mapUserCartToDisplayCart: Error during mapping:', e);
     } finally {
       this.isLoading.set(false);
     }
   }
 
   public async loadCartWithToken(token: string): Promise<void> {
-    if (this.currentUserId()) {
-      console.warn("[CartService] loadCartWithToken called while user is logged in. This is not expected. User cart will be prioritized.");
-      return;
-    }
-    if (!isPlatformBrowser(this.platformId)) return;
+    if (this.currentUserId() || !isPlatformBrowser(this.platformId)) return;
     this.isLoading.set(true); this.error.set(null);
     try {
         const loadedCart = await this.woocommerceService.loadCartFromToken(token);
@@ -594,12 +454,5 @@ export class CartService implements OnDestroy {
     } finally {
         this.isLoading.set(false);
     }
-  }
-
-  public clearLocalCartStateForCheckout(): void {
-    if (!isPlatformBrowser(this.platformId)) return;
-    console.log('[CartService] Clearing local UI cart state (this.cart signal). User cart data remains if logged in.');
-    this.cart.set(null);
-    this.error.set(null);
   }
 }

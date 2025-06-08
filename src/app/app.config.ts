@@ -6,10 +6,11 @@ import {
   withComponentInputBinding,
   withViewTransitions,
   withInMemoryScrolling,
-  RouteReuseStrategy // HINZUGEFÜGT: RouteReuseStrategy importieren
+  RouteReuseStrategy
 } from '@angular/router';
-import { provideClientHydration } from '@angular/platform-browser'; // withHttpTransferCacheOptions entfernt, falls nicht explizit genutzt
-import { provideHttpClient, HTTP_INTERCEPTORS, withInterceptorsFromDi } from '@angular/common/http';
+import { provideClientHydration } from '@angular/platform-browser';
+// KORREKTUR: withFetch importieren
+import { provideHttpClient, HTTP_INTERCEPTORS, withInterceptorsFromDi, withFetch } from '@angular/common/http'; 
 
 // Firebase-Imports (Kern)
 import { initializeApp, provideFirebaseApp, getApp } from '@angular/fire/app';
@@ -72,20 +73,22 @@ export const appConfig: ApplicationConfig = {
       withComponentInputBinding(),
       withViewTransitions(),
       withInMemoryScrolling({
-        scrollPositionRestoration: 'enabled', // Behalte 'enabled' bei, die Strategy arbeitet damit zusammen
+        scrollPositionRestoration: 'enabled',
         anchorScrolling: 'enabled',
       })
     ),
-    // provideClientHydration(...), // Bleibt auskommentiert, ggf. mit withHttpTransferCacheOptions, wenn benötigt
-
-    provideHttpClient(withInterceptorsFromDi()),
+    
+    // KORREKTUR: withFetch() hier hinzugefügt
+    provideHttpClient(
+      withInterceptorsFromDi(),
+      withFetch() // Aktiviert die moderne Fetch-API für HttpClient
+    ),
     {
       provide: HTTP_INTERCEPTORS,
       useClass: AuthHttpInterceptor,
       multi: true,
     },
 
-    // HIER DIE ERGÄNZUNG FÜR DIE ROUTE REUSE STRATEGY
     {
       provide: RouteReuseStrategy,
       useClass: CustomRouteReuseStrategy

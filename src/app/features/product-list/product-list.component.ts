@@ -1,4 +1,3 @@
-// /src/app/features/product-list/product-list.component.ts
 import {
   Component,
   OnInit,
@@ -22,7 +21,6 @@ import {
   switchMap,
   tap,
   catchError,
-  finalize,
   map,
   take,
   distinctUntilChanged,
@@ -45,11 +43,12 @@ import {
 } from '../../core/data/navigation.data';
 
 import { TranslocoModule, TranslocoService } from '@ngneat/transloco';
+import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 
 @Component({
   selector: 'app-product-list-page',
   standalone: true,
-  imports: [CommonModule, ProductCardComponent, RouterModule, TranslocoModule],
+  imports: [CommonModule, ProductCardComponent, RouterModule, TranslocoModule, LoadingSpinnerComponent],
   templateUrl: './product-list.component.html',
   styleUrl: './product-list.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -62,23 +61,21 @@ export class ProductListPageComponent implements OnInit, OnDestroy {
   private cdr = inject(ChangeDetectorRef);
   private platformId = inject(PLATFORM_ID);
 
-  // Signal für Produkte, die von der API kommen und den ersten Filter (nur Datenprüfung) bestanden haben
   private productsCandidateSignal: WritableSignal<WooCommerceProduct[]> = signal([]);
-  // Signal für Produkte, deren Bilder erfolgreich validiert wurden und die im Template angezeigt werden
   displayableProducts: WritableSignal<WooCommerceProduct[]> = signal([]);
 
   categoryTitle: WritableSignal<string | null> = signal(null);
   mainCategoryLabel: WritableSignal<string | null> = signal(null);
 
-  isLoading: WritableSignal<boolean> = signal(true); // Haupt-Ladeindikator
-  isLoadingMore: WritableSignal<boolean> = signal(false); // Für "Mehr laden"
+  isLoading: WritableSignal<boolean> = signal(true);
+  isLoadingMore: WritableSignal<boolean> = signal(false);
   error: WritableSignal<string | null> = signal(null);
 
   private currentPage: WritableSignal<number> = signal(1);
-  private totalProductPages: WritableSignal<number> = signal(1); // Basiert auf Server-Daten
+  private totalProductPages: WritableSignal<number> = signal(1);
 
   categorySlugFromRoute: string | null = null;
-  hasNextPage: WritableSignal<boolean> = signal(false); // Basiert auf Server-Daten
+  hasNextPage: WritableSignal<boolean> = signal(false);
 
   private currentCategory: WritableSignal<WooCommerceCategory | null | undefined> = signal(null);
   mainCategoryLink: WritableSignal<string | null> = signal(null);
@@ -97,7 +94,6 @@ export class ProductListPageComponent implements OnInit, OnDestroy {
 
   constructor() {
     afterNextRender(() => {
-      // IntersectionObserver wird erst nach der ersten Bildvalidierung sinnvoll aufgesetzt
       if (isPlatformBrowser(this.platformId)) {
         this.checkScrollPosition();
       }
@@ -106,27 +102,19 @@ export class ProductListPageComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     const paramMapAndLang$ = combineLatest([
-      this.route.paramMap.pipe(
-        map(params => params.get('slug')),
-        distinctUntilChanged(),
-        tap(slug => console.log('ProductList: slug from route:', slug))
-      ),
-      this.translocoService.langChanges$.pipe(
-        startWith(this.translocoService.getActiveLang())
-      ),
+      this.route.paramMap.pipe(map(params => params.get('slug')), distinctUntilChanged()),
+      this.translocoService.langChanges$.pipe(startWith(this.translocoService.getActiveLang())),
     ]).pipe(
       tap(([slug, lang]) => {
         if (slug !== this.categorySlugFromRoute) {
           this.categorySlugFromRoute = slug;
-          this.resetStateBeforeLoad(); // isLoading wird hier true
-          console.log('ProductList: State reset, loading for slug:', slug);
+          this.resetStateBeforeLoad();
         }
         this.updateTitlesAndBreadcrumbs(lang, this.currentCategory()?.name);
       }),
       filter(([slug]) => {
         if (slug === null) {
-          console.warn('ProductList: Slug is null, stopping data loading.');
-          this.isLoading.set(false); // Wichtig, falls hier abgebrochen wird
+          this.isLoading.set(false);
           return false;
         }
         return true;
@@ -135,43 +123,28 @@ export class ProductListPageComponent implements OnInit, OnDestroy {
 
     const dataLoadingSubscription = paramMapAndLang$.pipe(
       switchMap(([slug, lang]) => {
-        if (!slug) { // Sollte durch Filter oben abgedeckt sein, aber sicher ist sicher
+        if (!slug) {
           this.handleErrorState(this.translocoService.translate('productList.errorNoSlug'));
-          const errorPageTitleText = this.translocoService.translate('productList.errorPageTitle');
-          this.titleService.setTitle(`${errorPageTitleText} - Your Garden Eden`);
           return EMPTY;
         }
 
-        this.currentFoundSubItem = this.findSubItemByLink(`/product-list/${slug}`);
-        const categoryInfo = this.findMainCategoryInfoForSubItemLink(`/product-list/${slug}`);
-        this.mainCategoryLink.set(categoryInfo?.mainCategoryLink ?? null);
-        this.currentMainCategoryNavItem = categoryInfo
-          ? navItems.find(item => item.link === categoryInfo.mainCategoryLink)
-          : undefined;
+        this.findCategoryMetadata(slug);
 
-        console.log(`ProductList: Attempting to fetch category for slug: ${slug}`);
         return this.woocommerceService.getCategoryBySlug(slug).pipe(
-          tap(category => console.log('ProductList: Fetched category by slug response:', category)),
           switchMap(category => {
             if (!category || !category.id) {
-              console.error(`ProductList: Category not found or no ID for slug: ${slug}`);
               this.handleErrorState(this.translocoService.translate('productList.categoryNotFound', { categorySlug: slug }));
               this.currentCategory.set(undefined);
               this.updateTitlesAndBreadcrumbs(lang);
-              return of({ products: [], totalPages: 0, totalCount: 0 } as WooCommerceProductsResponse);
+              return of({ products: [], totalPages: 0, totalCount: 0 });
             }
             this.currentCategory.set(category);
             this.updateTitlesAndBreadcrumbs(lang, category.name);
-            console.log(`ProductList: Category found: ${category.name} (ID: ${category.id}). Fetching products.`);
-
             return this.woocommerceService.getProducts(category.id, this.PRODUCTS_PER_PAGE, 1).pipe(
-                map(response => {
-                  return {
-                    ...response,
-                    products: this.filterProductsWithNoImageArray(response.products) // Erster Filter
-                  };
-                }),
-                tap(response => console.log(`ProductList: Fetched and pre-filtered products for category ${category.id}:`, response.products))
+              map(response => ({
+                ...response,
+                products: this.filterProductsWithNoImageArray(response.products)
+              }))
             );
           }),
           catchError(error => {
@@ -179,122 +152,220 @@ export class ProductListPageComponent implements OnInit, OnDestroy {
             this.handleErrorState(this.translocoService.translate('productList.errorLoadingProducts'));
             this.currentCategory.set(undefined);
             this.updateTitlesAndBreadcrumbs(lang);
-            return of({ products: [], totalPages: 0, totalCount: 0 } as WooCommerceProductsResponse);
+            return of({ products: [], totalPages: 0, totalCount: 0 });
           })
         );
       })
-    ).subscribe(async (result: WooCommerceProductsResponse) => { // async hier für await
-      console.log('[PerfTest] API result for initial load:', result.products?.length || 0, 'candidates');
-      this.productsCandidateSignal.set(result.products); // Kandidaten setzen
+    ).subscribe((result: WooCommerceProductsResponse) => {
+      this.productsCandidateSignal.set(result.products);
       this.totalProductPages.set(result.totalPages);
       this.hasNextPage.set(this.currentPage() < result.totalPages);
-
-      // NEU: Bildvalidierung starten
-      await this.processAndSetDisplayableProducts(result.products, 'initial');
-      // isLoading wird in processAndSetDisplayableProducts auf false gesetzt
-      // trySetupIntersectionObserver wird auch dort aufgerufen, nachdem displayableProducts gesetzt wurde
+      this.isLoading.set(false); // **ÄNDERUNG**: Ladezustand hier beenden, damit Grid erscheint
+      
+      // Bildvalidierung startet, blockiert aber nicht mehr die Anzeige
+      this.processAndSetDisplayableProducts(result.products, 'initial');
+      
+      this.cdr.detectChanges();
+      this.trySetupIntersectionObserver();
     });
     this.subscriptions.add(dataLoadingSubscription);
   }
 
-  // Filtert Produkte, bei denen das 'images'-Array komplett fehlt, leer ist oder kein 'src' hat
   private filterProductsWithNoImageArray(products: WooCommerceProduct[]): WooCommerceProduct[] {
-    if (!products) {
-      return [];
-    }
+    if (!products) return [];
     return products.filter(product => product.images && product.images.length > 0 && product.images[0]?.src);
   }
 
-  // Hilfsfunktion zum Validieren einer einzelnen Bild-URL
-  private async verifyImageLoad(url: string): Promise<boolean> {
-    if (!isPlatformBrowser(this.platformId)) {
-      return false; // Auf dem Server können wir Bilder nicht so einfach validieren
+  private verifyImageLoad(url: string): Promise<boolean> {
+    if (!isPlatformBrowser(this.platformId) || !url) {
+      return Promise.resolve(false);
     }
-    return new Promise((resolve) => {
-      if (!url || typeof url !== 'string') { // Zusätzliche Prüfung für ungültige URLs
-        resolve(false);
-        return;
-      }
+    return new Promise(resolve => {
       const img = new Image();
       img.onload = () => resolve(true);
-      img.onerror = () => {
-        // console.warn(`[PerfTest] Bild konnte nicht geladen werden: ${url}`);
-        resolve(false);
-      };
+      img.onerror = () => resolve(false);
       img.src = url;
     });
   }
 
-  // Verarbeitet Kandidatenprodukte: validiert Bilder und setzt `displayableProducts`
+  // **OPTIMIERTE METHODE**: Verarbeitet Bilder einzeln für bessere gefühlte Performance
   private async processAndSetDisplayableProducts(
     candidateProducts: WooCommerceProduct[],
     mode: 'initial' | 'loadMore'
   ): Promise<void> {
-    console.log(`[PerfTest] processAndSetDisplayableProducts called for ${mode} with ${candidateProducts?.length || 0} candidates.`);
-    const startTime = performance.now();
-
     if (mode === 'initial') {
-      this.displayableProducts.set([]); // Für den initialen Ladevorgang sicherheitshalber leeren
+      this.displayableProducts.set([]);
     }
 
     if (!candidateProducts || candidateProducts.length === 0) {
-      if (mode === 'initial') this.isLoading.set(false);
       if (mode === 'loadMore') this.isLoadingMore.set(false);
-      this.cdr.detectChanges();
-      const endTime = performance.now();
-      console.log(`[PerfTest] processAndSetDisplayableProducts (${mode}) took ${endTime - startTime}ms (no candidates).`);
-      if (mode === 'initial') this.trySetupIntersectionObserver(); // Observer trotzdem versuchen aufzusetzen
+      this.trySetupIntersectionObserver();
       return;
     }
-
-    const verificationPromises: Promise<boolean>[] = [];
-    const productsForVerification: WooCommerceProduct[] = [];
-
-    candidateProducts.forEach(product => {
-      // product.images sollte hier schon existieren und nicht leer sein durch filterProductsWithNoImageArray
-      const imageUrl = product.images[0].src; // Annahme: erstes Bild ist das primäre
-      verificationPromises.push(this.verifyImageLoad(imageUrl));
-      productsForVerification.push(product);
-    });
-
-    const results = await Promise.allSettled(verificationPromises);
-    const verifiedProducts: WooCommerceProduct[] = [];
-
-    results.forEach((result, index) => {
-      if (result.status === 'fulfilled' && result.value === true) {
-        verifiedProducts.push(productsForVerification[index]);
+    
+    // Wir iterieren durch die Kandidaten und validieren jedes Bild einzeln.
+    // Sobald ein Bild gültig ist, fügen wir es zur anzeigbaren Liste hinzu.
+    for (const product of candidateProducts) {
+      const imageUrl = product.images[0].src;
+      const isValid = await this.verifyImageLoad(imageUrl);
+      if (isValid) {
+        if(mode === 'initial') {
+            this.displayableProducts.update(current => [...current, product]);
+        } else {
+             // Beim Nachladen fügen wir die Produkte trotzdem in einem Block hinzu, um Sprünge zu vermeiden
+        }
       }
-    });
-    const endTime = performance.now();
-    console.log(`[PerfTest] processAndSetDisplayableProducts (${mode}) image verification took ${endTime - startTime}ms. Found ${verifiedProducts.length} displayable products from ${candidateProducts.length}.`);
-
-    if (mode === 'initial') {
-      this.displayableProducts.set(verifiedProducts);
-      this.isLoading.set(false);
-    } else {
-      this.displayableProducts.update(current => [...current, ...verifiedProducts]);
-      this.isLoadingMore.set(false);
     }
+    
+    // Für "loadMore" ist es besser, die validierten Produkte am Ende gesammelt hinzuzufügen,
+    // um das Layout nicht bei jedem einzelnen Produkt springen zu lassen.
+    if(mode === 'loadMore') {
+        const verificationPromises = candidateProducts.map(p => this.verifyImageLoad(p.images[0].src));
+        const results = await Promise.all(verificationPromises);
+        const verifiedProducts = candidateProducts.filter((_, index) => results[index]);
+        this.displayableProducts.update(current => [...current, ...verifiedProducts]);
+        this.isLoadingMore.set(false);
+    }
+    
     this.cdr.detectChanges();
-
-    // Intersection Observer Setup/Prüfung
-    if (mode === 'initial' || (mode === 'loadMore' && this.hasNextPage())) {
-        this.trySetupIntersectionObserver();
-    } else if (mode === 'loadMore' && !this.hasNextPage()) {
-        this.disconnectObserver(); // Keine weiteren Seiten, Observer entfernen
+    this.trySetupIntersectionObserver();
+  }
+  
+  loadMoreProducts(): void {
+    if (!this.hasNextPage() || !this.categorySlugFromRoute || this.isLoadingMore() || !this.currentCategory()?.id || this.isLoading()) {
+      return;
     }
+    this.isLoadingMore.set(true);
+    const nextPageToLoad = this.currentPage() + 1;
+
+    const loadMoreSub = this.woocommerceService.getProducts(this.currentCategory()!.id, this.PRODUCTS_PER_PAGE, nextPageToLoad)
+      .pipe(
+        take(1),
+        map(response => ({
+          ...response,
+          products: this.filterProductsWithNoImageArray(response.products)
+        })),
+        catchError(error => {
+          console.error('Fehler beim Nachladen:', error);
+          this.isLoadingMore.set(false);
+          return of(null);
+        })
+      )
+      .subscribe(response => {
+        if (response && response.products) {
+          this.currentPage.set(nextPageToLoad);
+          this.hasNextPage.set(nextPageToLoad < response.totalPages);
+          
+          // Starte die Validierung für die neuen Produkte
+          this.processAndSetDisplayableProducts(response.products, 'loadMore');
+        } else {
+            this.isLoadingMore.set(false);
+        }
+        if(!this.hasNextPage()) {
+            this.disconnectObserver();
+        }
+      });
+    this.subscriptions.add(loadMoreSub);
+  }
+
+  private findCategoryMetadata(slug: string): void {
+      const subItemLink = `/product-list/${slug}`;
+      this.currentFoundSubItem = this.findSubItemByLink(subItemLink);
+      const categoryInfo = this.findMainCategoryInfoForSubItemLink(subItemLink);
+      this.mainCategoryLink.set(categoryInfo?.mainCategoryLink ?? null);
+      this.currentMainCategoryNavItem = categoryInfo
+        ? navItems.find(item => item.link === categoryInfo.mainCategoryLink)
+        : undefined;
   }
 
   private trySetupIntersectionObserver(): void {
-    // Nur aufsetzen, wenn es eine nächste Seite geben KÖNNTE und wir nicht gerade laden
-    if (this.loadMoreTriggerEl?.nativeElement && this.hasNextPage() && !this.isLoadingMore() && !this.isLoading()) {
+    if (isPlatformBrowser(this.platformId) && this.loadMoreTriggerEl?.nativeElement && this.hasNextPage() && !this.isLoadingMore() && !this.isLoading()) {
       this.setupIntersectionObserver(this.loadMoreTriggerEl.nativeElement);
-    } else if (!this.hasNextPage()) { // Wenn es definitiv keine nächste Seite gibt
+    } else if (!this.hasNextPage()) {
       this.disconnectObserver();
     }
-    // Wenn wir laden, wird der Observer nicht neu aufgesetzt, das passiert nach dem Ladevorgang.
   }
 
+  private setupIntersectionObserver(targetElement: HTMLElement): void {
+    this.disconnectObserver();
+    const options = { root: null, rootMargin: '0px 0px 1000px 0px', threshold: 0 };
+    this.intersectionObserver = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        this.loadMoreProducts();
+      }
+    }, options);
+    this.intersectionObserver.observe(targetElement);
+  }
+
+  private disconnectObserver(): void {
+    if (this.intersectionObserver) {
+      this.intersectionObserver.disconnect();
+      this.intersectionObserver = undefined;
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+    this.disconnectObserver();
+  }
+
+  private resetStateBeforeLoad(): void {
+    this.isLoading.set(true);
+    this.productsCandidateSignal.set([]);
+    this.displayableProducts.set([]);
+    this.categoryTitle.set(null);
+    this.error.set(null);
+    this.currentPage.set(1);
+    this.totalProductPages.set(1);
+    this.hasNextPage.set(false);
+    this.isLoadingMore.set(false);
+    this.mainCategoryLink.set(null);
+    this.mainCategoryLabel.set(null);
+    this.currentCategory.set(null);
+    this.disconnectObserver();
+  }
+
+  private handleErrorState(errorMessage: string): void {
+    this.error.set(errorMessage);
+    this.productsCandidateSignal.set([]);
+    this.displayableProducts.set([]);
+    this.isLoading.set(false);
+    this.isLoadingMore.set(false);
+    this.hasNextPage.set(false);
+    this.categoryTitle.set(this.translocoService.translate('productList.errorPageTitle'));
+  }
+
+  // --- HELPER METHODEN (größtenteils unverändert) ---
+  getProductImage(product: WooCommerceProduct): string | undefined {
+    return product.images?.[0]?.src;
+  }
+  
+  getProductLink(product: WooCommerceProduct): string {
+    return `/product/${product.slug}`;
+  }
+  
+  getProductCurrencySymbol(product: WooCommerceProduct): string {
+    return product.meta_data?.find(m => m.key === '_currency_symbol')?.value as string || '€';
+  }
+  
+  extractPriceRange(product: WooCommerceProduct): { min: string, max: string } | null {
+    if (product.type === 'variable') {
+      if (product.price_html) {
+        const rangeMatch = product.price_html.match(/<span class="woocommerce-Price-amount amount"><bdi>.*?([\d,.]+).*?<\/bdi><\/span>\s*–\s*<span class="woocommerce-Price-amount amount"><bdi>.*?([\d,.]+).*?<\/bdi><\/span>/);
+        if (rangeMatch?.[1] && rangeMatch?.[2]) return { min: rangeMatch[1].replace(',', '.'), max: rangeMatch[2].replace(',', '.') };
+        const singlePriceMatch = product.price_html.match(/<span class="woocommerce-Price-amount amount"><bdi>.*?([\d,.]+).*?<\/bdi><\/span>/);
+        if (singlePriceMatch?.[1]) { const priceVal = singlePriceMatch[1].replace(',', '.'); return { min: priceVal, max: priceVal }; }
+      }
+      return product.price ? { min: product.price, max: product.price } : null;
+    }
+    return null;
+  }
+
+  trackProductById(index: number, product: WooCommerceProduct): number {
+    return product.id;
+  }
+
+  // Unveränderte Methoden: updateTitlesAndBreadcrumbs, findSubItemByLink, findMainCategoryInfoForSubItemLink, HostListener etc.
   private updateTitlesAndBreadcrumbs(lang: string, categoryNameFromApi?: string): void {
     let h1Title$: Observable<string>;
     let pageTitleForBrowser = '';
@@ -344,119 +415,6 @@ export class ProductListPageComponent implements OnInit, OnDestroy {
     this.titleService.setTitle(`${finalBrowserTitle} - Your Garden Eden`);
   }
 
-  private handleErrorState(errorMessage: string): void {
-    console.error('ProductList: handleErrorState called with:', errorMessage);
-    this.error.set(errorMessage);
-    this.productsCandidateSignal.set([]);
-    this.displayableProducts.set([]);
-    this.isLoading.set(false);
-    this.isLoadingMore.set(false);
-    this.hasNextPage.set(false);
-    this.currentPage.set(1);
-    this.totalProductPages.set(1);
-    this.categoryTitle.set(this.translocoService.translate('productList.errorPageTitle'));
-    this.cdr.detectChanges();
-  }
-
-  private resetStateBeforeLoad(): void {
-    this.isLoading.set(true); // Haupt-Ladeindikator an
-    this.productsCandidateSignal.set([]);
-    this.displayableProducts.set([]); // Wichtig: Auch anzeigbare Produkte zurücksetzen
-    this.categoryTitle.set(null);
-    this.error.set(null);
-    this.currentPage.set(1);
-    this.totalProductPages.set(1);
-    this.hasNextPage.set(false);
-    this.isLoadingMore.set(false);
-    this.mainCategoryLink.set(null);
-    this.mainCategoryLabel.set(null);
-    this.currentFoundSubItem = undefined;
-    this.currentMainCategoryNavItem = undefined;
-    this.currentCategory.set(null);
-    this.disconnectObserver(); // Alten Observer entfernen
-    this.cdr.detectChanges();
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
-    this.disconnectObserver();
-  }
-
-  private setupIntersectionObserver(targetElement: HTMLElement): void {
-    this.disconnectObserver(); // Vorherigen Observer entfernen
-    const options = { root: null, rootMargin: '0px 0px 300px 0px', threshold: 0.1 };
-    this.intersectionObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting && this.hasNextPage() && !this.isLoadingMore() && !this.isLoading()) {
-          console.log('[PerfTest] IntersectionObserver triggered loadMoreProducts.');
-          this.loadMoreProducts();
-        }
-      });
-    }, options);
-    this.intersectionObserver.observe(targetElement);
-    console.log('[PerfTest] IntersectionObserver setup on', targetElement);
-  }
-
-  private disconnectObserver(): void {
-    if (this.intersectionObserver) {
-      if (this.loadMoreTriggerEl?.nativeElement) {
-        this.intersectionObserver.unobserve(this.loadMoreTriggerEl.nativeElement);
-         console.log('[PerfTest] IntersectionObserver unobserved', this.loadMoreTriggerEl.nativeElement);
-      }
-      this.intersectionObserver.disconnect();
-      this.intersectionObserver = undefined;
-      console.log('[PerfTest] IntersectionObserver disconnected.');
-    }
-  }
-
-  loadMoreProducts(): void {
-    if (!this.hasNextPage() || !this.categorySlugFromRoute || this.isLoadingMore() || !this.currentCategory()?.id || this.isLoading()) {
-      // isLoading() check hinzugefügt, um parallele Ladevorgänge zu verhindern
-      return;
-    }
-    this.isLoadingMore.set(true); // Ladeindikator für "Mehr laden"
-    const nextPageToLoad = this.currentPage() + 1;
-
-    const loadMoreSub = this.woocommerceService.getProducts(this.currentCategory()!.id, this.PRODUCTS_PER_PAGE, nextPageToLoad)
-      .pipe(
-        take(1), // Wichtig, um die Subscription nach dem ersten Wert zu beenden
-        map(response => {
-            return {
-              ...response,
-              // Erster Filter auf Produkte ohne jegliche Bilddaten
-              products: this.filterProductsWithNoImageArray(response.products)
-            };
-        }),
-        catchError(error => {
-          console.error('ProductList: Fehler beim API-Aufruf für weitere Produkte:', error);
-          this.isLoadingMore.set(false); // Ladeindikator aus
-          return of(null); // Gibt null zurück, um den Stream nicht abzubrechen, aber Fehler zu signalisieren
-        })
-      )
-      .subscribe(async (response: WooCommerceProductsResponse | null) => { // async hier
-        if (response && response.products) {
-          console.log(`[PerfTest] API result for more products (page ${nextPageToLoad}):`, response.products.length, "candidates");
-          // Kandidaten zu bestehenden Kandidaten hinzufügen (falls benötigt, aber hier nicht direkt verwendet für Anzeige)
-          // this.productsCandidateSignal.update(current => [...current, ...response.products]);
-
-          // Paginierungsstatus basierend auf Server-Antwort aktualisieren
-          this.currentPage.set(nextPageToLoad);
-          this.totalProductPages.set(response.totalPages); // Server-Gesamtseiten
-          this.hasNextPage.set(nextPageToLoad < response.totalPages); // Basiert auf Server-Gesamtseiten
-
-          // NEU: Bildvalidierung für die neu geladenen Produkte
-          await this.processAndSetDisplayableProducts(response.products, 'loadMore');
-        } else if (response === null) { // Fehlerfall aus catchError
-            this.isLoadingMore.set(false); // Sicherstellen, dass Ladeindikator aus ist
-        } else { // Keine Produkte oder keine Antwort (sollte durch API-Fehlerbehandlung abgedeckt sein)
-            this.isLoadingMore.set(false);
-            this.hasNextPage.set(false); // Keine weiteren Produkte zu erwarten
-            this.disconnectObserver();
-        }
-      });
-    this.subscriptions.add(loadMoreSub);
-  }
-
   private findSubItemByLink(link: string): NavSubItem | undefined {
     for (const item of navItems) {
       if (item.subItems) {
@@ -482,47 +440,6 @@ export class ProductListPageComponent implements OnInit, OnDestroy {
     return null;
   }
 
-  getProductLink(product: WooCommerceProduct): string {
-    return `/product/${product.slug}`;
-  }
-
-  // Diese Methode kann beibehalten werden, falls sie im Template direkt für etwas genutzt wird,
-  // ist aber für die Filterlogik nicht mehr primär zuständig.
-  getProductImage(product: WooCommerceProduct): string | undefined {
-    return product.images && product.images.length > 0 && product.images[0]?.src ? product.images[0].src : undefined;
-  }
-
-  extractPriceRange(product: WooCommerceProduct): { min: string, max: string } | null {
-    if (product.type === 'variable') {
-      if (product.price_html) {
-        const rangeMatch = product.price_html.match(/<span class="woocommerce-Price-amount amount"><bdi>.*?([\d,.]+).*?<\/bdi><\/span>\s*–\s*<span class="woocommerce-Price-amount amount"><bdi>.*?([\d,.]+).*?<\/bdi><\/span>/);
-        if (rangeMatch && rangeMatch[1] && rangeMatch[2]) {
-          return { min: rangeMatch[1].replace(',', '.'), max: rangeMatch[2].replace(',', '.') };
-        }
-        const singlePriceMatch = product.price_html.match(/<span class="woocommerce-Price-amount amount"><bdi>.*?([\d,.]+).*?<\/bdi><\/span>/);
-        if (singlePriceMatch && singlePriceMatch[1]) {
-          const priceVal = singlePriceMatch[1].replace(',', '.');
-          return { min: priceVal, max: priceVal };
-        }
-      }
-      if (product.price) { // Fallback für variable Produkte, wenn price_html keine Spanne liefert
-        return { min: product.price, max: product.price };
-      }
-    }
-    // Für einfache Produkte oder wenn keine Spanne extrahiert werden kann
-    return null;
-  }
-
-  getProductCurrencySymbol(product: WooCommerceProduct): string {
-    const currencyMeta = product.meta_data?.find(m => m.key === '_currency_symbol');
-    if (currencyMeta?.value) return currencyMeta.value as string;
-    if (product.price_html) {
-      if (product.price_html.includes('€')) return '€';
-      if (product.price_html.includes('$')) return '$';
-    }
-    return '€';
-  }
-
   @HostListener('window:scroll', [])
   onWindowScroll(): void {
     if (isPlatformBrowser(this.platformId)) {
@@ -541,10 +458,5 @@ export class ProductListPageComponent implements OnInit, OnDestroy {
 
   scrollToTop(): void {
     if (isPlatformBrowser(this.platformId)) { window.scrollTo({ top: 0, behavior: 'smooth' }); }
-  }
-
-  // WICHTIG für *ngFor Performance bei sich ändernden Listen
-  trackProductById(index: number, product: WooCommerceProduct): number {
-    return product.id;
   }
 }
