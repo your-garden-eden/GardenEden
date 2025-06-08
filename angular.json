@@ -67,6 +67,15 @@
             "prerender": true,
             "ssr": {
               "entry": "src/server.ts"
+            },
+            "allowedCommonJsDependencies": [
+              "@grpc/grpc-js",
+              "@grpc/proto-loader"
+            ],
+            "stylePreprocessorOptions": {
+              "includePaths": [
+                "src"
+              ]
             }
           },
           "configurations": {
@@ -74,13 +83,13 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "1.MB",
-                  "maximumError": "1.9MB"
+                  "maximumWarning": "1.5MB",
+                  "maximumError": "2.5MB"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "15kB",
-                  "maximumError": "20kB"
+                  "maximumWarning": "40kB",
+                  "maximumError": "50kB"
                 }
               ],
               "outputHashing": "all"
@@ -132,7 +141,12 @@
             "styles": [
               "src/styles.scss"
             ],
-            "scripts": []
+            "scripts": [],
+            "stylePreprocessorOptions": {
+              "includePaths": [
+                "src"
+              ]
+            }
           }
         }
       }

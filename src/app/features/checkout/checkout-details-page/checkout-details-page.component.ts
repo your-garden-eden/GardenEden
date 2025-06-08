@@ -23,7 +23,6 @@ import {
   WooCommerceStoreCart,
   WooCommerceStoreAddress,
   WooCommerceStoreCartItem,
-  // WooCommerceStoreShippingPackage, // Nicht mehr direkt benötigt, wenn wir Raten nicht laden
   StageCartPayload,
   StageCartResponse,
   WooCommerceStoreCartTotals
@@ -72,7 +71,6 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
   addressErrorKey = signal<string | null>(null);
 
   shippingInfo = signal<{ rateId: string; packageName: string; price: string; currencyCode: string; } | null | 'not_needed' | 'error'>(null);
-  // isLoadingShipping wird nicht mehr stark genutzt, da wir die API nicht mehr rufen, kann aber für UI-Zwecke bleiben
   isLoadingShipping = signal(false); 
   shippingError = signal<string | null>(null);
   shippingErrorKey = signal<string | null>(null);
@@ -105,7 +103,6 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
     if (currentCart.needs_shipping === false) {
         determinedShippingRateDisplay = this.translocoService.translate('checkoutDetailsPage.shipping.notNeeded');
     } else {
-        // Da Versand immer kostenlos ist, zeigen wir das direkt an.
         determinedShippingRateDisplay = this.translocoService.translate('general.free');
     }
 
@@ -117,8 +114,6 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
   });
 
   displayableShippingInfoObject = computed(() => {
-    // Diese Property wird weniger relevant, wenn Versand immer kostenlos ist und direkt angezeigt wird.
-    // Sie könnte aber nützlich bleiben, falls sich die Logik ändert.
     const sInfoSignalValue = this.shippingInfo();
     if (typeof sInfoSignalValue === 'object' && sInfoSignalValue !== null &&
         'packageName' in sInfoSignalValue && 'price' in sInfoSignalValue && 'currencyCode' in sInfoSignalValue) {
@@ -134,7 +129,6 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
   });
 
    readonly showShippingCosts: Signal<boolean> = computed(() => {
-    // Wird nicht mehr aktiv genutzt, wenn Versand immer kostenlos und so angezeigt wird.
     return false; 
   });
 
@@ -315,11 +309,9 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
         this.updateShippingFormValidators(false);
     }
 
-    // *** Vereinfachte Versandlogik, da Versand immer kostenlos ***
     if (currentCart.needs_shipping === false) {
         this.shippingInfo.set('not_needed');
     } else {
-        // Da Versand immer kostenlos ist, setzen wir es direkt.
         this.shippingInfo.set({
             rateId: 'free_shipping_default', 
             packageName: this.translocoService.translate('general.free'),
@@ -327,7 +319,7 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
             currencyCode: currentCart.totals.currency_code || 'EUR'
         });
     }
-    this.isLoadingShipping.set(false); // API-Call für Versand wird nicht mehr gemacht
+    this.isLoadingShipping.set(false);
     this.clearShippingError();
 
     this.isLoadingAddress.set(false); this.cdr.markForCheck();
@@ -421,7 +413,6 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
     form.markAllAsTouched(); this.cdr.markForCheck();
     const currentCart = this.cart();
     if (currentCart?.needs_shipping && form.valid && form.get('country')?.value && form.get('postcode')?.value && form.get('postcode')?.valid) {
-        // Da Versand immer kostenlos, wird processShippingForEnteredAddress die shippingInfo direkt setzen
         this.processShippingForEnteredAddress(currentCart).catch(err => console.error("Error processing shipping after autocomplete:", err));
     }
   }
@@ -481,13 +472,13 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
               ...baseCartFromApiWithConvertedPrices, 
               items: itemsToUse, 
               items_count: newItemCount, 
-              items_weight: existingUiCart.items_weight || 0, // Sicherstellen, dass ein Wert da ist
+              items_weight: existingUiCart.items_weight || 0,
               totals: {
                 ...(baseCartFromApiWithConvertedPrices.totals || {currency_code: 'EUR', currency_symbol: '€', tax_lines:[]}), 
                 total_price: newTotalPriceNumber.toFixed(2), 
                 total_items: newItemCount.toString(),
                 total_items_tax: baseCartFromApiWithConvertedPrices.totals?.total_items_tax || "0",
-                total_tax: baseCartFromApiWithConvertedPrices.totals?.total_tax || "0", // Behalte Steuer von API
+                total_tax: baseCartFromApiWithConvertedPrices.totals?.total_tax || "0",
               } as WooCommerceStoreCartTotals,
             };
           } else {
@@ -518,8 +509,7 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
             this.updateShippingFormValidators(isShippingDifferentCheck);
         }
         
-        // Da Versand immer kostenlos ist, wird processShippingForEnteredAddress nur noch shippingInfo setzen
-        await this.processShippingForEnteredAddress(cartToSetInService); // cartToSetInService übergeben, um mit dem aktuellsten Stand zu arbeiten
+        await this.processShippingForEnteredAddress(cartToSetInService);
   
       } else { 
         this.setError(this.addressError, this.addressErrorKey, 'checkoutDetailsPage.errors.addressSaveFailed', { details: 'No cart data returned after update customer.' }); 
@@ -554,7 +544,7 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
         }
         if (shippingHasValues) {
             shipping = cleanShipping as WooCommerceStoreAddress;
-        } else if (this.showShippingForm()) { // Wenn Checkbox aktiv, aber Formular leer -> nimm billing
+        } else if (this.showShippingForm()) {
              shipping = billing;
         }
     }
@@ -575,15 +565,12 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
         rateId: 'free_shipping_selected', 
         packageName: this.translocoService.translate('general.free'),
         price: '0.00',
-        currencyCode: currentCart.totals?.currency_code || 'EUR' // Fallback auf EUR
+        currencyCode: currentCart.totals?.currency_code || 'EUR'
     });
     this.isLoadingShipping.set(false); 
     this.clearShippingError();
     this.cdr.markForCheck();
   }
-
-  // selectShippingRate wird nicht mehr benötigt, da Versand immer kostenlos und direkt gesetzt wird.
-  // private async selectShippingRate(...) { /* ... */ }
 
   async proceedToPayment(): Promise<void> {
     this.formSubmitted.set(true);
@@ -601,14 +588,11 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
       return;
     }
 
-    // Da Versand immer kostenlos ist und wir shippingInfo direkt setzen,
-    // ist diese Prüfung weniger kritisch, aber schadet nicht.
     if (currentCart.needs_shipping === true && this.shippingInfo() === 'error') {
         this.setShippingError(this.shippingError, this.shippingErrorKey, 'checkoutDetailsPage.errors.selectShipping');
         return;
     }
     if (currentCart.needs_shipping === true && this.shippingInfo() === null ) {
-      // Dieser Fall sollte nicht eintreten, wenn loadInitialData oder handleAddressFormSubmit shippingInfo setzt.
       console.warn('[CheckoutDetailsPage] proceedToPayment: shippingInfo is null but shipping is needed. Forcing free shipping info.');
       this.shippingInfo.set({
             rateId: 'free_shipping_default',
@@ -617,7 +601,6 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
             currencyCode: currentCart.totals.currency_code || 'EUR'
       });
     }
-
 
     this.isRedirecting.set(true);
     this.clearErrors();
@@ -653,10 +636,9 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
       billing_address: customerData.billing_address,
       shipping_address: (this.showShippingForm() && this.shippingFormHasValues()) ? customerData.shipping_address : undefined
     };
-    if (!this.showShippingForm() || (this.showShippingForm() && !this.shippingFormHasValues())) { // Expliziter wenn showShippingForm aber keine Werte
+    if (!this.showShippingForm() || (this.showShippingForm() && !this.shippingFormHasValues())) {
       delete payload.shipping_address;
     }
-
 
     try {
       const stageResponse: StageCartResponse = await firstValueFrom(
@@ -680,7 +662,7 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
 
       if (isPlatformBrowser(this.platformId)) {
         this.woocommerceService.clearLocalCartToken();
-        this.cartService.clearLocalCartStateForCheckout(); 
+        // *** DIESE ZEILE WURDE ENTFERNT ***
         window.location.href = this.woocommerceService.getCheckoutUrl(populationToken);
       }
 

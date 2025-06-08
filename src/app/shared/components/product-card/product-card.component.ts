@@ -1,4 +1,3 @@
-// /src/app/shared/components/product-card/product-card.component.ts
 import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -37,9 +36,9 @@ export class ProductCardComponent {
     if (this.isVariable && this.priceRange) {
       const min = parseFloat(this.priceRange.min);
       const max = parseFloat(this.priceRange.max);
-      const symbol = this.currencySymbol || ''; // Sicherstellen, dass Symbol ein String ist
+      const symbol = this.currencySymbol || '';
 
-      if (isNaN(min) || isNaN(max)) { // Fallback, wenn Parsen fehlschlägt
+      if (isNaN(min) || isNaN(max)) {
         return this.priceHtml || `${this.pricePrefix || ''}${this.singlePrice || ''}${symbol}`;
       }
 

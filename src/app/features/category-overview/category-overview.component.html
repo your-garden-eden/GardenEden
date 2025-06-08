@@ -8,7 +8,6 @@
     <a routerLink="/">{{ 'categoryOverview.backToHome' | transloco }}</a>
   </div>
 
-  <!-- Container für Unterkategorien (Icons) -->
   <div *ngIf="!error() && subCategoriesToDisplay().length > 0" class="subcategories-container">
     @for (subItem of subCategoriesToDisplay(); track subItem.link) {
       <a [routerLink]="subItem.link" class="subcategory-item">
@@ -33,17 +32,16 @@
     <p class="no-items-message">{{ 'categoryOverview.noSubcategories' | transloco: { category: categoryTitle() } }}</p>
   }
 
-  <!-- Sektion für Produktvorschau aus den Unterkategorien -->
   <section class="product-preview-section" *ngIf="!error() && subCategoriesToDisplay().length > 0">
-    @if (!isLoadingPreview() && !previewError() && productPreview().length > 0) {
+    @if (!isLoadingPreview() && !previewError() && displayableProductPreview().length > 0) {
       <h2>
         {{ 'categoryOverview.popularProducts' | transloco }}
       </h2>
     }
 
     @if (isLoadingPreview()) {
-      <div class="loading-indicator preview-loading">
-        <p>{{ 'categoryOverview.loadingPreview' | transloco }}</p>
+      <div class="preview-loading-spinner-container">
+        <app-loading-spinner></app-loading-spinner>
       </div>
     }
 
@@ -53,30 +51,26 @@
       </div>
     }
 
-    @if (!isLoadingPreview() && !previewError() && productPreview().length > 0) {
-      <div class="product-preview-grid">
-        @for (product of productPreview(); track product.id; let i = $index) {
-          <app-product-card
-            [productName]="product.name"
-            [priceHtml]="product.price_html"
-            [singlePrice]="product.price"
-            [currencySymbol]="getProductCurrencySymbol(product)"
-            [pricePrefix]="(product.type === 'variable' && product.price_html && product.price_html.toLowerCase().includes('ab')) ? '' : (product.type === 'variable' ? ('productCard.priceFrom' | transloco) + ' ' : '')"
-            [imageUrl]="getProductImage(product)"
-            [productLink]="getProductLink(product)"
-            [onSale]="product.on_sale"
-            [regularPrice]="product.regular_price"
-            [isLazy]="i >= 4"
-            [stockStatus]="product.stock_status"
-            [isVariable]="product.type === 'variable'"
-            [priceRange]="extractPriceRange(product)">
-          </app-product-card> <!-- Korrigiert: Sicherstellen, dass das Tag korrekt geschlossen wird -->
-        }
-      </div>
-    }
+    <div class="product-preview-grid">
+      @for (product of displayableProductPreview(); track product.id; let i = $index) {
+        <app-product-card
+          [productName]="product.name"
+          [priceHtml]="product.price_html"
+          [singlePrice]="product.price"
+          [currencySymbol]="getProductCurrencySymbol(product)"
+          [pricePrefix]="(product.type === 'variable' && product.price_html && product.price_html.toLowerCase().includes('ab')) ? '' : (product.type === 'variable' ? ('productCard.priceFrom' | transloco) + ' ' : '')"
+          [imageUrl]="getProductImage(product)"
+          [productLink]="getProductLink(product)"
+          [onSale]="product.on_sale"
+          [regularPrice]="product.regular_price"
+          [isLazy]="i >= 4"
+          [stockStatus]="product.stock_status"
+          [isVariable]="product.type === 'variable'"
+          [priceRange]="extractPriceRange(product)">
+        </app-product-card>
+      }
+    </div>
 
-    @if (!isLoadingPreview() && !previewError() && productPreview().length === 0 && subCategoriesToDisplay().length > 0) {
-      <p class="no-items-message">{{ 'categoryOverview.noPreviewProducts' | transloco }}</p>
-    }
+   
   </section>
 </div>
