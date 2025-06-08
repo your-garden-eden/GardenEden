@@ -4,7 +4,7 @@
 
   <ng-container *ngIf="isLoadingCartFromService() && itemCount() === 0 && !uiError()">
     <div class="loading-indicator page-loading">
-      <div class="spinner"></div>
+      <app-loading-spinner></app-loading-spinner>
       <p>{{ 'cartPage.loadingCart' | transloco }}</p>
     </div>
   </ng-container>
@@ -19,6 +19,7 @@
   <ng-container *ngIf="itemCount() > 0 && !isLoadingCartFromService() && !uiError()">
     <div class="cart-content">
       <div class="cart-items-list">
+        <!-- Desktop Table -->
         <table class="cart-table desktop-only">
           <thead>
             <tr>
@@ -188,13 +189,33 @@
             <span class="amount total-amount">...</span>
           </ng-template>
         </div>
-        <button class="checkout-button"
-                (click)="goToCheckoutDetails()"
-                [disabled]="isLoadingCartFromService() || isProcessingCheckout() || itemCount() === 0">
-          {{ 'cartPage.summary.addressButton' | transloco }}
-        </button>
+        
+        <!-- +++ NEUE CHECKOUT-BUTTON LOGIK +++ -->
+        <div class="checkout-actions">
+          <!-- Fall 1: Benutzer ist eingeloggt -->
+          <ng-container *ngIf="isLoggedIn; else anonymousCheckout">
+            <button class="checkout-button primary"
+                    (click)="directCheckout()"
+                    [disabled]="isLoadingCartFromService() || isProcessingCheckout() || itemCount() === 0">
+              <ng-container *ngIf="!isProcessingCheckout(); else processing">
+                {{ 'cartPage.summary.directCheckoutButton' | transloco }}
+              </ng-container>
+              <ng-container *ngTemplateOutlet="processing"></ng-container>
+            </button>
+            <a routerLink="/checkout-details" class="secondary-button">{{ 'cartPage.summary.changeAddressButton' | transloco }}</a>
+          </ng-container>
+
+          <!-- Fall 2: Benutzer ist anonym -->
+          <ng-template #anonymousCheckout>
+            <button class="checkout-button primary"
+                    (click)="goToCheckoutDetails()"
+                    [disabled]="isLoadingCartFromService() || isProcessingCheckout() || itemCount() === 0">
+                {{ 'cartPage.summary.checkoutButton' | transloco }}
+            </button>
+          </ng-template>
+        </div>
+
         <a routerLink="/" class="continue-shopping-link">{{ 'cartPage.summary.continueShopping' | transloco }}</a>
-         <!-- Versandkostenhinweis entfernt -->
       </div>
     </div>
   </ng-container>
@@ -207,12 +228,12 @@
     </div>
   </ng-container>
 
-  <ng-container *ngIf="isProcessingCheckout()">
-    <div class="loading-overlay page-action-loading">
-      <div class="spinner"></div>
-      <span>{{ 'checkoutDetailsPage.buttons.redirecting' | transloco }}</span>
+  <ng-template #processing>
+    <div class="processing-button-content" *ngIf="isProcessingCheckout()">
+      <app-loading-spinner></app-loading-spinner>
+      <span>{{ 'general.processing' | transloco }}</span>
     </div>
-  </ng-container>
+  </ng-template>
 
   <app-cart-discount-info-modal *ngIf="showCartDiscountPopup$()"></app-cart-discount-info-modal>
 </div>

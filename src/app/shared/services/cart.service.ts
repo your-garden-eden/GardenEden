@@ -1,7 +1,8 @@
 // /src/app/shared/services/cart.service.ts
 import { Injectable, signal, computed, inject, WritableSignal, Signal, OnDestroy, PLATFORM_ID, effect, untracked } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import {
   WoocommerceService,
   WooCommerceStoreCart,
@@ -12,10 +13,14 @@ import {
   WooCommerceProductVariation,
   WooCommerceImage,
   WooCommerceStoreCartItemImage,
+  StageCartPayload,
+  WooCommerceStoreAddress,
 } from '../../core/services/woocommerce.service';
 import { AuthService, WordPressUser } from './auth.service';
+import { AccountService } from '../../features/account/services/account.service';
+import { UserAddressesResponse } from '../../features/account/services/account.models';
 import { Subscription, of, firstValueFrom, Observable, throwError } from 'rxjs';
-import { catchError, tap, distinctUntilChanged, switchMap, map } from 'rxjs/operators';
+import { catchError, tap, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { TranslocoService } from '@ngneat/transloco';
 
 export interface UserCartData {
@@ -43,6 +48,8 @@ export class CartService implements OnDestroy {
   private http = inject(HttpClient);
   private translocoService = inject(TranslocoService);
   private platformId = inject(PLATFORM_ID);
+  private accountService = inject(AccountService);
+  private router = inject(Router);
 
   readonly cart: WritableSignal<WooCommerceStoreCart | null> = signal(null);
   private readonly userCartData: WritableSignal<UserCartData | null> = signal(null);
@@ -88,6 +95,78 @@ export class CartService implements OnDestroy {
 
   ngOnDestroy(): void {
     this.authSubscription?.unsubscribe();
+  }
+
+  // +++ NEUE ZENTRALE CHECKOUT-METHODE +++
+  public async initiateCheckout(): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    this.isLoading.set(true);
+    this.error.set(null);
+
+    const currentUser = this.authService.getCurrentUserValue();
+    const currentCart = untracked(() => this.cart()); // Use untracked to prevent circular dependencies in effects
+
+    if (!currentCart || this.cartItemCount() === 0) {
+      this.error.set(this.translocoService.translate('cartPage.errors.emptyCartCheckout'));
+      this.isLoading.set(false);
+      this.router.navigate(['/warenkorb']);
+      return;
+    }
+
+    let billing_address: WooCommerceStoreAddress;
+    let shipping_address: WooCommerceStoreAddress | undefined;
+
+    try {
+      if (currentUser) {
+        // Eingeloggter Benutzer: Adressen vom Server holen
+        console.log('[CartService] initiateCheckout: User is logged in, fetching addresses.');
+        const addresses = await firstValueFrom(this.accountService.getUserAddresses());
+        billing_address = addresses.billing;
+        shipping_address = addresses.shipping;
+        // Fallback für Namen/E-Mail, falls Adressen leer sind
+        billing_address.first_name = billing_address.first_name || currentUser.firstName || '';
+        billing_address.last_name = billing_address.last_name || currentUser.lastName || '';
+        billing_address.email = billing_address.email || currentUser.email;
+      } else {
+        // Anonymer Benutzer: Zur Adress-Seite weiterleiten
+        console.log('[CartService] initiateCheckout: Anonymous user, redirecting to /checkout-details.');
+        this.router.navigate(['/checkout-details']);
+        this.isLoading.set(false);
+        return;
+      }
+
+      // Payload für Staging-Endpunkt vorbereiten
+      const cartItemsForStaging = currentCart.items.map(item => ({
+        product_id: item.parent_product_id || item.id,
+        quantity: item.quantity,
+        variation_id: item.id !== (item.parent_product_id || item.id) ? item.id : undefined
+      }));
+
+      const payload: StageCartPayload = {
+        items: cartItemsForStaging,
+        billing_address: billing_address,
+        shipping_address: shipping_address
+      };
+      
+      // Staging-Endpunkt aufrufen
+      console.log('[CartService] initiateCheckout: Staging cart with payload:', payload);
+      const stageResponse = await firstValueFrom(this.woocommerceService.stageCartForPopulation(payload));
+
+      if (stageResponse?.success && stageResponse.token) {
+        // Zum finalen WooCommerce-Checkout weiterleiten
+        console.log('[CartService] initiateCheckout: Staging successful, redirecting to WC checkout.');
+        this.woocommerceService.clearLocalCartToken();
+        window.location.href = this.woocommerceService.getCheckoutUrl(stageResponse.token);
+      } else {
+        throw new Error(stageResponse.message || 'Vorbereitung des Warenkorbs fehlgeschlagen.');
+      }
+
+    } catch (error: any) {
+      console.error('[CartService] initiateCheckout: Error during process:', error);
+      this.error.set(error.message || this.translocoService.translate('cartPage.errors.checkoutNotPossible'));
+      this.isLoading.set(false);
+    }
   }
 
  private subscribeToAuthState(): void {
@@ -290,10 +369,8 @@ export class CartService implements OnDestroy {
   }
 
   private async _clearStoreApiCart(): Promise<void> {
-    // *** KORREKTUR HIER ***
     await firstValueFrom(this.woocommerceService.clearWcCart().pipe(
       catchError(err => {
-        // Selbst wenn das Leeren fehlschlägt, setzen wir die UI auf leer.
         console.error("Error clearing Store API cart, but clearing UI anyway.", err);
         return of(null);
       })

@@ -1,5 +1,17 @@
 // src/app/features/account/services/account.models.ts
 
+export interface WpUserMeResponse {
+  id: number;
+  username: string;
+  name: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  meta?: any;
+  avatar_urls?: { [key: string]: string };
+  roles?: string[];
+}
+
 export interface BillingAddress {
   first_name: string;
   last_name: string;
@@ -25,6 +37,12 @@ export interface ShippingAddress {
   postcode: string;
   country: string;
   phone?: string;
+}
+
+// KORREKTUR: 'export' hinzugefügt, um das Interface verfügbar zu machen.
+export interface UserAddressesResponse {
+  billing: BillingAddress;
+  shipping: ShippingAddress;
 }
 
 export interface WooCommerceCustomer {
@@ -111,11 +129,19 @@ export interface PaginatedOrdersResponse {
   totalPages: number;
 }
 
-// Wird im AccountService für updateCustomerDetails und im AuthService für updateCustomerAddress benötigt
-export interface WooCommerceCustomerUpdatePayload { // <--- SICHERSTELLEN, DASS 'export' HIER STEHT
+export interface WooCommerceCustomerUpdatePayload {
   billing?: BillingAddress;
   shipping?: ShippingAddress;
   first_name?: string;
   last_name?: string;
   email?: string;
+}
+
+export interface OrderDetailsPayload {
+    orderId: number;
+}
+
+export interface UserProfile {
+    wpUser: WpUserMeResponse;
+    wooCustomer: WooCommerceCustomer;
 }

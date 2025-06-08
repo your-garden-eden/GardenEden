@@ -29,23 +29,22 @@ $primary-color-text-fallback: #fff;
 // --- Basiskomponente ---
 :host {
   display: block;
-  padding: var(--spacing-lg, 1.5rem); // Konsistent mit cart-page (ggf. anpassen)
-  max-width: 1200px; // Konsistent mit cart-page (ggf. anpassen)
-  margin: var(--spacing-xxxl, 3rem) auto; // Konsistent mit cart-page (ggf. anpassen, z.B. var(--spacing-xl))
+  padding: var(--spacing-lg, 1.5rem);
+  max-width: 1200px;
+  margin: var(--spacing-xxxl, 3rem) auto;
   position: relative;
 }
 
 // --- Allgemeine Styles ---
-h1 { // Hauptüberschrift der Seite ("Bestelldetails & Adresse")
-  text-align: center; // Angleichen an cart-page h1
-  margin-bottom: var(--spacing-xl, 2rem); // Angleichen an cart-page h1
-  font-size: clamp(1.8em, 4vw, 2.4em); // Beispiel: Angleichen an cart-page h1 (oder Ihre spezifische Größe)
+h1 {
+  text-align: center;
+  margin-bottom: var(--spacing-xl, 2rem);
+  font-size: clamp(1.8em, 4vw, 2.4em);
   color: var(--text-color-headings, var(--primary-color-dark, $primary-color-dark-fallback));
   font-family: var(--font-family-headings);
   font-weight: var(--font-weight-semibold);
 }
 
-// h2 für Sektionen innerhalb der Seite
 h2 {
   font-size: clamp(1.3em, 3vw, 1.6em);
   color: var(--text-color-headings);
@@ -56,14 +55,13 @@ h2 {
   padding-bottom: var(--spacing-sm, 0.5rem);
   border-bottom: 1px solid var(--border-color-light, $border-color-light-fallback);
 
-  .address-forms &:first-of-type { // Spezifisch für die erste h2 in den Adressformularen
+  .address-forms &:first-of-type {
     margin-top:0;
   }
 
-  .address-forms &:not(:first-of-type) { // z.B. für "Lieferadresse"
+  .address-forms &:not(:first-of-type) {
     margin-top: var(--spacing-xl, 2rem);
   }
-  // H2 in der .summary-box wird dort separat gestylt
 }
 
 // --- Lade-Overlay ---
@@ -136,7 +134,6 @@ h2 {
       margin-bottom: 0;
     }
   }
-  // H2-Styling ist oben, allgemeiner für .address-forms h2
   .shipping-address-form {
     margin-top: var(--spacing-xl, 2rem);
   }
@@ -338,8 +335,8 @@ h2 {
     margin-top: var(--spacing-xl, 2rem);
   }
 
-  h2 { // Überschrift INNERHALB der Box ("Übersicht")
-    font-size: clamp(1.3em, 3vw, 1.6em); // Konsistent mit cart-page summary h2
+  h2 {
+    font-size: clamp(1.3em, 3vw, 1.6em);
     color: var(--text-color-headings, var(--primary-color-dark, $primary-color-dark-fallback));
     font-family: var(--font-family-headings);
     font-weight: var(--font-weight-semibold);

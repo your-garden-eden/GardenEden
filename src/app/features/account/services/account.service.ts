@@ -1,30 +1,17 @@
 // src/app/features/account/services/account.service.ts
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams, HttpResponse, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError, map, tap } from 'rxjs/operators';
+import { catchError, map, tap, switchMap } from 'rxjs/operators';
 import {
   WooCommerceCustomer,
   WooCommerceOrder,
   PaginatedOrdersResponse,
   WooCommerceCustomerUpdatePayload,
-  BillingAddress,
-  ShippingAddress
-} from './account.models'; // Pfad zu deinen Modellen anpassen!
-import { AuthService } from '../../../shared/services/auth.service'; // Pfad zu deinem AuthService anpassen!
-
-// Interface für die Antwort von /wp/v2/users/me - hier definiert und exportiert
-export interface WpUserMeResponse {
-  id: number;
-  username: string;
-  name: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  meta?: any;
-  avatar_urls?: { [key: string]: string };
-  roles?: string[];
-}
+  UserAddressesResponse,
+  WpUserMeResponse // KORREKTUR: Importiert aus den Models
+} from './account.models';
+import { AuthService } from '../../../shared/services/auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -35,19 +22,26 @@ export class AccountService {
   private wordpressApiUrl = 'https://your-garden-eden-4ujzpfm5qt.live-website.com/wp-json';
   private wooCommerceApiBase = `${this.wordpressApiUrl}/wc/v3`;
   private wpUserApiBase = `${this.wordpressApiUrl}/wp/v2`;
+  private customApiBase = `${this.wordpressApiUrl}/your-garden-eden/v1`;
 
   constructor() { }
+  
+  private getAuthHeaders(): HttpHeaders {
+    const token = this.authService.getStoredToken();
+    if (!token) {
+      throw new Error('Nicht authentifiziert: Kein Token gefunden.');
+    }
+    return new HttpHeaders().set('Authorization', `Bearer ${token}`);
+  }
 
   getWpUserDetails(): Observable<WpUserMeResponse> {
     const token = this.authService.getStoredToken();
     if (!token) {
-      console.error('[AccountService] JWT token not found for getWpUserDetails (URL param test)');
       return throwError(() => new Error('Nicht authentifiziert: Kein Token für Benutzerdetails gefunden.'));
     }
     const url = `${this.wpUserApiBase}/users/me?context=edit&JWT=${encodeURIComponent(token)}`;
-    console.log('[AccountService] getWpUserDetails (URL Param Test) an URL:', url);
     return this.http.get<WpUserMeResponse>(url).pipe(
-      tap(wpUser => console.log('[AccountService] Fetched /users/me response (URL Param Test):', wpUser)),
+      tap(wpUser => console.log('[AccountService] Fetched /users/me response:', wpUser)),
       catchError(err => this.handleError(err, 'getWpUserDetails'))
     );
   }
@@ -55,28 +49,41 @@ export class AccountService {
   getWooCommerceCustomerDetails(customerId: number): Observable<WooCommerceCustomer> {
     const token = this.authService.getStoredToken();
     if (!token) {
-      console.error('[AccountService] JWT token not found for getWooCommerceCustomerDetails (URL param test)');
       return throwError(() => new Error('Nicht authentifiziert: Kein Token für Kundendetails gefunden.'));
     }
     const url = `${this.wooCommerceApiBase}/customers/${customerId}?JWT=${encodeURIComponent(token)}`;
-    console.log('[AccountService] getWooCommerceCustomerDetails (URL Param Test) an URL:', url);
     return this.http.get<WooCommerceCustomer>(url).pipe(
-      tap(customer => console.log('[AccountService] Fetched WooCommerce customer details (URL Param Test):', customer)),
+      tap(customer => console.log('[AccountService] Fetched WooCommerce customer details:', customer)),
       catchError(err => this.handleError(err, 'getWooCommerceCustomerDetails'))
     );
   }
 
   updateWooCommerceCustomerDetails(customerId: number, data: WooCommerceCustomerUpdatePayload): Observable<WooCommerceCustomer> {
-    const token = this.authService.getStoredToken();
-    if (!token) {
-      console.error('[AccountService] JWT token not found for updateWooCommerceCustomerDetails (URL param test)');
-      return throwError(() => new Error('Nicht authentifiziert: Kein Token für Update der Kundendetails gefunden.'));
-    }
-    const url = `${this.wooCommerceApiBase}/customers/${customerId}?JWT=${encodeURIComponent(token)}`;
-    console.log('[AccountService] updateWooCommerceCustomerDetails (URL Param Test) an URL:', url, 'mit Payload:', data);
-    return this.http.put<WooCommerceCustomer>(url, data).pipe(
-      tap(customer => console.log('[AccountService] Updated WooCommerce customer details (URL Param Test):', customer)),
+    const headers = this.getAuthHeaders();
+    const url = `${this.wooCommerceApiBase}/customers/${customerId}`;
+    return this.http.put<WooCommerceCustomer>(url, data, { headers }).pipe(
+      tap(customer => console.log('[AccountService] Updated WooCommerce customer details:', customer)),
       catchError(err => this.handleError(err, 'updateWooCommerceCustomerDetails'))
+    );
+  }
+  
+  getUserAddresses(): Observable<UserAddressesResponse> {
+    const headers = this.getAuthHeaders();
+    const url = `${this.customApiBase}/user/addresses`;
+    console.log('[AccountService] getUserAddresses an URL:', url);
+    return this.http.get<UserAddressesResponse>(url, { headers }).pipe(
+      tap(addresses => console.log('[AccountService] Benutzeradressen erfolgreich abgerufen:', addresses)),
+      catchError(err => this.handleError(err, 'getUserAddresses'))
+    );
+  }
+
+  updateUserAddresses(addresses: UserAddressesResponse): Observable<{ success: boolean; message: string }> {
+    const headers = this.getAuthHeaders();
+    const url = `${this.customApiBase}/user/addresses`;
+    console.log('[AccountService] updateUserAddresses an URL:', url);
+    return this.http.post<{ success: boolean; message: string }>(url, addresses, { headers }).pipe(
+      tap(response => console.log('[AccountService] Benutzeradressen erfolgreich aktualisiert:', response)),
+      catchError(err => this.handleError(err, 'updateUserAddresses'))
     );
   }
 
@@ -86,7 +93,6 @@ export class AccountService {
   ): Observable<PaginatedOrdersResponse> {
     const token = this.authService.getStoredToken();
     if (!token) {
-      console.error('[AccountService] JWT token not found for getCustomerOrders (URL param test)');
       return throwError(() => new Error('Nicht authentifiziert: Kein Token für Bestellhistorie gefunden.'));
     }
     let queryParams: { [param: string]: string | string[] } = {
@@ -95,24 +101,17 @@ export class AccountService {
     };
     if (paramsIn.page) queryParams['page'] = paramsIn.page.toString();
     if (paramsIn.per_page) queryParams['per_page'] = paramsIn.per_page.toString();
-    if (paramsIn.status) queryParams['status'] = paramsIn.status;
-    if (paramsIn.orderby) queryParams['orderby'] = paramsIn.orderby;
-    if (paramsIn.order) queryParams['order'] = paramsIn.order;
-    Object.keys(paramsIn).forEach(key => {
-        if (!['page', 'per_page', 'status', 'orderby', 'order', 'customer', 'JWT'].includes(key) && paramsIn[key] !== undefined) {
-            queryParams[key] = String(paramsIn[key]);
-        }
-    });
+    
     const httpParams = new HttpParams({ fromObject: queryParams });
     const url = `${this.wooCommerceApiBase}/orders`;
-    console.log('[AccountService] getCustomerOrders (URL Param Test) an URL:', url, 'mit Params:', httpParams.toString());
+
     return this.http.get<WooCommerceOrder[]>(url, { params: httpParams, observe: 'response' }).pipe(
       map((response: HttpResponse<WooCommerceOrder[]>) => {
         const totalOrders = parseInt(response.headers.get('X-WP-Total') || '0', 10);
         const totalPages = parseInt(response.headers.get('X-WP-TotalPages') || '0', 10);
         return { orders: response.body || [], totalOrders: totalOrders, totalPages: totalPages };
       }),
-      tap(result => console.log('[AccountService] Fetched customer orders (URL Param Test) (user ID: ' + userId + '):', result)),
+      tap(result => console.log('[AccountService] Fetched customer orders (user ID: ' + userId + '):', result)),
       catchError(err => this.handleError(err, 'getCustomerOrders'))
     );
   }
@@ -120,29 +119,21 @@ export class AccountService {
   getOrderDetails(orderId: number): Observable<WooCommerceOrder> {
     const token = this.authService.getStoredToken();
     if (!token) {
-      console.error('[AccountService] JWT token not found for getOrderDetails (URL Param test)');
       return throwError(() => new Error('Nicht authentifiziert: Kein Token für Bestelldetails gefunden.'));
     }
     const url = `${this.wooCommerceApiBase}/orders/${orderId}?JWT=${encodeURIComponent(token)}`;
-    console.log('[AccountService] getOrderDetails (URL Param Test) an URL:', url);
     return this.http.get<WooCommerceOrder>(url).pipe(
-      tap(order => console.log('[AccountService] Fetched order details (URL Param Test):', order)),
+      tap(order => console.log('[AccountService] Fetched order details:', order)),
       catchError(err => this.handleError(err, 'getOrderDetails'))
     );
   }
 
-  changePassword(userId: number, newPassword: string, currentPassword?: string): Observable<any> {
-    const token = this.authService.getStoredToken();
-    if (!token) {
-      console.error('[AccountService] JWT token not found for changePassword (URL param test)');
-      return throwError(() => new Error('Nicht authentifiziert: Kein Token für Passwortänderung gefunden.'));
-    }
-    const updateUserUrl = `${this.wpUserApiBase}/users/${userId}?JWT=${encodeURIComponent(token)}`;
-    const payload: { password: string; current_password?: string } = { password: newPassword };
-    // if (currentPassword) { payload.current_password = currentPassword; } // Aktuell nicht verwendet
-    console.log('[AccountService] changePassword (URL Param Test) an URL:', updateUserUrl);
-    return this.http.post<any>(updateUserUrl, payload).pipe(
-      tap(response => console.log('[AccountService] Password change response (URL Param Test):', response)),
+  changePassword(userId: number, newPassword: string): Observable<any> {
+    const headers = this.getAuthHeaders();
+    const updateUserUrl = `${this.wpUserApiBase}/users/${userId}`;
+    const payload = { password: newPassword };
+    return this.http.post<any>(updateUserUrl, payload, { headers }).pipe(
+      tap(response => console.log('[AccountService] Password change response:', response)),
       catchError(err => this.handleError(err, 'changePassword'))
     );
   }

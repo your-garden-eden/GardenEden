@@ -21,20 +21,17 @@ import { TranslocoModule, TranslocoService } from '@ngneat/transloco';
 import { Subscription, firstValueFrom, of } from 'rxjs';
 import { startWith, switchMap, tap, catchError } from 'rxjs/operators';
 
-import { CartService, UserCartData, UserCartItem } from '../../../shared/services/cart.service';
-import { AuthService, WordPressUser } from '../../../shared/services/auth.service';
+import { CartService } from '../../../shared/services/cart.service';
+import { AuthService } from '../../../shared/services/auth.service';
 import { UiStateService } from '../../../shared/services/ui-state.service';
 import {
   WooCommerceStoreCart,
   WooCommerceStoreCartItem,
-  WooCommerceStoreCartTotals,
-  WooCommerceStoreAddress,
-  StageCartPayload,
-  StageCartResponse,
-  WoocommerceService // Beibehalten, falls für andere Zwecke benötigt, aber nicht für goToCheckoutDetails direkt
+  WooCommerceStoreCartTotals
 } from '../../../core/services/woocommerce.service';
 import { FormatPricePipe } from '../../../shared/pipes/format-price.pipe';
 import { CartDiscountInfoModalComponent } from '../../../shared/components/cart-discount-info-modal/cart-discount-info-modal.component';
+import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component'; // HINZUGEFÜGT
 
 @Component({
   selector: 'app-cart-page',
@@ -44,7 +41,8 @@ import { CartDiscountInfoModalComponent } from '../../../shared/components/cart-
     RouterLink,
     TranslocoModule,
     FormatPricePipe,
-    CartDiscountInfoModalComponent
+    CartDiscountInfoModalComponent,
+    LoadingSpinnerComponent // HINZUGEFÜGT
   ],
   templateUrl: './cart-page.component.html',
   styleUrls: ['./cart-page.component.scss'],
@@ -53,7 +51,6 @@ import { CartDiscountInfoModalComponent } from '../../../shared/components/cart-
 export class CartPageComponent implements OnInit, OnDestroy {
   public cartService = inject(CartService);
   private authService = inject(AuthService);
-  // private woocommerceService = inject(WoocommerceService); // Nicht mehr direkt hier benötigt für den Button
   private router = inject(Router);
   private titleService = inject(Title);
   private translocoService = inject(TranslocoService);
@@ -68,7 +65,7 @@ export class CartPageComponent implements OnInit, OnDestroy {
 
   readonly uiError: WritableSignal<string | null> = signal(null);
   private readonly uiErrorKey: WritableSignal<string | null> = signal(null);
-  readonly isProcessingCheckout: WritableSignal<boolean> = signal(false); // Behalten, falls andere Aktionen es nutzen
+  readonly isProcessingCheckout: WritableSignal<boolean> = signal(false);
 
   readonly isUpdatingLine: WritableSignal<string | null> = signal(null);
   readonly isRemovingItem: WritableSignal<string | null> = signal(null);
@@ -80,9 +77,6 @@ export class CartPageComponent implements OnInit, OnDestroy {
   readonly showCartDiscountPopup$: Signal<boolean> = this.uiStateService.showCartDiscountPopup$;
   
   public isLoggedIn: boolean = false; 
-
-  // showShippingCosts wird entfernt, da Versand immer kostenlos ist
-  // readonly showShippingCosts: Signal<boolean> = computed(() => { ... });
 
   private subscriptions = new Subscription();
 
@@ -115,9 +109,7 @@ export class CartPageComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const langChangeSub = this.translocoService.langChanges$.pipe(
       startWith(this.translocoService.getActiveLang()),
-      switchMap(lang =>
-        this.translocoService.selectTranslate('cartPage.title', {}, lang)
-      ),
+      switchMap(lang => this.translocoService.selectTranslate('cartPage.title', {}, lang)),
       tap(translatedPageTitle => {
         this.titleService.setTitle(translatedPageTitle);
         const currentErrorKey = untracked(() => this.uiErrorKey());
@@ -128,17 +120,8 @@ export class CartPageComponent implements OnInit, OnDestroy {
           this.uiError.set(currentServiceError);
         }
       })
-    ).subscribe(() => {
-      this.cdr.detectChanges();
-    });
+    ).subscribe(() => this.cdr.detectChanges());
     this.subscriptions.add(langChangeSub);
-
-    const initialServiceError = this.serviceError();
-    if (initialServiceError && !this.uiError()) {
-        this.uiErrorKey.set('cartPage.errorFromService');
-        this.uiError.set(initialServiceError);
-        this.cdr.markForCheck();
-    }
 
     if (isPlatformBrowser(this.platformId)) {
       this.uiStateService.triggerCartDiscountPopup();
@@ -187,7 +170,7 @@ export class CartPageComponent implements OnInit, OnDestroy {
         await this.cartService.updateItemQuantity(item.key, newQuantity);
       }
     } catch (error: any) {
-      console.error(`CartPageComponent: Error calling cartService.updateItemQuantity (propagated from service) for item ${loadingKey}:`, error);
+      console.error(`CartPageComponent: Error calling cartService.updateItemQuantity for item ${loadingKey}:`, error);
       this.lineUpdateError.set(this.translocoService.translate('cartPage.errors.updateFailed'));
     } finally {
       this.isUpdatingLine.set(null);
@@ -195,17 +178,8 @@ export class CartPageComponent implements OnInit, OnDestroy {
     }
   }
 
-  incrementQuantity(item: WooCommerceStoreCartItem): void {
-    this.updateQuantity(item, item.quantity + 1);
-  }
-
-  decrementQuantity(item: WooCommerceStoreCartItem): void {
-    if (item.quantity > 1) {
-      this.updateQuantity(item, item.quantity - 1);
-    } else if (item.quantity === 1) {
-        this.updateQuantity(item, 0);
-    }
-  }
+  incrementQuantity(item: WooCommerceStoreCartItem): void { this.updateQuantity(item, item.quantity + 1); }
+  decrementQuantity(item: WooCommerceStoreCartItem): void { this.updateQuantity(item, item.quantity - 1); }
 
   async removeItem(itemIdentifier: string | number, variationIdParam?: number): Promise<void> {
     const loadingKey = typeof itemIdentifier === 'string' ? itemIdentifier : `${itemIdentifier}_${variationIdParam || 0}`;
@@ -216,8 +190,7 @@ export class CartPageComponent implements OnInit, OnDestroy {
     try {
       await this.cartService.removeItem(itemIdentifier, variationIdParam);
     } catch (error: any) {
-      console.error(`CartPageComponent: Error calling cartService.removeItem (propagated from service) for item ${loadingKey}:`, error);
-      this.uiErrorKey.set('cartPage.errorRemoveItem');
+      this.uiErrorKey.set('cartPage.errors.removeItem');
       this.uiError.set(this.translocoService.translate(this.uiErrorKey()!));
     } finally {
       this.isRemovingItem.set(null);
@@ -225,41 +198,51 @@ export class CartPageComponent implements OnInit, OnDestroy {
     }
   }
 
-  // *** MODIFIZIERT: Umbenannt und vereinfacht ***
+  // Für anonyme Nutzer, leitet zur Adressseite weiter
   public goToCheckoutDetails(): void {
     if (this.itemCount() === 0) {
-      this.uiErrorKey.set('cartPage.errorEmptyCartCheckout');
+      this.uiErrorKey.set('cartPage.errors.emptyCartCheckout');
       this.uiError.set(this.translocoService.translate(this.uiErrorKey()!));
       return;
     }
-    // Die Logik für das Staging des Warenkorbs wurde in `checkout-details-page.component.ts` verschoben (in proceedToPayment)
-    // Hier navigieren wir nur noch.
     this.router.navigate(['/checkout-details']);
+  }
+
+  // +++ NEUE METHODE FÜR DEN DIREKTEN CHECKOUT +++
+  public async directCheckout(): Promise<void> {
+    if (this.itemCount() === 0) {
+      this.uiErrorKey.set('cartPage.errors.emptyCartCheckout');
+      this.uiError.set(this.translocoService.translate(this.uiErrorKey()!));
+      return;
+    }
+    this.isProcessingCheckout.set(true);
+    this.uiError.set(null); this.uiErrorKey.set(null);
+
+    try {
+      // Ruft die neue, zentrale Logik im CartService auf
+      await this.cartService.initiateCheckout();
+    } catch (error: any) {
+      // Fehler werden bereits im Service behandelt und im `serviceError`-Signal gesetzt,
+      // aber wir können hier eine zusätzliche UI-Reaktion hinzufügen.
+      console.error("Error from directCheckout button:", error);
+      this.isProcessingCheckout.set(false);
+      this.cdr.markForCheck();
+    }
+    // `isProcessingCheckout` wird im Service auf `false` gesetzt, wenn ein Fehler auftritt.
+    // Bei Erfolg wird die Seite sowieso neu geladen, also ist das Zurücksetzen nicht kritisch.
   }
 
   getProductLinkForItem(item: WooCommerceStoreCartItem): string {
     if (item.permalink) {
       try {
         const url = new URL(item.permalink);
-        const pathname = url.pathname;
-        const pathSegments = pathname.replace(/^\/+|\/+$/g, '').split('/');
-        let slug: string | undefined = undefined;
-        const productUrlBase = 'produkt';
-        const productBaseIndex = pathSegments.indexOf(productUrlBase);
-
-        if (productBaseIndex !== -1 && pathSegments.length > productBaseIndex + 1) {
-          slug = pathSegments[productBaseIndex + 1];
-        } else if (pathSegments.length > 0) {
-          slug = pathSegments[pathSegments.length - 1];
-        }
-        if (slug && slug.length > 0) { return `/product/${slug}`; }
+        const pathSegments = url.pathname.replace(/^\/+|\/+$/g, '').split('/');
+        return `/product/${pathSegments[pathSegments.length - 1]}`;
       } catch (e) {
-        console.warn(`CartPage: Could not parse permalink "${item.permalink}" to extract slug for item "${item.name}". Error:`, e);
+        console.warn(`CartPage: Could not parse permalink "${item.permalink}"`, e);
       }
     }
-    const productIdForLink = item.parent_product_id || item.id;
-    console.warn(`CartPage: Could not determine a slug for item "${item.name}" (ID: ${item.id}, ProductID for Link: ${productIdForLink}). Falling back to ID for link.`);
-    return `/product/${productIdForLink}`;
+    return `/product/${item.parent_product_id || item.id}`;
   }
 
   getProductImageForItem(item: WooCommerceStoreCartItem): string | undefined {

@@ -249,26 +249,28 @@
         </form>
       }
 
-      <button type="button" class="submit-button address-submit-button"
-              (click)="handleAddressFormSubmit()" [disabled]="isLoadingAddress()">
-        @if (isLoadingAddress()) {
-          <span class="button-loading-spinner"></span>
-          <span>{{ 'checkoutDetailsPage.buttons.savingAddresses' | transloco }}</span>
-        } @else {
-          <span>{{ 'checkoutDetailsPage.buttons.saveAddressesAndShipping' | transloco }}</span>
+      @if (isLoggedIn()) {
+        <button type="button" class="submit-button address-submit-button"
+                (click)="handleAddressFormSubmit()" [disabled]="isLoadingAddress()">
+          @if (isLoadingAddress()) {
+            <span class="button-loading-spinner"></span>
+            <span>{{ 'checkoutDetailsPage.buttons.savingAddresses' | transloco }}</span>
+          } @else {
+            <span>{{ 'checkoutDetailsPage.buttons.saveAddressesAndShipping' | transloco }}</span>
+          }
+        </button>
+        @if (addressErrorKey() && addressError(); as errorMsg) {
+          <div class="error-message form-error">
+            <p>{{ errorMsg }}</p>
+          </div>
         }
-      </button>
-      @if (addressErrorKey() && addressError(); as errorMsg) {
-        <div class="error-message form-error">
-          <p>{{ errorMsg }}</p>
-        </div>
       }
     </div>
 
     <div class="order-summary-column">
       @if (orderSummary(); as summaryDetails) {
         <div class="summary-box checkout-summary-box">
-          <h2>{{ 'cartPage.summary.title' | transloco }}</h2> <!-- Geändert zu "Übersicht" -->
+          <h2>{{ 'cartPage.summary.title' | transloco }}</h2>
 
           @if (summaryDetails.items && summaryDetails.items.length > 0) {
             <ul class="checkout-summary-items-list">
@@ -300,11 +302,10 @@
             <hr class="items-totals-separator">
           }
 
-          <div class="summary-row shipping"> <!-- Klasse .shipping hinzugefügt -->
+          <div class="summary-row shipping">
             <span>{{ 'cartPage.summary.shipping' | transloco }}:</span>
-            <span class="amount free-shipping">{{ 'general.free' | transloco }}</span> <!-- Immer kostenlos -->
+            <span class="amount free-shipping">{{ 'general.free' | transloco }}</span>
           </div>
-          <!-- @if (shippingErrorKey() ... ) entfernt, da Versand immer kostenlos -->
 
            @if (summaryDetails.totals.total_tax && summaryDetails.totals.total_tax !== '0.00' && summaryDetails.totals.total_tax !== '0') {
             <div class="summary-row">
@@ -322,9 +323,10 @@
             </div>
           </div>
 
+          <!-- KORREKTUR: Die [disabled]-Logik wurde vereinfacht und korrigiert -->
           <button class="checkout-button primary-button"
                   (click)="proceedToPayment()"
-                  [disabled]="isRedirecting() || isLoadingAddress() || isLoadingShipping() || billingForm.invalid || (showShippingForm() && shippingForm.invalid) || (cartService.cart()?.needs_shipping && (shippingInfo() === null || shippingInfo() === 'error' || !displayableShippingInfoObject()))">
+                  [disabled]="isRedirecting() || isLoadingAddress() || billingForm.invalid || (showShippingForm() && shippingForm.invalid)">
             @if(isRedirecting()){
               <span class="button-loading-spinner"></span>
               <span>{{ 'checkoutDetailsPage.buttons.redirecting' | transloco }}</span>

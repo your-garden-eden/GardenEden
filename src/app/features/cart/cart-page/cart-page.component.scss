@@ -377,20 +377,18 @@ a {
 }
 
 // --- Warenkorb-Zusammenfassung (Rechts) ---
-// Stile werden an die .summary-box der checkout-details-page angepasst
 .cart-summary {
   background-color: var(--background-color-light-gray, $background-color-light-gray-fallback);
-  padding: var(--spacing-lg, 1.5rem); // Konsistentes Padding
-  border-radius: var(--border-radius-lg, 8px); // Konsistenter Radius
-  border: 1px solid var(--border-color-light, $border-color-light-fallback); // Konsistenter Border
-  box-shadow: var(--box-shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05)); // Optional: Leichter Schatten wie Checkout
+  padding: var(--spacing-lg, 1.5rem);
+  border-radius: var(--border-radius-lg, 8px);
+  border: 1px solid var(--border-color-light, $border-color-light-fallback);
+  box-shadow: var(--box-shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05));
   height: fit-content;
   position: sticky;
-  top: calc(var(--header-height, 60px) + var(--spacing-lg, 1.5rem)); // Sticky Positionierung
+  top: calc(var(--header-height, 60px) + var(--spacing-lg, 1.5rem));
 
   h2 {
     margin-top: 0;
-    // Ggf. weitere h2 Anpassungen, um mit checkout-details übereinzustimmen
   }
 
   .summary-row {
@@ -411,20 +409,20 @@ a {
   }
 
   .summary-total {
-    font-weight: var(--font-weight-semibold, 600); font-size: var(--font-size-lg, 1.125rem); // Konsistente Schriftgröße für Total
+    font-weight: var(--font-weight-semibold, 600); font-size: var(--font-size-lg, 1.125rem);
     margin-top: var(--spacing-lg, 1.5rem); padding-top: var(--spacing-lg, 1.5rem);
-    border-top: 2px solid var(--border-color-base, $border-color-base-fallback); // Konsistente Trennlinie
+    border-top: 2px solid var(--border-color-base, $border-color-base-fallback);
 
-    .total-price-block { // Wiederverwendung der Struktur aus Checkout für Konsistenz
+    .total-price-block {
       display: flex;
       flex-direction: column;
       align-items: flex-end;
       text-align: right;
 
       .amount.total-amount {
-         color: var(--primary-color-dark, $primary-color-dark-fallback); // Konsistente Farbe für Gesamtbetrag
+         color: var(--primary-color-dark, $primary-color-dark-fallback);
       }
-      .vat-summary-subtext { // Konsistenter MwSt.-Hinweis
+      .vat-summary-subtext {
         font-size: 0.75em;
         font-weight: var(--font-weight-normal);
         color: var(--text-color-muted, $text-color-muted-fallback);
@@ -433,35 +431,76 @@ a {
       }
     }
   }
-
-  .checkout-button {
-    display: block; // Volle Breite wie Checkout-Button
+  
+  // +++ NEUE STYLES FÜR CHECKOUT BUTTONS +++
+  .checkout-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
     width: 100%;
-    font-weight: var(--font-weight-semibold); line-height: 1.5;
-    color: var(--primary-color-text, $primary-color-text-fallback);
-    text-align: center; text-decoration: none; vertical-align: middle;
-    cursor: pointer; user-select: none;
-    background-color: var(--primary-color, $primary-color-fallback);
-    border: 1px solid var(--primary-color, $primary-color-fallback);
-    padding: var(--spacing-md, 1rem); font-size: 1.1em; // Konsistentes Padding und Schriftgröße
-    border-radius: var(--border-radius-md, 5px);
-    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    margin-top: var(--spacing-lg, 1.5rem);
+  }
+
+  .checkout-button,
+  .secondary-button {
+    width: 100%;
+    padding: var(--spacing-md, 1rem);
+    font-size: 1.1em;
+    font-weight: var(--font-weight-semibold);
+    border-radius: var(--border-radius-md);
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    border: 1px solid transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.5;
     text-transform: uppercase;
-    margin-top: var(--spacing-lg, 1.5rem); // Konsistenter Abstand
+  }
+  
+  .checkout-button.primary {
+    background-color: var(--primary-color, $primary-color-fallback);
+    color: var(--primary-color-text, $primary-color-text-fallback);
+    border-color: var(--primary-color, $primary-color-fallback);
 
     &:hover:not(:disabled) {
       background-color: var(--primary-color-dark, color.adjust($primary-color-fallback, $lightness: -10%));
       border-color: var(--primary-color-dark, color.adjust($primary-color-fallback, $lightness: -10%));
     }
-    &:disabled {
-       opacity: 0.65; cursor: not-allowed;
+  }
+
+  .secondary-button {
+    background-color: var(--background-color-component, $background-color-component-fallback);
+    color: var(--primary-color-dark, $primary-color-dark-fallback);
+    border-color: var(--border-color-base, $border-color-base-fallback);
+
+    &:hover {
+      background-color: var(--background-color-light-gray, $background-color-light-gray-fallback);
+      border-color: var(--primary-color-dark, $primary-color-dark-fallback);
+      text-decoration: none;
     }
   }
+
+  .checkout-button:disabled, .secondary-button:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+
+  .processing-button-content {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  // +++ ENDE NEUE STYLES +++
+
   .continue-shopping-link {
     display: block; text-align: center;
     margin-top: var(--spacing-md, 1rem);
     font-size: 0.9em;
   }
+  
   .cart-note {
       margin-top: var(--spacing-lg, 1.5rem); padding-top: var(--spacing-md, 1rem);
       border-top: 1px dashed var(--border-color-light, $border-color-light-fallback);
@@ -508,7 +547,7 @@ a {
 // --- Responsive Anpassungen ---
 @media (max-width: $breakpoint-medium) {
   .cart-content { gap: var(--spacing-lg); }
-  .cart-summary { // Gilt jetzt auch für die cart-page summary
+  .cart-summary {
     position: static;
     top: auto;
     margin-top: var(--spacing-lg);
@@ -531,6 +570,6 @@ a {
         .vat-subtext { font-size: 0.7em; }
      }
    }
-    .cart-summary { padding: var(--spacing-md); } // Konsistentes Padding
+    .cart-summary { padding: var(--spacing-md); }
     .empty-cart-message { padding: var(--spacing-md); }
 }
