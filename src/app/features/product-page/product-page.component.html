@@ -1,5 +1,12 @@
 <!-- /src/app/features/product-page/product-page.component.html -->
 <div class="product-page-content">
+  <!-- +++ NEU: Overlay-Spinner für die Wishlist-Aktion +++ -->
+  @if (isTogglingWishlist()) {
+    <div class="action-overlay">
+      <app-loading-spinner></app-loading-spinner>
+    </div>
+  }
+
   <button class="back-button icon-button" (click)="goBack()" [title]="'productPage.backButton' | transloco">
     <span class="material-symbols-outlined">arrow_back</span>
     <span>{{ 'productPage.backButton' | transloco }}</span>
@@ -9,148 +16,149 @@
     <div class="loading-container">
       <app-loading-spinner></app-loading-spinner>
     </div>
-  }
-
-  @if (error(); as errorMsg) {
+  } @else if (error()) {
     <div class="error-message general-error product-load-error">
-      <p>{{ errorMsg }}</p>
+      <p>{{ error() }}</p>
       <a routerLink="/">{{ 'productPage.backToHome' | transloco }}</a>
     </div>
-  }
-
-  @if (product(); as productData) {
-    <div class="product-detail-container">
-      <div class="product-main-grid">
-        <!-- Linke Spalte: Bildergalerie -->
-        <div class="product-media-gallery">
-          @if (selectedImage(); as mainImg) {
-            <div class="main-image-container">
-              <img [src]="mainImg.src" [alt]="mainImg.alt || productData.name" />
-            </div>
-          } @else if (productData.images && productData.images.length > 0) {
-            <div class="main-image-container">
-              <img [src]="productData.images[0].src" [alt]="productData.images[0].alt || productData.name" />
-            </div>
-          } @else {
-            <div class="main-image-container">
-              <div class="no-image-placeholder">
-                <span class="material-symbols-outlined" [title]="'productPage.noImageAvailable' | transloco">image</span>
+  } @else {
+    @if (product(); as productData) {
+      <div class="product-detail-container">
+        <div class="product-main-grid">
+          <div class="product-media-gallery">
+            @if (selectedImage(); as mainImg) {
+              <div class="main-image-container">
+                <img [src]="mainImg.src" [alt]="mainImg.alt || productData.name" />
               </div>
-            </div>
-          }
-
-          @if (productData.images && productData.images.length > 1) {
-            <div class="thumbnail-container">
-              @for (image of productData.images; track image.id; let i = $index) {
-                <div class="thumbnail"
-                     (click)="selectImageOnClick(image)"
-                     [class.selected]="selectedImage()?.id === image.id">
-                  <img [src]="image.src"
-                       [alt]="('productPage.thumbnailAlt' | transloco: { index: i + 1 })" />
+            } @else if (productData.images && productData.images.length > 0) {
+              <div class="main-image-container">
+                <img [src]="productData.images[0].src" [alt]="productData.images[0].alt || productData.name" />
+              </div>
+            } @else {
+              <div class="main-image-container">
+                <div class="no-image-placeholder">
+                  <span class="material-symbols-outlined" [title]="'productPage.noImageAvailable' | transloco">image</span>
                 </div>
-              }
-            </div>
-          }
-        </div>
-
-        <!-- Rechte Spalte: Produktinfos und Aktionen -->
-        <div class="product-info">
-          <h1>{{ productData.name }}</h1>
-
-          <div class="price-section">
-            @if (displayRegularPriceFormatted(); as regPriceFormatted) {
-              <span class="regular-price">{{ regPriceFormatted }}</span>
+              </div>
             }
-            <span class="current-price" [innerHTML]="displayPriceFormatted() | safeHtml"></span>
-          </div>
-
-          @if (productData.type === 'variable' && variationAttributes().length > 0) {
-            <div class="variant-selection-section">
-              @for (attribute of variationAttributes(); track attribute.id) {
-                <div class="variant-option-group">
-                  <label class="variant-attribute-label" [for]="'attr-' + attribute.id">{{ attribute.name }}:</label>
-                  <div class="variant-options-container">
-                    @for (option of getOptionsForAttribute(attribute); track option) {
-                      <button
-                        type="button"
-                        class="variant-option-button"
-                        [id]="'attr-' + attribute.id + '-' + getNormalizedOptionValue(option)"
-                        [ngClass]="{ 'selected': isOptionSelected(getAttributeTrackKey(attribute), getNormalizedOptionValue(option)) }"
-                        (click)="onOptionSelect(getAttributeTrackKey(attribute), getNormalizedOptionValue(option))">
-                        {{ option }}
-                      </button>
-                    }
+            @if (productData.images && productData.images.length > 1) {
+              <div class="thumbnail-container">
+                @for (image of productData.images; track image.id; let i = $index) {
+                  <div class="thumbnail"
+                       (click)="selectImageOnClick(image)"
+                       [class.selected]="selectedImage()?.id === image.id">
+                    <img [src]="image.src"
+                         [alt]="('productPage.thumbnailAlt' | transloco: { index: i + 1 })" />
                   </div>
-                </div>
-              }
-            </div>
-          }
+                }
+              </div>
+            }
+          </div>
 
-          <div class="availability-section">
-            @if (productData.type === 'variable') {
-              @if (currentSelectedVariation(); as selVar) {
-                <span [class.in-stock]="selVar.stock_status === 'instock' && selVar.purchasable"
-                      [class.out-of-stock]="selVar.stock_status !== 'instock' || !selVar.purchasable">
-                  {{ (selVar.stock_status === 'instock' && selVar.purchasable) ? ('productPage.availability.inStock' | transloco) : ('productPage.availability.outOfStock' | transloco) }}
+          <div class="product-info">
+            <h1>{{ productData.name }}</h1>
+
+            <div class="price-section">
+              @if (displayRegularPriceFormatted(); as regPriceFormatted) {
+                <span class="regular-price">{{ regPriceFormatted }}</span>
+              }
+              <span class="current-price" [innerHTML]="displayPriceFormatted() | safeHtml"></span>
+            </div>
+
+            @if (productData.type === 'variable' && variationAttributes().length > 0) {
+              <div class="variant-selection-section">
+                @for (attribute of variationAttributes(); track attribute.id) {
+                  <div class="variant-option-group">
+                    <label class="variant-attribute-label" [for]="'attr-' + attribute.id">{{ attribute.name }}:</label>
+                    <div class="variant-options-container">
+                      @for (option of getOptionsForAttribute(attribute); track option) {
+                        <button
+                          type="button"
+                          class="variant-option-button"
+                          [id]="'attr-' + attribute.id + '-' + getNormalizedOptionValue(option)"
+                          [ngClass]="{ 'selected': isOptionSelected(getAttributeTrackKey(attribute), option) }"
+                          (click)="onOptionSelect(getAttributeTrackKey(attribute), option)"
+                          [disabled]="!isOptionAvailable(attribute, option)"
+                          [class.is-unavailable]="!isOptionAvailable(attribute, option)"
+                          [title]="!isOptionAvailable(attribute, option) ? ('productPage.optionNotAvailable' | transloco) : ''">
+                          {{ option }}
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+
+            <div class="availability-section">
+              @if (productData.type === 'variable') {
+                @if (currentSelectedVariation(); as selVar) {
+                  <span [class.in-stock]="selVar.stock_status === 'instock' && selVar.purchasable"
+                        [class.out-of-stock]="selVar.stock_status !== 'instock' || !selVar.purchasable">
+                    {{ (selVar.stock_status === 'instock' && selVar.purchasable) ? ('productPage.availability.inStock' | transloco) : ('productPage.availability.outOfStock' | transloco) }}
+                  </span>
+                } @else {
+                  <span class="select-variant-prompt">{{ 'productPage.availability.selectVariant' | transloco }}</span>
+                }
+              } @else {
+                <span [class.in-stock]="productData.stock_status === 'instock' && productData.purchasable"
+                      [class.out-of-stock]="productData.stock_status !== 'instock' || !productData.purchasable">
+                  {{ (productData.stock_status === 'instock' && productData.purchasable) ? ('productPage.availability.inStock' | transloco) : ('productPage.availability.outOfStock' | transloco) }}
                 </span>
-              } @else {
-                <span class="select-variant-prompt">{{ 'productPage.availability.selectVariant' | transloco }}</span>
               }
-            } @else {
-              <span [class.in-stock]="productData.stock_status === 'instock' && productData.purchasable"
-                    [class.out-of-stock]="productData.stock_status !== 'instock' || !productData.purchasable">
-                {{ (productData.stock_status === 'instock' && productData.purchasable) ? ('productPage.availability.inStock' | transloco) : ('productPage.availability.outOfStock' | transloco) }}
-              </span>
-            }
-          </div>
-
-          <div class="action-buttons-section">
-            <button class="add-to-cart-btn action-button"
-                    (click)="addToCart()"
-                    [disabled]="isAddingToCart() || (productData.type === 'variable' && !currentSelectedVariation()) || (productData.type === 'simple' && (productData.stock_status !== 'instock' || !productData.purchasable))">
-              @if (!isAddingToCart()) {
-                <span class="material-symbols-outlined">add_shopping_cart</span>
-                <span>{{ 'productPage.actions.addToCart' | transloco }}</span>
-              } @else {
-                <span class="button-loading-spinner"></span>
-                <span>{{ 'productPage.actions.addingToCart' | transloco }}</span>
-              }
-            </button>
-
-            <button class="add-to-wishlist-btn action-button"
-                    (click)="toggleWishlist()"
-                    [disabled]="!isLoggedIn()"
-                    [title]="!isLoggedIn() ? ('productPage.actions.wishlistLogin' | transloco) : (isOnWishlist() ? ('productPage.actions.removeFromWishlist' | transloco) : ('productPage.actions.addToWishlist' | transloco))">
-              <span class="material-symbols-outlined wishlist-icon" [class.filled]="isOnWishlist()">
-                {{ isOnWishlist() ? 'favorite' : 'favorite_border' }}
-              </span>
-              <!-- HIER IST DIE KORREKTUR: Der Text wurde entfernt -->
-            </button>
-          </div>
-
-          @if (addToCartError(); as cartErr) {
-            <div class="error-message general-error cart-error">{{ cartErr }}</div>
-          }
-
-          <div class="description-section">
-            <h3>{{ 'productPage.description.title' | transloco }}</h3>
-            @if (productData.description) {
-              <div [innerHTML]="productData.description | safeHtml"></div>
-            } @else {
-              <p>{{ 'productPage.description.none' | transloco }}</p>
-            }
-          </div>
-
-          @if (productData.short_description) {
-            <div class="short-description-section">
-                <h3>{{ 'productPage.shortDescription.title' | transloco }}</h3>
-                <div [innerHTML]="productData.short_description | safeHtml"></div>
             </div>
-          }
+
+            <div class="action-buttons-section">
+              <button class="add-to-cart-btn action-button"
+                      (click)="addToCart()"
+                      [disabled]="isAddingToCart() || isTogglingWishlist() || (productData.type === 'variable' && !currentSelectedVariation()) || (productData.type === 'simple' && (productData.stock_status !== 'instock' || !productData.purchasable))">
+                @if (isAddingToCart()) {
+                  <app-loading-spinner [showOverlay]="false"></app-loading-spinner>
+                  <span>{{ 'productPage.actions.addingToCart' | transloco }}</span>
+                } @else {
+                  <span class="material-symbols-outlined">add_shopping_cart</span>
+                  <span>{{ 'productPage.actions.addToCart' | transloco }}</span>
+                }
+              </button>
+              
+              <!-- +++ GEÄNDERT: Spinner-Logik entfernt, da diese jetzt durch das globale Overlay gehandhabt wird +++ -->
+              <button class="add-to-wishlist-btn icon-button"
+                      (click)="toggleWishlist()"
+                      [disabled]="!isLoggedIn() || isTogglingWishlist() || isAddingToCart()"
+                      [title]="!isLoggedIn() ? ('productPage.actions.wishlistLogin' | transloco) : (isOnWishlist() ? ('productPage.actions.removeFromWishlist' | transloco) : ('productPage.actions.addToWishlist' | transloco))">
+                <span class="material-symbols-outlined wishlist-icon" [class.filled]="isOnWishlist()">
+                  {{ isOnWishlist() ? 'favorite' : 'favorite_border' }}
+                </span>
+              </button>
+            </div>
+
+            @if (addToCartError(); as cartErr) {
+              <div class="error-message general-error cart-error">{{ cartErr }}</div>
+            }
+
+            @if (productData.short_description) {
+              <div class="short-description-section">
+                  <h3>{{ 'productPage.shortDescription.title' | transloco }}</h3>
+                  <div [innerHTML]="productData.short_description | safeHtml"></div>
+              </div>
+            }
+
+            @if (productData.description && productData.description !== productData.short_description) {
+              <div class="description-section">
+                <h3>{{ 'productPage.description.title' | transloco }}</h3>
+                <div class="description-content-wrapper" [class.expanded]="isDescriptionExpanded()">
+                  <div [innerHTML]="productData.description | safeHtml"></div>
+                </div>
+                <button class="toggle-description-btn" (click)="toggleDescription()">
+                  {{ (isDescriptionExpanded() ? 'productPage.actions.showLess' : 'productPage.actions.showMore') | transloco }}
+                </button>
+              </div>
+            }
+          </div>
         </div>
       </div>
-    </div>
-  } @else if (!isLoading() && !error()) {
-    <p class="not-found-message">{{ 'productPage.notFoundMessage' | transloco }}</p>
+    } @else {
+       <p class="not-found-message">{{ 'productPage.notFoundMessage' | transloco }}</p>
+    }
   }
 </div>

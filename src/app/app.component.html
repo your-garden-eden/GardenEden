@@ -19,8 +19,10 @@
 
   <app-cookie-consent-banner></app-cookie-consent-banner>
 
-  <!-- +++ NEU: Wartungshinweis Modal +++ -->
+  <!-- Wartungshinweis Modal -->
   <app-maintenance-info-modal *ngIf="showMaintenancePopup$()"></app-maintenance-info-modal>
-  <!-- +++ ENDE NEU +++ -->
+
+  <!-- +++ NEU: Globales Bestätigungs-Modal +++ -->
+  <app-confirmation-modal></app-confirmation-modal>
 
 </ng-container>

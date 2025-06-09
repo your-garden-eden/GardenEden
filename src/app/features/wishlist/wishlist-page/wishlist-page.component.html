@@ -1,10 +1,10 @@
 <!-- /src/app/features/wishlist/wishlist-page/wishlist-page.component.html -->
-<div class="wishlist-page-container">
+<div class="wishlist-page-container" [class.is-busy]="isPerformingAction() !== null">
   <h1>{{ 'wishlistPage.title' | transloco }}</h1>
 
   @if (isLoading() && itemCount() === 0) {
-    <div class="loading-indicator page-loading">
-      <app-loading-spinner></app-loading-spinner>
+    <div class="loading-container">
+      <app-loading-spinner [showOverlay]="false"></app-loading-spinner>
     </div>
   } @else {
     @if (serviceError(); as errorMsg) {
@@ -14,20 +14,19 @@
     } @else if (itemCount() > 0) {
       <div class="wishlist-content">
         <div class="wishlist-items-list">
-          <!-- Desktop Table -->
           <table class="wishlist-table desktop-only">
             <thead>
               <tr>
                 <th colspan="2">{{ 'wishlistPage.table.product' | transloco }}</th>
                 <th>{{ 'wishlistPage.table.price' | transloco }}</th>
-                <!-- HIER IST KORREKTUR 1: Nur eine Spalte für Aktionen -->
                 <th class="actions-header">{{ 'wishlistPage.table.actions' | transloco }}</th>
               </tr>
             </thead>
             <tbody>
-              @for (item of displayWishlist(); track trackByItemId($index, item)) {
+              @for (item of displayWishlist(); track trackByItemId($index, item); let i = $index) {
+                <!-- is-unavailable Klasse von hier entfernt -->
                 <tr class="wishlist-item">
-                  <td class="item-image-cell">
+                  <td class="item-image-cell" [class.is-unavailable]="!(item.variationDetails || item.productDetails)?.purchasable || (item.variationDetails || item.productDetails)?.stock_status !== 'instock'">
                     <a [routerLink]="getProductLink(item)">
                       @if (getProductImage(item); as imgUrl) {
                         <img [src]="imgUrl" [alt]="item.productDetails?.name" loading="lazy"/>
@@ -38,7 +37,7 @@
                       }
                     </a>
                   </td>
-                  <td class="item-details-cell">
+                  <td class="item-details-cell" [class.is-unavailable]="!(item.variationDetails || item.productDetails)?.purchasable || (item.variationDetails || item.productDetails)?.stock_status !== 'instock'">
                     <a [routerLink]="getProductLink(item)" class="product-title">
                       {{ item.productDetails?.name }}
                     </a>
@@ -51,32 +50,44 @@
                         </div>
                       }
                     }
+                    @if (!(item.variationDetails || item.productDetails)?.purchasable || (item.variationDetails || item.productDetails)?.stock_status !== 'instock') {
+                      <div class="unavailable-notice">{{ 'productCard.outOfStock' | transloco }}</div>
+                    }
                   </td>
-                  <td class="item-price-cell">
+                  <td class="item-price-cell" [class.is-unavailable]="!(item.variationDetails || item.productDetails)?.purchasable || (item.variationDetails || item.productDetails)?.stock_status !== 'instock'">
                     <div class="price-block" [innerHTML]="(item.variationDetails?.price_html || item.productDetails?.price_html) | safeHtml"></div>
                   </td>
-                  <!-- HIER IST KORREKTUR 2: Beide Buttons in EINER Zelle -->
                   <td class="item-actions-cell">
-                    <button class="action-button add-to-cart-button" (click)="moveToCart(item)" [title]="'wishlistPage.actions.moveToCart' | transloco">
-                      <span class="material-symbols-outlined">add_shopping_cart</span>
-                    </button>
-                    <button class="action-button remove-button" (click)="removeFromWishlist(item)" [title]="'wishlistPage.actions.remove' | transloco">
-                      <span class="icon-stack">
-                        <span class="material-symbols-outlined base-icon">favorite</span>
-                        <span class="material-symbols-outlined strikethrough-icon">horizontal_rule</span>
-                      </span>
-                    </button>
+                    @if (isPerformingAction() === trackByItemId(i, item)) {
+                      <app-loading-spinner [showOverlay]="false"></app-loading-spinner>
+                    } @else {
+                      <button class="action-button add-to-cart-button" (click)="moveToCart(item)" [title]="'wishlistPage.actions.moveToCart' | transloco" [disabled]="isPerformingAction() !== null || !(item.variationDetails || item.productDetails)?.purchasable || (item.variationDetails || item.productDetails)?.stock_status !== 'instock'">
+                        @if (!(item.variationDetails || item.productDetails)?.purchasable || (item.variationDetails || item.productDetails)?.stock_status !== 'instock') {
+                          <span class="icon-stack">
+                            <span class="material-symbols-outlined base-icon">shopping_cart</span>
+                            <span class="material-symbols-outlined strikethrough-icon large">horizontal_rule</span>
+                          </span>
+                        } @else {
+                          <span class="material-symbols-outlined">add_shopping_cart</span>
+                        }
+                      </button>
+                      <button class="action-button remove-button" (click)="removeFromWishlist(item)" [title]="'wishlistPage.actions.remove' | transloco" [disabled]="isPerformingAction() !== null">
+                        <span class="icon-stack">
+                          <span class="material-symbols-outlined base-icon">favorite</span>
+                          <span class="material-symbols-outlined strikethrough-icon">horizontal_rule</span>
+                        </span>
+                      </button>
+                    }
                   </td>
                 </tr>
               }
             </tbody>
           </table>
 
-          <!-- Mobile List (bleibt unverändert) -->
           <ul class="wishlist-list mobile-only">
-            @for (item of displayWishlist(); track trackByItemId($index, item)) {
+            @for (item of displayWishlist(); track trackByItemId($index, item); let i = $index) {
               <li class="wishlist-item-mobile">
-                <div class="item-image">
+                <div class="item-image" [class.is-unavailable]="!(item.variationDetails || item.productDetails)?.purchasable || (item.variationDetails || item.productDetails)?.stock_status !== 'instock'">
                   <a [routerLink]="getProductLink(item)">
                     @if (getProductImage(item); as imgUrl) {
                       <img [src]="imgUrl" [alt]="item.productDetails?.name" loading="lazy"/>
@@ -85,7 +96,7 @@
                     }
                   </a>
                 </div>
-                <div class="item-info">
+                <div class="item-info" [class.is-unavailable]="!(item.variationDetails || item.productDetails)?.purchasable || (item.variationDetails || item.productDetails)?.stock_status !== 'instock'">
                   <a [routerLink]="getProductLink(item)" class="product-title">{{ item.productDetails?.name }}</a>
                   @if (item.variationDetails; as variation) {
                     @if(variation.attributes) {
@@ -96,24 +107,39 @@
                       </div>
                     }
                   }
+                   @if (!(item.variationDetails || item.productDetails)?.purchasable || (item.variationDetails || item.productDetails)?.stock_status !== 'instock') {
+                      <div class="unavailable-notice">{{ 'productCard.outOfStock' | transloco }}</div>
+                    }
                   <div class="item-price-mobile price-block" [innerHTML]="(item.variationDetails?.price_html || item.productDetails?.price_html) | safeHtml"></div>
                 </div>
                 <div class="item-actions-mobile">
-                  <button class="action-button add-to-cart-button" (click)="moveToCart(item)" [title]="'wishlistPage.actions.moveToCart' | transloco">
-                    <span class="material-symbols-outlined">add_shopping_cart</span>
-                  </button>
-                  <button class="action-button remove-button" (click)="removeFromWishlist(item)" [title]="'wishlistPage.actions.remove' | transloco">
-                     <span class="icon-stack">
-                        <span class="material-symbols-outlined base-icon">favorite</span>
-                        <span class="material-symbols-outlined strikethrough-icon">horizontal_rule</span>
-                      </span>
-                  </button>
+                  @if (isPerformingAction() === trackByItemId(i, item)) {
+                    <app-loading-spinner [showOverlay]="false"></app-loading-spinner>
+                  } @else {
+                    <button class="action-button add-to-cart-button" (click)="moveToCart(item)" [title]="'wishlistPage.actions.moveToCart' | transloco" [disabled]="isPerformingAction() !== null || !(item.variationDetails || item.productDetails)?.purchasable || (item.variationDetails || item.productDetails)?.stock_status !== 'instock'">
+                       @if (!(item.variationDetails || item.productDetails)?.purchasable || (item.variationDetails || item.productDetails)?.stock_status !== 'instock') {
+                          <span class="icon-stack">
+                            <span class="material-symbols-outlined base-icon">shopping_cart</span>
+                            <span class="material-symbols-outlined strikethrough-icon large">horizontal_rule</span>
+                          </span>
+                        } @else {
+                          <span class="material-symbols-outlined">add_shopping_cart</span>
+                        }
+                    </button>
+                    <button class="action-button remove-button" (click)="removeFromWishlist(item)" [title]="'wishlistPage.actions.remove' | transloco" [disabled]="isPerformingAction() !== null">
+                       <span class="icon-stack">
+                          <span class="material-symbols-outlined base-icon">favorite</span>
+                          <span class="material-symbols-outlined strikethrough-icon">horizontal_rule</span>
+                        </span>
+                    </button>
+                  }
                 </div>
               </li>
             }
           </ul>
         </div>
-
+        
+        <!-- Rest der Datei unverändert -->
         <div class="wishlist-summary">
           <h2>{{ 'wishlistPage.summary.title' | transloco }}</h2>
           <div class="summary-row item-count">
@@ -121,12 +147,20 @@
             <span>{{ itemCount() }}</span>
           </div>
           <div class="wishlist-actions">
-              <button class="action-button primary" (click)="addAllToCart()" [disabled]="itemCount() === 0">
-                <span class="material-symbols-outlined">playlist_add_check</span>
+              <button class="action-button primary" (click)="addAllToCart()" [disabled]="itemCount() === 0 || isPerformingAction() !== null">
+                @if (isPerformingAction() === 'addAll') {
+                  <app-loading-spinner [showOverlay]="false"></app-loading-spinner>
+                } @else {
+                  <span class="material-symbols-outlined">playlist_add_check</span>
+                }
                 <span>{{ 'wishlistPage.summary.addAllToCart' | transloco }}</span>
               </button>
-              <button class="action-button secondary clear-wishlist" (click)="clearWishlist()" [disabled]="itemCount() === 0">
-                <span class="material-symbols-outlined">delete_forever</span>
+              <button class="action-button secondary clear-wishlist" (click)="clearWishlist()" [disabled]="itemCount() === 0 || isPerformingAction() !== null">
+                @if (isPerformingAction() === 'clearAll') {
+                  <app-loading-spinner [showOverlay]="false"></app-loading-spinner>
+                } @else {
+                  <span class="material-symbols-outlined">delete_forever</span>
+                }
                 <span>{{ 'wishlistPage.summary.clearAll' | transloco }}</span>
               </button>
           </div>

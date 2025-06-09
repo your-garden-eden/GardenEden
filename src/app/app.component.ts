@@ -1,7 +1,7 @@
 // /src/app/app.component.ts
-import { Component, inject, Signal, OnInit, PLATFORM_ID } from '@angular/core'; // OnInit und PLATFORM_ID importieren
+import { Component, inject, Signal, OnInit, PLATFORM_ID } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { CommonModule, isPlatformBrowser } from '@angular/common'; // isPlatformBrowser importieren
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { environment } from '../environments/environment';
 import { MaintenanceComponent } from './maintenance/maintenance.component';
 import { HeaderComponent } from './shared/components/header/header.component';
@@ -9,9 +9,13 @@ import { FooterComponent } from './shared/components/footer/footer.component';
 import { LoginOverlayComponent } from './shared/components/login-overlay/login-overlay.component';
 import { UiStateService } from './shared/services/ui-state.service';
 import { CookieConsentBannerComponent } from './shared/components/cookie-consent-banner/cookie-consent-banner.component';
-
-// +++ NEU: Import für das MaintenanceInfoModalComponent +++
 import { MaintenanceInfoModalComponent } from './shared/components/maintenance-info-modal/maintenance-info-modal.component';
+
+// +++ NEU: ConfirmationModalComponent importieren +++
+import { ConfirmationModalComponent } from './shared/components/confirmation-modal/confirmation-modal.component';
+
+// Transloco-Dienste importieren
+import { TranslocoService } from '@ngneat/transloco';
 
 @Component({
   selector: 'app-root',
@@ -24,29 +28,47 @@ import { MaintenanceInfoModalComponent } from './shared/components/maintenance-i
     FooterComponent,
     LoginOverlayComponent,
     CookieConsentBannerComponent,
-    MaintenanceInfoModalComponent // +++ NEU: Hier hinzufügen +++
+    MaintenanceInfoModalComponent,
+    ConfirmationModalComponent // +++ NEU: Hier hinzufügen
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
-export class AppComponent implements OnInit { // OnInit implementieren
+export class AppComponent implements OnInit {
   maintenanceMode = environment.maintenanceMode;
   currentYear = new Date().getFullYear();
 
   private uiStateService = inject(UiStateService);
-  private platformId = inject(PLATFORM_ID); // PLATFORM_ID injizieren
+  private platformId = inject(PLATFORM_ID);
+  private translocoService = inject(TranslocoService);
 
   isLoginOverlayOpen$: Signal<boolean> = this.uiStateService.isLoginOverlayOpen$;
-  
-  // +++ NEU: Signal für das Wartungs-Popup +++
   showMaintenancePopup$: Signal<boolean> = this.uiStateService.showMaintenancePopup$;
 
-
-  // +++ NEU: OnInit Lifecycle Hook +++
   ngOnInit(): void {
-    if (isPlatformBrowser(this.platformId) && !this.maintenanceMode) {
-      // Das Popup nur im Browser und nicht im Maintenance Mode triggern
-      this.uiStateService.triggerMaintenancePopup();
+    if (isPlatformBrowser(this.platformId)) {
+      this.initializeLanguage();
+
+      if (!this.maintenanceMode) {
+        this.uiStateService.triggerMaintenancePopup();
+      }
+    }
+  }
+
+  private initializeLanguage(): void {
+    const LANG_KEY = 'transloco-lang';
+    const savedLang = localStorage.getItem(LANG_KEY);
+
+    if (savedLang) {
+      this.translocoService.setActiveLang(savedLang);
+      return;
+    }
+
+    const browserLang = navigator.language.split('-')[0];
+    const availableLangs = this.translocoService.getAvailableLangs() as string[];
+
+    if (availableLangs.includes(browserLang)) {
+      this.translocoService.setActiveLang(browserLang);
     }
   }
 }

@@ -3,20 +3,23 @@ import { Component, OnInit, inject, signal, WritableSignal, ViewChild, ElementRe
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
-import { AuthService, WordPressUser, WordPressRegisterData } from '../../../shared/services/auth.service'; // WooCommerce-Typen hier entfernt
-import { AccountService } from '../../account/services/account.service'; // AccountService importieren
+import { AuthService, WordPressUser, WordPressRegisterData } from '../../../shared/services/auth.service';
+import { AccountService } from '../../account/services/account.service';
 import {
-  // Diese Typen kommen jetzt aus account.models.ts
   BillingAddress,
-  ShippingAddress, // Auch wenn nicht direkt im Formular, für Payload nützlich
+  ShippingAddress,
   WooCommerceCustomerUpdatePayload
-} from '../../account/services/account.models'; // Korrekter Pfad zu deinen Account-Modellen
+} from '../../account/services/account.models';
 import { GoogleMapsModule } from '@angular/google-maps';
 import { UiStateService } from '../../../shared/services/ui-state.service';
 import { Title } from '@angular/platform-browser';
 import { TranslocoModule, TranslocoService } from '@ngneat/transloco';
 import { Subscription, throwError, of } from 'rxjs';
 import { switchMap, catchError, tap, finalize, map, startWith } from 'rxjs/operators';
+
+// +++ NEU: LoadingSpinnerComponent importieren +++
+import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
+
 
 export function passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
   const password = control.get('password');
@@ -30,14 +33,15 @@ declare var google: any;
 @Component({
   selector: 'app-register-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, GoogleMapsModule, TranslocoModule],
+  // +++ NEU: LoadingSpinnerComponent zu den Imports hinzufügen +++
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, GoogleMapsModule, TranslocoModule, LoadingSpinnerComponent],
   templateUrl: './register-page.component.html',
   styleUrls: ['./register-page.component.scss']
 })
 export class RegisterPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private fb = inject(FormBuilder);
   public authService = inject(AuthService);
-  private accountService = inject(AccountService); // AccountService injiziert
+  private accountService = inject(AccountService);
   private router = inject(Router);
   private ngZone = inject(NgZone);
   private uiStateService = inject(UiStateService);
@@ -79,8 +83,6 @@ export class RegisterPageComponent implements OnInit, AfterViewInit, OnDestroy {
       addressStreet: ['', Validators.required],
       addressZip: ['', [Validators.required, Validators.pattern(/^\d{5}$/)]],
       addressCity: ['', Validators.required],
-      // Annahme: Weitere Adressfelder wie company, address_2, state, phone sind optional
-      // und werden ggf. nicht im Registrierungsformular direkt erfasst, aber im Payload berücksichtigt.
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', Validators.required],
@@ -192,15 +194,15 @@ export class RegisterPageComponent implements OnInit, AfterViewInit, OnDestroy {
           console.log('RegisterPageComponent: Registrierung und direkter Login erfolgreich. Speichere Adressdaten für User ID:', user.id);
           const billingAddress: BillingAddress = {
             first_name: formValue.firstName, last_name: formValue.lastName,
-            company: formValue.company || '', // Annahme: 'company' ist ein optionales Feld im Formular
-            address_1: formValue.addressStreet, address_2: formValue.address2 || '', // Annahme: 'address2' ist optional
-            city: formValue.addressCity, state: formValue.state || '', // Annahme: 'state' ist optional
-            postcode: formValue.addressZip, country: 'DE', // Annahme: Land ist DE
-            email: formValue.email, phone: formValue.phone || '' // Annahme: 'phone' ist optional
+            company: formValue.company || '',
+            address_1: formValue.addressStreet, address_2: formValue.address2 || '',
+            city: formValue.addressCity, state: formValue.state || '',
+            postcode: formValue.addressZip, country: 'DE',
+            email: formValue.email, phone: formValue.phone || ''
           };
           const addressPayload: WooCommerceCustomerUpdatePayload = {
             billing: billingAddress,
-            shipping: (({ email, ...rest }) => rest)(billingAddress) // Kopiere Billing, aber ohne E-Mail für Shipping
+            shipping: (({ email, ...rest }) => rest)(billingAddress)
           };
           return this.accountService.updateWooCommerceCustomerDetails(user.id, addressPayload).pipe(
             map(() => user),

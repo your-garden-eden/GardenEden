@@ -11,7 +11,7 @@
   <div class="checkout-content-grid" [class.loading]="isLoadingAddress() || isLoadingShipping() || isRedirecting()">
     @if (isLoadingAddress() || isLoadingShipping() || isRedirecting()) {
       <div class="loading-overlay global-checkout-loading">
-        <div class="spinner"></div>
+        <app-loading-spinner></app-loading-spinner>
         <span>
           @if(isRedirecting()){
             {{ 'checkoutDetailsPage.buttons.redirecting' | transloco }}
@@ -323,7 +323,6 @@
             </div>
           </div>
 
-          <!-- KORREKTUR: Die [disabled]-Logik wurde vereinfacht und korrigiert -->
           <button class="checkout-button primary-button"
                   (click)="proceedToPayment()"
                   [disabled]="isRedirecting() || isLoadingAddress() || billingForm.invalid || (showShippingForm() && shippingForm.invalid)">
@@ -334,16 +333,19 @@
               <span>{{ 'checkoutDetailsPage.buttons.proceedToPayment' | transloco }}</span>
             }
           </button>
+          
+          <!-- +++ NEUER LINK HINZUGEFÜGT +++ -->
+          <a routerLink="/warenkorb" class="back-to-cart-link">{{ 'checkoutDetailsPage.backToCart' | transloco }}</a>
+          
         </div>
-      } @else if (cartService.cartItemCount() === 0 && !cartService.isLoading()){
-         <div class="empty-cart-message">
+      } @else if (cartService.cartItemCount() === 0 && !cartService.isProcessing()){ <div class="empty-cart-message">
             <h2>{{ 'cartPage.empty.title' | transloco }}</h2>
             <p>{{ 'checkoutDetailsPage.emptyCartMessage' | transloco }}</p>
             <a routerLink="/warenkorb" class="secondary-button">{{ 'checkoutDetailsPage.backToCart' | transloco }}</a>
         </div>
       } @else {
         <div class="summary-box checkout-summary-box placeholder">
-            <div class="spinner"></div>
+            <app-loading-spinner></app-loading-spinner>
             <p>{{ 'checkoutDetailsPage.orderSummary.loading' | transloco }}</p>
         </div>
       }

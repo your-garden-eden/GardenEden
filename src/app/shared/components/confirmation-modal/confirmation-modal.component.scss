@@ -1,0 +1,156 @@
+// /src/app/shared/components/confirmation-modal/confirmation-modal.component.scss
+@use '../../../../styles';
+
+// +++ KORREKTUR: Das Host-Element darf keine Position und Größe haben,
+// damit es die Seite nicht blockiert, wenn es nicht sichtbar ist. +++
+:host {
+  // display: contents; macht das Host-Element selbst quasi unsichtbar für das Layout,
+  // sodass seine Kinder (das Modal) sich frei positionieren können.
+  display: contents;
+}
+
+// Das Backdrop ist das Element, das den Bildschirm ausfüllt.
+.modal-backdrop {
+  position: fixed; // Nimmt den gesamten Viewport ein
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: var(--z-index-modal); // Stellt sicher, dass es über allem liegt
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.modal-content {
+  background-color: var(--background-color-component);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--box-shadow-lg);
+  width: 90%;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  transform: scale(0.95);
+  opacity: 0;
+  animation: slideInUp 0.3s ease-out 0.1s forwards;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid var(--border-color-base);
+
+  .modal-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-color-headings);
+  }
+
+  .close-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-color-muted);
+    padding: 0;
+    display: flex;
+    transition: color 0.2s ease;
+    &:hover {
+      color: var(--text-color-base);
+    }
+  }
+}
+
+.modal-body {
+  padding: var(--spacing-xl);
+  line-height: 1.6;
+  color: var(--text-color-secondary);
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-lg);
+  background-color: var(--background-color-light-gray);
+  border-top: 1px solid var(--border-color-base);
+  border-bottom-left-radius: var(--border-radius-lg);
+  border-bottom-right-radius: var(--border-radius-lg);
+}
+
+// Allgemeine Button-Styles
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  font-size: 0.9rem;
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--border-radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--box-shadow-sm);
+  }
+  &:active {
+    transform: translateY(0);
+    box-shadow: none;
+  }
+  &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: var(--primary-color-text);
+  border-color: var(--primary-color);
+  &:hover {
+    background-color: var(--primary-color-dark);
+    border-color: var(--primary-color-dark);
+  }
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--text-color-base);
+  border-color: var(--border-color-base);
+  &:hover {
+    background-color: var(--background-color-light-gray);
+    border-color: var(--border-color-medium);
+  }
+}
+
+.btn-danger {
+  background-color: var(--error-color);
+  color: var(--primary-color-text);
+  border-color: var(--error-color);
+  &:hover {
+    background-color: var(--error-color-dark);
+    border-color: var(--error-color-dark);
+  }
+}
+
+
+// Keyframe-Animationen
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInUp {
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

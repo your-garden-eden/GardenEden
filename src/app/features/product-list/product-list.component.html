@@ -1,4 +1,3 @@
-<!-- /src/app/features/product-list/product-list.component.html -->
 <div class="category-page-content">
   <div class="page-header-with-back-button">
     @if (mainCategoryLink(); as categoryLink) {
@@ -17,62 +16,56 @@
     <div class="title-align-placeholder"></div>
   </div>
 
-  <div class="product-list-wrapper">
-    <!-- Hier wird jetzt nur noch der initiale Ladespinner angezeigt. -->
-    <!-- Das Grid darunter wird sofort gerendert, aber die Karten erscheinen erst, wenn ihre Bilder validiert sind. -->
-    @if (isLoading() && displayableProducts().length === 0) {
-      <app-loading-spinner></app-loading-spinner>
-    }
-
-    @if (!isLoading() || displayableProducts().length > 0) {
-      @if (error() && displayableProducts().length === 0) {
-        <div class="error-message">
-          <p>{{ error() }}</p>
-        </div>
+  <div class="product-list-container" [class.is-loading]="loadState() === 'loading'">
+    @switch (loadState()) {
+      @case ('loading') {
+        <app-loading-spinner [showOverlay]="false"></app-loading-spinner>
       }
-      <!-- Hier wird jetzt sofort das Grid angezeigt, auch wenn displayableProducts noch leer ist. -->
-      <!-- Es füllt sich dann nach und nach. -->
-      @else {
-        <div class="product-grid">
-          @for (product of displayableProducts(); track trackProductById; let i = $index) {
-            <app-product-card
-              [productId]="product.id"
-              [productName]="product.name"
-              [priceHtml]="product.price_html"
-              [singlePrice]="product.price"
-              [currencySymbol]="getProductCurrencySymbol(product)"
-              [pricePrefix]="(product.type === 'variable' && product.price_html && product.price_html.toLowerCase().includes('ab')) ? '' : (product.type === 'variable' ? ('productCard.priceFrom' | transloco) + ' ' : '')"
-              [imageUrl]="getProductImage(product)"
-              [productLink]="getProductLink(product)"
-              [onSale]="product.on_sale"
-              [regularPrice]="product.regular_price"
-              [isLazy]="i >= 6"
-              [stockStatus]="product.stock_status"
-              [isVariable]="product.type === 'variable'"
-              [priceRange]="extractPriceRange(product)">
-            </app-product-card>
-          }
-        </div>
-        
-        <!-- Die "Keine Produkte" Nachricht erscheint nur, wenn der Ladevorgang komplett abgeschlossen ist UND keine Produkte da sind. -->
-        @if (displayableProducts().length === 0 && !isLoading() && !isLoadingMore()) {
+      @case ('completed') {
+        @if (displayableProducts().length > 0) {
+          <div class="product-grid">
+            @for (product of displayableProducts(); track product.id; let i = $index) {
+              <app-product-card
+                [productId]="product.id"
+                [productName]="product.name"
+                [priceHtml]="product.price_html"
+                [singlePrice]="product.price"
+                [currencySymbol]="getProductCurrencySymbol(product)"
+                [pricePrefix]="(product.type === 'variable' && product.price_html && product.price_html.toLowerCase().includes('ab')) ? '' : (product.type === 'variable' ? ('productCard.priceFrom' | transloco) + ' ' : '')"
+                [imageUrl]="getProductImage(product)"
+                [productLink]="getProductLink(product)"
+                [onSale]="product.on_sale"
+                [regularPrice]="product.regular_price"
+                [isLazy]="i >= 6"
+                [stockStatus]="product.stock_status"
+                [isVariable]="product.type === 'variable'"
+                [priceRange]="extractPriceRange(product)">
+              </app-product-card>
+            }
+          </div>
+        } @else {
           <p class="no-products-message">
             {{ 'productList.noProductsFound' | transloco }}
           </p>
         }
-
-        @if (hasNextPage()) {
-          <div #loadMoreTrigger class="load-more-trigger"></div>
-        }
-
-        @if (isLoadingMore()) {
-          <div class="more-loading-spinner-container">
-            <app-loading-spinner></app-loading-spinner>
-          </div>
-        }
+      }
+      @case ('error') {
+        <div class="error-message">
+          <p>{{ error() }}</p>
+        </div>
       }
     }
   </div>
+
+  @if (loadState() === 'completed' && hasNextPage()) {
+    <div #loadMoreTrigger class="load-more-trigger"></div>
+  }
+
+  @if (isLoadingMore()) {
+    <div class="more-loading-spinner-container">
+      <app-loading-spinner [showOverlay]="false"></app-loading-spinner>
+    </div>
+  }
 
   <button
     *ngIf="showScrollToTopButton()"

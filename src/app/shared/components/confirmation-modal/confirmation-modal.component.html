@@ -1,0 +1,26 @@
+<!-- /src/app/shared/components/confirmation-modal/confirmation-modal.component.html -->
+@if (isVisible$ | async) {
+  <div class="modal-backdrop" (click)="cancel()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      @if (modalData$ | async; as data) {
+        <div class="modal-header">
+          <h2 class="modal-title">{{ data.titleKey | transloco }}</h2>
+          <button class="close-button" (click)="cancel()" [title]="'general.actions.close' | transloco">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>{{ data.messageKey | transloco }}</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="cancel()">
+            {{ (data.cancelButtonKey || 'general.actions.cancel') | transloco }}
+          </button>
+          <button class="btn" [ngClass]="'btn-' + (data.confirmButtonClass || 'primary')" (click)="confirm()">
+            {{ (data.confirmButtonKey || 'general.actions.confirm') | transloco }}
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+}

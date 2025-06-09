@@ -8,11 +8,11 @@ import {
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule, CurrencyPipe, Location, NgClass, isPlatformBrowser } from '@angular/common';
 import { Title, Meta, MetaDefinition } from '@angular/platform-browser';
-import { Subscription, of, combineLatest, EMPTY, forkJoin, BehaviorSubject, Observable } from 'rxjs';
+import { Subscription, of, EMPTY, forkJoin, BehaviorSubject, Observable } from 'rxjs';
 import {
   switchMap, tap, catchError, map, filter, distinctUntilChanged, startWith, take, finalize
 } from 'rxjs/operators';
-import { toSignal } from '@angular/core/rxjs-interop'; // Import für Umwandlung von Observable in Signal
+import { toSignal } from '@angular/core/rxjs-interop';
 
 import {
   WoocommerceService, WooCommerceProduct, WooCommerceImage,
@@ -28,7 +28,7 @@ import { SafeHtmlPipe } from '../../shared/pipes/safe-html.pipe';
 
 import { TranslocoModule, TranslocoService } from '@ngneat/transloco';
 import { FormsModule } from '@angular/forms';
-import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component'; // HIER IST DIE KORREKTUR
+import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 
 
 interface SelectedOptions {
@@ -45,7 +45,7 @@ interface SelectedOptions {
     TranslocoModule,
     FormsModule,
     NgClass,
-    LoadingSpinnerComponent // HIER IST DIE KORREKTUR
+    LoadingSpinnerComponent
   ],
   templateUrl: './product-page.component.html',
   styleUrls: ['./product-page.component.scss'],
@@ -73,6 +73,7 @@ export class ProductPageComponent implements OnInit, OnDestroy, AfterViewInit {
   variations: WritableSignal<WooCommerceProductVariation[]> = signal([]);
   variationAttributes: WritableSignal<WooCommerceAttribute[]> = signal([]);
   selectedOptions: WritableSignal<SelectedOptions> = signal({});
+  isDescriptionExpanded: WritableSignal<boolean> = signal(false);
 
   currentSelectedVariation: Signal<WooCommerceProductVariation | null> = computed(() => {
     const productData = this.product();
@@ -91,7 +92,7 @@ export class ProductPageComponent implements OnInit, OnDestroy, AfterViewInit {
         if (!selectedOptionKey) return false;
         const trackKey = this.getAttributeTrackKey(selectedOptionKey);
         const selectedOptionSlugInUI = currentSelections[trackKey];
-        const variationOptionSlug = (attr.option || '').toLowerCase().replace(/\s+/g, '-');
+        const variationOptionSlug = this.getNormalizedOptionValue(attr.option);
         return selectedOptionSlugInUI === variationOptionSlug;
       })
     ) || null;
@@ -180,10 +181,14 @@ export class ProductPageComponent implements OnInit, OnDestroy, AfterViewInit {
   });
 
   selectedImage: WritableSignal<WooCommerceImage | null | undefined> = signal(null);
-  isLoading: WritableSignal<boolean> = signal(true);
+  isLoading: WritableSignal<boolean> = signal(true); // Für die gesamte Seite
   error: WritableSignal<string | null> = signal(null);
   private errorKey: WritableSignal<string | null> = signal(null);
+  
+  // +++ SEPARATE LADEZUSTÄNDE für die Buttons +++
   isAddingToCart: WritableSignal<boolean> = signal(false);
+  isTogglingWishlist: WritableSignal<boolean> = signal(false);
+
   addToCartError: WritableSignal<string | null> = signal(null);
   private addToCartErrorKey: WritableSignal<string | null> = signal(null);
 
@@ -293,12 +298,14 @@ export class ProductPageComponent implements OnInit, OnDestroy, AfterViewInit {
     this.subscriptions.add(langSub);
   }
 
-  ngAfterViewInit(): void {
-    // Deine Logik hier
-  }
+  ngAfterViewInit(): void {}
 
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
+  }
+
+  toggleDescription(): void {
+    this.isDescriptionExpanded.update(value => !value);
   }
 
   private prepareVariationAttributes(product: WooCommerceProduct, variationsData: WooCommerceProductVariation[]): void {
@@ -310,7 +317,7 @@ export class ProductPageComponent implements OnInit, OnDestroy, AfterViewInit {
         product.default_attributes.forEach(defAttr => {
             const attrDefinition = attributesForSelection.find(a => a.id === defAttr.id || a.name === defAttr.name);
             if (attrDefinition) {
-                initialSelected[this.getAttributeTrackKey(attrDefinition)] = defAttr.option;
+                initialSelected[this.getAttributeTrackKey(attrDefinition)] = this.getNormalizedOptionValue(defAttr.option);
             }
         });
     } else if (variationsData.length > 0 && attributesForSelection.length > 0) {
@@ -320,7 +327,7 @@ export class ProductPageComponent implements OnInit, OnDestroy, AfterViewInit {
             attributesForSelection.forEach(attrDef => {
                 const matchingVarAttr = firstVariationToUse.attributes.find(va => va.id === attrDef.id || va.name === attrDef.name);
                 if (matchingVarAttr) {
-                    initialSelected[this.getAttributeTrackKey(attrDef)] = matchingVarAttr.option;
+                    initialSelected[this.getAttributeTrackKey(attrDef)] = this.getNormalizedOptionValue(matchingVarAttr.option);
                 }
             });
         }
@@ -329,13 +336,54 @@ export class ProductPageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   onOptionSelect(attributeIdentifier: string, optionValue: string): void {
-    this.selectedOptions.update(current => ({ ...current, [attributeIdentifier]: optionValue }));
+    const normalizedValue = this.getNormalizedOptionValue(optionValue);
+    this.selectedOptions.update(current => ({ ...current, [attributeIdentifier]: normalizedValue }));
     this.addToCartError.set(null);
     this.addToCartErrorKey.set(null);
   }
 
   isOptionSelected(attributeIdentifier: string, optionValue: string): boolean {
-    return this.selectedOptions()[attributeIdentifier] === optionValue;
+    const normalizedValue = this.getNormalizedOptionValue(optionValue);
+    return this.selectedOptions()[attributeIdentifier] === normalizedValue;
+  }
+
+  isOptionAvailable(attribute: WooCommerceAttribute, option: string): boolean {
+    const allVariations = this.variations();
+    if (!allVariations || allVariations.length === 0) return true;
+
+    const currentSelections = this.selectedOptions();
+    const attributeTrackKey = this.getAttributeTrackKey(attribute);
+    const normalizedOption = this.getNormalizedOptionValue(option);
+
+    const matchingVariations = allVariations.filter(variation => {
+      if (!variation.purchasable || variation.stock_status !== 'instock') {
+        return false;
+      }
+      
+      return variation.attributes.every(varAttr => {
+        const otherAttrDef = this.variationAttributes().find(va => va.id === varAttr.id || va.name === varAttr.name);
+        if (!otherAttrDef) return true;
+        
+        const otherTrackKey = this.getAttributeTrackKey(otherAttrDef);
+
+        if (otherTrackKey === attributeTrackKey) {
+          return true;
+        }
+
+        if (currentSelections[otherTrackKey]) {
+          return this.getNormalizedOptionValue(varAttr.option) === currentSelections[otherTrackKey];
+        }
+
+        return true;
+      });
+    });
+
+    return matchingVariations.some(variation => 
+      variation.attributes.some(varAttr => {
+        const varAttrTrackKey = this.getAttributeTrackKeyForVariationAttribute(varAttr);
+        return varAttrTrackKey === attributeTrackKey && this.getNormalizedOptionValue(varAttr.option) === normalizedOption;
+      })
+    );
   }
 
   getOptionsForAttribute(attribute: WooCommerceAttribute): string[] {
@@ -343,6 +391,7 @@ export class ProductPageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   getNormalizedOptionValue(optionString: string): string {
+    if (typeof optionString !== 'string') return '';
     return optionString.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
   }
 
@@ -376,7 +425,9 @@ export class ProductPageComponent implements OnInit, OnDestroy, AfterViewInit {
     this.error.set(null); this.errorKey.set(null);
     this.addToCartError.set(null); this.addToCartErrorKey.set(null);
     this.isAddingToCart.set(false);
+    this.isTogglingWishlist.set(false); // +++ NEU
     this.selectedImage.set(null);
+    this.isDescriptionExpanded.set(false);
   }
 
   private setErrorStateAndTitle(errorMsgKey: string, errorTitleKeyForInterpolation: string): void {
@@ -445,7 +496,8 @@ export class ProductPageComponent implements OnInit, OnDestroy, AfterViewInit {
     const productId = product.id;
     const variationId = product.type === 'variable' && selectedVar ? selectedVar.id : 0;
 
-    this.isLoading.set(true); 
+    // +++ GEÄNDERT: Verwende das neue, spezifische Signal +++
+    this.isTogglingWishlist.set(true); 
 
     try {
       if (this.isOnWishlist()) {
@@ -457,7 +509,8 @@ export class ProductPageComponent implements OnInit, OnDestroy, AfterViewInit {
         console.error("Error toggling wishlist from product page:", error);
         this.uiStateService.showGlobalError(this.translocoService.translate('wishlist.errorGeneral'));
     } finally {
-        this.isLoading.set(false);
+        // +++ GEÄNDERT: Verwende das neue, spezifische Signal +++
+        this.isTogglingWishlist.set(false);
         this.cdr.markForCheck();
     }
   }
@@ -467,6 +520,11 @@ export class ProductPageComponent implements OnInit, OnDestroy, AfterViewInit {
   getAttributeTrackKey(attribute: WooCommerceAttribute): string {
     const slug = attribute.slug || attribute.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
     return slug.startsWith('pa_') ? slug : `pa_${slug}`;
+  }
+
+  private getAttributeTrackKeyForVariationAttribute(variationAttribute: { id: number; name: string; option: string }): string | null {
+    const mainAttribute = this.variationAttributes().find(attr => attr.id === variationAttribute.id || attr.name === variationAttribute.name);
+    return mainAttribute ? this.getAttributeTrackKey(mainAttribute) : null;
   }
 
   getProductCurrencyCode(product: WooCommerceProduct | null): string {

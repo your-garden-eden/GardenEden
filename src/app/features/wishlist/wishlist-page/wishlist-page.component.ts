@@ -1,4 +1,5 @@
-import { Component, inject, Signal, ChangeDetectionStrategy, computed, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
+// /src/app/features/wishlist/wishlist-page/wishlist-page.component.ts
+import { Component, inject, Signal, ChangeDetectionStrategy, OnDestroy, OnInit, PLATFORM_ID, WritableSignal, signal } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { Title } from '@angular/platform-browser';
@@ -27,7 +28,6 @@ import { SafeHtmlPipe } from '../../../shared/pipes/safe-html.pipe';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WishlistPageComponent implements OnInit, OnDestroy {
-  // --- Services ---
   private wishlistService = inject(WishlistService);
   private cartService = inject(CartService);
   private uiStateService = inject(UiStateService);
@@ -35,11 +35,12 @@ export class WishlistPageComponent implements OnInit, OnDestroy {
   private translocoService = inject(TranslocoService);
   private platformId = inject(PLATFORM_ID);
 
-  // --- State Signals ---
   public displayWishlist: Signal<DisplayWishlistItem[]> = this.wishlistService.displayWishlist;
   public isLoading: Signal<boolean> = this.wishlistService.isLoading;
   public serviceError: Signal<string | null> = this.wishlistService.error;
   public itemCount: Signal<number> = this.wishlistService.wishlistItemCount;
+
+  public isPerformingAction: WritableSignal<string | null> = signal(null);
 
   private langSub: Subscription | undefined;
 
@@ -57,7 +58,6 @@ export class WishlistPageComponent implements OnInit, OnDestroy {
     this.langSub?.unsubscribe();
   }
 
-  // --- Template Hilfsmethoden ---
   trackByItemId(index: number, item: DisplayWishlistItem): string {
     return `${item.product_id}_${item.variation_id || 0}`;
   }
@@ -70,14 +70,22 @@ export class WishlistPageComponent implements OnInit, OnDestroy {
     return item.variationDetails?.image?.src || item.productDetails?.images?.[0]?.src;
   }
 
-  // --- Aktionen ---
   async removeFromWishlist(item: DisplayWishlistItem): Promise<void> {
-    await this.wishlistService.removeFromWishlist(item.product_id, item.variation_id);
+    const itemId = this.trackByItemId(0, item);
+    this.isPerformingAction.set(itemId);
+    try {
+      await this.wishlistService.removeFromWishlist(item.product_id, item.variation_id);
+    } finally {
+      // +++ KORREKTUR: Die Seite muss nach der Aktion wieder entsperrt werden. +++
+      // Da das Element verschwindet, ist es okay, wenn das sofort passiert.
+      this.isPerformingAction.set(null);
+    }
   }
 
   async moveToCart(item: DisplayWishlistItem): Promise<void> {
+    const itemId = this.trackByItemId(0, item);
     const productForCheck = item.variationDetails || item.productDetails;
-    const productName = item.productDetails?.name || ''; // KORREKTUR: Name immer vom Hauptprodukt
+    const productName = item.productDetails?.name || '';
 
     if (!productForCheck || productForCheck.stock_status !== 'instock' || !productForCheck.purchasable) {
       this.uiStateService.showGlobalError(
@@ -86,6 +94,7 @@ export class WishlistPageComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.isPerformingAction.set(itemId);
     try {
       await this.cartService.addItem(item.product_id, 1, item.variation_id);
       await this.wishlistService.removeFromWishlist(item.product_id, item.variation_id);
@@ -96,6 +105,9 @@ export class WishlistPageComponent implements OnInit, OnDestroy {
       this.uiStateService.showGlobalError(
         this.translocoService.translate('wishlist.errors.moveToCartFailed', { productName: productName })
       );
+    } finally {
+      // +++ KORREKTUR: Die Seite muss auch hier wieder entsperrt werden. +++
+      this.isPerformingAction.set(null);
     }
   }
 
@@ -110,6 +122,7 @@ export class WishlistPageComponent implements OnInit, OnDestroy {
       return;
     }
     
+    this.isPerformingAction.set('addAll');
     try {
       await Promise.all(
         availableItems.map(item => this.cartService.addItem(item.product_id, 1, item.variation_id))
@@ -122,15 +135,25 @@ export class WishlistPageComponent implements OnInit, OnDestroy {
       );
     } catch (e) {
       this.uiStateService.showGlobalError(this.translocoService.translate('wishlist.errors.addAllToCart'));
+    } finally {
+      this.isPerformingAction.set(null);
     }
   }
 
   async clearWishlist(): Promise<void> {
-    if (isPlatformBrowser(this.platformId)) {
-      const confirmationText = this.translocoService.translate('wishlistPage.confirmClear');
-      const confirmed = confirm(confirmationText);
-      if (confirmed) {
+    const confirmed = await this.uiStateService.openConfirmationModal({
+      titleKey: 'wishlistPage.confirmClear.title',
+      messageKey: 'wishlistPage.confirmClear.message',
+      confirmButtonKey: 'wishlistPage.confirmClear.confirmButton',
+      confirmButtonClass: 'danger'
+    });
+
+    if (confirmed) {
+      this.isPerformingAction.set('clearAll');
+      try {
         await this.wishlistService.clearWishlist();
+      } finally {
+        this.isPerformingAction.set(null);
       }
     }
   }
