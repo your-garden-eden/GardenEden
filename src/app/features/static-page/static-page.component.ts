@@ -5,14 +5,18 @@ import { ActivatedRoute, Data, RouterLink } from '@angular/router';
 import { Title } from '@angular/platform-browser';
 import { MarkdownModule, MarkdownService } from 'ngx-markdown';
 import { TranslocoModule, TranslocoService } from '@ngneat/transloco';
-import { Subscription, combineLatest, of, Observable } from 'rxjs'; // Observable hinzugefügt
+import { Subscription, combineLatest, of, Observable } from 'rxjs';
 import { distinctUntilChanged, map, filter, tap, startWith, switchMap, catchError } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
+
+// +++ NEU: LoadingSpinnerComponent importieren +++
+import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 
 @Component({
   selector: 'app-static-page',
   standalone: true,
-  imports: [CommonModule, MarkdownModule, TranslocoModule, RouterLink],
+  // +++ NEU: LoadingSpinnerComponent zu den Imports hinzufügen +++
+  imports: [CommonModule, MarkdownModule, TranslocoModule, RouterLink, LoadingSpinnerComponent],
   templateUrl: './static-page.component.html',
   styleUrl: './static-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -52,8 +56,8 @@ export class StaticPageComponent implements OnInit, OnDestroy {
           this.isLoading.set(true);
           this.error.set(null);
           this.markdownContent.set(null);
-          this.markdownFilePath.set(`assets/content/${fileName}.${lang}.md`);
-          console.log(`StaticPageComponent: Bereite Laden vor für ${fileName} in Sprache ${lang}`);
+          // Diese Zeile ist für das `[src]`-Binding von ngx-markdown, wir behalten sie.
+          this.markdownFilePath.set(`assets/content/${fileName}.${lang}.md`); 
           this.cdr.detectChanges();
         }),
         switchMap(([fileName, lang]) => this.fetchMarkdownContent(fileName, lang))
@@ -61,14 +65,11 @@ export class StaticPageComponent implements OnInit, OnDestroy {
     );
   }
 
-  private fetchMarkdownContent(baseFileName: string, lang: string): Observable<string | null> { // Rückgabetyp hier
+  private fetchMarkdownContent(baseFileName: string, lang: string): Observable<string | null> {
     const filePath = `assets/content/${baseFileName}.${lang}.md`;
-    this.markdownFilePath.set(filePath);
-    console.log(`StaticPageComponent: Starte HTTP GET für ${filePath}`);
-
+    
     return this.http.get(filePath, { responseType: 'text' }).pipe(
       tap(content => {
-        console.log(`StaticPageComponent: Inhalt ERFOLGREICH geladen von ${filePath}`);
         this.markdownContent.set(content);
         this.isLoading.set(false);
         this.error.set(null);
@@ -80,10 +81,11 @@ export class StaticPageComponent implements OnInit, OnDestroy {
         const defaultLang = this.translocoService.getDefaultLang();
         if (this.baseContentFileName && lang !== defaultLang) {
           console.warn(`StaticPageComponent: Fehler bei ${filePath}. Versuche Fallback zu Sprache: ${defaultLang}`);
+          // Wichtig: Wir geben das Observable der rekursiven Funktion zurück
           return this.fetchMarkdownContent(this.baseContentFileName, defaultLang);
         } else {
           console.error(`StaticPageComponent: Fallback zu ${defaultLang} ebenfalls fehlgeschlagen oder war bereits Standardsprache für ${this.baseContentFileName}.`);
-          this.error.set(this.translocoService.translate('staticPage.error.loadingFailed', { file: filePath }));
+          this.error.set(this.translocoService.translate('staticPage.error.loadingFailed', { file: baseFileName }));
           this.isLoading.set(false);
           this.markdownContent.set(null);
           this.updateTitle(this.baseContentFileName, true);
@@ -105,21 +107,23 @@ export class StaticPageComponent implements OnInit, OnDestroy {
     if (isError) {
         titleKey = 'staticPage.error.genericTitle';
     } else {
-        titleKey = this.route.snapshot.data['titleKey'] || `staticPage.${baseFileName}.title`;
+        // Wir verwenden `snapshot.data` hier, da es zum Zeitpunkt des Aufrufs bereits aufgelöst sein sollte.
+        titleKey = this.route.snapshot.data['titleKey'] || `staticPage.title.${baseFileName}`;
     }
-    const translatedTitle = this.translocoService.translate(titleKey,
-        { page: baseFileName },
-        this.translocoService.getDefaultLang()
-    );
+    const translatedTitle = this.translocoService.translate(titleKey);
     this.titleService.setTitle(`${translatedTitle} - Your Garden Eden`);
   }
 
   onMarkdownLoad(): void {
-    console.log('StaticPageComponent: Markdown-Inhalt von ngx-markdown gerendert.');
+    // Diese Methode könnte nützlich sein, wenn ngx-markdown selbst einen Lade-Spinner hätte.
+    // Für unseren Zweck ist sie erstmal nicht kritisch.
   }
 
   onMarkdownError(errorEvent: any): void {
     console.error('StaticPageComponent: Fehler beim Rendern des Markdowns durch ngx-markdown:', errorEvent);
+    // Hier könnten wir einen alternativen Fehlerstatus setzen.
+    this.error.set(this.translocoService.translate('staticPage.error.renderingFailed'));
+    this.isLoading.set(false);
     this.cdr.detectChanges();
   }
 

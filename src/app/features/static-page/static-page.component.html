@@ -1,18 +1,18 @@
 <!-- /src/app/features/static-page/static-page.component.html -->
 <div class="static-page-container">
 
-    <div *ngIf="isLoading()" class="loading-indicator">
-      <p>{{ 'staticPage.loadingPage' | transloco }}</p>
+  @if (isLoading()) {
+    <div class="loading-container">
+      <app-loading-spinner [showOverlay]="false"></app-loading-spinner>
     </div>
-
-    @if (!isLoading() && error(); as errorMsg) {
-      <div class="error-message">
-        <p>{{ errorMsg }}</p>
-        <a routerLink="/">{{ 'staticPage.backToHome' | transloco }}</a>
-      </div>
-    }
-
-    @if (!isLoading() && !error() && markdownContent(); as mdContent) {
+  } @else if (error()) {
+    <div class="error-message">
+      <p>{{ error() }}</p> <!-- Signal direkt verwenden -->
+      <a routerLink="/">{{ 'staticPage.backToHome' | transloco }}</a>
+    </div>
+  } @else {
+    <!-- Wenn Laden fertig und kein Fehler, dann prüfen wir, ob es Inhalt gibt -->
+    @if (markdownContent(); as mdContent) {
       <div class="static-page-content">
         <markdown
           [data]="mdContent"
@@ -20,9 +20,11 @@
           (error)="onMarkdownError($event)">
         </markdown>
       </div>
-    } @else if (!isLoading() && !error() && !markdownContent()) {
+    } @else {
+      <!-- Fallback, wenn Laden fertig, kein Fehler, aber Inhalt ist null/leer -->
       <div class="error-message">
-           <p>{{ 'staticPage.error.noSource' | transloco }}</p>
-       </div>
+        <p>{{ 'staticPage.error.noSource' | transloco }}</p>
+      </div>
     }
-  </div>
+  }
+</div>

@@ -9,8 +9,7 @@ import {
   RouteReuseStrategy
 } from '@angular/router';
 import { provideClientHydration } from '@angular/platform-browser';
-// KORREKTUR: withFetch importieren
-import { provideHttpClient, HTTP_INTERCEPTORS, withInterceptorsFromDi, withFetch } from '@angular/common/http'; 
+import { provideHttpClient, HTTP_INTERCEPTORS, withInterceptorsFromDi, withFetch } from '@angular/common/http';
 
 // Firebase-Imports (Kern)
 import { initializeApp, provideFirebaseApp, getApp } from '@angular/fire/app';
@@ -38,7 +37,7 @@ import localePl from '@angular/common/locales/pl';
 // --- TRANSLOCO IMPORTS ---
 import { TranslocoHttpLoader } from './transloco-loader';
 import { provideTransloco } from '@ngneat/transloco';
-import { provideTranslocoPersistLang } from '@ngneat/transloco-persist-lang';
+// --- provideTranslocoPersistLang wird hier NICHT mehr importiert ---
 
 // --- BENUTZERDEFINIERTER HTTP INTERCEPTOR ---
 import { AuthHttpInterceptor } from './core/interceptors/auth-http.interceptor';
@@ -50,11 +49,6 @@ registerLocaleData(localeEs, 'es');
 registerLocaleData(localePl, 'pl');
 // --- ENDE LOCALE ---
 
-export class NoOpStorage {
-  getItem(key: string): string | null { return null; }
-  setItem(key: string, value: string): void {}
-  removeItem(key: string): void {}
-}
 
 function getFirebaseRegion(): string {
   if (environment.firebase.functionsUrl) {
@@ -78,10 +72,9 @@ export const appConfig: ApplicationConfig = {
       })
     ),
     
-    // KORREKTUR: withFetch() hier hinzugefügt
     provideHttpClient(
       withInterceptorsFromDi(),
-      withFetch() // Aktiviert die moderne Fetch-API für HttpClient
+      withFetch()
     ),
     {
       provide: HTTP_INTERCEPTORS,
@@ -116,16 +109,7 @@ export const appConfig: ApplicationConfig = {
       loader: TranslocoHttpLoader
     }),
 
-    provideTranslocoPersistLang({
-        storage: {
-          useFactory: () => {
-            const platformId = inject(PLATFORM_ID);
-            if (isPlatformBrowser(platformId)) {
-              return localStorage;
-            }
-            return new NoOpStorage();
-          }
-        },
-    }),
+    // +++ DER provideTranslocoPersistLang-BLOCK WURDE KOMPLETT ENTFERNT +++
+    
   ]
 };

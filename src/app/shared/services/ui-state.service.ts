@@ -1,13 +1,15 @@
 // /src/app/shared/services/ui-state.service.ts
 import { Injectable, signal, WritableSignal, Signal, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { BehaviorSubject } from 'rxjs';
+import { ConfirmationModalData } from './ui-state.models'; // Importieren wir gleich
 
 // Interface für die Struktur einer globalen Nachricht
 export interface GlobalMessage {
   message: string;
   type: 'success' | 'error' | 'info' | 'warning';
-  duration?: number; // Optionale Anzeigedauer in ms
-  details?: string; // Optionale Details
+  duration?: number;
+  details?: string;
 }
 
 @Injectable({
@@ -17,9 +19,8 @@ export class UiStateService {
   private platformId = inject(PLATFORM_ID);
 
   // --- GLOBALE SCHALTER FÜR POPUPS ---
-  // Setzen Sie diese auf `false`, um das entsprechende Popup global zu deaktivieren.
-  public readonly enableMaintenancePopup: boolean = true; // Schalter für Wartungshinweis-Popup
-  public readonly enableCartDiscountPopup: boolean = true; // Schalter für Rabatthinweis-Popup
+  public readonly enableMaintenancePopup: boolean = true;
+  public readonly enableCartDiscountPopup: boolean = true;
 
   // --- Session Storage Keys ---
   private readonly MAINTENANCE_POPUP_SHOWN_KEY = 'maintenancePopupShownInSession';
@@ -42,7 +43,39 @@ export class UiStateService {
   private _showCartDiscountPopup: WritableSignal<boolean> = signal(false);
   public readonly showCartDiscountPopup$: Signal<boolean> = this._showCartDiscountPopup.asReadonly();
 
+  // +++ NEU: Zustand für das Bestätigungs-Modal +++
+  private confirmationModalDataSubject = new BehaviorSubject<ConfirmationModalData | null>(null);
+  public confirmationModalData$ = this.confirmationModalDataSubject.asObservable();
+  
+  private isConfirmationModalVisibleSubject = new BehaviorSubject<boolean>(false);
+  public isConfirmationModalVisible$ = this.isConfirmationModalVisibleSubject.asObservable();
+
+  private confirmationPromiseResolve?: (value: boolean) => void;
+
   constructor() {}
+
+  // +++ NEU: Methoden für das Bestätigungs-Modal +++
+  public openConfirmationModal(data: ConfirmationModalData): Promise<boolean> {
+    this.confirmationModalDataSubject.next(data);
+    this.isConfirmationModalVisibleSubject.next(true);
+
+    return new Promise<boolean>((resolve) => {
+      this.confirmationPromiseResolve = resolve;
+    });
+  }
+
+  public closeConfirmationModal(result: boolean): void {
+    if (this.confirmationPromiseResolve) {
+      this.confirmationPromiseResolve(result);
+    }
+    this.isConfirmationModalVisibleSubject.next(false);
+    // Optional: Daten nach kurzer Verzögerung zurücksetzen, um Fade-Out-Animationen zu ermöglichen
+    setTimeout(() => {
+      this.confirmationModalDataSubject.next(null);
+      this.confirmationPromiseResolve = undefined;
+    }, 300);
+  }
+
 
   // --- Methoden für Login-Overlay ---
   openLoginOverlay(): void {
@@ -68,10 +101,8 @@ export class UiStateService {
         this._showMaintenancePopup.set(true);
       }
     } catch (e) {
-      // sessionStorage ist möglicherweise nicht verfügbar (z.B. private Browsing in manchen Browsern oder Cookies deaktiviert)
-      // In diesem Fall das Popup trotzdem anzeigen, aber nicht erneut versuchen zu speichern.
       console.warn('SessionStorage nicht verfügbar für Maintenance Popup:', e);
-      if (!this._showMaintenancePopup()) { // Nur setzen, wenn nicht schon durch Fehler getriggert
+      if (!this._showMaintenancePopup()) {
           this._showMaintenancePopup.set(true);
       }
     }
@@ -83,7 +114,6 @@ export class UiStateService {
       try {
         sessionStorage.setItem(this.MAINTENANCE_POPUP_SHOWN_KEY, 'true');
       } catch (e) {
-        // Fehler beim Schreiben in sessionStorage ignorieren
         console.warn('Fehler beim Schreiben in SessionStorage für Maintenance Popup:', e);
       }
     }

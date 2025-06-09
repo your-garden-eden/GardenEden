@@ -36,50 +36,51 @@
             </a>
           }
         </div>
-      } @else if (categoryTitle() && !isLoadingPreview()) {
+      } @else if (categoryTitle() && !isLoading()) {
         <p class="no-items-message">{{ 'categoryOverview.noSubcategories' | transloco: { category: categoryTitle() } }}</p>
       }
 
       @if (subCategoriesToDisplay().length > 0) {
         <section class="product-preview-section">
-          @if (!isLoadingPreview() && !previewError() && displayableProductPreview().length > 0) {
+          <!-- +++ VEREINFACHT: Überschrift wird nur angezeigt, wenn es etwas anzuzeigen gibt +++ -->
+          @if (!isLoading() && !previewError() && displayableProductPreview().length > 0) {
             <h2>
               {{ 'categoryOverview.popularProducts' | transloco }}
             </h2>
           }
 
+          <!-- +++ KORRIGIERT: Logik für die Produktvorschau zusammengefasst +++ -->
           @if (isLoadingPreview()) {
             <div class="preview-loading-spinner-container">
               <app-loading-spinner></app-loading-spinner>
             </div>
-          }
-
-          @if (previewError() && !isLoadingPreview()) {
-            <div class="error-message preview-error">
-              <p>{{ previewError() }}</p>
-            </div>
-          }
-
-          <div class="product-preview-grid">
-            @for (product of displayableProductPreview(); track product.id; let i = $index) {
-              <app-product-card
-                [productId]="product.id"
-                [productName]="product.name"
-                [priceHtml]="product.price_html"
-                [singlePrice]="product.price"
-                [currencySymbol]="getProductCurrencySymbol(product)"
-                [pricePrefix]="(product.type === 'variable' && product.price_html && product.price_html.toLowerCase().includes('ab')) ? '' : (product.type === 'variable' ? ('productCard.priceFrom' | transloco) + ' ' : '')"
-                [imageUrl]="getProductImage(product)"
-                [productLink]="getProductLink(product)"
-                [onSale]="product.on_sale"
-                [regularPrice]="product.regular_price"
-                [isLazy]="i >= 4"
-                [stockStatus]="product.stock_status"
-                [isVariable]="product.type === 'variable'"
-                [priceRange]="extractPriceRange(product)">
-              </app-product-card>
+          } @else {
+            @if (previewError()) {
+              <div class="error-message preview-error">
+                <p>{{ previewError() }}</p>
+              </div>
+            } @else {
+              <div class="product-preview-grid">
+                @for (product of displayableProductPreview(); track product.id; let i = $index) {
+                  <app-product-card
+                    [productId]="product.id"
+                    [productName]="product.name"
+                    [priceHtml]="product.price_html"
+                    [singlePrice]="product.price"
+                    [currencySymbol]="getProductCurrencySymbol(product)"
+                    [pricePrefix]="(product.type === 'variable' && product.price_html && product.price_html.toLowerCase().includes('ab')) ? '' : (product.type === 'variable' ? ('productCard.priceFrom' | transloco) + ' ' : '')"
+                    [imageUrl]="getProductImage(product)"
+                    [productLink]="getProductLink(product)"
+                    [onSale]="product.on_sale"
+                    [regularPrice]="product.regular_price"
+                    [isLazy]="i >= 4"
+                    [stockStatus]="product.stock_status"
+                    [isVariable]="product.type === 'variable'">
+                  </app-product-card>
+                }
+              </div>
             }
-          </div>
+          }
         </section>
       }
     }

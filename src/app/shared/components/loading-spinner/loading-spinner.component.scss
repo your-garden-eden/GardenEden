@@ -1,31 +1,31 @@
-// KORREKTUR: @use statt @import, der relative Pfad war hier korrekt (4 Ebenen hoch)
+// /src/app/shared/components/loading-spinner/loading-spinner.component.scss
 @use '../../../../styles';
 
 :host {
-  display: block;
+  display: block; // Einfach nur ein Block-Element
   width: 100%;
   height: 100%;
 }
 
-.spinner-overlay {
+// +++ NEU: Diese Klasse ist IMMER da und IMMER für die Zentrierung zuständig +++
+.spinner-container {
   display: flex;
   justify-content: center;
   align-items: center;
   width: 100%;
   height: 100%;
+}
+
+// Diese Klasse wird dynamisch hinzugefügt und kümmert sich NUR noch um das Overlay.
+.spinner-overlay {
   position: absolute;
   top: 0;
   left: 0;
-
-  // Wir verwenden eine helle Überlagerung, die gut zum Seitenhintergrund passt.
-  background-color: rgba(245, 240, 224, 0.75); // Basiert auf deinem --background-color-page
-
-  // Wir verwenden eine z-index Variable aus deiner Hierarchie für Konsistenz.
+  background-color: rgba(245, 240, 224, 0.75);
   z-index: var(--z-index-modal-backdrop);
 }
 
 .spinner-image {
-  // Wir definieren die Größe basierend auf deiner Spacing-Unit für einheitliche Abstände.
-  width: calc(12 * var(--spacing-unit));
-  height: calc(12 * var(--spacing-unit));
+  width: calc(12 * var(--spacing-unit)); // 96px
+  height: calc(12 * var(--spacing-unit)); // 96px
 }

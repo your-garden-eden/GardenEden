@@ -1,3 +1,4 @@
+// /src/app/features/wishlist/wishlist-page/wishlist-page.component.scss
 @use "sass:color";
 
 // --- Breakpoint-Variablen ---
@@ -7,7 +8,6 @@ $breakpoint-medium: 768px;
 // --- Sass-Variablen für Fallbacks & color.adjust() ---
 $primary-color-sass: #A1B48A;
 $error-color-sass: #dc3545;
-$primary-color-dark-fallback: #798C67;
 
 // --- Basiskomponente ---
 :host {
@@ -15,6 +15,12 @@ $primary-color-dark-fallback: #798C67;
   padding: var(--spacing-lg);
   max-width: 1200px;
   margin: 0 auto;
+}
+
+.wishlist-page-container.is-busy {
+  pointer-events: none;
+  opacity: 0.7;
+  transition: opacity 0.2s ease-in-out;
 }
 
 // --- Allgemeine Styles ---
@@ -45,9 +51,12 @@ a {
 }
 
 // --- Lade- & Fehler-Styles ---
-.page-loading {
-  text-align: center;
-  padding: var(--spacing-xl);
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 40vh;
+  width: 100%;
 }
 .error-message {
   padding: var(--spacing-md);
@@ -74,29 +83,49 @@ a {
 
 // --- Artikelliste (Links) ---
 .wishlist-items-list {
-  h2 { margin-top: 0; }
-  
   .wishlist-table.desktop-only {
     width: 100%;
     border-collapse: collapse;
-    display: table;
-    @media (max-width: $breakpoint-small) { display: none; }
+    
+    thead, tbody { display: block; }
+    
+    thead {
+        border-bottom: 2px solid var(--border-color-base);
+    }
 
-    thead th {
-      text-align: left;
-      padding: var(--spacing-sm) var(--spacing-md);
+    tr {
+        display: flex;
+        align-items: center;
+        width: 100%;
+    }
+
+    th, td {
+        padding: var(--spacing-md);
+        text-align: left;
+    }
+    
+    th {
       color: var(--text-color-muted);
       font-weight: var(--font-weight-medium);
       font-size: 0.85em;
       text-transform: uppercase;
-      border-bottom: 2px solid var(--border-color-base);
-      &.actions-header { text-align: right; }
+      &:nth-child(1) { flex: 0 0 100px; }
+      &:nth-child(2) { flex: 1 1 auto; }
+      &:nth-child(3) { flex: 0 0 120px; text-align: right; }
+      &:nth-child(4) { flex: 0 0 120px; text-align: right; }
     }
     
     tbody tr.wishlist-item {
       border-bottom: 1px solid var(--border-color-light);
-      td { padding: var(--spacing-md); vertical-align: middle; }
+      padding: var(--spacing-sm) 0;
+      
+      td:nth-child(1) { flex: 0 0 100px; }
+      td:nth-child(2) { flex: 1 1 auto; }
+      td:nth-child(3) { flex: 0 0 120px; text-align: right; }
+      td:nth-child(4) { flex: 0 0 120px; justify-content: flex-end; }
     }
+
+    @media (max-width: $breakpoint-small) { display: none; }
   }
 
   .wishlist-list.mobile-only {
@@ -108,6 +137,7 @@ a {
     .wishlist-item-mobile {
       display: grid;
       grid-template-columns: 70px 1fr auto;
+      align-items: center;
       gap: var(--spacing-xs) var(--spacing-md);
       padding: var(--spacing-md) 0;
       border-bottom: 1px solid var(--border-color-light);
@@ -115,14 +145,25 @@ a {
   }
 }
 
-// --- Geteilte Styles für Listenelemente (Desktop & Mobil) ---
+// Styling für nicht verfügbare Artikel
+.is-unavailable {
+  opacity: 0.6;
+  filter: grayscale(50%);
+}
+.unavailable-notice {
+  font-size: 0.8em;
+  font-weight: var(--font-weight-bold);
+  color: var(--error-color);
+  margin-top: var(--spacing-xs);
+}
+
+
+// Geteilte Styles
 .item-image-cell, .item-image {
-  width: 100px;
   a { display: block; }
   img {
     display: block; width: 80px; height: 80px;
     object-fit: contain;
-    border: 1px solid var(--border-color-light);
     border-radius: var(--border-radius-sm);
   }
   .placeholder-image {
@@ -149,37 +190,66 @@ a {
   color: var(--text-color-muted);
 }
 
-// Aktionen (Buttons)
-.item-actions-cell {
+// Aktionen
+.item-actions-cell, .item-actions-mobile {
   display: flex;
+  align-items: center;
   gap: var(--spacing-sm);
-  justify-content: flex-end;
-  text-align: right;
-  width: 100px; // Feste Breite für die Aktionen-Spalte auf dem Desktop
+
+  app-loading-spinner {
+    width: 24px;
+    height: 24px;
+    ::ng-deep .spinner-image {
+      width: 100%;
+      height: 100%;
+    }
+  }
 }
-.item-actions-mobile {
-  display: flex;
-  flex-direction: row; /* HIER IST DIE KORREKTUR */
-  align-items: center;  /* Stellt sicher, dass die Buttons vertikal zentriert sind */
-  gap: var(--spacing-sm);
-  grid-area: actions; /* Weist den Grid-Bereich zu, falls es in einem Grid ist */
-  justify-self: end;  /* Richtet den gesamten Container am Ende seiner Grid-Zelle aus */
-}
+
 .action-button {
   background: none; border: none; padding: 0; cursor: pointer;
   display: inline-flex; align-items: center; justify-content: center;
-  width: 40px; height: 40px;
+  width: 36px; height: 36px;
   border-radius: var(--border-radius-circle);
-  transition: background-color 0.2s ease, color 0.2s ease;
-  .material-symbols-outlined { font-size: 24px; }
+  transition: color 0.2s ease, transform 0.2s ease;
+  .material-symbols-outlined { font-size: 22px; }
+  
+  &:hover:not(:disabled) {
+    transform: scale(1.1);
+  }
 }
+
 .add-to-cart-button {
   color: var(--text-color-muted);
-  border: 1px solid var(--border-color-light);
-  &:hover {
+  &:hover:not(:disabled) {
     color: var(--primary-color);
-    background-color: color.adjust($primary-color-sass, $alpha: -0.9);
-    border-color: color.adjust($primary-color-sass, $alpha: -0.7);
+  }
+
+  .icon-stack {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    
+    .base-icon {
+      font-size: 22px;
+    }
+    .strikethrough-icon {
+      position: absolute;
+      font-weight: 300;
+      transform: rotate(-45deg);
+      
+      &.large {
+        font-size: 30px;
+      }
+    }
+  }
+
+  &[disabled] {
+    .icon-stack {
+      opacity: 0.6;
+      filter: grayscale(50%);
+    }
   }
 }
 .remove-button {
@@ -188,32 +258,32 @@ a {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 24px;
-    height: 24px;
+    width: 22px; height: 22px;
     .base-icon {
       color: var(--wishlist-icon-color);
       font-variation-settings: 'FILL' 1;
     }
     .strikethrough-icon {
       position: absolute;
-      color: var(--background-color-component);
+      color: var(--background-color-page);
       font-weight: 900;
       transform: translate(0, -1px) rotate(-45deg) scaleX(1.2);
     }
   }
-  &:hover {
-    background-color: var(--wishlist-hover-bg-color);
+  &:hover:not(:disabled) {
+    .icon-stack .base-icon {
+      color: var(--error-color);
+    }
   }
 }
 
-// Mobil-spezifische Anpassungen
-.wishlist-item-mobile {
-  .item-image { width: 70px; }
-  .item-info { display: flex; flex-direction: column; justify-content: center; grid-area: info; }
-  .item-price-mobile { margin-top: var(--spacing-xs); grid-area: price; }
+.wishlist-item-mobile .item-info { 
+  display: flex; 
+  flex-direction: column; 
+  justify-content: center; 
 }
 
-// --- Zusammenfassung (Rechts) ---
+// --- Zusammenfassung ---
 .wishlist-summary {
   background-color: var(--background-color-light-gray);
   padding: var(--spacing-lg);
@@ -231,13 +301,10 @@ a {
   }
 
   .wishlist-actions {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-sm);
+    display: flex; flex-direction: column; gap: var(--spacing-sm);
     margin: var(--spacing-xl) 0;
-    
     .action-button {
-      width: 100%;
+      width: 100%; height: auto;
       padding: var(--spacing-sm) var(--spacing-md);
       font-weight: var(--font-weight-semibold);
       border-radius: var(--border-radius-md);
@@ -246,6 +313,11 @@ a {
       transition: all 0.2s ease;
       gap: var(--spacing-sm);
 
+      app-loading-spinner {
+        width: 18px; height: 18px;
+        ::ng-deep .spinner-image { width: 100%; height: 100%; }
+      }
+
       &.primary {
         background-color: var(--primary-color);
         color: var(--primary-color-text);
@@ -253,6 +325,7 @@ a {
         &:hover:not(:disabled) {
           background-color: var(--primary-color-dark);
           border-color: var(--primary-color-dark);
+          transform: none;
         }
       }
       &.secondary {
@@ -262,23 +335,19 @@ a {
         &:hover:not(:disabled) {
           background-color: color.adjust($error-color-sass, $alpha: -0.9);
           border-color: var(--error-color);
+          transform: none;
         }
       }
       &:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
+        opacity: 0.6; cursor: not-allowed;
       }
     }
   }
   
   .continue-shopping-link {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--spacing-xs);
-    text-align: center;
-    margin-top: var(--spacing-md);
-    font-size: 0.9em;
+    display: flex; align-items: center; justify-content: center;
+    gap: var(--spacing-xs); text-align: center;
+    margin-top: var(--spacing-md); font-size: 0.9em;
   }
 }
 
@@ -292,8 +361,7 @@ a {
   .empty-icon { font-size: 64px; margin-bottom: var(--spacing-md); }
   p { max-width: 400px; margin-bottom: var(--spacing-lg); }
   .primary-button {
-     display: inline-block;
-     color: var(--primary-color-text);
+     display: inline-block; color: var(--primary-color-text);
      background-color: var(--primary-color);
      padding: var(--spacing-sm) var(--spacing-lg);
      border-radius: var(--border-radius-md);

@@ -544,3 +544,30 @@ $breakpoint-small: 600px;
     font-size: 20px;
   }
 }
+
+// +++ NEU: SCSS für die Lade-Overlays +++
+.content-wrapper {
+  position: relative;
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  border-radius: 8px; // Optional: für abgerundete Ecken
+}
+
+// Macht den Inhalt darunter leicht transparent und nicht klickbar
+.is-saving section,
+.is-loading section {
+  opacity: 0.5;
+  pointer-events: none;
+}

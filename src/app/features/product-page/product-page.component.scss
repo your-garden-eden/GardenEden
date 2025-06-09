@@ -1,25 +1,22 @@
 // /src/app/features/product-page/product-page.component.scss
-@use "sass:color"; // Importiere das Sass-Farbemodul
+@use "sass:color";
 
-// Lokale Breakpoints (können bei Bedarf zu globalen Variablen werden)
 $breakpoint-xxl: 1400px;
 $breakpoint-xl: 1200px;
 $breakpoint-lg: 992px;
 $breakpoint-md: 768px;
 $breakpoint-sm: 576px;
 
-// Sass-Variable für die Farbe, die mit color.adjust verwendet wird,
-// falls sie an mehreren Stellen benötigt wird oder zur besseren Lesbarkeit.
-$primary-color-sass-equivalent-for-productpage: #A1B48A; // Entspricht dem Hex-Wert, der in darken() verwendet wurde
+$primary-color-sass-equivalent-for-productpage: #A1B48A;
 
 :host {
   display: block;
-  background-color: var(--background-color-page); // Wieder hinzugefügt basierend auf deinem Ausgangspunkt
-  min-height: 100vh; // Wieder hinzugefügt
-  padding: var(--spacing-xl) 0; // Wieder hinzugefügt
+  background-color: var(--background-color-page);
+  min-height: 100vh;
+  padding: var(--spacing-xl) 0;
 }
 
-.product-page-content { // Angepasst an deinen Ausgangspunkt
+.product-page-content {
   max-width: 1200px;
   margin: var(--spacing-lg) auto;
   background-image: linear-gradient(to bottom, var(--gradient-start), var(--gradient-end));
@@ -27,10 +24,50 @@ $primary-color-sass-equivalent-for-productpage: #A1B48A; // Entspricht dem Hex-W
   box-shadow: var(--box-shadow-md);
   padding: var(--spacing-xl);
   color: var(--text-color-on-gradient-base);
-  position: relative; // Bleibt, falls für Overlays etc. benötigt
+  position: relative;
 }
 
-.back-button { // Von deinem Ausgangspunkt übernommen
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+  width: 100%;
+}
+
+.action-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(var(--gradient-end-rgb), 0.5);
+  z-index: var(--z-index-modal);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: var(--border-radius-lg);
+  backdrop-filter: blur(2px);
+}
+
+.icon-button {
+  background: none;
+  border: none;
+  padding: var(--spacing-xs);
+  cursor: pointer;
+  color: inherit;
+  border-radius: var(--border-radius-circle);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover:not(:disabled) {
+    background-color: rgba(var(--text-color-on-gradient-rgb), 0.1);
+  }
+}
+
+
+.back-button {
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-sm);
@@ -66,27 +103,18 @@ $primary-color-sass-equivalent-for-productpage: #A1B48A; // Entspricht dem Hex-W
   }
 }
 
-// .product-detail-container ist im Original leer, bleibt so.
-
-.product-main-grid { // Von deinem Ausgangspunkt übernommen
+.product-main-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr; // Beachte: Dein Original hatte hier 1fr 1fr, meine vorherige Version 1.5fr 1fr. Ich nehme jetzt deins.
+  grid-template-columns: 1fr 1fr;
   gap: var(--spacing-xl);
   align-items: start;
-  @media (max-width: $breakpoint-lg) { // $breakpoint-lg ist 992px, dein Original hatte 992px
+  @media (max-width: $breakpoint-lg) {
     grid-template-columns: 1fr;
-    gap: var(--spacing-xl); // Beibehaltung, da auch im Original
+    gap: var(--spacing-xl);
   }
-  // @media (max-width: $breakpoint-md) war in meiner Version, aber nicht in deinem Original für .product-main-grid explizit
 }
 
-
-.loading-indicator { // Angepasst an deinen Ausgangspunkt
-  text-align: center;
-  padding: var(--spacing-xxxl);
-  color: var(--text-color-on-gradient-light); // Aus deinem Original
-}
-.error-message { // Von deinem Ausgangspunkt übernommen
+.error-message {
   &.general-error {
     margin: var(--spacing-lg) 0;
     padding: var(--spacing-lg);
@@ -110,32 +138,31 @@ $primary-color-sass-equivalent-for-productpage: #A1B48A; // Entspricht dem Hex-W
   }
 }
 
-
-.product-media-gallery { // Weitgehend von deinem Ausgangspunkt
+.product-media-gallery {
   display: flex;
   flex-direction: column;
 
   .main-image-container {
-    border: 1px solid rgba(0,0,0,0.1); // Aus deinem Original
+    border: 1px solid rgba(0,0,0,0.1);
     margin-bottom: var(--spacing-lg);
     position: relative;
-    background-color: var(--background-color-component); // Aus deinem Original
-    min-height: 300px; // Aus deinem Original
+    background-color: var(--background-color-component);
+    min-height: 300px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: var(--border-radius-sm); // Aus deinem Original
+    border-radius: var(--border-radius-sm);
     overflow: hidden;
     aspect-ratio: 1 / 1;
 
     img { display: block; width: 100%; height: 100%; object-fit: contain; }
-    .no-image-placeholder { // Aus deinem Original
+    .no-image-placeholder {
       width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
       .material-symbols-outlined { font-size: 5rem; color: var(--border-color-base); }
     }
   }
 
-  .thumbnail-container { // Von deinem Ausgangspunkt
+  .thumbnail-container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(65px, 1fr));
     gap: var(--spacing-sm);
@@ -150,8 +177,8 @@ $primary-color-sass-equivalent-for-productpage: #A1B48A; // Entspricht dem Hex-W
       align-items: center;
       justify-content: center;
       overflow: hidden;
-      background-color: var(--background-color-component); // Aus deinem Original
-      border-radius: var(--border-radius-sm); // Aus deinem Original
+      background-color: var(--background-color-component);
+      border-radius: var(--border-radius-sm);
 
       img { max-width: 100%; max-height: 100%; display: block; object-fit: contain; }
       &:hover { border-color: var(--thumbnail-border-color-hover, var(--primary-color)); }
@@ -161,7 +188,7 @@ $primary-color-sass-equivalent-for-productpage: #A1B48A; // Entspricht dem Hex-W
 }
 
 .product-info {
-  h1.product-title { // Von deinem Ausgangspunkt
+  h1 {
     margin-top: 0;
     margin-bottom: var(--spacing-sm);
     font-size: 1.8em;
@@ -169,7 +196,7 @@ $primary-color-sass-equivalent-for-productpage: #A1B48A; // Entspricht dem Hex-W
     color: var(--text-color-on-gradient-base);
   }
 
-  .price-section { // Von deinem Ausgangspunkt
+  .price-section {
     margin-bottom: var(--spacing-sm);
     font-size: 1.6em;
     font-weight: var(--font-weight-semibold);
@@ -185,7 +212,7 @@ $primary-color-sass-equivalent-for-productpage: #A1B48A; // Entspricht dem Hex-W
     }
   }
 
-  .variant-selection-section { // Von deinem Ausgangspunkt
+  .variant-selection-section {
     margin-top: var(--spacing-lg);
     margin-bottom: var(--spacing-lg);
 
@@ -218,10 +245,9 @@ $primary-color-sass-equivalent-for-productpage: #A1B48A; // Entspricht dem Hex-W
         text-align: center;
         line-height: 1.2;
 
-        &:hover {
+        &:hover:not(:disabled) {
           border-color: var(--primary-color, #A1B48A);
           background-color: rgba(var(--primary-color-rgb, 161, 180, 138), 0.1);
-          // Hier die Korrektur für darken()
           color: var(--primary-color-dark, color.adjust($primary-color-sass-equivalent-for-productpage, $lightness: -10%));
         }
 
@@ -232,6 +258,20 @@ $primary-color-sass-equivalent-for-productpage: #A1B48A; // Entspricht dem Hex-W
           font-weight: var(--font-weight-semibold);
         }
 
+        &.is-unavailable {
+          opacity: 0.5;
+          text-decoration: line-through;
+          cursor: not-allowed;
+          background-color: transparent !important;
+          color: var(--text-color-on-gradient-light) !important;
+          border-color: var(--text-color-on-gradient-light) !important;
+
+          &:hover {
+            filter: none;
+            transform: none;
+          }
+        }
+
         &:focus-visible {
           outline: 2px solid var(--accent-color-vibrant-green);
           outline-offset: 2px;
@@ -240,7 +280,7 @@ $primary-color-sass-equivalent-for-productpage: #A1B48A; // Entspricht dem Hex-W
     }
   }
 
-  .availability-section { // Von deinem Ausgangspunkt
+  .availability-section {
     margin-bottom: var(--spacing-lg);
     font-size: 0.95em;
     font-weight: var(--font-weight-medium);
@@ -252,7 +292,7 @@ $primary-color-sass-equivalent-for-productpage: #A1B48A; // Entspricht dem Hex-W
     }
   }
 
-  .action-buttons-section { // Von deinem Ausgangspunkt
+  .action-buttons-section {
     margin-top: var(--spacing-lg);
     margin-bottom: var(--spacing-lg);
     display: flex;
@@ -293,54 +333,51 @@ $primary-color-sass-equivalent-for-productpage: #A1B48A; // Entspricht dem Hex-W
       &:hover:not(:disabled) {
          background-color: var(--primary-color-dark);
       }
-
-      .button-loading-spinner {
-        border: 2px solid var(--primary-color-text-rgba-03, rgba(255,255,255,0.3));
-        border-radius: var(--border-radius-circle);
-        border-top-color: var(--primary-color-text, #FFFFFF);
-        width: 16px; height: 16px;
-        animation: spin 1s linear infinite;
+      
+      app-loading-spinner {
+        width: 35px;
+        height: 35px;
         margin-right: var(--spacing-sm);
+        
+        // Benutze ::ng-deep um das Bild im Spinner zu stylen
+        ::ng-deep .spinner-image {
+          width: 100% !important;
+          height: 100% !important;
+        }
       }
     }
 
     .add-to-wishlist-btn {
-      background-color: transparent;
-      color: var(--text-color-on-gradient-light);
-      border: 1px solid var(--text-color-on-gradient-light, var(--border-color-base));
-      border-radius: var(--border-radius-circle);
-      flex-shrink: 0;
-      outline: none;
-
-      &:focus-visible { box-shadow: 0 0 0 2px var(--accent-color-vibrant-green-rgba-02); }
-
-      &:hover:not(:disabled) {
-        background-color: var(--wishlist-hover-bg-color, rgba(var(--primary-color-rgb), 0.1));
-        color: var(--wishlist-icon-color, var(--primary-color));
-        border-color: var(--wishlist-icon-color, var(--primary-color));
-      }
-
-      .wishlist-icon {
-        color: inherit; font-size: 24px;
-        transition: transform 0.2s ease, color 0.2s ease, font-variation-settings 0.1s ease;
-        &.filled {
+      &.icon-button {
+        color: var(--text-color-on-gradient-light);
+        padding: var(--spacing-sm);
+        
+        &:hover:not(:disabled) {
           color: var(--wishlist-icon-color, var(--accent-color-like));
-          font-variation-settings: 'FILL' 1;
+          background-color: transparent;
         }
-      }
-      &:disabled {
-        border-color: var(--disabled-color, #c0c0c0) !important;
-        background-color: transparent !important; opacity: 0.5; cursor: not-allowed; filter: none;
+        
         .wishlist-icon {
-           color: var(--disabled-color, #c0c0c0) !important;
-           font-variation-settings: 'FILL' 0 !important;
+          color: inherit;
+          font-size: 28px;
+          transition: transform 0.2s ease, color 0.2s ease, font-variation-settings 0.1s ease;
+          &.filled {
+            color: var(--wishlist-icon-color, var(--accent-color-like));
+            font-variation-settings: 'FILL' 1;
+          }
+        }
+        
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
         }
       }
     }
   }
 
-  .description-section { // Von deinem Ausgangspunkt
-     margin-top: var(--spacing-xl);
+   .short-description-section {
+    margin-top: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
      h3 {
        margin-bottom: var(--spacing-sm);
        font-size: 1.1rem;
@@ -350,47 +387,76 @@ $primary-color-sass-equivalent-for-productpage: #A1B48A; // Entspricht dem Hex-W
          line-height: 1.6;
          color: var(--text-color-on-gradient-light);
          font-size: 0.95rem;
-         ul, ol { margin-left: 20px; margin-bottom: 1em; padding-left: 1em; }
-         li { margin-bottom: 0.5em; }
-         p { margin-bottom: 1em; }
-         strong { font-weight: var(--font-weight-bold); color: var(--text-color-on-gradient-base); }
-         a {
-           color: var(--primary-color);
-           text-decoration: underline;
-           &:hover {
-             color: var(--primary-color-dark);
-             filter: none;
-           }
-         }
      }
   }
-   .short-description-section { // Von deinem Ausgangspunkt
-    margin-top: var(--spacing-lg);
-     h3 {
-       margin-bottom: var(--spacing-sm);
-       font-size: 1.1rem;
-       color: var(--text-color-on-gradient-base);
-     }
-     div[innerHTML] {
-         line-height: 1.6;
-         color: var(--text-color-on-gradient-light);
-         font-size: 0.95rem;
-     }
+
+  .description-section {
+    margin-top: var(--spacing-xl);
+    h3 {
+      margin-bottom: var(--spacing-sm);
+      font-size: 1.1rem;
+      color: var(--text-color-on-gradient-base);
+    }
+    .description-content-wrapper {
+      max-height: 100px;
+      overflow: hidden;
+      position: relative;
+      transition: max-height 0.5s ease-in-out;
+      &:not(.expanded)::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 50px;
+        background: linear-gradient(to bottom, transparent, var(--gradient-end));
+      }
+      &.expanded {
+        max-height: 2000px;
+      }
+      div[innerHTML] {
+        line-height: 1.6;
+        color: var(--text-color-on-gradient-light);
+        font-size: 0.95rem;
+        ul, ol { margin-left: 20px; margin-bottom: 1em; padding-left: 1em; }
+        li { margin-bottom: 0.5em; }
+        p { margin-bottom: 1em; }
+        strong { font-weight: var(--font-weight-bold); color: var(--text-color-on-gradient-base); }
+        a {
+          color: var(--primary-color);
+          text-decoration: underline;
+          &:hover {
+            color: var(--primary-color-dark);
+            filter: none;
+          }
+        }
+      }
+    }
+    .toggle-description-btn {
+      background: none;
+      border: none;
+      color: var(--primary-color);
+      font-weight: var(--font-weight-bold);
+      cursor: pointer;
+      padding: var(--spacing-sm) 0;
+      margin-top: var(--spacing-xs);
+      text-decoration: underline;
+      &:hover {
+        color: var(--primary-color-dark);
+      }
+    }
   }
 }
 
-// Lange Beschreibung / Tabs (Kombination aus meiner Version und deinem Ausgangspunkt für .product-long-description-tabs)
 .product-long-description-tabs {
-  margin-top: var(--spacing-xxl); // Aus meiner Version
-  border-top: 1px solid var(--border-color-base); // Aus meiner Version
-  padding-top: var(--spacing-xl); // Aus meiner Version
-
+  margin-top: var(--spacing-xxl);
+  border-top: 1px solid var(--border-color-base);
+  padding-top: var(--spacing-xl);
   .tab-navigation {
     display: flex;
     border-bottom: 1px solid var(--border-color-base);
     margin-bottom: var(--spacing-xl);
     gap: var(--spacing-xs);
-
     .tab-button {
       padding: var(--spacing-md) var(--spacing-lg);
       cursor: pointer;
@@ -406,47 +472,39 @@ $primary-color-sass-equivalent-for-productpage: #A1B48A; // Entspricht dem Hex-W
         color: var(--text-color-base);
       }
       &.active {
-        // Hier die Korrektur für darken()
         color: var(--primary-color-dark, color.adjust($primary-color-sass-equivalent-for-productpage, $lightness: -10%));
         border-bottom-color: var(--primary-color-dark, color.adjust($primary-color-sass-equivalent-for-productpage, $lightness: -10%));
       }
     }
   }
-
   .tab-content {
     padding: var(--spacing-lg) 0;
     font-size: 0.95rem;
     line-height: 1.7;
-    color: var(--text-color-secondary); // Aus meiner Version (Original: --text-color-on-gradient-light)
-                                        // Prüfe, welche Farbe hier besser passt
+    color: var(--text-color-secondary);
     :global(h1), :global(h2), :global(h3), :global(h4), :global(h5), :global(h6) {
       margin-top: var(--spacing-lg);
       margin-bottom: var(--spacing-sm);
       font-weight: var(--font-weight-semibold);
-      color: var(--text-color-headings); // Aus meiner Version (Original: --text-color-on-gradient-base)
+      color: var(--text-color-headings);
     }
-    :global(p) { margin-bottom: var(--spacing-md); } // Aus meiner Version (Original: 1em)
-    :global(ul), :global(ol) { margin-bottom: var(--spacing-md); padding-left: var(--spacing-xl); } // Aus meiner Version
-    :global(a) { color: var(--text-color-link); &:hover { text-decoration: underline; } } // Aus meiner Version
+    :global(p) { margin-bottom: var(--spacing-md); }
+    :global(ul), :global(ol) { margin-bottom: var(--spacing-md); padding-left: var(--spacing-xl); }
+    :global(a) { color: var(--text-color-link); &:hover { text-decoration: underline; } }
   }
 }
 
-
-// Media Query für Mobile (aus deinem Original übernommen und konsolidiert)
-@media (max-width: $breakpoint-md) { // $breakpoint-md ist 768px
-  .product-page-content { // Aus deinem Original
+@media (max-width: $breakpoint-md) {
+  .product-page-content {
     padding: var(--spacing-lg);
-    margin: var(--spacing-lg); // Dein Original hatte hier margin, nicht margin auto
+    margin: var(--spacing-lg);
   }
-  .product-main-grid {
-    // grid-template-columns: 1fr; // Bereits oben im .product-main-grid Block
-    // gap: var(--spacing-lg);   // Bereits oben im .product-main-grid Block
-  }
-  .product-media-gallery { // Aus deinem Original
+  .product-main-grid {}
+  .product-media-gallery {
     .main-image-container { max-width: 85%; margin-left: auto; margin-right: auto; }
     .thumbnail-container { justify-content: flex-start; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); }
   }
-  .product-info { // Aus deinem Original
+  .product-info {
     h1.product-title { font-size: 1.4em; }
     .price-section { font-size: 1.3em; }
     .action-buttons-section {
@@ -457,11 +515,8 @@ $primary-color-sass-equivalent-for-productpage: #A1B48A; // Entspricht dem Hex-W
   }
 }
 
-// Keyframes Animation (aus deinem Original)
 @keyframes spin { to { transform: rotate(360deg); } }
 
-// Button-Styling (aus meiner vorherigen Version, falls global benötigt, sonst spezifischer)
-// Wenn du bereits globale Button-Styles hast, ist dieser Block hier ggf. redundant.
 .primary-button {
   display: inline-block;
   font-weight: var(--font-weight-medium);

@@ -306,7 +306,6 @@ h2 {
 
   .button-loading-spinner {
     border: 2px solid var(--primary-color-text-rgba-03, rgba(255,255,255,0.3));
-    border-radius: var(--border-radius-circle, 50%);
     border-top-color: var(--secondary-color-text, #FFFFFF);
     width: 16px;
     height: 16px;
@@ -501,6 +500,21 @@ h2 {
       border-top-color: var(--primary-color-text, $primary-color-text-fallback);
       width: 18px; height: 18px; border-width: 2px;
       animation: spin 1s linear infinite;
+    }
+  }
+
+  // +++ NEUES STYLING FÜR DEN "ZURÜCK ZUM WARENKORB"-LINK +++
+  .back-to-cart-link {
+    display: block;
+    text-align: center;
+    margin-top: var(--spacing-md, 1rem);
+    font-size: 0.9em;
+    color: var(--text-color-muted, $text-color-muted-fallback);
+    text-decoration: underline;
+    cursor: pointer;
+
+    &:hover {
+      color: var(--text-color-link-hover, $text-color-link-hover-fallback);
     }
   }
 }

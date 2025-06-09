@@ -50,7 +50,7 @@ import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 // Transloco
 import { TranslocoModule, TranslocoService, LangDefinition } from '@ngneat/transloco';
 import { HttpParams } from '@angular/common/http';
-import { LoadingSpinnerComponent } from '../loading-spinner/loading-spinner.component'; // HIER IST DIE KORREKTUR
+import { LoadingSpinnerComponent } from '../loading-spinner/loading-spinner.component';
 
 @Component({
   selector: 'app-header',
@@ -62,7 +62,7 @@ import { LoadingSpinnerComponent } from '../loading-spinner/loading-spinner.comp
     FormsModule,
     AsyncPipe,
     TranslocoModule,
-    LoadingSpinnerComponent, // HIER IST DIE KORREKTUR
+    LoadingSpinnerComponent,
   ],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss'],
@@ -177,9 +177,17 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
+  // +++ HIER IST DIE EINZIGE ÄNDERUNG +++
   changeLanguage(langId: string): void {
     if (langId) {
       this.translocoService.setActiveLang(langId);
+      
+      // Manuelles Speichern im localStorage, da wir das Persist-Modul entfernt haben.
+      // Dies wird nur im Browser ausgeführt.
+      if (isPlatformBrowser(this.platformId)) {
+        localStorage.setItem('transloco-lang', langId);
+      }
+      
       if (this.isMobileMenuOpen) {
         this.closeMobileMenu();
       }

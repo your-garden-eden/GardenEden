@@ -2,162 +2,190 @@
 <div class="auth-page-container register-page">
   <h1>{{ 'registerPage.mainTitle' | transloco }}</h1>
 
-  <div *ngIf="registrationSuccessMessage()" class="success-message registration-success">
-    <span class="material-symbols-outlined icon-large">mark_email_read</span>
-    <h2>{{ 'registerPage.successHeadline' | transloco }}</h2>
-    <p>{{ registrationSuccessMessage() }}</p>
-    <!-- KORRIGIERT: Negation um die async Pipe -->
-    <p *ngIf="!(authService.isLoggedIn$ | async)"> <!-- Zeige ggf. Hinweis zum Einloggen, falls kein Auto-Login -->
-      {{ 'registerPage.successLoginPrompt' | transloco }}
-      <a href="#" (click)="openLoginOverlay($event)">{{ 'registerPage.loginHereLink' | transloco }}</a>.
-    </p>
-    <p *ngIf="authService.isLoggedIn$ | async"> <!-- Nachricht, wenn direkt eingeloggt -->
-      {{ 'registerPage.successRedirectMessage' | transloco }}
-      <a routerLink="/mein-konto">{{ 'registerPage.myAccountLink' | transloco }}</a>.
-    </p>
-  </div>
+  @if (registrationSuccessMessage()) {
+    <div class="success-message registration-success">
+      <span class="material-symbols-outlined icon-large">mark_email_read</span>
+      <h2>{{ 'registerPage.successHeadline' | transloco }}</h2>
+      <p>{{ registrationSuccessMessage() }}</p>
+      @if (!(authService.isLoggedIn$ | async)) {
+        <p>
+          {{ 'registerPage.successLoginPrompt' | transloco }}
+          <a href="#" (click)="openLoginOverlay($event)">{{ 'registerPage.loginHereLink' | transloco }}</a>.
+        </p>
+      }
+      @if (authService.isLoggedIn$ | async) {
+        <p>
+          {{ 'registerPage.successRedirectMessage' | transloco }}
+          <a routerLink="/mein-konto">{{ 'registerPage.myAccountLink' | transloco }}</a>.
+        </p>
+      }
+    </div>
+  }
 
-  <ng-container *ngIf="!registrationSuccessMessage()">
+  @if (!registrationSuccessMessage()) {
     <p>{{ 'registerPage.subtitle' | transloco }}</p>
 
-    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" novalidate class="auth-form">
-
-      <div class="form-field">
-        <label for="firstName">{{ 'registerPage.firstNameLabel' | transloco }}</label>
-        <input type="text" id="firstName" formControlName="firstName" [placeholder]="'registerPage.firstNamePlaceholder' | transloco" required
-               [attr.aria-invalid]="firstName?.invalid && (firstName?.touched || formSubmitted())"
-               aria-describedby="firstNameError">
-        <div id="firstNameError" class="error-container"
-             *ngIf="firstName?.invalid && (firstName?.touched || formSubmitted())">
-          <small *ngIf="firstName?.errors?.['required']">{{ 'registerPage.errorFirstNameRequired' | transloco }}</small>
+    <!-- +++ NEU: Wrapper für das Lade-Overlay +++ -->
+    <div class="form-wrapper">
+      
+      <!-- +++ NEU: Lade-Overlay, das das gesamte Formular abdeckt +++ -->
+      @if (authService.isLoading()) {
+        <div class="loading-overlay">
+          <app-loading-spinner></app-loading-spinner>
+          <p>{{ 'registerPage.creatingAccountButton' | transloco }}</p>
         </div>
-      </div>
+      }
 
-      <div class="form-field">
-        <label for="lastName">{{ 'registerPage.lastNameLabel' | transloco }}</label>
-        <input type="text" id="lastName" formControlName="lastName" [placeholder]="'registerPage.lastNamePlaceholder' | transloco" required
-               [attr.aria-invalid]="lastName?.invalid && (lastName?.touched || formSubmitted())"
-               aria-describedby="lastNameError">
-         <div id="lastNameError" class="error-container"
-             *ngIf="lastName?.invalid && (lastName?.touched || formSubmitted())">
-          <small *ngIf="lastName?.errors?.['required']">{{ 'registerPage.errorLastNameRequired' | transloco }}</small>
+      <!-- Das Formular selbst wird leicht ausgeblendet, während es lädt -->
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" novalidate class="auth-form" [class.is-loading]="authService.isLoading()">
+        <div class="form-field">
+          <label for="firstName">{{ 'registerPage.firstNameLabel' | transloco }}</label>
+          <input type="text" id="firstName" formControlName="firstName" [placeholder]="'registerPage.firstNamePlaceholder' | transloco" required
+                 [attr.aria-invalid]="firstName?.invalid && (firstName?.touched || formSubmitted())"
+                 aria-describedby="firstNameError">
+          @if (firstName?.invalid && (firstName?.touched || formSubmitted())) {
+            <div id="firstNameError" class="error-container">
+              @if (firstName?.errors?.['required']) { <small>{{ 'registerPage.errorFirstNameRequired' | transloco }}</small> }
+            </div>
+          }
         </div>
-      </div>
 
-      <div class="form-field">
-        <label for="addressStreet">{{ 'registerPage.addressStreetLabel' | transloco }}</label>
-        <input #addressStreetInput
-               type="text" id="addressStreet" formControlName="addressStreet"
-               [placeholder]="'registerPage.addressStreetPlaceholder' | transloco" required
-               [attr.aria-invalid]="addressStreet?.invalid && (addressStreet?.touched || formSubmitted())"
-               aria-describedby="addressStreetError">
-        <div id="addressStreetError" class="error-container"
-              *ngIf="addressStreet?.invalid && (addressStreet?.touched || formSubmitted())">
-          <small *ngIf="addressStreet?.errors?.['required']">{{ 'registerPage.errorAddressStreetRequired' | transloco }}</small>
+        <div class="form-field">
+          <label for="lastName">{{ 'registerPage.lastNameLabel' | transloco }}</label>
+          <input type="text" id="lastName" formControlName="lastName" [placeholder]="'registerPage.lastNamePlaceholder' | transloco" required
+                 [attr.aria-invalid]="lastName?.invalid && (lastName?.touched || formSubmitted())"
+                 aria-describedby="lastNameError">
+           @if (lastName?.invalid && (lastName?.touched || formSubmitted())) {
+            <div id="lastNameError" class="error-container">
+              @if (lastName?.errors?.['required']) { <small>{{ 'registerPage.errorLastNameRequired' | transloco }}</small> }
+            </div>
+          }
         </div>
-      </div>
 
-      <div class="form-row">
-        <div class="form-field zip-field">
-          <label for="addressZip">{{ 'registerPage.addressZipLabel' | transloco }}</label>
-          <input type="text" id="addressZip" formControlName="addressZip" [placeholder]="'registerPage.addressZipPlaceholder' | transloco" required inputmode="numeric"
-                [attr.aria-invalid]="addressZip?.invalid && (addressZip?.touched || formSubmitted())"
-                aria-describedby="addressZipError">
-          <div id="addressZipError" class="error-container"
-                *ngIf="addressZip?.invalid && (addressZip?.touched || formSubmitted())">
-            <small *ngIf="addressZip?.errors?.['required']">{{ 'registerPage.errorAddressZipRequired' | transloco }}</small>
-            <small *ngIf="addressZip?.errors?.['pattern']">{{ 'registerPage.errorAddressZipPattern' | transloco }}</small>
+        <div class="form-field">
+          <label for="addressStreet">{{ 'registerPage.addressStreetLabel' | transloco }}</label>
+          <input #addressStreetInput
+                 type="text" id="addressStreet" formControlName="addressStreet"
+                 [placeholder]="'registerPage.addressStreetPlaceholder' | transloco" required
+                 [attr.aria-invalid]="addressStreet?.invalid && (addressStreet?.touched || formSubmitted())"
+                 aria-describedby="addressStreetError">
+          @if (addressStreet?.invalid && (addressStreet?.touched || formSubmitted())) {
+            <div id="addressStreetError" class="error-container">
+              @if (addressStreet?.errors?.['required']) { <small>{{ 'registerPage.errorAddressStreetRequired' | transloco }}</small> }
+            </div>
+          }
+        </div>
+
+        <div class="form-row">
+          <div class="form-field zip-field">
+            <label for="addressZip">{{ 'registerPage.addressZipLabel' | transloco }}</label>
+            <input type="text" id="addressZip" formControlName="addressZip" [placeholder]="'registerPage.addressZipPlaceholder' | transloco" required inputmode="numeric"
+                  [attr.aria-invalid]="addressZip?.invalid && (addressZip?.touched || formSubmitted())"
+                  aria-describedby="addressZipError">
+            @if (addressZip?.invalid && (addressZip?.touched || formSubmitted())) {
+              <div id="addressZipError" class="error-container">
+                @if (addressZip?.errors?.['required']) { <small>{{ 'registerPage.errorAddressZipRequired' | transloco }}</small> }
+                @if (addressZip?.errors?.['pattern']) { <small>{{ 'registerPage.errorAddressZipPattern' | transloco }}</small> }
+              </div>
+            }
+          </div>
+          <div class="form-field city-field">
+            <label for="addressCity">{{ 'registerPage.addressCityLabel' | transloco }}</label>
+            <input type="text" id="addressCity" formControlName="addressCity" [placeholder]="'registerPage.addressCityPlaceholder' | transloco" required
+                  [attr.aria-invalid]="addressCity?.invalid && (addressCity?.touched || formSubmitted())"
+                  aria-describedby="addressCityError">
+            @if (addressCity?.invalid && (addressCity?.touched || formSubmitted())) {
+              <div id="addressCityError" class="error-container">
+                @if (addressCity?.errors?.['required']) { <small>{{ 'registerPage.errorAddressCityRequired' | transloco }}</small> }
+              </div>
+            }
           </div>
         </div>
-        <div class="form-field city-field">
-          <label for="addressCity">{{ 'registerPage.addressCityLabel' | transloco }}</label>
-          <input type="text" id="addressCity" formControlName="addressCity" [placeholder]="'registerPage.addressCityPlaceholder' | transloco" required
-                [attr.aria-invalid]="addressCity?.invalid && (addressCity?.touched || formSubmitted())"
-                aria-describedby="addressCityError">
-          <div id="addressCityError" class="error-container"
-                *ngIf="addressCity?.invalid && (addressCity?.touched || formSubmitted())">
-            <small *ngIf="addressCity?.errors?.['required']">{{ 'registerPage.errorAddressCityRequired' | transloco }}</small>
+
+        <div class="form-field">
+          <label for="email">{{ 'registerPage.emailLabel' | transloco }}</label>
+          <input type="email" id="email" formControlName="email" [placeholder]="'registerPage.emailPlaceholder' | transloco" required
+                 [attr.aria-invalid]="email?.invalid && (email?.touched || formSubmitted())"
+                 aria-describedby="emailError">
+          @if (email?.invalid && (email?.touched || formSubmitted())) {
+            <div id="emailError" class="error-container">
+              @if (email?.errors?.['required']) { <small>{{ 'registerPage.errorEmailRequired' | transloco }}</small> }
+              @if (email?.errors?.['email']) { <small>{{ 'registerPage.errorEmailInvalid' | transloco }}</small> }
+              @if (email?.errors?.['alreadyInUse']) { <small>{{ 'registerPage.errorEmailInUse' | transloco }}</small> }
+            </div>
+          }
+        </div>
+
+        <div class="form-field">
+          <label for="password">{{ 'registerPage.passwordLabel' | transloco }}</label>
+          <input type="password" id="password" formControlName="password" required minlength="6"
+                 [attr.aria-invalid]="password?.invalid && (password?.touched || formSubmitted())"
+                 aria-describedby="passwordError">
+           @if (password?.invalid && (password?.touched || formSubmitted())) {
+            <div id="passwordError" class="error-container">
+              @if (password?.errors?.['required']) { <small>{{ 'registerPage.errorPasswordRequired' | transloco }}</small> }
+              @if (password?.errors?.['minlength']) { <small>{{ 'registerPage.errorPasswordMinlength' | transloco }}</small> }
+            </div>
+          }
+        </div>
+
+        <div class="form-field">
+          <label for="confirmPassword">{{ 'registerPage.confirmPasswordLabel' | transloco }}</label>
+          <input type="password" id="confirmPassword" formControlName="confirmPassword" required
+                 [attr.aria-invalid]="(confirmPassword?.invalid || registerForm.errors?.['passwordsMismatch']) && (confirmPassword?.touched || formSubmitted())"
+                 aria-describedby="confirmPasswordError passwordMatchError">
+           @if (confirmPassword?.invalid && (confirmPassword?.touched || formSubmitted())) {
+            <div id="confirmPasswordError" class="error-container">
+             @if (confirmPassword?.errors?.['required']) { <small>{{ 'registerPage.errorConfirmPasswordRequired' | transloco }}</small> }
+           </div>
+          }
+           @if (registerForm.errors?.['passwordsMismatch'] && (confirmPassword?.touched || password?.touched || formSubmitted())) {
+            <div id="passwordMatchError" class="error-container">
+             <small>{{ 'registerPage.errorPasswordsMismatch' | transloco }}</small>
+           </div>
+          }
+        </div>
+
+        <div class="form-field checkbox-field">
+           <input type="checkbox" id="newsletter" formControlName="newsletter">
+           <label for="newsletter">{{ 'registerPage.newsletterLabel' | transloco }}</label>
+        </div>
+
+        <div class="form-field checkbox-field terms-field">
+           <input type="checkbox" id="acceptTerms" formControlName="acceptTerms" required
+                  [attr.aria-invalid]="acceptTerms?.invalid && (acceptTerms?.touched || formSubmitted())"
+                  aria-describedby="acceptTermsError">
+           <label for="acceptTerms">
+             {{ 'registerPage.acceptTermsPrefix' | transloco }}
+             <a routerLink="/agb" target="_blank" rel="noopener noreferrer">{{ 'registerPage.acceptTermsAGBLink' | transloco }}</a>
+             {{ 'registerPage.acceptTermsAnd' | transloco }}
+             <a routerLink="/datenschutz" target="_blank" rel="noopener noreferrer">{{ 'registerPage.acceptTermsPrivacyLink' | transloco }}</a>
+             {{ 'registerPage.acceptTermsSuffix' | transloco }} *
+           </label>
+            @if (acceptTerms?.invalid && (acceptTerms?.touched || formSubmitted())) {
+              <div id="acceptTermsError" class="error-container">
+               @if (acceptTerms?.errors?.['required']) { <small>{{ 'registerPage.errorAcceptTermsRequired' | transloco }}</small> }
+             </div>
+            }
+        </div>
+
+        @if (authService.authError() && !registrationSuccessMessage()) {
+          <div class="error-message general-error">
+            {{ authService.authError() }}
           </div>
-        </div>
-      </div>
+        }
 
-      <div class="form-field">
-        <label for="email">{{ 'registerPage.emailLabel' | transloco }}</label>
-        <input type="email" id="email" formControlName="email" [placeholder]="'registerPage.emailPlaceholder' | transloco" required
-               [attr.aria-invalid]="email?.invalid && (email?.touched || formSubmitted())"
-               aria-describedby="emailError">
-        <div id="emailError" class="error-container"
-             *ngIf="email?.invalid && (email?.touched || formSubmitted())">
-          <small *ngIf="email?.errors?.['required']">{{ 'registerPage.errorEmailRequired' | transloco }}</small>
-          <small *ngIf="email?.errors?.['email']">{{ 'registerPage.errorEmailInvalid' | transloco }}</small>
-          <small *ngIf="email?.errors?.['alreadyInUse']">{{ 'registerPage.errorEmailInUse' | transloco }}</small>
-        </div>
-      </div>
-
-      <div class="form-field">
-        <label for="password">{{ 'registerPage.passwordLabel' | transloco }}</label>
-        <input type="password" id="password" formControlName="password" required minlength="6"
-               [attr.aria-invalid]="password?.invalid && (password?.touched || formSubmitted())"
-               aria-describedby="passwordError">
-         <div id="passwordError" class="error-container"
-             *ngIf="password?.invalid && (password?.touched || formSubmitted())">
-          <small *ngIf="password?.errors?.['required']">{{ 'registerPage.errorPasswordRequired' | transloco }}</small>
-          <small *ngIf="password?.errors?.['minlength']">{{ 'registerPage.errorPasswordMinlength' | transloco }}</small>
-        </div>
-      </div>
-
-      <div class="form-field">
-        <label for="confirmPassword">{{ 'registerPage.confirmPasswordLabel' | transloco }}</label>
-        <input type="password" id="confirmPassword" formControlName="confirmPassword" required
-               [attr.aria-invalid]="(confirmPassword?.invalid || registerForm.errors?.['passwordsMismatch']) && (confirmPassword?.touched || formSubmitted())"
-               aria-describedby="confirmPasswordError passwordMatchError">
-         <div id="confirmPasswordError" class="error-container"
-              *ngIf="confirmPassword?.invalid && (confirmPassword?.touched || formSubmitted())">
-           <small *ngIf="confirmPassword?.errors?.['required']">{{ 'registerPage.errorConfirmPasswordRequired' | transloco }}</small>
-         </div>
-         <div id="passwordMatchError" class="error-container"
-              *ngIf="registerForm.errors?.['passwordsMismatch'] && (confirmPassword?.touched || password?.touched || formSubmitted())">
-           <small>{{ 'registerPage.errorPasswordsMismatch' | transloco }}</small>
-         </div>
-      </div>
-
-      <div class="form-field checkbox-field">
-         <input type="checkbox" id="newsletter" formControlName="newsletter">
-         <label for="newsletter">{{ 'registerPage.newsletterLabel' | transloco }}</label>
-      </div>
-
-      <div class="form-field checkbox-field terms-field">
-         <input type="checkbox" id="acceptTerms" formControlName="acceptTerms" required
-                [attr.aria-invalid]="acceptTerms?.invalid && (acceptTerms?.touched || formSubmitted())"
-                aria-describedby="acceptTermsError">
-         <label for="acceptTerms">
-           {{ 'registerPage.acceptTermsPrefix' | transloco }}
-           <a routerLink="/agb" target="_blank" rel="noopener noreferrer">{{ 'registerPage.acceptTermsAGBLink' | transloco }}</a>
-           {{ 'registerPage.acceptTermsAnd' | transloco }}
-           <a routerLink="/datenschutz" target="_blank" rel="noopener noreferrer">{{ 'registerPage.acceptTermsPrivacyLink' | transloco }}</a>
-           {{ 'registerPage.acceptTermsSuffix' | transloco }} *
-         </label>
-          <div id="acceptTermsError" class="error-container"
-             *ngIf="acceptTerms?.invalid && (acceptTerms?.touched || formSubmitted())">
-           <small *ngIf="acceptTerms?.errors?.['required']">{{ 'registerPage.errorAcceptTermsRequired' | transloco }}</small>
-         </div>
-      </div>
-
-      <div *ngIf="authService.authError() && !registrationSuccessMessage()" class="error-message general-error">
-        {{ authService.authError() }}
-      </div>
-
-      <button type="submit" class="submit-button" [disabled]="registerForm.invalid || authService.isLoading()">
-        <span *ngIf="!authService.isLoading()">{{ 'registerPage.createAccountButton' | transloco }}</span>
-        <span *ngIf="authService.isLoading()" class="button-loading-spinner"></span>
-        <span *ngIf="authService.isLoading()">{{ 'registerPage.creatingAccountButton' | transloco }}</span>
-      </button>
-    </form>
+        <!-- +++ KORRIGIERTER BUTTON (einfacher) +++ -->
+        <button type="submit" class="submit-button" [disabled]="authService.isLoading()">
+          <span>{{ 'registerPage.createAccountButton' | transloco }}</span>
+        </button>
+      </form>
+    </div>
 
     <div class="auth-switch-link">
       <p>{{ 'registerPage.alreadyHaveAccountPrompt' | transloco }}
         <a href="#" (click)="openLoginOverlay($event)">{{ 'registerPage.loginHereLink' | transloco }}</a>
       </p>
     </div>
-  </ng-container>
+  }
 </div>

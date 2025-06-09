@@ -2,7 +2,6 @@
 import {
   Component,
   OnInit,
-  OnDestroy,
   signal,
   WritableSignal,
   ChangeDetectionStrategy,
@@ -14,7 +13,7 @@ import {
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Title } from '@angular/platform-browser';
-import { forkJoin, of, Observable } from 'rxjs';
+import { forkJoin, of, Observable, from } from 'rxjs'; // 'from' importieren
 import {
   map,
   catchError,
@@ -47,7 +46,7 @@ import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner
   styleUrl: './category-overview.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CategoryOverviewComponent implements OnInit, OnDestroy {
+export class CategoryOverviewComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private titleService = inject(Title);
   private woocommerceService = inject(WoocommerceService);
@@ -56,8 +55,7 @@ export class CategoryOverviewComponent implements OnInit, OnDestroy {
   private destroyRef = inject(DestroyRef);
   private platformId = inject(PLATFORM_ID);
 
-  // --- NEU: Haupt-Ladesignal ---
-  isLoading: WritableSignal<boolean> = signal(true);
+  isLoading: WritableSignal<boolean> = signal(true); 
 
   currentParentCategory: WritableSignal<NavItem | null> = signal(null);
   categoryTitle: WritableSignal<string | null> = signal(null);
@@ -65,7 +63,7 @@ export class CategoryOverviewComponent implements OnInit, OnDestroy {
   error: WritableSignal<string | null> = signal(null);
 
   displayableProductPreview: WritableSignal<WooCommerceProduct[]> = signal([]);
-  isLoadingPreview: WritableSignal<boolean> = signal(false);
+  isLoadingPreview: WritableSignal<boolean> = signal(false); 
   previewError: WritableSignal<string | null> = signal(null);
 
   private readonly TARGET_PREVIEW_COUNT = 100;
@@ -75,9 +73,9 @@ export class CategoryOverviewComponent implements OnInit, OnDestroy {
     this.route.paramMap
       .pipe(
         takeUntilDestroyed(this.destroyRef),
-        tap(() => this.resetState()), // Setzt isLoading wieder auf true
-        map(params => params.get('slug')),
-        switchMap(slug => {
+        tap(() => this.resetState()),
+        switchMap(params => {
+          const slug = params.get('slug');
           if (!slug) {
             this.handleCategoryNotFound(this.translocoService.translate('categoryOverview.errorNoParentSlug'));
             return of(null);
@@ -89,13 +87,12 @@ export class CategoryOverviewComponent implements OnInit, OnDestroy {
             this.currentParentCategory.set(foundParentCategory);
             this.subCategoriesToDisplay.set(foundParentCategory.subItems || []);
             this.updateTitles(foundParentCategory);
-
+            
             if (foundParentCategory.subItems && foundParentCategory.subItems.length > 0) {
               this.loadProductPreviewForParent(foundParentCategory.subItems);
-            } else {
-              this.isLoadingPreview.set(false);
             }
-            this.isLoading.set(false); // Ladezustand hier beenden
+            
+            this.isLoading.set(false); 
             return of(foundParentCategory);
           } else {
             this.handleCategoryNotFound(this.translocoService.translate('categoryOverview.notFoundError', { categorySlug: slug }));
@@ -146,16 +143,19 @@ export class CategoryOverviewComponent implements OnInit, OnDestroy {
         );
         return forkJoin(productObservables);
       }),
-      tap(productArrays => {
-        this.isLoadingPreview.set(false);
+      // +++ KORRIGIERT: Wir warten auf die asynchrone Bildvalidierung +++
+      switchMap(productArrays => {
+        // Wir konvertieren das Promise von validateAndSetPreview in ein Observable,
+        // damit die RxJS-Pipe darauf warten kann.
+        return from(this.validateAndSetPreview(productArrays));
+      }),
+      finalize(() => {
+        this.isLoadingPreview.set(false); 
         this.cdr.markForCheck();
-        this.validateAndSetPreview(productArrays);
       }),
       catchError(err => {
         console.error('Fehler beim Laden der Produktvorschau:', err);
         this.previewError.set(this.translocoService.translate('categoryOverview.previewLoadError'));
-        this.isLoadingPreview.set(false);
-        this.cdr.markForCheck();
         return of([]);
       })
     ).subscribe();
@@ -219,10 +219,8 @@ export class CategoryOverviewComponent implements OnInit, OnDestroy {
     this.titleService.setTitle(`${translatedTitle} - Your Garden Eden`);
   }
 
-  ngOnDestroy(): void {}
-
   private resetState(): void {
-    this.isLoading.set(true); // Ladezustand bei jedem neuen Aufruf zurücksetzen
+    this.isLoading.set(true);
     this.currentParentCategory.set(null);
     this.categoryTitle.set(null);
     this.subCategoriesToDisplay.set([]);
@@ -235,7 +233,7 @@ export class CategoryOverviewComponent implements OnInit, OnDestroy {
   private handleCategoryNotFound(errorMessage: string): void {
     this.error.set(errorMessage);
     this.titleService.setTitle(`${this.translocoService.translate('categoryOverview.notFoundTitle')} - Your Garden Eden`);
-    this.isLoading.set(false); // Ladezustand auch im Fehlerfall beenden
+    this.isLoading.set(false);
     this.isLoadingPreview.set(false);
   }
 
@@ -254,6 +252,11 @@ export class CategoryOverviewComponent implements OnInit, OnDestroy {
 
   getProductLink(product: WooCommerceProduct): string { return `/product/${product.slug}`; }
   getProductImage(product: WooCommerceProduct): string | undefined { return product.images?.[0]?.src; }
+
+  getProductCurrencySymbol(product: WooCommerceProduct): string {
+    return product.meta_data?.find(m => m.key === '_currency_symbol')?.value as string || '€';
+  }
+
   extractPriceRange(product: WooCommerceProduct): { min: string, max: string } | null {
     if (product.type === 'variable') {
       if (product.price_html) {
@@ -266,5 +269,4 @@ export class CategoryOverviewComponent implements OnInit, OnDestroy {
     }
     return null;
   }
-  getProductCurrencySymbol(product: WooCommerceProduct): string { return product.meta_data?.find(m => m.key === '_currency_symbol')?.value as string || '€'; }
 }

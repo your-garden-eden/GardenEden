@@ -25,7 +25,7 @@ import {
   WoocommerceService,
   WooCommerceProduct,
   WooCommerceProductsResponse,
-  WooCommerceMetaData, // Nicht direkt verwendet, aber Teil des Imports
+  WooCommerceMetaData,
 } from '../../core/services/woocommerce.service';
 import { ProductCardComponent } from '../../shared/components/product-card/product-card.component';
 import {
@@ -34,6 +34,9 @@ import {
   NavSubItem,
 } from '../../core/data/navigation.data';
 
+// +++ NEU: LoadingSpinnerComponent importieren +++
+import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
+
 // Swiper Imports
 import Swiper from 'swiper';
 import { Autoplay } from 'swiper/modules';
@@ -41,7 +44,8 @@ import { Autoplay } from 'swiper/modules';
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, ProductCardComponent, TranslocoModule, RouterModule],
+  // +++ NEU: LoadingSpinnerComponent zu den Imports hinzufügen +++
+  imports: [CommonModule, ProductCardComponent, TranslocoModule, RouterModule, LoadingSpinnerComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -63,9 +67,8 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('subCategorySwiper') swiperContainer!: ElementRef<HTMLElement>;
   private swiperInstance: Swiper | null = null;
 
-  // Anzahl der Produkte, die von der API geholt werden (mehr, um Filterung zu kompensieren)
-  private readonly FETCH_BESTSELLER_COUNT = 20; // Erhöht, um nach Filtern genug Auswahl zu haben
-  private readonly DISPLAY_BESTSELLER_COUNT = 10; // Max. Anzahl, die nach Filterung angezeigt wird
+  private readonly FETCH_BESTSELLER_COUNT = 20;
+  private readonly DISPLAY_BESTSELLER_COUNT = 10;
 
   constructor() {}
 
@@ -109,7 +112,6 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
     return products.filter(product => product.images && product.images.length > 0 && product.images[0]?.src);
   }
 
-  // NEUE Hilfsfunktion zum Filtern nach Lagerstatus
   private filterProductsByStockStatus(products: WooCommerceProduct[]): WooCommerceProduct[] {
     if (!products) return [];
     return products.filter(product => product.stock_status === 'instock');
@@ -134,21 +136,14 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
     this.errorBestsellers.set(null);
     this.bestsellerProducts.set([]);
 
-    let httpApiParams = new HttpParams();
-    httpApiParams = httpApiParams.set('orderby', 'popularity');
-    httpApiParams = httpApiParams.set('order', 'desc');
-    // Optional: Produkte mit stock_status 'instock' direkt von der API anfordern, falls unterstützt
-    // httpApiParams = httpApiParams.set('stock_status', 'instock'); // Testen, ob API dies unterstützt
+    let httpApiParams = new HttpParams()
+      .set('orderby', 'popularity')
+      .set('order', 'desc');
 
     try {
       const response = await new Promise<WooCommerceProductsResponse>((resolve, reject) => {
         this.woocommerceService
-          .getProducts(
-            undefined,
-            this.FETCH_BESTSELLER_COUNT, // Mehr Produkte holen
-            1,
-            httpApiParams
-          )
+          .getProducts(undefined, this.FETCH_BESTSELLER_COUNT, 1, httpApiParams)
           .pipe(take(1))
           .subscribe({
             next: res => resolve(res),
@@ -156,27 +151,16 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
           });
       });
 
-      console.log('[PerfTest HomeBestsellers] API response, candidates fetched:', response.products?.length || 0);
-
-      // Schritt 1: Produkte ohne Bilddaten herausfiltern
       let candidateProducts = this.filterProductsWithNoImageArray(response.products);
-      console.log(`[PerfTest HomeBestsellers] After noImageArray filter: ${candidateProducts.length} candidates`);
-
-      // Schritt 2: Produkte nach Lagerstatus 'instock' filtern
       candidateProducts = this.filterProductsByStockStatus(candidateProducts);
-      console.log(`[PerfTest HomeBestsellers] After stockStatus filter: ${candidateProducts.length} candidates`);
-
 
       if (candidateProducts.length === 0) {
         this.bestsellerProducts.set([]);
-        console.log('[PerfTest HomeBestsellers] No candidates left after initial filters.');
-        // Fehler oder Meldung "Keine Bestseller gefunden" hier nicht setzen, da es einfach keine passenden gibt
-        // this.errorBestsellers.set(this.translocoService.translate('home.noBestsellersFound')); // Optional
-        return; // finally Block wird trotzdem ausgeführt
+        this.isLoadingBestsellers.set(false);
+        this.cdr.markForCheck();
+        return;
       }
 
-      // Schritt 3: Bildvalidierung für die verbleibenden Kandidaten
-      const startTime = performance.now();
       const verificationPromises = candidateProducts.map(p => this.verifyImageLoad(p.images[0].src));
       const verificationResults = await Promise.allSettled(verificationPromises);
 
@@ -187,15 +171,11 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
           verifiedAndInStockProducts.push(product);
         }
       });
-      const endTime = performance.now();
-      console.log(`[PerfTest HomeBestsellers] Image validation took ${endTime - startTime}ms. Found ${verifiedAndInStockProducts.length} displayable products from ${candidateProducts.length} image validation candidates.`);
 
       this.bestsellerProducts.set(verifiedAndInStockProducts.slice(0, this.DISPLAY_BESTSELLER_COUNT));
-
-      if (verifiedAndInStockProducts.length === 0) {
-          console.log('[PerfTest HomeBestsellers] No bestsellers with loadable images and in stock found.');
-          // Optional: this.errorBestsellers.set(this.translocoService.translate('home.noBestsellersFound'));
-      }
+      
+      this.isLoadingBestsellers.set(false);
+      this.cdr.markForCheck();
 
     } catch (err) {
       console.error('HomeComponent: Bestseller Fehler:', err);
@@ -203,7 +183,6 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
         this.translocoService.translate('home.errorLoadingBestsellers')
       );
       this.bestsellerProducts.set([]);
-    } finally {
       this.isLoadingBestsellers.set(false);
       this.cdr.markForCheck();
     }

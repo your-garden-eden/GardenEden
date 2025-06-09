@@ -37,7 +37,7 @@
 <section class="bestseller-section content-container">
   <h2>{{ 'home.bestsellersTitle' | transloco }}</h2>
   @if (isLoadingBestsellers()) {
-    <div class="loading-indicator"><p>{{ 'general.loading' | transloco }}</p></div>
+    <app-loading-spinner></app-loading-spinner>
   } @else if (errorBestsellers()) {
     <div class="error-message"><p>{{ errorBestsellers() }}</p></div>
   } @else {
@@ -45,7 +45,7 @@
       <div class="product-grid">
         @for (product of bestsellerProducts(); track product.id; let i = $index) {
           <app-product-card
-            [productId]="product.id" 
+            [productId]="product.id"
             [productName]="product.name"
             [priceHtml]="product.price_html"
             [singlePrice]="product.price"

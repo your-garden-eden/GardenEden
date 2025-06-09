@@ -221,7 +221,8 @@
     "bestsellersTitle": "Our Bestsellers",
     "noBestsellers": "No bestsellers are available at the moment.",
     "errorLoadingBestsellers": "Error loading bestsellers.",
-    "discoverCategories": "Discover Our Categories"
+    "discoverCategories": "Discover Our Categories",
+    "noBestsellersFound": "No bestsellers found."
   },
   "orderConfirmationPage": {
     "title": "Order Confirmation",
@@ -247,6 +248,8 @@
   },
   "registerPage": {
     "title": "Register - Your Garden Eden",
+    "companyLabel": "Company (optional)",
+    "companyPlaceholder": "Company Name",
     "mainTitle": "Create New Account",
     "successHeadline": "Registration Successful!",
     "successMessage": "Thank you for registering! A confirmation email has been sent to {{email}}. Please check your inbox (and spam folder) and click the link to activate your account.",
@@ -301,7 +304,8 @@
     "errorAutocompleteInit": "Error initializing address helper.",
     "errorAutocompleteInitGeneral": "Address autocompletion could not be initialized.",
     "errorAddressFieldNotFound": "Address field for autocompletion not found.",
-    "errorGoogleMapsLoad": "Google Maps could not be loaded. Address autocompletion is not available."
+    "errorGoogleMapsLoad": "Google Maps could not be loaded. Address autocompletion is not available.",
+    "myAccountLink": "My Account"
   },
   "profilePage": {
     "title": "My Account - Your Garden Eden",
@@ -350,9 +354,6 @@
     "emailForResetLabel": "Email for Password Reset",
     "yourEmailAddress": "Your email address",
     "requestPasswordResetButton": "Request Password Reset",
-    "passwordResetRequested": "A password reset email has been sent to {{email}}. Please check your inbox (and spam folder).",
-    "errorPasswordResetNoEmail": "Email address for password reset not found.",
-    "errorPasswordResetRequestFailed": "Password reset request failed.",
     "successPasswordResetRequested": "Password reset email sent successfully.",
     "saveChangesButton": "Save Changes",
     "savingButton": "Saving...",
@@ -369,7 +370,6 @@
     "successProfileUpdate": "Profile updated successfully!",
     "successBillingUpdate": "Billing address updated successfully!",
     "successShippingUpdate": "Shipping address updated successfully!",
-    "successPasswordChange": "Password changed successfully!",
     "errorProfileSave": "Error saving profile.",
     "errorAddressSave": "Error saving address.",
     "errorPasswordChange": "Error changing password.",
@@ -411,7 +411,17 @@
     "orderStatus_cancelled": "Cancelled",
     "orderStatus_refunded": "Refunded",
     "orderStatus_failed": "Failed",
-    "loginButton": "To Login"
+    "loginButton": "To Login",
+    "passwordResetRequested": "Password reset requested",
+    "successPasswordChange": "Your password has been changed successfully.",
+    "errors": {
+      "formInvalid": "The form is invalid. Please check your entries.",
+      "loadOrderDetailsError": "Could not load order details.",
+      "loadOrdersError": "Could not load orders.",
+      "loadProfileError": "Could not load profile.",
+      "saveError": "Error saving changes. Please try again later.",
+      "unauthorizedOrder": "You are not authorized to view this order."
+    }
   },
   "cartPage": {
     "title": "Shopping Cart - Your Garden Eden",
@@ -445,23 +455,48 @@
     "errorGlobalDefault": "An unknown error occurred in the cart."
   },
   "wishlistPage": {
-    "title": "My Wishlist - Your Garden Eden",
-    "loading": "Loading wishlist...",
-    "yourProducts": "Your Saved Products",
-    "actions": { "remove": "Remove from Wishlist", "moveToCart": "Move to Cart" },
-    "summary": {
-      "title": "Summary", "itemCount": "Number of products", "totalPrice": "Estimated total price",
-      "vatInfo": "All prices include VAT.", "addAllToCart": "Add All to Cart"
+    "title": "My Wishlist",
+    "table": {
+      "product": "Product",
+      "price": "Price",
+      "actions": "Actions"
     },
-    "empty": { "title": "Your wishlist is empty.", "message": "Add products by clicking the heart icon.", "continueShopping": "Continue Shopping" },
-    "error": {
-      "loadingProducts": "Error loading wishlist products.",
-      "productNotAvailable": "The product '{productName}' is currently unavailable.",
-      "noVariantFound": "No suitable variant could be found for the product '{productName}'.",
-      "movingToCartError": "Error moving '{productName}' to the cart.",
-      "noneAvailableToAdd": "No available products found to add to cart.",
-      "loading": "Error loading wishlist."
-    }
+    "actions": {
+      "moveToCart": "Move to Cart",
+      "remove": "Remove"
+    },
+    "summary": {
+      "title": "Summary",
+      "itemCount": "Number of products",
+      "addAllToCart": "Add All to Cart",
+      "clearAll": "Clear Wishlist",
+      "continueShopping": "Continue Shopping"
+    },
+    "empty": {
+      "title": "Your wishlist is empty",
+      "message": "Add products you like by clicking the heart icon.",
+      "continueShopping": "Discover Products Now"
+    },
+    "confirmClear": "Are you sure you want to remove all items from your wishlist?"
+  },
+  "wishlist": {
+    "errors": {
+      "load": "Your wishlist could not be loaded.",
+      "display": "An error occurred while displaying the wishlist products.",
+      "notLoggedIn": "Please log in to use your wishlist.",
+      "add": "The product could not be added to the wishlist.",
+      "remove": "The product could not be removed from the wishlist.",
+      "clearAll": "The wishlist could not be cleared.",
+      "notAvailable": "The product '{productName}' is not available and cannot be added to the cart.",
+      "moveToCartFailed": "The product '{productName}' could not be moved to the cart.",
+      "noneAvailableToAdd": "No available products found to add to the cart.",
+      "addAllToCart": "There was an error adding all products to the cart."
+    },
+    "success": {
+      "movedToCart": "'{{productName}}' has been moved to the cart.",
+      "allMovedToCart": "{{count}} items have been moved to the cart."
+    },
+    "errorGeneral": "An error occurred. Please try again later."
   },
   "loginOverlay": {
     "title": "Login",
@@ -574,7 +609,14 @@
     "errorRemovingItem": "Could not remove item.",
     "errorClearingCart": "Could not clear cart.",
     "errorLoadingWithToken": "Could not load cart with the token.",
-    "errorUnknown": "An unknown error occurred in the cart."
+    "errorUnknown": "An unknown error occurred in the cart.",
+    "errorAddingUserCartItem": "The product could not be added to the cart.",
+    "errorClearingUserCart": "The cart could not be cleared.",
+    "errorDisplayingUserCart": "The cart could not be displayed.",
+    "errorLoadingUserCart": "The cart could not be loaded.",
+    "errorRemovingUserCartItem": "The item could not be removed from the cart.",
+    "errorSyncingCart": "The cart could not be synchronized.",
+    "errorUpdatingUserCart": "The cart could not be updated."
   },
   "errors": {
     "unknownError": "An unknown error occurred (Operation: {{operation}}).",
@@ -590,7 +632,8 @@
         "jwt_auth_missing_token": "Authentication token is missing."
       },
       "tokenValidationFailed": "Token validation failed. Details: {{details}}",
-      "tokenValidationApiError": "Error during token validation request. Details: {{details}}"
+      "tokenValidationApiError": "Error during token validation request. Details: {{details}}",
+      "missingToken": "Token is missing. Please log in."
     }
   },
   "modals": {
@@ -627,5 +670,9 @@
     "shared": {
       "closeButtonAriaLabel": "Close"
     }
+  },
+  "validators": {
+    "firstNameRequired": "First name is a required field.",
+    "lastNameRequired": "Last name is a required field."
   }
 }

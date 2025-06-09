@@ -1,5 +1,4 @@
 // /src/app/features/checkout/checkout-details-page/checkout-details-page.component.ts
-
 import {
   Component, OnInit, inject, signal, computed, effect, untracked,
   ChangeDetectorRef, OnDestroy, AfterViewInit, ViewChild, ElementRef, NgZone,
@@ -33,6 +32,7 @@ import { AuthService, WordPressUser } from '../../../shared/services/auth.servic
 import { AccountService } from '../../account/services/account.service';
 import { UserAddressesResponse } from '../../account/services/account.models';
 import { FormatPricePipe } from '../../../shared/pipes/format-price.pipe';
+import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 
 declare var google: any;
 
@@ -45,7 +45,8 @@ declare var google: any;
     RouterModule,
     TranslocoModule,
     GoogleMapsModule,
-    FormatPricePipe
+    FormatPricePipe,
+    LoadingSpinnerComponent
   ],
   templateUrl: './checkout-details-page.component.html',
   styleUrls: ['./checkout-details-page.component.scss']
@@ -352,10 +353,9 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
       if (this.isLoggedIn()) {
         await firstValueFrom(this.accountService.updateUserAddresses(customerDataForProfile));
       }
-      const storeApiCartResponse = await firstValueFrom(this.woocommerceService.updateCartCustomer(customerDataForStoreApi));
-      if (storeApiCartResponse) {
-        this.cartService.cart.set((this.cartService as any)['_convertStoreApiPricesInCart'](storeApiCartResponse));
-      }
+      // +++ KORREKTUR: Wir rufen die Funktion auf, ignorieren aber ihre Antwort, um den Bug zu vermeiden +++
+      await firstValueFrom(this.woocommerceService.updateCartCustomer(customerDataForStoreApi));
+      
       this.setSuccess('checkoutDetailsPage.addressSaveSuccess');
     } catch (error: any) {
       const errorDetail = error.error?.message || error.message || 'Unknown server error';

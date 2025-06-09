@@ -1,4 +1,4 @@
-// /src/app/features/home/home.component.scss
+// src/app/features/home/home.component.scss
 
 // Basis Swiper Styles
 @use 'swiper/scss'; // GEÄNDERT von @import zu @use
@@ -63,15 +63,19 @@
     color: var(--text-color-headings);
   }
 
+  // +++ KORRIGIERT: Lade- und Info-Zustände sind spezifisch für die Sektionen +++
   .loading-indicator, .error-message, .info-message {
     text-align: center;
     padding: var(--spacing-xxxl) var(--spacing-lg);
     font-size: 1.1rem;
     color: var(--text-color-muted);
-    min-height: 150px;
+    min-height: 300px; // Gibt dem Bereich eine Höhe, während er lädt
     display: flex;
+    flex-direction: column; // Damit Text unter dem Spinner erscheint
     justify-content: center;
     align-items: center;
+    gap: 1rem; // Abstand zwischen Spinner und Text
+
     &.small {
       min-height: 60px;
       padding: var(--spacing-lg);
@@ -83,6 +87,10 @@
     background-color: var(--error-background-color);
     border-radius: var(--border-radius-md);
     font-weight: var(--font-weight-medium);
+  }
+  .info-message {
+    background-color: var(--background-color-light-gray);
+    border-radius: var(--border-radius-md);
   }
 }
 

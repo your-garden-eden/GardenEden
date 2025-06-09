@@ -2,123 +2,130 @@
 
 :host {
   display: block;
-  // Hintergrundfarbe wird vom Body geerbt (var(--background-color-page))
 }
 
 .static-page-container {
   max-width: 800px;
-  margin: var(--spacing-xxl) auto; // Globale Variable
-  padding: var(--spacing-xl) var(--spacing-xl); // Globale Variablen (angepasst von 1.5rem)
-  background-color: var(--background-color-component); // Globale Variable
-  border-radius: var(--border-radius-lg); // Globale Variable
-  box-shadow: var(--box-shadow-sm); // Globale Variable
+  margin: var(--spacing-xxl) auto;
+  padding: var(--spacing-xl) var(--spacing-xl);
+  background-color: var(--background-color-component);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--box-shadow-sm);
 
-  .loading-indicator, .error-message {
-    text-align: center;
-    padding: var(--spacing-xxxl) var(--spacing-lg); // Globale Variablen
-    color: var(--text-color-muted); // Globale Variable
-  }
+  // .loading-indicator ist veraltet und wird nicht mehr verwendet
   .error-message {
-    color: var(--error-text-color); // Globale Variable
-    background-color: var(--error-background-color); // Für Konsistenz
-    border-radius: var(--border-radius-md); // Globale Variable
+    text-align: center;
+    padding: var(--spacing-xxxl) var(--spacing-lg);
+    color: var(--text-color-muted);
+    background-color: var(--error-background-color);
+    border-radius: var(--border-radius-md);
     a {
-      color: var(--error-text-color); // Globale Variable
+      color: var(--error-text-color);
       text-decoration: underline;
-      font-weight: var(--font-weight-bold); // Globale Variable
-      margin-top: var(--spacing-sm); // Globale Variable
+      font-weight: var(--font-weight-bold);
+      margin-top: var(--spacing-sm);
       display: inline-block;
     }
   }
 }
 
+// +++ NEU: Container für den Ladezustand, um Layout-Sprünge zu verhindern +++
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 50vh; // Reserviert eine angemessene Höhe für den Ladevorgang.
+  width: 100%;
+}
+
+
 // Styling für den von ngx-markdown generierten Inhalt
 .static-page-content {
-  line-height: var(--line-height-base); // Globale Variable
-  color: var(--text-color-base); // Globale Variable
+  line-height: var(--line-height-base);
+  color: var(--text-color-base);
 
   h1, h2, h3, h4, h5, h6 {
-    margin-top: var(--spacing-xl); // Angepasst von 1.8em
-    margin-bottom: var(--spacing-md); // Angepasst von 0.8em
-    line-height: var(--line-height-headings); // Globale Variable
-    font-weight: var(--font-weight-semibold); // Globale Variable
-    color: var(--text-color-headings); // Globale Variable (unser Braun)
+    margin-top: var(--spacing-xl);
+    margin-bottom: var(--spacing-md);
+    line-height: var(--line-height-headings);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-color-headings);
   }
 
-  h1 { font-size: 2em; } // Kann später durch globale Typo-Skala ersetzt werden
-  h2 { font-size: 1.6em; border-bottom: 1px solid var(--border-color-light); padding-bottom: var(--spacing-xs); } // Globale Variablen
+  h1 { font-size: 2em; }
+  h2 { font-size: 1.6em; border-bottom: 1px solid var(--border-color-light); padding-bottom: var(--spacing-xs); }
   h3 { font-size: 1.3em; }
   h4 { font-size: 1.1em; }
 
   p {
-    margin-bottom: var(--spacing-lg); // Angepasst von 1.2em
+    margin-bottom: var(--spacing-lg);
   }
 
   ul, ol {
-    margin-bottom: var(--spacing-lg); // Angepasst von 1.2em
-    padding-left: var(--spacing-xl); // Angepasst von 2em
+    margin-bottom: var(--spacing-lg);
+    padding-left: var(--spacing-xl);
   }
   li {
-    margin-bottom: var(--spacing-sm); // Angepasst von 0.5em
+    margin-bottom: var(--spacing-sm);
   }
 
   a {
-    color: var(--text-color-link); // Globale Variable (unser primäres Grün)
+    color: var(--text-color-link);
     text-decoration: underline;
     transition: color 0.2s ease;
     &:hover {
-      color: var(--text-color-link-hover); // Globale Variable
+      color: var(--text-color-link-hover);
     }
   }
 
   strong, b {
-    font-weight: var(--font-weight-bold); // Globale Variable (oder semibold, je nach Design)
+    font-weight: var(--font-weight-bold);
   }
   em, i {
     font-style: italic;
   }
 
   blockquote {
-    margin: var(--spacing-lg) 0; // Globale Variable
-    padding: var(--spacing-sm) var(--spacing-lg); // Globale Variablen
-    border-left: 4px solid var(--border-color-light); // Globale Variable
-    background-color: var(--background-color-light-gray); // Globale Variable
-    color: var(--text-color-muted); // Globale Variable
-    border-radius: var(--border-radius-sm); // Globale Variable
+    margin: var(--spacing-lg) 0;
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-left: 4px solid var(--border-color-light);
+    background-color: var(--background-color-light-gray);
+    color: var(--text-color-muted);
+    border-radius: var(--border-radius-sm);
 
     p { margin-bottom: 0; }
   }
 
-  code { // Inline Code
-    background-color: var(--background-color-light-gray); // Globale Variable (oder eine spezifischere Akzentfarbe)
-    padding: var(--spacing-xxs) var(--spacing-xs); // Globale Variablen
-    border-radius: var(--border-radius-sm); // Globale Variable
+  code {
+    background-color: var(--background-color-light-gray);
+    padding: var(--spacing-xxs) var(--spacing-xs);
+    border-radius: var(--border-radius-sm);
     font-size: 0.9em;
-    font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace; // Spezifische Monospace-Schrift
-    color: var(--text-color-base); // Oder eine leicht abweichende Farbe für Code
+    font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+    color: var(--text-color-base);
   }
 
-  pre { // Code-Blöcke
-    background-color: var(--background-color-light-gray); // Konsistent mit Inline-Code
-    border: 1px solid var(--border-color-base); // Globale Variable
-    border-radius: var(--border-radius-md); // Globale Variable
-    padding: var(--spacing-lg); // Globale Variable
+  pre {
+    background-color: var(--background-color-light-gray);
+    border: 1px solid var(--border-color-base);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-lg);
     overflow-x: auto;
-    margin-bottom: var(--spacing-lg); // Globale Variable
+    margin-bottom: var(--spacing-lg);
 
-    code { // Code innerhalb von pre
+    code {
       background-color: transparent;
       padding: 0;
       border-radius: 0;
-      font-size: 0.9em; // Behält die Größe vom Inline-Code
+      font-size: 0.9em;
       font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
-      color: inherit; // Erbt Farbe von pre, falls pre eine spezifische Textfarbe hätte
+      color: inherit;
     }
   }
 
   hr {
       border: none;
-      border-top: 1px solid var(--border-color-light); // Globale Variable
-      margin: var(--spacing-xl) 0; // Globale Variable
+      border-top: 1px solid var(--border-color-light);
+      margin: var(--spacing-xl) 0;
   }
 }

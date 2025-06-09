@@ -34,356 +34,373 @@
 
         <!-- Sektion für Daten & Adressen -->
         @if (activeSection() === 'addresses') {
-          <section class="profile-address-section">
-            <form [formGroup]="profileForm" (ngSubmit)="onSaveProfile()" novalidate>
-              <div class="section-header">
-                <h2>{{ 'profilePage.personalDataTitle' | transloco }}</h2>
-                <div class="action-buttons-header">
-                   @if (isEditing()) {
-                      <button type="button" class="edit-toggle-button cancel" (click)="cancelEdit()">
-                        <span class="material-symbols-outlined">close</span>
-                        {{ 'profilePage.cancelButton' | transloco }}
-                      </button>
-                    }
-                    <button type="button" class="edit-toggle-button" (click)="toggleEdit()" [class.hidden]="isEditing()">
-                      <span class="material-symbols-outlined">edit</span>
-                      {{ 'profilePage.editProfileButton' | transloco }}
-                    </button>
-                </div>
+          <!-- +++ NEU: Wrapper für das Speicher-Overlay +++ -->
+          <div class="content-wrapper">
+            <!-- +++ NEU: Speicher-Overlay +++ -->
+            @if (isSaving()) {
+              <div class="loading-overlay">
+                <app-loading-spinner></app-loading-spinner>
+                <p>{{ 'profilePage.savingButton' | transloco }}</p>
               </div>
-              
-              <div class="form-content-wrapper">
-                <!-- Persönliche Daten -->
-                <div class="form-row">
-                  <div class="form-field">
-                    <label for="firstName">{{ 'profilePage.firstNameLabel' | transloco }} *</label>
-                    @if (isEditing()) {
-                      <input id="firstName" formControlName="first_name" [attr.aria-invalid]="isControlInvalid(getControl('first_name'))">
-                      @if (isControlInvalid(getControl('first_name'))) {
-                        <div class="error-container"><small>{{ 'checkoutDetailsPage.errors.firstNameRequired' | transloco }}</small></div>
+            }
+            <section class="profile-address-section" [class.is-saving]="isSaving()">
+              <form [formGroup]="profileForm" (ngSubmit)="onSaveProfile()" novalidate>
+                <div class="section-header">
+                  <h2>{{ 'profilePage.personalDataTitle' | transloco }}</h2>
+                  <div class="action-buttons-header">
+                     @if (isEditing()) {
+                        <button type="button" class="edit-toggle-button cancel" (click)="cancelEdit()">
+                          <span class="material-symbols-outlined">close</span>
+                          {{ 'profilePage.cancelButton' | transloco }}
+                        </button>
                       }
-                    } @else {
-                      <div class="view-mode-field">{{ getControl('first_name')?.value || '-' }}</div>
-                    }
-                  </div>
-                  <div class="form-field">
-                    <label for="lastName">{{ 'profilePage.lastNameLabel' | transloco }} *</label>
-                    @if (isEditing()) {
-                      <input id="lastName" formControlName="last_name" [attr.aria-invalid]="isControlInvalid(getControl('last_name'))">
-                      @if (isControlInvalid(getControl('last_name'))) {
-                        <div class="error-container"><small>{{ 'checkoutDetailsPage.errors.lastNameRequired' | transloco }}</small></div>
-                      }
-                    } @else {
-                      <div class="view-mode-field">{{ getControl('last_name')?.value || '-' }}</div>
-                    }
+                      <button type="button" class="edit-toggle-button" (click)="toggleEdit()" [class.hidden]="isEditing()">
+                        <span class="material-symbols-outlined">edit</span>
+                        {{ 'profilePage.editProfileButton' | transloco }}
+                      </button>
                   </div>
                 </div>
-                <div class="form-field">
-                  <label for="email">{{ 'profilePage.emailLabel' | transloco }}</label>
-                  <div class="view-mode-field email">{{ getControl('email')?.value || '-' }}</div>
-                </div>
+                
+                <div class="form-content-wrapper">
+                  <!-- Persönliche Daten -->
+                  <div class="form-row">
+                    <div class="form-field">
+                      <label for="firstName">{{ 'profilePage.firstNameLabel' | transloco }} *</label>
+                      @if (isEditing()) {
+                        <input id="firstName" formControlName="first_name" [attr.aria-invalid]="isControlInvalid(getControl('first_name'))">
+                        @if (isControlInvalid(getControl('first_name'))) {
+                          <div class="error-container"><small>{{ 'checkoutDetailsPage.errors.firstNameRequired' | transloco }}</small></div>
+                        }
+                      } @else {
+                        <div class="view-mode-field">{{ getControl('first_name')?.value || '-' }}</div>
+                      }
+                    </div>
+                    <div class="form-field">
+                      <label for="lastName">{{ 'profilePage.lastNameLabel' | transloco }} *</label>
+                      @if (isEditing()) {
+                        <input id="lastName" formControlName="last_name" [attr.aria-invalid]="isControlInvalid(getControl('last_name'))">
+                        @if (isControlInvalid(getControl('last_name'))) {
+                          <div class="error-container"><small>{{ 'checkoutDetailsPage.errors.lastNameRequired' | transloco }}</small></div>
+                        }
+                      } @else {
+                        <div class="view-mode-field">{{ getControl('last_name')?.value || '-' }}</div>
+                      }
+                    </div>
+                  </div>
+                  <div class="form-field">
+                    <label for="email">{{ 'profilePage.emailLabel' | transloco }}</label>
+                    <div class="view-mode-field email">{{ getControl('email')?.value || '-' }}</div>
+                  </div>
 
-                <h3 class="address-heading">{{ 'profilePage.billingAddressTitle' | transloco }}</h3>
-                <!-- Rechnungsadresse -->
-                <div class="form-field">
-                  <label for="billing_company">{{ 'registerPage.companyLabel' | transloco }}</label>
-                  @if (isEditing()) {
-                    <input id="billing_company" formControlName="billing_company">
-                  } @else {
-                    <div class="view-mode-field">{{ getControl('billing_company')?.value || '-' }}</div>
-                  }
-                </div>
-                <div class="form-field">
-                  <label for="billing_address_1">{{ 'profilePage.addressStreetLabel' | transloco }} *</label>
-                  @if (isEditing()) {
-                    <input id="billing_address_1" formControlName="billing_address_1" [attr.aria-invalid]="isControlInvalid(getControl('billing_address_1'))">
-                    @if (isControlInvalid(getControl('billing_address_1'))) {
-                        <div class="error-container"><small>{{ 'checkoutDetailsPage.errors.address1Required' | transloco }}</small></div>
-                      }
-                  } @else {
-                    <div class="view-mode-field">{{ getControl('billing_address_1')?.value || '-' }}</div>
-                  }
-                </div>
-                <div class="form-field">
-                  <label for="billing_address_2">{{ 'checkoutDetailsPage.billingAddress.address2Label' | transloco }}</label>
-                  @if (isEditing()) {
-                    <input id="billing_address_2" formControlName="billing_address_2">
-                  } @else {
-                    <div class="view-mode-field">{{ getControl('billing_address_2')?.value || '-' }}</div>
-                  }
-                </div>
-                <div class="form-row">
-                  <div class="form-field zip-field">
-                    <label for="billing_postcode">{{ 'profilePage.addressZipLabel' | transloco }} *</label>
+                  <h3 class="address-heading">{{ 'profilePage.billingAddressTitle' | transloco }}</h3>
+                  <!-- Rechnungsadresse -->
+                  <div class="form-field">
+                    <label for="billing_company">{{ 'registerPage.companyLabel' | transloco }}</label>
                     @if (isEditing()) {
-                      <input id="billing_postcode" formControlName="billing_postcode" [attr.aria-invalid]="isControlInvalid(getControl('billing_postcode'))">
-                      @if (isControlInvalid(getControl('billing_postcode'))) {
-                        <div class="error-container">
-                          @if(getControl('billing_postcode')?.errors?.['required']) { <small>{{ 'checkoutDetailsPage.errors.postcodeRequired' | transloco }}</small> }
-                          @if(getControl('billing_postcode')?.errors?.['pattern']) { <small>{{ 'checkoutDetailsPage.errors.postcodePattern' | transloco }}</small> }
+                      <input id="billing_company" formControlName="billing_company">
+                    } @else {
+                      <div class="view-mode-field">{{ getControl('billing_company')?.value || '-' }}</div>
+                    }
+                  </div>
+                  <div class="form-field">
+                    <label for="billing_address_1">{{ 'profilePage.addressStreetLabel' | transloco }} *</label>
+                    @if (isEditing()) {
+                      <input id="billing_address_1" formControlName="billing_address_1" [attr.aria-invalid]="isControlInvalid(getControl('billing_address_1'))">
+                      @if (isControlInvalid(getControl('billing_address_1'))) {
+                          <div class="error-container"><small>{{ 'checkoutDetailsPage.errors.address1Required' | transloco }}</small></div>
+                        }
+                    } @else {
+                      <div class="view-mode-field">{{ getControl('billing_address_1')?.value || '-' }}</div>
+                    }
+                  </div>
+                  <div class="form-field">
+                    <label for="billing_address_2">{{ 'checkoutDetailsPage.billingAddress.address2Label' | transloco }}</label>
+                    @if (isEditing()) {
+                      <input id="billing_address_2" formControlName="billing_address_2">
+                    } @else {
+                      <div class="view-mode-field">{{ getControl('billing_address_2')?.value || '-' }}</div>
+                    }
+                  </div>
+                  <div class="form-row">
+                    <div class="form-field zip-field">
+                      <label for="billing_postcode">{{ 'profilePage.addressZipLabel' | transloco }} *</label>
+                      @if (isEditing()) {
+                        <input id="billing_postcode" formControlName="billing_postcode" [attr.aria-invalid]="isControlInvalid(getControl('billing_postcode'))">
+                        @if (isControlInvalid(getControl('billing_postcode'))) {
+                          <div class="error-container">
+                            @if(getControl('billing_postcode')?.errors?.['required']) { <small>{{ 'checkoutDetailsPage.errors.postcodeRequired' | transloco }}</small> }
+                            @if(getControl('billing_postcode')?.errors?.['pattern']) { <small>{{ 'checkoutDetailsPage.errors.postcodePattern' | transloco }}</small> }
+                          </div>
+                        }
+                      } @else {
+                        <div class="view-mode-field">{{ getControl('billing_postcode')?.value || '-' }}</div>
+                      }
+                    </div>
+                    <div class="form-field city-field">
+                      <label for="billing_city">{{ 'profilePage.addressCityLabel' | transloco }} *</label>
+                      @if (isEditing()) {
+                        <input id="billing_city" formControlName="billing_city" [attr.aria-invalid]="isControlInvalid(getControl('billing_city'))">
+                        @if (isControlInvalid(getControl('billing_city'))) {
+                          <div class="error-container"><small>{{ 'checkoutDetailsPage.errors.cityRequired' | transloco }}</small></div>
+                        }
+                      } @else {
+                        <div class="view-mode-field">{{ getControl('billing_city')?.value || '-' }}</div>
+                      }
+                    </div>
+                  </div>
+
+                  <div class="form-field">
+                    <label for="billing_country">{{ 'checkoutDetailsPage.billingAddress.countryLabel' | transloco }} *</label>
+                    @if (isEditing()) {
+                      <select id="billing_country" formControlName="billing_country" [attr.aria-invalid]="isControlInvalid(getControl('billing_country'))">
+                        @for (country of availableCountries; track country.code) {
+                          <option [value]="country.code">{{ country.name }}</option>
+                        }
+                      </select>
+                      @if (isControlInvalid(getControl('billing_country'))) {
+                        <div class="error-container"><small>{{ 'checkoutDetailsPage.errors.countryRequired' | transloco }}</small></div>
+                      }
+                    } @else {
+                      <div class="view-mode-field">{{ getCountryNameByCode(getControl('billing_country')?.value) || '-' }}</div>
+                    }
+                  </div>
+
+                  <div class="form-field">
+                    <label for="billing_phone">{{ 'profilePage.phoneLabel' | transloco }} *</label>
+                    @if (isEditing()) {
+                      <input id="billing_phone" type="tel" formControlName="billing_phone" [attr.aria-invalid]="isControlInvalid(getControl('billing_phone'))">
+                      @if (isControlInvalid(getControl('billing_phone'))) {
+                          <div class="error-container"><small>{{ 'checkoutDetailsPage.errors.phoneRequired' | transloco }}</small></div>
+                        }
+                    } @else {
+                      <div class="view-mode-field">{{ getControl('billing_phone')?.value || '-' }}</div>
+                    }
+                  </div>
+
+                  @if(isEditing()){
+                    <div class="checkbox-field">
+                      <input type="checkbox" id="show_shipping_form_checkbox" [checked]="!useBillingForShipping()" (change)="toggleUseBillingForShipping($event)" [disabled]="!isEditing()">
+                      <label for="show_shipping_form_checkbox">{{ 'checkoutDetailsPage.useDifferentShippingAddress' | transloco }}</label>
+                    </div>
+                  }
+
+                  @if (!useBillingForShipping()) {
+                    <div class="shipping-address-form">
+                      <h3 class="address-heading">{{ 'profilePage.shippingAddressTitle' | transloco }}</h3>
+                      <div class="form-row">
+                        <div class="form-field">
+                          <label for="shipping_first_name">{{ 'profilePage.firstNameLabel' | transloco }} *</label>
+                          @if (isEditing()) {
+                            <input id="shipping_first_name" formControlName="shipping_first_name" [attr.aria-invalid]="isControlInvalid(getControl('shipping_first_name'))">
+                            @if (isControlInvalid(getControl('shipping_first_name'))) { <div class="error-container"><small>{{ 'checkoutDetailsPage.errors.firstNameRequired' | transloco }}</small></div> }
+                          } @else {
+                            <div class="view-mode-field">{{ getControl('shipping_first_name')?.value || '-' }}</div>
+                          }
                         </div>
-                      }
-                    } @else {
-                      <div class="view-mode-field">{{ getControl('billing_postcode')?.value || '-' }}</div>
-                    }
-                  </div>
-                  <div class="form-field city-field">
-                    <label for="billing_city">{{ 'profilePage.addressCityLabel' | transloco }} *</label>
-                    @if (isEditing()) {
-                      <input id="billing_city" formControlName="billing_city" [attr.aria-invalid]="isControlInvalid(getControl('billing_city'))">
-                      @if (isControlInvalid(getControl('billing_city'))) {
-                        <div class="error-container"><small>{{ 'checkoutDetailsPage.errors.cityRequired' | transloco }}</small></div>
-                      }
-                    } @else {
-                      <div class="view-mode-field">{{ getControl('billing_city')?.value || '-' }}</div>
-                    }
-                  </div>
-                </div>
-
-                <div class="form-field">
-                  <label for="billing_country">{{ 'checkoutDetailsPage.billingAddress.countryLabel' | transloco }} *</label>
-                  @if (isEditing()) {
-                    <select id="billing_country" formControlName="billing_country" [attr.aria-invalid]="isControlInvalid(getControl('billing_country'))">
-                      @for (country of availableCountries; track country.code) {
-                        <option [value]="country.code">{{ country.name }}</option>
-                      }
-                    </select>
-                    @if (isControlInvalid(getControl('billing_country'))) {
-                      <div class="error-container"><small>{{ 'checkoutDetailsPage.errors.countryRequired' | transloco }}</small></div>
-                    }
-                  } @else {
-                    <div class="view-mode-field">{{ getCountryNameByCode(getControl('billing_country')?.value) || '-' }}</div>
-                  }
-                </div>
-
-                <div class="form-field">
-                  <label for="billing_phone">{{ 'profilePage.phoneLabel' | transloco }} *</label>
-                  @if (isEditing()) {
-                    <input id="billing_phone" type="tel" formControlName="billing_phone" [attr.aria-invalid]="isControlInvalid(getControl('billing_phone'))">
-                    @if (isControlInvalid(getControl('billing_phone'))) {
-                        <div class="error-container"><small>{{ 'checkoutDetailsPage.errors.phoneRequired' | transloco }}</small></div>
-                      }
-                  } @else {
-                    <div class="view-mode-field">{{ getControl('billing_phone')?.value || '-' }}</div>
-                  }
-                </div>
-
-                @if(isEditing()){
-                  <div class="checkbox-field">
-                    <input type="checkbox" id="show_shipping_form_checkbox" [checked]="!useBillingForShipping()" (change)="toggleUseBillingForShipping($event)" [disabled]="!isEditing()">
-                    <label for="show_shipping_form_checkbox">{{ 'checkoutDetailsPage.useDifferentShippingAddress' | transloco }}</label>
-                  </div>
-                }
-
-                @if (!useBillingForShipping()) {
-                  <div class="shipping-address-form">
-                    <h3 class="address-heading">{{ 'profilePage.shippingAddressTitle' | transloco }}</h3>
-                    <div class="form-row">
+                        <div class="form-field">
+                          <label for="shipping_last_name">{{ 'profilePage.lastNameLabel' | transloco }} *</label>
+                          @if (isEditing()) {
+                            <input id="shipping_last_name" formControlName="shipping_last_name" [attr.aria-invalid]="isControlInvalid(getControl('shipping_last_name'))">
+                            @if (isControlInvalid(getControl('shipping_last_name'))) { <div class="error-container"><small>{{ 'checkoutDetailsPage.errors.lastNameRequired' | transloco }}</small></div> }
+                          } @else {
+                            <div class="view-mode-field">{{ getControl('shipping_last_name')?.value || '-' }}</div>
+                          }
+                        </div>
+                      </div>
                       <div class="form-field">
-                        <label for="shipping_first_name">{{ 'profilePage.firstNameLabel' | transloco }} *</label>
+                        <label for="shipping_company">{{ 'registerPage.companyLabel' | transloco }}</label>
                         @if (isEditing()) {
-                          <input id="shipping_first_name" formControlName="shipping_first_name" [attr.aria-invalid]="isControlInvalid(getControl('shipping_first_name'))">
-                          @if (isControlInvalid(getControl('shipping_first_name'))) { <div class="error-container"><small>{{ 'checkoutDetailsPage.errors.firstNameRequired' | transloco }}</small></div> }
+                          <input id="shipping_company" formControlName="shipping_company">
                         } @else {
-                          <div class="view-mode-field">{{ getControl('shipping_first_name')?.value || '-' }}</div>
+                          <div class="view-mode-field">{{ getControl('shipping_company')?.value || '-' }}</div>
                         }
                       </div>
                       <div class="form-field">
-                        <label for="shipping_last_name">{{ 'profilePage.lastNameLabel' | transloco }} *</label>
+                        <label for="shipping_address_1">{{ 'profilePage.addressStreetLabel' | transloco }} *</label>
                         @if (isEditing()) {
-                          <input id="shipping_last_name" formControlName="shipping_last_name" [attr.aria-invalid]="isControlInvalid(getControl('shipping_last_name'))">
-                          @if (isControlInvalid(getControl('shipping_last_name'))) { <div class="error-container"><small>{{ 'checkoutDetailsPage.errors.lastNameRequired' | transloco }}</small></div> }
+                          <input id="shipping_address_1" formControlName="shipping_address_1" [attr.aria-invalid]="isControlInvalid(getControl('shipping_address_1'))">
+                          @if (isControlInvalid(getControl('shipping_address_1'))) { <div class="error-container"><small>{{ 'checkoutDetailsPage.errors.address1Required' | transloco }}</small></div> }
                         } @else {
-                          <div class="view-mode-field">{{ getControl('shipping_last_name')?.value || '-' }}</div>
+                          <div class="view-mode-field">{{ getControl('shipping_address_1')?.value || '-' }}</div>
                         }
                       </div>
-                    </div>
-                    <div class="form-field">
-                      <label for="shipping_company">{{ 'registerPage.companyLabel' | transloco }}</label>
-                      @if (isEditing()) {
-                        <input id="shipping_company" formControlName="shipping_company">
-                      } @else {
-                        <div class="view-mode-field">{{ getControl('shipping_company')?.value || '-' }}</div>
-                      }
-                    </div>
-                    <div class="form-field">
-                      <label for="shipping_address_1">{{ 'profilePage.addressStreetLabel' | transloco }} *</label>
-                      @if (isEditing()) {
-                        <input id="shipping_address_1" formControlName="shipping_address_1" [attr.aria-invalid]="isControlInvalid(getControl('shipping_address_1'))">
-                        @if (isControlInvalid(getControl('shipping_address_1'))) { <div class="error-container"><small>{{ 'checkoutDetailsPage.errors.address1Required' | transloco }}</small></div> }
-                      } @else {
-                        <div class="view-mode-field">{{ getControl('shipping_address_1')?.value || '-' }}</div>
-                      }
-                    </div>
-                    <div class="form-field">
-                      <label for="shipping_address_2">{{ 'checkoutDetailsPage.billingAddress.address2Label' | transloco }}</label>
-                      @if (isEditing()) {
-                        <input id="shipping_address_2" formControlName="shipping_address_2">
-                      } @else {
-                        <div class="view-mode-field">{{ getControl('shipping_address_2')?.value || '-' }}</div>
-                      }
-                    </div>
-                    <div class="form-row">
-                      <div class="form-field zip-field">
-                        <label for="shipping_postcode">{{ 'profilePage.addressZipLabel' | transloco }} *</label>
+                      <div class="form-field">
+                        <label for="shipping_address_2">{{ 'checkoutDetailsPage.billingAddress.address2Label' | transloco }}</label>
                         @if (isEditing()) {
-                          <input id="shipping_postcode" formControlName="shipping_postcode" [attr.aria-invalid]="isControlInvalid(getControl('shipping_postcode'))">
-                          @if (isControlInvalid(getControl('shipping_postcode'))) {
-                            <div class="error-container">
-                              @if(getControl('shipping_postcode')?.errors?.['required']) { <small>{{ 'checkoutDetailsPage.errors.postcodeRequired' | transloco }}</small> }
-                              @if(getControl('shipping_postcode')?.errors?.['pattern']) { <small>{{ 'checkoutDetailsPage.errors.postcodePattern' | transloco }}</small> }
-                            </div>
+                          <input id="shipping_address_2" formControlName="shipping_address_2">
+                        } @else {
+                          <div class="view-mode-field">{{ getControl('shipping_address_2')?.value || '-' }}</div>
+                        }
+                      </div>
+                      <div class="form-row">
+                        <div class="form-field zip-field">
+                          <label for="shipping_postcode">{{ 'profilePage.addressZipLabel' | transloco }} *</label>
+                          @if (isEditing()) {
+                            <input id="shipping_postcode" formControlName="shipping_postcode" [attr.aria-invalid]="isControlInvalid(getControl('shipping_postcode'))">
+                            @if (isControlInvalid(getControl('shipping_postcode'))) {
+                              <div class="error-container">
+                                @if(getControl('shipping_postcode')?.errors?.['required']) { <small>{{ 'checkoutDetailsPage.errors.postcodeRequired' | transloco }}</small> }
+                                @if(getControl('shipping_postcode')?.errors?.['pattern']) { <small>{{ 'checkoutDetailsPage.errors.postcodePattern' | transloco }}</small> }
+                              </div>
+                            }
+                          } @else {
+                            <div class="view-mode-field">{{ getControl('shipping_postcode')?.value || '-' }}</div>
+                          }
+                        </div>
+                        <div class="form-field city-field">
+                          <label for="shipping_city">{{ 'profilePage.addressCityLabel' | transloco }} *</label>
+                          @if (isEditing()) {
+                            <input id="shipping_city" formControlName="shipping_city" [attr.aria-invalid]="isControlInvalid(getControl('shipping_city'))">
+                            @if (isControlInvalid(getControl('shipping_city'))) { <div class="error-container"><small>{{ 'checkoutDetailsPage.errors.cityRequired' | transloco }}</small></div> }
+                          } @else {
+                            <div class="view-mode-field">{{ getControl('shipping_city')?.value || '-' }}</div>
+                          }
+                        </div>
+                      </div>
+                      <div class="form-field">
+                        <label for="shipping_country">{{ 'checkoutDetailsPage.shippingAddress.countryLabel' | transloco }} *</label>
+                        @if (isEditing()) {
+                          <select id="shipping_country" formControlName="shipping_country" [attr.aria-invalid]="isControlInvalid(getControl('shipping_country'))">
+                            @for (country of availableCountries; track country.code) {
+                              <option [value]="country.code">{{ country.name }}</option>
+                            }
+                          </select>
+                          @if (isControlInvalid(getControl('shipping_country'))) {
+                            <div class="error-container"><small>{{ 'checkoutDetailsPage.errors.countryRequired' | transloco }}</small></div>
                           }
                         } @else {
-                          <div class="view-mode-field">{{ getControl('shipping_postcode')?.value || '-' }}</div>
-                        }
-                      </div>
-                      <div class="form-field city-field">
-                        <label for="shipping_city">{{ 'profilePage.addressCityLabel' | transloco }} *</label>
-                        @if (isEditing()) {
-                          <input id="shipping_city" formControlName="shipping_city" [attr.aria-invalid]="isControlInvalid(getControl('shipping_city'))">
-                          @if (isControlInvalid(getControl('shipping_city'))) { <div class="error-container"><small>{{ 'checkoutDetailsPage.errors.cityRequired' | transloco }}</small></div> }
-                        } @else {
-                          <div class="view-mode-field">{{ getControl('shipping_city')?.value || '-' }}</div>
+                          <div class="view-mode-field">{{ getCountryNameByCode(getControl('shipping_country')?.value) || '-' }}</div>
                         }
                       </div>
                     </div>
-                    <div class="form-field">
-                      <label for="shipping_country">{{ 'checkoutDetailsPage.shippingAddress.countryLabel' | transloco }} *</label>
-                      @if (isEditing()) {
-                        <select id="shipping_country" formControlName="shipping_country" [attr.aria-invalid]="isControlInvalid(getControl('shipping_country'))">
-                          @for (country of availableCountries; track country.code) {
-                            <option [value]="country.code">{{ country.name }}</option>
-                          }
-                        </select>
-                        @if (isControlInvalid(getControl('shipping_country'))) {
-                          <div class="error-container"><small>{{ 'checkoutDetailsPage.errors.countryRequired' | transloco }}</small></div>
-                        }
-                      } @else {
-                        <div class="view-mode-field">{{ getCountryNameByCode(getControl('shipping_country')?.value) || '-' }}</div>
-                      }
-                    </div>
-                  </div>
-                }
+                  }
 
-                @if (isEditing()) {
-                  <div class="action-button-container">
-                    <button type="submit" class="submit-button" [disabled]="isSaving()">
-                      @if (isSaving()) {
-                        <app-loading-spinner></app-loading-spinner>
-                        <span>{{ 'profilePage.savingButton' | transloco }}</span>
-                      } @else {
-                        <span>{{ 'profilePage.saveChangesButton' | transloco }}</span>
-                      }
-                    </button>
-                  </div>
-                }
-              </div> <!-- End form-content-wrapper -->
-            </form>
-          </section>
+                  @if (isEditing()) {
+                    <div class="action-button-container">
+                      <!-- Der Lade-Spinner im Button bleibt, da er gut funktioniert -->
+                      <button type="submit" class="submit-button" [disabled]="isSaving()">
+                        @if (isSaving()) {
+                          <app-loading-spinner></app-loading-spinner>
+                          <span>{{ 'profilePage.savingButton' | transloco }}</span>
+                        } @else {
+                          <span>{{ 'profilePage.saveChangesButton' | transloco }}</span>
+                        }
+                      </button>
+                    </div>
+                  }
+                </div> <!-- End form-content-wrapper -->
+              </form>
+            </section>
+          </div> <!-- End content-wrapper -->
         }
 
         <!-- Sektion für Bestellungen -->
         @if (activeSection() === 'orders' || activeSection() === 'orderDetails') {
-           <section>
-            <!-- Bestell-Liste -->
-            @if (!selectedOrder()) {
-              <h2>{{ 'profilePage.navOrders' | transloco }}</h2>
-              @if (orderIsLoading()) {
-                <div class="loading-indicator orders-loader"><app-loading-spinner></app-loading-spinner></div>
-              }
-              @if (!orderIsLoading() && orders().length === 0) {
-                <div class="empty-state">
-                  <p>{{ 'profilePage.noOrders' | transloco }}</p>
-                  <a routerLink="/" class="button-primary">{{ 'home.discoverCategories' | transloco }}</a>
-                </div>
-              }
-              @if (!orderIsLoading() && orders().length > 0) {
-                <ul class="orders-list">
-                  @for (order of orders(); track order.id) {
-                    <li class="order-item">
-                      <div class="order-summary">
-                        <span><strong>{{ 'profilePage.orderNumber' | transloco }}:</strong> {{ order.number }}</span>
-                        <span><strong>{{ 'profilePage.orderDate' | transloco }}:</strong> {{ formatDate(order.date_created) }}</span>
-                        <span><strong>{{ 'profilePage.orderStatus' | transloco }}:</strong> {{ ('profilePage.orderStatus_' + order.status) | transloco }}</span>
-                        <span><strong>{{ 'profilePage.orderTotal' | transloco }}:</strong> {{ order.total | formatPrice: order.currency }}</span>
-                      </div>
-                      <button (click)="loadOrderDetails(order.id)" class="view-details-button">{{ 'profilePage.viewOrderDetails' | transloco }}</button>
-                    </li>
-                  }
-                </ul>
-              }
-              @if (totalPages() > 1 && !orderIsLoading()) {
-                <div class="pagination">
-                  <button (click)="loadOrders(currentPage() - 1, currentUserWordPressId!)" [disabled]="currentPage() === 1 || orderIsLoading()">{{'profilePage.prevPage' | transloco}}</button>
-                  <span>{{ 'profilePage.pageIndicator' | transloco: { currentPage: currentPage(), totalPages: totalPages() } }}</span>
-                  <button (click)="loadOrders(currentPage() + 1, currentUserWordPressId!)" [disabled]="currentPage() === totalPages() || orderIsLoading()">{{'profilePage.nextPage' | transloco}}</button>
-                </div>
-              }
-            }
-
-            <!-- Bestell-Details -->
-            @if (selectedOrder(); as order) {
-              <div class="section-header">
-                <h2>{{ 'profilePage.orderDetailsTitle' | transloco }} #{{ order.number }}</h2>
-                <button (click)="setActiveSection('orders')" class="back-to-orders-button"><span class="material-symbols-outlined">arrow_back</span> {{ 'profilePage.backToOrders' | transloco }}</button>
+          <div class="content-wrapper">
+             <!-- +++ NEU: Lade-Overlay für Bestelldetails +++ -->
+            @if (orderIsLoading()) {
+              <div class="loading-overlay">
+                <app-loading-spinner></app-loading-spinner>
               </div>
-              <div class="order-detail-content">
-                <div class="order-meta-grid">
-                  <p><strong>{{ 'profilePage.orderDate' | transloco }}:</strong> {{ formatDate(order.date_created) }}</p>
-                  <p><strong>{{ 'profilePage.orderStatus' | transloco }}:</strong> {{ ('profilePage.orderStatus_' + order.status) | transloco }}</p>
-                  <p><strong>{{ 'profilePage.paymentMethod' | transloco }}:</strong> {{ order.payment_method_title }}</p>
-                  <p><strong>{{ 'profilePage.orderTotal' | transloco }}:</strong> {{ order.total | formatPrice: order.currency }}</p>
-                </div>
+            }
+            <section [class.is-loading]="orderIsLoading()">
+              <!-- Bestell-Liste -->
+              @if (!selectedOrder()) {
+                <h2>{{ 'profilePage.navOrders' | transloco }}</h2>
                 
-                <div class="address-columns">
-                    <div class="address-column">
-                        <h3>{{ 'profilePage.billingAddressTitle' | transloco }}</h3>
-                        <address class="address-display">
-                            <p>{{ order.billing.first_name }} {{ order.billing.last_name }}</p>
-                            @if(order.billing.company){ <p>{{ order.billing.company }}</p> }
-                            <p>{{ order.billing.address_1 }}</p>
-                            @if(order.billing.address_2){ <p>{{ order.billing.address_2 }}</p> }
-                            <p>{{ order.billing.postcode }} {{ order.billing.city }}</p>
-                        </address>
-                    </div>
-                    @if(order.shipping && order.shipping.address_1){
+                @if (orders().length === 0 && !orderIsLoading()) {
+                  <div class="empty-state">
+                    <p>{{ 'profilePage.noOrders' | transloco }}</p>
+                    <a routerLink="/" class="button-primary">{{ 'home.discoverCategories' | transloco }}</a>
+                  </div>
+                }
+                @if (orders().length > 0 && !orderIsLoading()) {
+                  <ul class="orders-list">
+                    @for (order of orders(); track order.id) {
+                      <li class="order-item">
+                        <div class="order-summary">
+                          <span><strong>{{ 'profilePage.orderNumber' | transloco }}:</strong> {{ order.number }}</span>
+                          <span><strong>{{ 'profilePage.orderDate' | transloco }}:</strong> {{ formatDate(order.date_created) }}</span>
+                          <span><strong>{{ 'profilePage.orderStatus' | transloco }}:</strong> {{ ('profilePage.orderStatus_' + order.status) | transloco }}</span>
+                          <span><strong>{{ 'profilePage.orderTotal' | transloco }}:</strong> {{ order.total | formatPrice: order.currency }}</span>
+                        </div>
+                        <button (click)="loadOrderDetails(order.id)" class="view-details-button">{{ 'profilePage.viewOrderDetails' | transloco }}</button>
+                      </li>
+                    }
+                  </ul>
+                }
+                @if (totalPages() > 1 && !orderIsLoading()) {
+                  <div class="pagination">
+                    <button (click)="loadOrders(currentPage() - 1, currentUserWordPressId!)" [disabled]="currentPage() === 1 || orderIsLoading()">{{'profilePage.prevPage' | transloco}}</button>
+                    <span>{{ 'profilePage.pageIndicator' | transloco: { currentPage: currentPage(), totalPages: totalPages() } }}</span>
+                    <button (click)="loadOrders(currentPage() + 1, currentUserWordPressId!)" [disabled]="currentPage() === totalPages() || orderIsLoading()">{{'profilePage.nextPage' | transloco}}</button>
+                  </div>
+                }
+              }
+
+              <!-- Bestell-Details -->
+              @if (selectedOrder(); as order) {
+                <div class="section-header">
+                  <h2>{{ 'profilePage.orderDetailsTitle' | transloco }} #{{ order.number }}</h2>
+                  <button (click)="setActiveSection('orders')" class="back-to-orders-button"><span class="material-symbols-outlined">arrow_back</span> {{ 'profilePage.backToOrders' | transloco }}</button>
+                </div>
+                <div class="order-detail-content">
+                  <div class="order-meta-grid">
+                    <p><strong>{{ 'profilePage.orderDate' | transloco }}:</strong> {{ formatDate(order.date_created) }}</p>
+                    <p><strong>{{ 'profilePage.orderStatus' | transloco }}:</strong> {{ ('profilePage.orderStatus_' + order.status) | transloco }}</p>
+                    <p><strong>{{ 'profilePage.paymentMethod' | transloco }}:</strong> {{ order.payment_method_title }}</p>
+                    <p><strong>{{ 'profilePage.orderTotal' | transloco }}:</strong> {{ order.total | formatPrice: order.currency }}</p>
+                  </div>
+                  
+                  <div class="address-columns">
                       <div class="address-column">
-                          <h3>{{ 'profilePage.shippingAddressTitle' | transloco }}</h3>
+                          <h3>{{ 'profilePage.billingAddressTitle' | transloco }}</h3>
                           <address class="address-display">
-                              <p>{{ order.shipping.first_name }} {{ order.shipping.last_name }}</p>
-                              @if(order.shipping.company){ <p>{{ order.shipping.company }}</p> }
-                              <p>{{ order.shipping.address_1 }}</p>
-                              @if(order.shipping.address_2){ <p>{{ order.shipping.address_2 }}</p> }
-                              <p>{{ order.shipping.postcode }} {{ order.shipping.city }}</p>
+                              <p>{{ order.billing.first_name }} {{ order.billing.last_name }}</p>
+                              @if(order.billing.company){ <p>{{ order.billing.company }}</p> }
+                              <p>{{ order.billing.address_1 }}</p>
+                              @if(order.billing.address_2){ <p>{{ order.billing.address_2 }}</p> }
+                              <p>{{ order.billing.postcode }} {{ order.billing.city }}</p>
                           </address>
                       </div>
-                    }
-                </div>
-
-                <h4>{{ 'profilePage.orderItems' | transloco }}</h4>
-                <ul class="order-items-list">
-                  @for (item of order.line_items; track item.id) {
-                    <li class="order-line-item">
-                      @if (item.image; as image) {
-                        <div class="item-image">
-                          <img [src]="image.src" [alt]="item.name">
+                      @if(order.shipping && order.shipping.address_1){
+                        <div class="address-column">
+                            <h3>{{ 'profilePage.shippingAddressTitle' | transloco }}</h3>
+                            <address class="address-display">
+                                <p>{{ order.shipping.first_name }} {{ order.shipping.last_name }}</p>
+                                @if(order.shipping.company){ <p>{{ order.shipping.company }}</p> }
+                                <p>{{ order.shipping.address_1 }}</p>
+                                @if(order.shipping.address_2){ <p>{{ order.shipping.address_2 }}</p> }
+                                <p>{{ order.shipping.postcode }} {{ order.shipping.city }}</p>
+                            </address>
                         </div>
                       }
-                      <div class="item-details">
-                        <div class="item-name">{{ item.name }}</div>
-                        <div class="item-meta">
-                          <span>{{ 'profilePage.quantity' | transloco }}: {{ item.quantity }}</span>
-                          @if(item.sku){ <span>{{ 'profilePage.sku' | transloco }}: {{ item.sku }}</span> }
+                  </div>
+
+                  <h4>{{ 'profilePage.orderItems' | transloco }}</h4>
+                  <ul class="order-items-list">
+                    @for (item of order.line_items; track item.id) {
+                      <li class="order-line-item">
+                        @if (item.image; as image) {
+                          <div class="item-image">
+                            <img [src]="image.src" [alt]="item.name">
+                          </div>
+                        }
+                        <div class="item-details">
+                          <div class="item-name">{{ item.name }}</div>
+                          <div class="item-meta">
+                            <span>{{ 'profilePage.quantity' | transloco }}: {{ item.quantity }}</span>
+                            @if(item.sku){ <span>{{ 'profilePage.sku' | transloco }}: {{ item.sku }}</span> }
+                          </div>
                         </div>
-                      </div>
-                      <div class="item-total">{{ item.total | formatPrice: order.currency }}</div>
-                    </li>
-                  }
-                </ul>
-              </div>
-            }
-          </section>
+                        <div class="item-total">{{ item.total | formatPrice: order.currency }}</div>
+                      </li>
+                    }
+                  </ul>
+                </div>
+              }
+            </section>
+          </div>
         }
         
         <!-- Passwort ändern -->
