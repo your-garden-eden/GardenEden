@@ -34,7 +34,6 @@ import {
   NavSubItem,
 } from '../../core/data/navigation.data';
 
-// +++ NEU: LoadingSpinnerComponent importieren +++
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 
 // Swiper Imports
@@ -44,7 +43,6 @@ import { Autoplay } from 'swiper/modules';
 @Component({
   selector: 'app-home',
   standalone: true,
-  // +++ NEU: LoadingSpinnerComponent zu den Imports hinzufügen +++
   imports: [CommonModule, ProductCardComponent, TranslocoModule, RouterModule, LoadingSpinnerComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
@@ -117,21 +115,9 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
     return products.filter(product => product.stock_status === 'instock');
   }
 
-  private async verifyImageLoad(url: string): Promise<boolean> {
-    if (!isPlatformBrowser(this.platformId)) return false;
-    return new Promise((resolve) => {
-      if (!url || typeof url !== 'string') {
-        resolve(false);
-        return;
-      }
-      const img = new Image();
-      img.onload = () => resolve(true);
-      img.onerror = () => resolve(false);
-      img.src = url;
-    });
-  }
+  // --- ENTFERNT ---: Die Methode verifyImageLoad wurde entfernt, da sie ein Performance-Flaschenhals war.
 
-  async loadBestsellers(): Promise<void> {
+  loadBestsellers(): void {
     this.isLoadingBestsellers.set(true);
     this.errorBestsellers.set(null);
     this.bestsellerProducts.set([]);
@@ -140,52 +126,32 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
       .set('orderby', 'popularity')
       .set('order', 'desc');
 
-    try {
-      const response = await new Promise<WooCommerceProductsResponse>((resolve, reject) => {
-        this.woocommerceService
-          .getProducts(undefined, this.FETCH_BESTSELLER_COUNT, 1, httpApiParams)
-          .pipe(take(1))
-          .subscribe({
-            next: res => resolve(res),
-            error: err => reject(err)
-          });
+    const bestsellerSub = this.woocommerceService
+      .getProducts(undefined, this.FETCH_BESTSELLER_COUNT, 1, httpApiParams)
+      .pipe(
+        take(1),
+        map(response => {
+          let products = this.filterProductsWithNoImageArray(response.products);
+          products = this.filterProductsByStockStatus(products);
+          return products.slice(0, this.DISPLAY_BESTSELLER_COUNT);
+        }),
+        catchError(err => {
+          console.error('HomeComponent: Bestseller Fehler:', err);
+          this.errorBestsellers.set(
+            this.translocoService.translate('home.errorLoadingBestsellers')
+          );
+          return of([]); // Leeres Array zurückgeben, um den Stream am Leben zu halten
+        }),
+        finalize(() => {
+          this.isLoadingBestsellers.set(false);
+          this.cdr.markForCheck(); // Change Detection in jedem Fall anstoßen
+        })
+      )
+      .subscribe(verifiedProducts => {
+        this.bestsellerProducts.set(verifiedProducts);
       });
-
-      let candidateProducts = this.filterProductsWithNoImageArray(response.products);
-      candidateProducts = this.filterProductsByStockStatus(candidateProducts);
-
-      if (candidateProducts.length === 0) {
-        this.bestsellerProducts.set([]);
-        this.isLoadingBestsellers.set(false);
-        this.cdr.markForCheck();
-        return;
-      }
-
-      const verificationPromises = candidateProducts.map(p => this.verifyImageLoad(p.images[0].src));
-      const verificationResults = await Promise.allSettled(verificationPromises);
-
-      const verifiedAndInStockProducts: WooCommerceProduct[] = [];
-      candidateProducts.forEach((product, index) => {
-        const result = verificationResults[index];
-        if (result.status === 'fulfilled' && result.value === true) {
-          verifiedAndInStockProducts.push(product);
-        }
-      });
-
-      this.bestsellerProducts.set(verifiedAndInStockProducts.slice(0, this.DISPLAY_BESTSELLER_COUNT));
-      
-      this.isLoadingBestsellers.set(false);
-      this.cdr.markForCheck();
-
-    } catch (err) {
-      console.error('HomeComponent: Bestseller Fehler:', err);
-      this.errorBestsellers.set(
-        this.translocoService.translate('home.errorLoadingBestsellers')
-      );
-      this.bestsellerProducts.set([]);
-      this.isLoadingBestsellers.set(false);
-      this.cdr.markForCheck();
-    }
+    
+    this.subscriptions.add(bestsellerSub);
   }
 
   private prepareSubCategorySliderItems(): void {

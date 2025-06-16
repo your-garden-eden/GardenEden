@@ -139,35 +139,35 @@ export class ProductListPageComponent implements OnInit, OnDestroy {
     });
     this.subscriptions.add(dataLoadingSubscription);
   }
-
+  
+  // HIER GEÄNDERT: Vereinfachte und schnellere Ladelogik
   private async initialLoad(): Promise<void> {
     const categoryId = this.currentCategory()?.id;
     if (!categoryId) return;
     
     this.loadState.set('loading');
-    this.displayableProducts.set([]); // Wichtig: Liste vor dem Befüllen leeren
     
     try {
       const response = await firstValueFrom(this.woocommerceService.getProducts(categoryId, this.PRODUCTS_PER_PAGE, 1));
+      
+      const validProducts = this.filterProductsWithImageData(response.products);
+      
+      this.displayableProducts.set(validProducts);
       this.totalProductPages.set(response.totalPages);
       this.currentPage.set(1);
       this.hasNextPage.set(this.currentPage() < this.totalProductPages());
-
-      // Starte die progressive Anzeige
-      await this.processAndDisplayProducts(response.products);
-      
       this.loadState.set('completed');
 
     } catch (err) {
       console.error("Error during initial product load:", err);
       this.handleErrorState(this.translocoService.translate('productList.errorLoadingProducts'));
     } finally {
-      // Stellt sicher, dass der Observer nach dem Verarbeiten gesetzt wird
       this.cdr.detectChanges();
       this.trySetupIntersectionObserver();
     }
   }
   
+  // HIER GEÄNDERT: Vereinfachte und schnellere Ladelogik
   async loadMoreProducts(): Promise<void> {
     const categoryId = this.currentCategory()?.id;
     if (!categoryId || this.isLoadingMore() || !this.hasNextPage()) {
@@ -179,16 +179,21 @@ export class ProductListPageComponent implements OnInit, OnDestroy {
 
     try {
       const response = await firstValueFrom(this.woocommerceService.getProducts(categoryId, this.PRODUCTS_PER_PAGE, nextPage));
-      this.totalProductPages.set(response.totalPages); // Sicherstellen, dass die Gesamtseitenzahl aktuell ist
+      
+      const newValidProducts = this.filterProductsWithImageData(response.products);
+
+      this.displayableProducts.update(currentProducts => {
+        const uniqueNewProducts = newValidProducts.filter(p => !currentProducts.some(cp => cp.id === p.id));
+        return [...currentProducts, ...uniqueNewProducts];
+      });
+
+      this.totalProductPages.set(response.totalPages);
       this.currentPage.set(nextPage);
       this.hasNextPage.set(this.currentPage() < this.totalProductPages());
-      
-      // Starte die progressive Anzeige für die nachgeladenen Produkte
-      await this.processAndDisplayProducts(response.products);
 
     } catch (err) {
       console.error(`Error on loading page ${nextPage}:`, err);
-      this.hasNextPage.set(false); // Bei Fehler keine weiteren Seiten laden
+      this.hasNextPage.set(false);
     } finally {
       this.isLoadingMore.set(false);
       this.cdr.detectChanges();
@@ -197,70 +202,18 @@ export class ProductListPageComponent implements OnInit, OnDestroy {
   }
   
   /**
-   * NEU: Verarbeitet Produkte einzeln und fügt sie bei Erfolg direkt zur Anzeigeliste hinzu.
+   * HIER GEÄNDERT: Schneller, nicht-blockierender Filter anstelle der langsamen Validierung.
    */
-  private async processAndDisplayProducts(products: WooCommerceProduct[]): Promise<void> {
-    if (!products || products.length === 0) {
-      return;
-    }
-
-    for (const product of products) {
-      // Schritt 1: Überspringe Produkte ohne Bildinformationen sofort
-      if (!product.images || product.images.length === 0 || !product.images[0]?.src) {
-        continue;
-      }
-      
-      // Schritt 2: Validiere das Bild des einzelnen Produkts
-      const validatedProduct = await this.verifyImageLoad(product);
-
-      // Schritt 3: Wenn validiert, füge es zur Liste hinzu (und stelle Einzigartigkeit sicher)
-      if (validatedProduct) {
-        this.displayableProducts.update(currentProducts => {
-          const isDuplicate = currentProducts.some(p => p.id === validatedProduct.id);
-          if (isDuplicate) {
-            return currentProducts; // Keine Änderung, wenn Duplikat
-          }
-          return [...currentProducts, validatedProduct];
-        });
-      }
-    }
+  private filterProductsWithImageData(products: WooCommerceProduct[]): WooCommerceProduct[] {
+    if (!products) return [];
+    return products.filter(product => product.images && product.images.length > 0 && product.images[0]?.src);
   }
 
-
-  private getUniqueProducts(products: WooCommerceProduct[]): WooCommerceProduct[] {
-    const seen = new Set<number>();
-    return products.filter(product => {
-      const duplicate = seen.has(product.id);
-      seen.add(product.id);
-      return !duplicate;
-    });
-  }
-
-  // HINWEIS: DIESE METHODE WIRD NICHT MEHR VERWENDET UND KANN GELÖSCHT WERDEN
-  private async validateProducts(products: WooCommerceProduct[]): Promise<WooCommerceProduct[]> {
-    if (!products || products.length === 0) {
-      return [];
-    }
-    const verificationPromises = products
-      .filter(p => p.images && p.images.length > 0 && p.images[0]?.src)
-      .map(p => this.verifyImageLoad(p));
-
-    const results = await Promise.all(verificationPromises);
-    return results.filter((p): p is WooCommerceProduct => p !== null);
-  }
-
-  private verifyImageLoad(product: WooCommerceProduct): Promise<WooCommerceProduct | null> {
-    return new Promise(resolve => {
-      if (!isPlatformBrowser(this.platformId) || !product.images[0].src) {
-        resolve(null);
-        return;
-      }
-      const img = new Image();
-      img.onload = () => resolve(product);
-      img.onerror = () => resolve(null);
-      img.src = product.images[0].src;
-    });
-  }
+  // --- ENTFERNT ---: Die folgenden Methoden sind nicht mehr nötig und wurden für bessere Performance entfernt:
+  // - processAndDisplayProducts
+  // - getUniqueProducts
+  // - validateProducts
+  // - verifyImageLoad
 
   private resetStateBeforeLoad(): void {
     this.loadState.set('loading');

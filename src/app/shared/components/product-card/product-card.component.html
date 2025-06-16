@@ -1,22 +1,16 @@
 <!-- /src/app/shared/components/product-card/product-card.component.html -->
 <div class="product-card"
      [class.is-on-sale]="onSale"
-     [class.is-out-of-stock]="stockStatus === 'outofstock'"
+     [class.is-unavailable]="effectiveStatus() !== 'available'"
      [class.is-variable]="isVariable">
-  <a [routerLink]="productLink" class="product-link">
+  <a [routerLink]="productLink" class="product-link" [class.disabled-link]="effectiveStatus() === 'out_of_stock' || effectiveStatus() === 'price_unavailable'">
     <div class="product-image-container">
-
-      <!-- NEU: Wishlist Toggle Button -->
-      <button
-        type="button"
-        class="wishlist-toggle"
-        [class.is-in-wishlist]="isLoggedIn() && isInWishlist()"
-        [class.is-logged-out]="!isLoggedIn()"
-        (click)="toggleWishlist($event)"
-        [attr.aria-label]="(isInWishlist() ? 'productCard.removeFromWishlist' : 'productCard.addToWishlist') | transloco">
-        <span class="material-symbols-outlined icon-filled">favorite</span>
-        <span class="material-symbols-outlined icon-outline">favorite_border</span>
-      </button>
+      
+      @if (isImageLoading()) {
+        <div class="image-loading-spinner">
+          <app-loading-spinner [showOverlay]="false" [diameter]="40"></app-loading-spinner>
+        </div>
+      }
 
       @if (imageUrl) {
         <img
@@ -24,30 +18,77 @@
           [alt]="productName"
           [loading]="isLazy ? 'lazy' : 'eager'"
           class="product-image"
+          [hidden]="isImageLoading()"
+          (load)="onImageLoad()"
+          (error)="onImageError()"
         />
-        <div class="no-image-placeholder" style="display: none;"> <!-- Wird nur sichtbar, falls Error-Handling wieder aktiv -->
-            <span class="material-symbols-outlined">image_not_supported</span>
-        </div>
       } @else {
         <div class="no-image-placeholder">
           <span class="material-symbols-outlined">image</span>
         </div>
       }
+      
+      @switch(effectiveStatus()) {
+        @case('out_of_stock') {
+          <span class="availability-badge out-of-stock-badge">{{ 'productCard.outOfStock' | transloco }}</span>
+        }
+        @case('on_backorder') {
+          <span class="availability-badge on-backorder-badge">{{ 'productCard.soonAvailable' | transloco }}</span>
+        }
+        @case('price_unavailable') {
+           <span class="availability-badge price-unavailable-badge">{{ 'productCard.priceOnRequest' | transloco }}</span>
+        }
+      }
       @if (onSale) {
         <span class="sale-badge">{{ 'productCard.sale' | transloco }}</span>
       }
-      @if (stockStatus === 'outofstock') {
-        <span class="out-of-stock-badge">{{ 'productCard.outOfStock' | transloco }}</span>
-      }
+
     </div>
     <div class="product-info">
       <h3 class="product-title">{{ productName }}</h3>
-      <div class="product-price-container">
-        @if (onSale && regularPrice && !isVariable && singlePrice && regularPrice !== singlePrice) {
-          <span class="product-price-regular">{{ regularPrice }}{{ currencySymbol }}</span>
-        }
-        <span class="product-price" [innerHTML]="displayPrice"></span>
+
+      <div class="product-actions">
+        <div class="product-price-container">
+          @if (onSale && regularPrice && !isVariable && singlePrice && regularPrice !== singlePrice) {
+            <span class="product-price-regular">{{ regularPrice }}{{ currencySymbol }}</span>
+          }
+          <span class="product-price" [innerHTML]="displayPrice()"></span>
+        </div>
+
+        <div class="actions-cluster">
+          <button
+            type="button"
+            class="wishlist-toggle"
+            (click)="toggleWishlist($event)"
+            [class.is-in-wishlist]="isLoggedIn() && isInWishlist()"
+            [class.is-logged-out]="!isLoggedIn()"
+            [attr.aria-label]="(isInWishlist() ? 'productCard.removeFromWishlist' : 'productCard.addToWishlist') | transloco">
+            <span class="material-symbols-outlined icon-filled">favorite</span>
+            <span class="material-symbols-outlined icon-outline">favorite_border</span>
+          </button>
+
+          @if (!isVariable) {
+            <button
+              type="button"
+              class="add-to-cart-button"
+              (click)="addToCart($event)"
+              [disabled]="!['available', 'on_backorder'].includes(effectiveStatus()) || isAddingToCart()"
+              [attr.aria-label]="'productCard.addToCart' | transloco">
+              @if (isAddingToCart()) {
+                <!-- HIER KORRIGIERT: Diameter auf 18 reduziert -->
+                <app-loading-spinner [showOverlay]="false" [diameter]="18"></app-loading-spinner>
+              } @else {
+                <span class="material-symbols-outlined">add_shopping_cart</span>
+              }
+            </button>
+          } @else {
+            <div class="select-options-button" [attr.aria-label]="'productCard.selectOptions' | transloco">
+                <span class="material-symbols-outlined">tune</span>
+            </div>
+          }
+        </div>
       </div>
+
       @if (isVariable) {
         <span class="variable-product-info">{{ 'productCard.availableInVariants' | transloco }}</span>
       }

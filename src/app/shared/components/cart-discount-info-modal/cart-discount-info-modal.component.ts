@@ -1,25 +1,36 @@
+// /src/app/shared/components/cart-discount-info-modal/cart-discount-info-modal.component.ts
 import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { UiStateService } from '../../services/ui-state.service';
-import { TranslocoModule, TranslocoService } from '@ngneat/transloco'; // TranslocoService importiert
+import { TranslocoModule, TranslocoService } from '@ngneat/transloco';
+// KORREKTUR: LoadingSpinnerComponent entfernt, da nicht mehr im Template verwendet.
+import { SafeHtmlPipe } from '../../pipes/safe-html.pipe';
 
 @Component({
   selector: 'app-cart-discount-info-modal',
   standalone: true,
-  imports: [CommonModule, TranslocoModule],
+  imports: [
+    CommonModule, 
+    TranslocoModule,
+    SafeHtmlPipe
+  ],
   templateUrl: './cart-discount-info-modal.component.html',
   styleUrls: ['./cart-discount-info-modal.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CartDiscountInfoModalComponent {
   public uiStateService = inject(UiStateService);
-  private translocoService = inject(TranslocoService); // TranslocoService injiziert
+  private translocoService = inject(TranslocoService);
 
-  readonly couponCode = 'DeinGartenEden'; // Bleibt hier
+  readonly couponCode = 'DeinGartenEden';
   public copyStatus = signal<'idle' | 'copied' | 'error' | 'unsupported'>('idle');
 
   public closeModal(): void {
     this.uiStateService.hideCartDiscountPopup();
+  }
+
+  public applyCouponAndClose(): void {
+    this.closeModal();
   }
 
   public copyCouponCode(): void {
@@ -45,11 +56,7 @@ export class CartDiscountInfoModalComponent {
     }
   }
 
-  // Helper für dynamische Aria-Labels und Titles mit Transloco
   getCopyButtonAriaLabel(): string {
-    // Nimmt die Schlüssel von 'modals.cartDiscount', falls sie spezifisch sein sollen,
-    // oder von 'modals.maintenance', wenn sie identisch sind.
-    // Für dieses Beispiel nehme ich an, sie sind identisch in der Struktur.
     const key = this.copyStatus() === 'copied' 
       ? 'modals.cartDiscount.copyCodeButton.ariaLabelCopied' 
       : 'modals.cartDiscount.copyCodeButton.ariaLabelIdle';

@@ -11,18 +11,21 @@
   </main>
   <app-footer></app-footer>
 
-  <!-- Login Overlay (mit Klasse für Animation) -->
+  <!-- KORREKTUR: Greift jetzt auf den public uiStateService zu -->
   <app-login-overlay
-      *ngIf="isLoginOverlayOpen$()"
-      [class.visible]="isLoginOverlayOpen$()">
+      *ngIf="uiStateService.isLoginOverlayOpen$()"
+      [class.visible]="uiStateService.isLoginOverlayOpen$()">
   </app-login-overlay>
 
   <app-cookie-consent-banner></app-cookie-consent-banner>
 
-  <!-- Wartungshinweis Modal -->
-  <app-maintenance-info-modal *ngIf="showMaintenancePopup$()"></app-maintenance-info-modal>
+  <!-- KORREKTUR: Greift jetzt auf den public uiStateService zu -->
+  <app-maintenance-info-modal *ngIf="uiStateService.showMaintenancePopup$()"></app-maintenance-info-modal>
 
-  <!-- +++ NEU: Globales Bestätigungs-Modal +++ -->
+  <!-- KORREKTUR: Greift jetzt auf den public uiStateService zu -->
+  <app-cart-discount-info-modal *ngIf="uiStateService.showCartDiscountPopup$()"></app-cart-discount-info-modal>
+
+  <!-- Globales Bestätigungs-Modal -->
   <app-confirmation-modal></app-confirmation-modal>
 
 </ng-container>

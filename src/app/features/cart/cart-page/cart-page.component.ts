@@ -1,4 +1,4 @@
-// /src/app/features/cart/cart-page/cart-page.component.ts
+// /src/app/features/cart/pages/cart-page/cart-page.component.ts
 import {
   Component,
   inject,
@@ -8,21 +8,19 @@ import {
   Signal,
   OnInit,
   OnDestroy,
-  WritableSignal,
-  ChangeDetectorRef
+  WritableSignal
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
+import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Title } from '@angular/platform-browser';
 import { TranslocoModule, TranslocoService } from '@ngneat/transloco';
 import { Subscription } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
-
-import { CartService } from '../../../shared/services/cart.service';
+import { CartService, ExtendedCartItem, ExtendedWooCommerceStoreCart } from '../../../shared/services/cart.service';
 import { AuthService } from '../../../shared/services/auth.service';
 import { UiStateService } from '../../../shared/services/ui-state.service';
 import {
-  WooCommerceStoreCart,
   WooCommerceStoreCartItem,
   WooCommerceStoreCartTotals
 } from '../../../core/services/woocommerce.service';
@@ -37,9 +35,11 @@ import { SafeHtmlPipe } from '../../../shared/pipes/safe-html.pipe';
     CommonModule,
     RouterLink,
     TranslocoModule,
+    FormsModule,
+    ReactiveFormsModule,
     FormatPricePipe,
     LoadingSpinnerComponent,
-    SafeHtmlPipe
+    SafeHtmlPipe,
   ],
   templateUrl: './cart-page.component.html',
   styleUrls: ['./cart-page.component.scss'],
@@ -51,33 +51,50 @@ export class CartPageComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private titleService = inject(Title);
   private translocoService = inject(TranslocoService);
-  private uiStateService = inject(UiStateService);
-  private cdr = inject(ChangeDetectorRef);
+  public uiStateService = inject(UiStateService);
+  private fb = inject(FormBuilder);
 
-  readonly cart: Signal<WooCommerceStoreCart | null> = this.cartService.cart;
+  couponForm!: FormGroup;
+
+  readonly cart: Signal<ExtendedWooCommerceStoreCart | null> = this.cartService.cart;
   readonly itemCount: Signal<number> = this.cartService.cartItemCount;
-  readonly serviceError: Signal<string | null> = this.cartService.error;
   
-  readonly uiError: WritableSignal<string | null> = signal(null);
-  
+  readonly uiError: Signal<string | null> = computed(() => {
+    return this.cartService.error() || this._uiError();
+  });
+  _uiError: WritableSignal<string | null> = signal(null);
+
   readonly isBusy: Signal<boolean> = computed(() => 
     !!this.cartService.isUpdatingItemKey() || 
     this.cartService.isClearingCart() || 
-    this.cartService.isProcessing()
+    this.cartService.isProcessing() ||
+    this.cartService.isApplyingCoupon()
   );
 
-  readonly cartTotals: Signal<WooCommerceStoreCartTotals | null> = computed(() => this.cart()?.totals ?? null);
-  readonly cartItems: Signal<WooCommerceStoreCartItem[]> = computed(() => this.cart()?.items ?? []);
-  
+  readonly cartItems: Signal<ExtendedCartItem[]> = this.cartService.cartItems;
+  readonly cartTotals: Signal<WooCommerceStoreCartTotals | null> = this.cartService.cartTotals;
   public isLoggedIn: Signal<boolean> = toSignal(this.authService.isLoggedIn$, { initialValue: false }); 
-
   private subscriptions = new Subscription();
 
+  readonly undiscountedSubtotal = computed(() => {
+    return this.cartItems().reduce((total, item) => {
+      const price = parseFloat(item.prices?.regular_price || '0');
+      return total + (price * item.quantity);
+    }, 0);
+  });
+
+  constructor() {}
+
   ngOnInit(): void {
+    this.couponForm = this.fb.group({
+      code: ['', Validators.required]
+    });
+
     const langChangeSub = this.translocoService.langChanges$.subscribe(() => {
         this.titleService.setTitle(this.translocoService.translate('cartPage.title'));
     });
     this.subscriptions.add(langChangeSub);
+    this.titleService.setTitle(this.translocoService.translate('cartPage.title'));
   }
 
   ngOnDestroy(): void {
@@ -92,25 +109,12 @@ export class CartPageComponent implements OnInit, OnDestroy {
     return variant.attribute;
   }
 
-  private getItemIdentifier(item: WooCommerceStoreCartItem): string | number {
-    return this.isLoggedIn() ? (item.parent_product_id || item.id) : item.key;
-  }
-  
-  public getItemLoadingKey(item: WooCommerceStoreCartItem): string {
-    const productId = item.parent_product_id || item.id;
-    const variationId = item.parent_product_id ? item.id : 0;
-    const userKey = `${productId}_${variationId}`;
-    return this.isLoggedIn() ? userKey : item.key;
-  }
-
   async updateQuantity(item: WooCommerceStoreCartItem, newQuantity: number): Promise<void> {
-    this.uiError.set(null);
+    this._uiError.set(null);
     try {
-      const identifier = this.getItemIdentifier(item);
-      const variationId = this.isLoggedIn() ? (item.parent_product_id ? item.id : undefined) : undefined;
-      await this.cartService.updateItemQuantity(identifier, newQuantity, variationId);
+      await this.cartService.updateItemQuantity(item.key, newQuantity);
     } catch (error) {
-      this.uiError.set(this.translocoService.translate('cartPage.errors.updateFailed'));
+      this._uiError.set(this.translocoService.translate('cartPage.errors.updateFailed'));
     }
   }
 
@@ -118,30 +122,49 @@ export class CartPageComponent implements OnInit, OnDestroy {
   decrementQuantity(item: WooCommerceStoreCartItem): void { this.updateQuantity(item, item.quantity - 1); }
 
   async removeItem(item: WooCommerceStoreCartItem): Promise<void> {
-    this.uiError.set(null);
+    this._uiError.set(null);
     try {
-      const identifier = this.getItemIdentifier(item);
-      const variationId = this.isLoggedIn() ? (item.parent_product_id ? item.id : undefined) : undefined;
-      await this.cartService.removeItem(identifier, variationId);
+      await this.cartService.removeItem(item.key);
     } catch (error) {
-      this.uiError.set(this.translocoService.translate('cartPage.errors.removeItem'));
+      this._uiError.set(this.translocoService.translate('cartPage.errors.removeItem'));
     }
   }
 
-  // +++ KORREKTUR: Methode mit optionalem Parameter erweitert +++
-  public goToCheckout(forceAddressPage: boolean = false): void {
-    if (this.itemCount() === 0) {
-      this.uiError.set(this.translocoService.translate('cartPage.errors.emptyCartCheckout'));
+  async applyCoupon(): Promise<void> {
+    this._uiError.set(null);
+    this.cartService.error.set(null);
+    if (this.couponForm.invalid) {
       return;
     }
-
-    // Wenn der Nutzer die Adresse ändern will ODER nicht eingeloggt ist -> gehe zur Adressseite
-    if (forceAddressPage || !this.isLoggedIn()) {
-      this.router.navigate(['/checkout-details']);
-    } else {
-      // Nur wenn eingeloggt und "Direkt zur Kasse" geklickt wird
-      this.cartService.initiateCheckout();
+    const code = this.couponForm.value.code;
+    try {
+      await this.cartService.applyCoupon(code);
+      this.couponForm.reset();
+    } catch (error: any) {
+      // Der Fehler wird bereits im Service gesetzt und im Template angezeigt.
     }
+  }
+  
+  async removeCoupon(code: string): Promise<void> {
+    this._uiError.set(null);
+    this.cartService.error.set(null);
+    try {
+      await this.cartService.removeCoupon(code);
+    } catch (error: any) {
+      // Fehler wird im Service gesetzt.
+    }
+  }
+
+  public goToCheckout(changeAddress: boolean = false): void {
+    if (this.itemCount() === 0) {
+      this._uiError.set(this.translocoService.translate('cartPage.errors.emptyCartCheckout'));
+      return;
+    }
+    if (changeAddress && this.isLoggedIn()) {
+      this.router.navigate(['/checkout-details']);
+      return;
+    }
+    this.cartService.initiateCheckout();
   }
 
   async clearCart(): Promise<void> {
@@ -153,29 +176,26 @@ export class CartPageComponent implements OnInit, OnDestroy {
     });
     
     if (confirmed) {
-      this.uiError.set(null);
+      this._uiError.set(null);
       try {
         await this.cartService.clearCart();
       } catch (error) {
-         this.uiError.set(this.translocoService.translate('cartPage.errors.clearCart'));
+         this._uiError.set(this.translocoService.translate('cartPage.errors.clearCart'));
       }
     }
   }
 
   getProductLink(item: WooCommerceStoreCartItem): string {
-    if (item.permalink) {
-      try {
-        const url = new URL(item.permalink);
-        const pathSegments = url.pathname.replace(/^\/+|\/+$/g, '').split('/');
-        return `/product/${pathSegments[pathSegments.length - 1]}`;
-      } catch (e) {
-        // Fallback
-      }
-    }
-    return `/product/${item.parent_product_id || item.id}`;
+    const productId = item.parent_product_id || item.id;
+    return `/product/${productId}`;
   }
 
   getProductImage(item: WooCommerceStoreCartItem): string | undefined {
     return item.images?.[0]?.thumbnail || item.images?.[0]?.src;
+  }
+  
+  calculateLinePrice(item: WooCommerceStoreCartItem): string {
+    const price = parseFloat(item.prices?.regular_price || '0');
+    return (price * item.quantity).toFixed(2);
   }
 }

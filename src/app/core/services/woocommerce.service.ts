@@ -1,10 +1,11 @@
 // /src/app/core/services/woocommerce.service.ts
-import { HttpClient, HttpHeaders, HttpParams, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams, HttpResponse } from '@angular/common/http';
 import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Observable, throwError, of, from, firstValueFrom } from 'rxjs';
 import { catchError, map, tap, switchMap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { AuthService } from '../../shared/services/auth.service';
 
 // --- WooCommerce Data Interfaces (unverändert) ---
 export interface WooCommerceImage { id: number; date_created: string; date_created_gmt: string; date_modified: string; date_modified_gmt: string; src: string; name: string; alt: string; position?: number; }
@@ -21,39 +22,17 @@ export interface WooCommerceProductsResponse { products: WooCommerceProduct[]; t
 export interface WooCommerceStoreCartItemImage { id: number; src: string; thumbnail: string; srcset: string; sizes: string; name: string; alt: string; }
 export interface WooCommerceStoreCartItemTotals { line_subtotal: string; line_subtotal_tax: string; line_total: string; line_total_tax: string; currency_code: string; currency_symbol: string; currency_minor_unit: number; currency_decimal_separator: string; currency_thousand_separator: string; currency_prefix: string; currency_suffix: string; }
 export interface WooCommerceStoreCartItem { key: string; id: number; quantity: number; name: string; short_description?: string; description?: string; sku?: string; low_stock_remaining?: number | null; backorders_allowed?: boolean; show_backorder_badge?: boolean; sold_individually?: boolean; permalink?: string; images: WooCommerceStoreCartItemImage[]; variation: { attribute: string; value: string }[]; item_data?: any[]; prices?: { price: string; regular_price: string; sale_price: string; price_range: null | { min_amount: string; max_amount: string }; currency_code: string; }; totals: WooCommerceStoreCartItemTotals; catalog_visibility?: string; parent_product_id?: number; }
-export interface WooCommerceStoreCartTotals { total_items: string; total_items_tax: string; total_price: string; total_tax: string; total_shipping?: string; total_shipping_tax?: string; total_discount?: string; total_discount_tax?: string; currency_code: string; currency_symbol: string; tax_lines?: { name: string; price: string; rate: string }[]; }
+export interface WooCommerceStoreCartTotals { total_items: string; total_items_tax: string; total_price: string; total_tax: string; total_shipping?: string; total_shipping_tax?: string; total_discount?: string; total_discount_tax?: string; currency_code: string; currency_symbol: string; currency_minor_unit: number; tax_lines?: { name: string; price: string; rate: string }[]; }
 export interface WooCommerceStoreCartCoupon { code: string; discount_type: string; totals: WooCommerceStoreCartTotals; }
 export interface WooCommerceProductVariationAttribute { attribute: string; value: string; }
 export interface WooCommerceStoreAddress { first_name?: string; last_name?: string; company?: string; address_1?: string; address_2?: string; city?: string; state?: string; postcode?: string; country?: string; email?: string; phone?: string; [key: string]: any; }
 export interface WooCommerceStoreShippingRate { rate_id: string; name: string; description?: string; delivery_time?: { value: string; unit: string; }; price: string; taxes: string; method_id: string; instance_id?: number; meta_data?: WooCommerceMetaData[]; selected?: boolean; currency_code?: string; currency_symbol?: string; }
 export interface WooCommerceStoreShippingPackage { package_id: string; name: string; destination: WooCommerceStoreAddress; items: Array<{ key: string; name: string; quantity: number; }>; shipping_rates: WooCommerceStoreShippingRate[]; }
 export interface WooCommerceStoreCart { coupons: WooCommerceStoreCartCoupon[]; shipping_rates: WooCommerceStoreShippingPackage[]; shipping_address: WooCommerceStoreAddress; billing_address: WooCommerceStoreAddress; items: WooCommerceStoreCartItem[]; items_count: number; items_weight: number; needs_payment: boolean; needs_shipping: boolean; has_calculated_shipping: boolean; totals: WooCommerceStoreCartTotals; errors?: any[]; _links?: any; extensions?: object; }
-export interface StageCartPayload { items: { product_id: number; quantity: number; variation_id?: number; }[]; billing_address: WooCommerceStoreAddress; shipping_address?: WooCommerceStoreAddress; }
+export interface StageCartPayload { items: { product_id: number; quantity: number; variation_id?: number; }[]; billing_address: WooCommerceStoreAddress; shipping_address?: WooCommerceStoreAddress; coupon_code?: string; }
 export interface StageCartResponse { success: boolean; token: string; message?: string; expires_in: number; }
-
-// +++ NEUE INTERFACES FÜR BESTELLDETAILS +++
-export interface OrderDetailsLineItem {
-  id: number;
-  name: string;
-  product_id: number;
-  quantity: number;
-  total: string;
-  image_url: string | null;
-}
-
-export interface OrderDetails {
-  id: number;
-  order_key: string;
-  order_number: string;
-  status: string;
-  date_created: string; // ISO 8601 string
-  total: string;
-  currency: string;
-  payment_method_title: string;
-  billing_address: string;  // Formattierter String mit Zeilenumbrüchen
-  shipping_address: string; // Formattierter String mit Zeilenumbrüchen
-  line_items: OrderDetailsLineItem[];
-}
+export interface OrderDetailsLineItem { id: number; name: string; product_id: number; quantity: number; total: string; image_url: string | null; }
+export interface OrderDetails { id: number; order_key: string; order_number: string; status: string; date_created: string; total: string; currency: string; payment_method_title: string; billing_address: string; shipping_address: string; line_items: OrderDetailsLineItem[]; }
 
 
 @Injectable({
@@ -62,6 +41,7 @@ export interface OrderDetails {
 export class WoocommerceService {
   private http = inject(HttpClient);
   private platformId: object = inject(PLATFORM_ID);
+  private authService = inject(AuthService);
   private apiUrlV3 = environment.woocommerce.apiUrl;
   private storeApiUrl = `${environment.woocommerce.storeUrl}/wp-json/wc/store/v1`;
   private consumerKey = environment.woocommerce.consumerKey;
@@ -104,7 +84,12 @@ export class WoocommerceService {
     let headers = new HttpHeaders().set('Content-Type', 'application/json');
     if (this._cartToken) {
       headers = headers.set('Cart-Token', this._cartToken);
-    } else if (this._storeApiNonce) {
+    }
+    const authToken = this.authService.getStoredToken();
+    if(authToken) {
+      headers = headers.set('Authorization', `Bearer ${authToken}`);
+    }
+    if (this._storeApiNonce) {
       headers = headers.set('X-WC-Store-API-Nonce', this._storeApiNonce);
     }
     if (customHeaders) {
@@ -140,9 +125,8 @@ export class WoocommerceService {
   private async fetchAndSetTokensAsync(): Promise<{ cartToken: string | null, nonce: string | null }> {
     if (!isPlatformBrowser(this.platformId)) { return { cartToken: null, nonce: null }; }
     const requestUrl = `${this.storeApiUrl}/cart`;
-    let initialHeaders = new HttpHeaders().set('Content-Type', 'application/json');
-    if (this._cartToken) { initialHeaders = initialHeaders.set('Cart-Token', this._cartToken); }
-    console.log(`[WC_SERVICE] fetchAndSetTokensAsync: Attempting GET ${requestUrl} with current Cart-Token: ${this._cartToken}`);
+    const initialHeaders = this.getStoreApiHeaders();
+    console.log(`[WC_SERVICE] fetchAndSetTokensAsync: Attempting GET ${requestUrl} with current headers.`);
     try {
       const response = await firstValueFrom(this.http.get<WooCommerceStoreCart>(requestUrl, { headers: initialHeaders, observe: 'response', withCredentials: true }));
       this.updateTokensFromResponse(response, `GET ${requestUrl} (initial token fetch)`);
@@ -313,11 +297,12 @@ export class WoocommerceService {
       catchError(this.handleError)
     );
   }
-  public updateCartCustomer(customerData: { billing_address: WooCommerceStoreAddress, shipping_address?: WooCommerceStoreAddress }): Observable<WooCommerceStoreCart | null> {
+  
+  public updateWcCustomer(customerData: { billing_address: Partial<WooCommerceStoreAddress>, shipping_address?: Partial<WooCommerceStoreAddress> }): Observable<WooCommerceStoreCart | null> {
     if (!isPlatformBrowser(this.platformId)) return throwError(() => new Error('Cart operations are not supported on non-browser platform.'));
     return from(this.ensureTokensPresent()).pipe(
       switchMap(tokens => {
-        if (!tokens.cartToken && !tokens.nonce) return throwError(() => new Error('Auth token missing for updateCartCustomer.'));
+        if (!tokens.cartToken && !tokens.nonce) return throwError(() => new Error('Auth token missing for updateWcCustomer.'));
         const headers = this.getStoreApiHeaders(); const requestUrl = `${this.storeApiUrl}/cart/update-customer`;
         return this.http.post<WooCommerceStoreCart>(requestUrl, customerData, { headers, observe: 'response', withCredentials: true });
       }),
@@ -361,6 +346,19 @@ export class WoocommerceService {
       url += `yge_cart_token=${encodeURIComponent(cartPopulationToken)}`;
     }
     return url;
+  }
+
+  // HIER NEU
+  public getCheckoutUrlWithCartToken(cartToken: string): string {
+    let url = `${this.storeUrl}/checkout/`; // Wichtig: Slash am Ende
+    if (cartToken) {
+      url += `?cart_token=${encodeURIComponent(cartToken)}`;
+    }
+    return url;
+  }
+
+  public getLocalCartToken(): string | null {
+    return this._cartToken;
   }
 
   public clearLocalCartToken(): void {
@@ -429,7 +427,6 @@ export class WoocommerceService {
       );
   }
   
-  // +++ NEUE METHODE ZUM ABRUFEN VON BESTELLDETAILS +++
   public getOrderDetails(orderId: string, orderKey: string): Observable<OrderDetails> {
     const requestUrl = `${this.storeUrl}/wp-json/your-garden-eden/v1/order-details`;
     let params = new HttpParams()
@@ -438,11 +435,30 @@ export class WoocommerceService {
       
     console.log(`[WC_SERVICE] getOrderDetails: GET to ${requestUrl} with orderId ${orderId}`);
     
-    // Dies ist ein benutzerdefinierter öffentlicher Endpunkt. withCredentials ist wichtig für CORS.
     return this.http.get<OrderDetails>(requestUrl, { params, withCredentials: true })
       .pipe(
         tap(response => console.log(`[WC_SERVICE] getOrderDetails response:`, response)),
         catchError(this.handleError)
       );
+  }
+  
+  public proxyRequest<T>(url: string, body: any): Observable<T> {
+    if (!isPlatformBrowser(this.platformId)) {
+      return throwError(() => new Error('Proxy requests are not supported on non-browser platforms.'));
+    }
+    return from(this.ensureTokensPresent()).pipe(
+      switchMap(() => {
+        const headers = this.getStoreApiHeaders();
+        console.log(`[WC_SERVICE] proxyRequest: POST to ${url}`);
+        return this.http.post<T>(url, body, {
+          headers,
+          observe: 'response',
+          withCredentials: true,
+        });
+      }),
+      tap((res: HttpResponse<T>) => this.updateTokensFromResponse(res, `POST ${url}`)),
+      map(res => res.body as T),
+      catchError(this.handleError)
+    );
   }
 }

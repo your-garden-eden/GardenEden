@@ -34,10 +34,12 @@
   </div>
 </section>
 
-<section class="bestseller-section content-container">
+<!-- HIER GEÄNDERT: [class.is-loading] hinzugefügt -->
+<section class="bestseller-section content-container" [class.is-loading]="isLoadingBestsellers()">
   <h2>{{ 'home.bestsellersTitle' | transloco }}</h2>
   @if (isLoadingBestsellers()) {
-    <app-loading-spinner></app-loading-spinner>
+    <!-- HIER GEÄNDERT: [showOverlay]="false" hinzugefügt -->
+    <app-loading-spinner [showOverlay]="false"></app-loading-spinner>
   } @else if (errorBestsellers()) {
     <div class="error-message"><p>{{ errorBestsellers() }}</p></div>
   } @else {

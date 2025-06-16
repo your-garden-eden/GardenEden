@@ -2,9 +2,8 @@
 import { Injectable, signal, WritableSignal, Signal, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { BehaviorSubject } from 'rxjs';
-import { ConfirmationModalData } from './ui-state.models'; // Importieren wir gleich
+import { ConfirmationModalData } from './ui-state.models';
 
-// Interface für die Struktur einer globalen Nachricht
 export interface GlobalMessage {
   message: string;
   type: 'success' | 'error' | 'info' | 'warning';
@@ -16,34 +15,29 @@ export interface GlobalMessage {
   providedIn: 'root'
 })
 export class UiStateService {
-  private platformId = inject(PLATFORM_ID);
+  private platformId = inject(PLATFORM_ID); // <- HIER KORRIGIERT
 
-  // --- GLOBALE SCHALTER FÜR POPUPS ---
-  public readonly enableMaintenancePopup: boolean = true;
-  public readonly enableCartDiscountPopup: boolean = true;
+  public readonly enableMaintenancePopup: boolean = false;
+  public readonly enableCartDiscountPopup: boolean = false; // <- HIER GEÄNDERT
 
-  // --- Session Storage Keys ---
   private readonly MAINTENANCE_POPUP_SHOWN_KEY = 'maintenancePopupShownInSession';
   private readonly CART_DISCOUNT_POPUP_SHOWN_KEY = 'cartDiscountPopupShownInSession';
 
-  // --- Zustand für Login-Overlay ---
   private _isLoginOverlayOpen: WritableSignal<boolean> = signal(false);
   public readonly isLoginOverlayOpen$: Signal<boolean> = this._isLoginOverlayOpen.asReadonly();
 
-  // --- Zustand für globale Nachrichten ---
   private _globalMessage: WritableSignal<GlobalMessage | null> = signal(null);
   public readonly globalMessage$ = this._globalMessage.asReadonly();
   private globalMessageTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
-  // --- Zustand für Wartungshinweis-Popup ---
   private _showMaintenancePopup: WritableSignal<boolean> = signal(false);
   public readonly showMaintenancePopup$: Signal<boolean> = this._showMaintenancePopup.asReadonly();
 
-  // --- Zustand für Rabatthinweis-Popup (Warenkorb) ---
   private _showCartDiscountPopup: WritableSignal<boolean> = signal(false);
   public readonly showCartDiscountPopup$: Signal<boolean> = this._showCartDiscountPopup.asReadonly();
 
-  // +++ NEU: Zustand für das Bestätigungs-Modal +++
+  public readonly couponToApply: WritableSignal<string | null> = signal(null);
+
   private confirmationModalDataSubject = new BehaviorSubject<ConfirmationModalData | null>(null);
   public confirmationModalData$ = this.confirmationModalDataSubject.asObservable();
   
@@ -54,7 +48,6 @@ export class UiStateService {
 
   constructor() {}
 
-  // +++ NEU: Methoden für das Bestätigungs-Modal +++
   public openConfirmationModal(data: ConfirmationModalData): Promise<boolean> {
     this.confirmationModalDataSubject.next(data);
     this.isConfirmationModalVisibleSubject.next(true);
@@ -69,15 +62,12 @@ export class UiStateService {
       this.confirmationPromiseResolve(result);
     }
     this.isConfirmationModalVisibleSubject.next(false);
-    // Optional: Daten nach kurzer Verzögerung zurücksetzen, um Fade-Out-Animationen zu ermöglichen
     setTimeout(() => {
       this.confirmationModalDataSubject.next(null);
       this.confirmationPromiseResolve = undefined;
     }, 300);
   }
 
-
-  // --- Methoden für Login-Overlay ---
   openLoginOverlay(): void {
     this._isLoginOverlayOpen.set(true);
   }
@@ -90,7 +80,6 @@ export class UiStateService {
     this._isLoginOverlayOpen.update(value => !value);
   }
 
-  // --- Methoden für Wartungshinweis-Popup ---
   public triggerMaintenancePopup(): void {
     if (!isPlatformBrowser(this.platformId) || !this.enableMaintenancePopup) {
       return;
@@ -119,8 +108,7 @@ export class UiStateService {
     }
   }
 
-  // --- Methoden für Rabatthinweis-Popup (Warenkorb) ---
-  public triggerCartDiscountPopup(): void {
+  public showCartDiscountPopupIfEligible(): void {
     if (!isPlatformBrowser(this.platformId) || !this.enableCartDiscountPopup) {
       return;
     }
@@ -136,6 +124,17 @@ export class UiStateService {
         }
     }
   }
+  
+  /**
+   * NEUE METHODE: Öffnet das Gutschein-Modal manuell (z.B. per Klick).
+   * Diese Methode umgeht die "nur einmal pro Session anzeigen"-Logik.
+   */
+  public showCartDiscountPopup(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+    this._showCartDiscountPopup.set(true);
+  }
 
   public hideCartDiscountPopup(): void {
     this._showCartDiscountPopup.set(false);
@@ -148,7 +147,14 @@ export class UiStateService {
     }
   }
 
-  // --- Methoden für globale Nachrichten (bleiben unverändert) ---
+  public setCouponToApply(code: string): void {
+    this.couponToApply.set(code);
+  }
+
+  public consumeCouponToApply(): void {
+    this.couponToApply.set(null);
+  }
+
   public showGlobalMessage(
     message: string,
     type: GlobalMessage['type'] = 'info',

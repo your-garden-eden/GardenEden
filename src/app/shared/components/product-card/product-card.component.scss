@@ -1,84 +1,79 @@
 // /src/app/shared/components/product-card/product-card.component.scss
 
-// Host-Styling
 :host {
   display: block;
-  height: 100%; // Stellt sicher, dass die Komponente den verfügbaren Platz im Grid/Flex-Container einnimmt
+  height: 100%;
 }
 
-// Der Hauptcontainer der Karte
 .product-card {
   display: flex;
   flex-direction: column;
-  height: 100%; // Wichtig, damit flex-grow im Link funktioniert und die Karte füllt
+  height: 100%;
   border: 1px solid var(--border-color-light);
   border-radius: var(--border-radius-lg);
   background-color: var(--background-color-component);
-  overflow: hidden; // Verhindert, dass z.B. Bilder aus dem Radius ragen
+  overflow: hidden;
   position: relative;
-  // Hinzugefügt: transform für optionalen Hover-Effekt
-  transition: box-shadow 0.3s ease, transform 0.3s ease, opacity 0.3s ease, filter 0.3s ease;
-
-  // Dauerhafter Schatten für die Karte
-  box-shadow: var(--box-shadow-sm); // Du kannst hier auch --box-shadow-md verwenden, wenn du einen stärkeren Standardschatten möchtest
+  transition: all 0.3s ease;
+  box-shadow: var(--box-shadow-sm);
 
   &:hover {
-    // Verstärkter Schatten und optionales leichtes Anheben beim Hovern
     box-shadow: var(--box-shadow-lg);
-    // transform: translateY(-3px); // Optional: Aktivieren für einen leichten "Anhebe"-Effekt
+    transform: translateY(-3px);
   }
 
-  // Styling für nicht vorrätige Produkte
-  &.is-out-of-stock {
-    opacity: 0.6;
-    filter: grayscale(80%); // Macht das Bild grau
-    cursor: not-allowed; // Zeigt an, dass nicht klickbar (obwohl der Link noch da ist)
+  &.is-unavailable {
+    opacity: 0.7;
+    filter: grayscale(70%);
 
     &:hover {
-      box-shadow: var(--box-shadow-sm); // Behält den Standardschatten bei oder einen minimalen Hover-Effekt
-      // transform: none; // Kein Anheben bei "out-of-stock"
+      box-shadow: var(--box-shadow-sm);
+      transform: none;
     }
   }
-
-  // Optional: Spezifisches Styling für variable Produktkarten
-  // &.is-variable {
-  //   border-left: 3px solid var(--primary-color);
-  // }
 }
 
-// Der Link, der die meiste Karte umspannt
-.product-link {
-  display: flex;
-  flex-direction: column;
-  text-decoration: none !important; // Wichtig, um Standard-Link-Unterstreichungen zu entfernen
-  color: var(--text-color-base) !important; // Stellt sicher, dass Textfarbe nicht vom Link-Standard überschrieben wird
-  flex-grow: 1; // Erlaubt diesem Element, den verfügbaren Platz im Flex-Container .product-card auszufüllen
-  height: 100%; // Versucht, die volle Höhe zu nutzen (abhängig von .product-card height: 100%)
+.product-link.disabled-link {
+  pointer-events: none;
+  cursor: default;
 }
 
-// Bild-Zoom-Effekt beim Hovern des Links (wenn Produkt nicht ausverkauft)
-.product-card:not(.is-out-of-stock) .product-link:hover .product-image-container .product-image {
-  // transform: scale(1.03); // Aktiviere dies, wenn du den leichten Zoom-Effekt für das Bild möchtest
+.product-card:not(.is-unavailable) .product-link:hover .product-image-container .product-image {
+  transform: scale(1.05);
 }
 
-// Container für das Produktbild
 .product-image-container {
   width: 100%;
-  aspect-ratio: 1 / 1; // Stellt ein quadratisches Verhältnis sicher
-  overflow: hidden; // Wichtig, damit das skalierte Bild nicht übersteht
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: transparent; // Oder eine Placeholder-Farbe wie var(--background-color-hover-light)
-  position: relative; // Für die Positionierung der Badges
+  background-color: #fff;
+  position: relative;
 
   .product-image {
     display: block;
     width: 100%;
     height: 100%;
-    object-fit: contain; // Stellt sicher, dass das ganze Bild sichtbar ist, passt Seitenverhältnis an
-    // object-fit: cover; // Alternative: Füllt den Container, schneidet ggf. Teile des Bildes ab
-    transition: transform 0.3s ease; // Für den optionalen Zoom-Effekt
+    object-fit: cover;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+
+    &[hidden] {
+      opacity: 0;
+    }
+  }
+
+  .image-loading-spinner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1;
   }
 
   .no-image-placeholder {
@@ -87,152 +82,186 @@
     align-items: center;
     width: 100%;
     height: 100%;
-    background-color: var(--background-color-hover-light); // Heller Hintergrund für Placeholder
-
+    background-color: var(--background-color-light-gray);
     .material-symbols-outlined {
-      font-size: clamp(2.5rem, 10vw, 4rem); // Responsive Icon-Größe
+      font-size: clamp(2.5rem, 10vw, 4rem);
       color: var(--border-color-base);
     }
   }
 
-  // Badges für "Sale" oder "Nicht vorrätig"
-  .sale-badge,
-  .out-of-stock-badge {
+  .availability-badge, .sale-badge {
     position: absolute;
     top: var(--spacing-sm);
     padding: var(--spacing-xs) var(--spacing-sm);
     border-radius: var(--border-radius-sm);
-    font-size: 0.75rem; // ca. 12px
+    font-size: 0.75rem;
     font-weight: var(--font-weight-semibold);
-    color: var(--text-color-on-accent); // Textfarbe, die auf Akzentfarben gut lesbar ist
-    z-index: 1; // Stellt sicher, dass Badges über dem Bild liegen
+    color: var(--primary-color-text);
+    z-index: 2;
   }
 
   .sale-badge {
     left: var(--spacing-sm);
-    background-color: var(--accent-color-sale, #e74c3c); // Fallback-Farbe Rot
+    background-color: var(--error-color);
   }
 
-  .out-of-stock-badge {
+  .availability-badge {
     right: var(--spacing-sm);
-    background-color: var(--neutral-color-dark, #7f8c8d); // Fallback-Farbe Grau
+    &.out-of-stock-badge {
+        background-color: var(--text-color-muted);
+    }
+    &.on-backorder-badge {
+        background-color: var(--warning-color);
+        color: var(--warning-text-color);
+    }
+    &.price-unavailable-badge {
+        background-color: var(--info-color);
+        color: var(--info-text-color);
+    }
   }
 }
 
-// Informationsbereich unter dem Bild
 .product-info {
   padding: var(--spacing-md);
-  flex-grow: 1; // Nimmt den restlichen Platz in der Karte ein (wichtig für gleich hohe Karten in einem Grid)
+  flex-grow: 1;
   display: flex;
-  flex-direction: column; // Ordnet Titel und Preisbereich untereinander an
-  background-color: var(--background-color-light-gray); // Leichter Hintergrund zur Abgrenzung
-  border-top: 1px solid var(--border-color-extra-light); // Dezente Trennlinie zum Bild
+  flex-direction: column;
+  background-color: var(--background-color-component);
+  border-top: 1px solid var(--border-color-light);
 }
 
 .product-title {
-  font-size: 1rem; // ca. 16px
+  font-size: 0.9rem;
   font-weight: var(--font-weight-semibold);
-  line-height: var(--line-height-base, 1.5);
-  margin: 0 0 var(--spacing-sm) 0; // Abstand nach unten
+  line-height: 1.4;
+  margin: 0 0 var(--spacing-sm) 0;
   display: -webkit-box;
-  -webkit-line-clamp: 2; // Beschränkt den Titel auf 2 Zeilen
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis; // Fügt "..." hinzu, wenn der Text zu lang ist
-  min-height: calc(1rem * var(--line-height-base, 1.5) * 2); // Stellt sicher, dass der Bereich immer Platz für 2 Zeilen hat
-  color: inherit; // Erbt die Farbe vom .product-link
+  text-overflow: ellipsis;
+  min-height: calc(0.9rem * 1.4 * 2);
+  color: inherit;
 }
 
-// Container für den Preisbereich
+.product-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-top: auto;
+}
+
 .product-price-container {
   display: flex;
-  align-items: baseline; // Richtet regulären Preis und Sale-Preis an der Grundlinie aus
-  gap: var(--spacing-xs); // Kleiner Abstand zwischen den Preisen
-  margin: 0; // Entfernt Standard-Margin von p (falls als p-Tag verwendet)
-  padding-top: var(--spacing-sm); // Abstand zum Titel
-  margin-top: auto; // Schiebt den Preis an das untere Ende des .product-info Containers
+  align-items: baseline;
+  gap: var(--spacing-xs);
+  flex-shrink: 0;
 }
 
 .product-price-regular {
-  font-size: 0.875rem; // ca. 14px
-  color: var(--text-color-light);
-  text-decoration: line-through; // Durchgestrichen für den alten Preis
+  font-size: 0.8rem;
+  color: var(--text-color-muted);
+  text-decoration: line-through;
   font-weight: var(--font-weight-normal);
 }
 
 .product-price {
-  font-size: 1rem; // ca. 16px
+  font-size: 1rem;
   font-weight: var(--font-weight-bold);
-  color: var(--price-color); // Spezifische Preisfarbe (z.B. Rot oder Akzentfarbe)
+  color: var(--price-color);
 }
 
-// Info für variable Produkte (z.B. "Ab X €")
-.variable-product-info {
-  font-size: 0.8rem; // ca. 12.8px
-  color: var(--text-color-muted);
-  margin-top: var(--spacing-xxs); // Sehr kleiner Abstand zum Preis
-  font-style: italic;
+.actions-cluster {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
 }
 
-
-// --- NEU: STYLING FÜR DEN WISHLIST-BUTTON ---
-.wishlist-toggle {
-  position: absolute;
-  top: var(--spacing-md);
-  right: var(--spacing-md);
-  z-index: 2; // Muss über dem Bild, aber ggf. unter anderen Overlays sein
-  background-color: rgba(255, 255, 255, 0.7); // Leichter Hintergrund für bessere Sichtbarkeit
-  border: 1px solid var(--border-color-light);
+.wishlist-toggle, .add-to-cart-button, .select-options-button {
+  background-color: transparent;
+  border: 1px solid var(--border-color-base);
   border-radius: var(--border-radius-circle);
   cursor: pointer;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 0;
-  transition: background-color 0.2s ease, transform 0.2s ease;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
 
-  // Icons im Button
   .material-symbols-outlined {
-    font-size: 24px;
-    color: var(--wishlist-icon-color);
-    transition: opacity 0.2s ease;
+    font-size: 20px;
   }
+}
 
-  // Standardmäßig ist nur das Outline-Icon sichtbar
-  .icon-filled {
-    display: none;
-  }
-  .icon-outline {
-    display: inline-block;
-  }
-
-  // Hover-Effekt für eingeloggte Benutzer
-  &:not(.is-logged-out):hover {
+.wishlist-toggle {
+  color: var(--text-color-muted);
+  .icon-filled { display: none; }
+  .icon-outline { display: inline-block; }
+  &:hover {
     background-color: var(--wishlist-hover-bg-color);
-    transform: scale(1.1);
+    color: var(--wishlist-icon-color);
+    border-color: var(--wishlist-icon-color);
   }
-
-  // Zustand: Ausgeloggt (graues Icon)
-  &.is-logged-out {
-    .material-symbols-outlined {
-      color: var(--disabled-color);
-    }
-    // Hover-Effekt für ausgeloggte Benutzer deaktivieren
-    &:hover {
-      background-color: rgba(255, 255, 255, 0.7);
-      transform: none;
-    }
-  }
-
-  // Zustand: Eingeloggt & auf Wunschliste (gefülltes Herz)
   &.is-in-wishlist {
-    .icon-filled {
-      display: inline-block;
-    }
-    .icon-outline {
-      display: none;
+    background-color: var(--wishlist-hover-bg-color);
+    color: var(--wishlist-icon-color);
+    border-color: var(--wishlist-icon-color);
+    .icon-filled { display: inline-block; }
+    .icon-outline { display: none; }
+  }
+   &.is-logged-out {
+    color: var(--disabled-color);
+    border-color: var(--border-color-light);
+    &:hover { background: none; }
+  }
+}
+
+.add-to-cart-button {
+  color: var(--primary-color-dark);
+  border-color: var(--primary-color-dark);
+  &:hover:not(:disabled) {
+    background-color: var(--primary-color-dark);
+    color: var(--primary-color-text);
+  }
+  &:disabled {
+    color: var(--disabled-color);
+    background-color: transparent;
+    border-color: var(--border-color-light);
+    cursor: not-allowed;
+  }
+
+  // HIER NEU: Spezifisches Styling für den Spinner im Button
+  app-loading-spinner {
+    width: 18px;
+    height: 18px;
+
+    // Wir greifen in die Komponente hinein, um die Bildgröße anzupassen
+    ::ng-deep .spinner-image {
+      width: 100%;
+      height: 100%;
     }
   }
+}
+
+.select-options-button {
+  color: var(--primary-color-dark);
+  border-color: var(--primary-color-dark);
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--primary-color-dark);
+    color: var(--primary-color-text);
+  }
+}
+
+.variable-product-info {
+  font-size: 0.8rem;
+  color: var(--text-color-muted);
+  margin-top: var(--spacing-xs);
+  font-style: italic;
+  width: 100%;
 }

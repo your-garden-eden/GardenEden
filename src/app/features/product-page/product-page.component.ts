@@ -181,11 +181,10 @@ export class ProductPageComponent implements OnInit, OnDestroy, AfterViewInit {
   });
 
   selectedImage: WritableSignal<WooCommerceImage | null | undefined> = signal(null);
-  isLoading: WritableSignal<boolean> = signal(true); // Für die gesamte Seite
+  isLoading: WritableSignal<boolean> = signal(true);
   error: WritableSignal<string | null> = signal(null);
   private errorKey: WritableSignal<string | null> = signal(null);
   
-  // +++ SEPARATE LADEZUSTÄNDE für die Buttons +++
   isAddingToCart: WritableSignal<boolean> = signal(false);
   isTogglingWishlist: WritableSignal<boolean> = signal(false);
 
@@ -425,7 +424,7 @@ export class ProductPageComponent implements OnInit, OnDestroy, AfterViewInit {
     this.error.set(null); this.errorKey.set(null);
     this.addToCartError.set(null); this.addToCartErrorKey.set(null);
     this.isAddingToCart.set(false);
-    this.isTogglingWishlist.set(false); // +++ NEU
+    this.isTogglingWishlist.set(false);
     this.selectedImage.set(null);
     this.isDescriptionExpanded.set(false);
   }
@@ -496,7 +495,6 @@ export class ProductPageComponent implements OnInit, OnDestroy, AfterViewInit {
     const productId = product.id;
     const variationId = product.type === 'variable' && selectedVar ? selectedVar.id : 0;
 
-    // +++ GEÄNDERT: Verwende das neue, spezifische Signal +++
     this.isTogglingWishlist.set(true); 
 
     try {
@@ -509,7 +507,6 @@ export class ProductPageComponent implements OnInit, OnDestroy, AfterViewInit {
         console.error("Error toggling wishlist from product page:", error);
         this.uiStateService.showGlobalError(this.translocoService.translate('wishlist.errorGeneral'));
     } finally {
-        // +++ GEÄNDERT: Verwende das neue, spezifische Signal +++
         this.isTogglingWishlist.set(false);
         this.cdr.markForCheck();
     }

@@ -1,16 +1,21 @@
-import { Component, Input, ChangeDetectionStrategy, inject, computed, Signal } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy, inject, computed, Signal, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { TranslocoModule } from '@ngneat/transloco';
-import { toSignal } from '@angular/core/rxjs-interop'; // WICHTIG: Neuer Import
+import { TranslocoModule, TranslocoService } from '@ngneat/transloco';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { WishlistService } from '../../services/wishlist.service';
 import { AuthService } from '../../services/auth.service';
 import { UiStateService } from '../../services/ui-state.service';
+import { CartService } from '../../services/cart.service';
+import { LoadingSpinnerComponent } from '../loading-spinner/loading-spinner.component';
+
+// HIER NEU: Eigener Typ für den klaren Status
+type ProductEffectiveStatus = 'available' | 'on_backorder' | 'out_of_stock' | 'price_unavailable';
 
 @Component({
   selector: 'app-product-card',
   standalone: true,
-  imports: [CommonModule, RouterLink, TranslocoModule],
+  imports: [CommonModule, RouterLink, TranslocoModule, LoadingSpinnerComponent],
   templateUrl: './product-card.component.html',
   styleUrls: ['./product-card.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -40,30 +45,44 @@ export class ProductCardComponent {
   private wishlistService = inject(WishlistService);
   private authService = inject(AuthService);
   private uiStateService = inject(UiStateService);
+  private cartService = inject(CartService);
+  private transloco = inject(TranslocoService);
 
   // --- State Signals ---
-  // KORRIGIERT: Observable 'isLoggedIn$' mit toSignal in ein Signal umwandeln
   public isLoggedIn: Signal<boolean> = toSignal(this.authService.isLoggedIn$, { initialValue: false });
-  
+  public isAddingToCart = signal(false);
+  public isImageLoading = signal(true);
+
   public isInWishlist: Signal<boolean> = computed(() => {
-    // Auf der Produktkarte prüfen wir die Wunschliste immer für das Hauptprodukt (Variation ID = 0)
     return this.wishlistService.wishlistProductIds().has(`${this.productId}_0`);
+  });
+  
+  // HIER NEU: Zentralisierte Logik für den Produktstatus
+  public effectiveStatus: Signal<ProductEffectiveStatus> = computed(() => {
+    if (this.stockStatus === 'outofstock') {
+      return 'out_of_stock';
+    }
+    if (this.displayPrice() === '') {
+      return 'price_unavailable';
+    }
+    if (this.stockStatus === 'onbackorder') {
+      return 'on_backorder';
+    }
+    return 'available';
   });
 
   constructor() {}
 
   // --- Public Methods ---
   public toggleWishlist(event: MouseEvent): void {
-    event.preventDefault();  // Verhindert die Navigation zum Produkt, wenn auf das Icon geklickt wird
-    event.stopPropagation(); // Stoppt das Event-Bubbling, falls das Icon in einem Link ist
+    event.preventDefault();
+    event.stopPropagation();
 
     if (!this.isLoggedIn()) {
       this.uiStateService.openLoginOverlay();
       return;
     }
 
-    // Da wir auf der Produktkarte sind, fügen wir immer das Hauptprodukt hinzu/entfernen es.
-    // Die VariationId ist hier '0' bzw. nicht vorhanden.
     if (this.isInWishlist()) {
       this.wishlistService.removeFromWishlist(this.productId, 0);
     } else {
@@ -71,15 +90,53 @@ export class ProductCardComponent {
     }
   }
 
+  public addToCart(event: MouseEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    // HIER GEÄNDERT: Logik prüft jetzt den neuen Status
+    const status = this.effectiveStatus();
+    if (this.isVariable || !['available', 'on_backorder'].includes(status) || this.isAddingToCart()) {
+      return;
+    }
+
+    this.isAddingToCart.set(true);
+
+    this.cartService.addItem(this.productId, 1)
+      .then(() => {
+        this.uiStateService.showGlobalSuccess(
+          this.transloco.translate('productCard.addedToCart', { productName: this.productName })
+        );
+      })
+      .catch((err: any) => {
+        console.error("Fehler beim Hinzufügen zum Warenkorb von der Produktkarte:", err);
+        this.uiStateService.showGlobalError(
+          this.transloco.translate('productCard.errorAddingToCart')
+        );
+      })
+      .finally(() => {
+        this.isAddingToCart.set(false);
+      });
+  }
+
+  public onImageLoad(): void {
+    this.isImageLoading.set(false);
+  }
+
+  public onImageError(): void {
+    this.isImageLoading.set(false);
+  }
+
   // --- Getters ---
-  get displayPrice(): string {
+  // HIER GEÄNDERT: displayPrice ist jetzt auch ein Signal, damit effectiveStatus darauf reagieren kann
+  public displayPrice: Signal<string> = computed(() => {
     if (this.isVariable && this.priceRange) {
       const min = parseFloat(this.priceRange.min);
       const max = parseFloat(this.priceRange.max);
       const symbol = this.currencySymbol || '';
 
       if (isNaN(min) || isNaN(max)) {
-        return this.priceHtml || `${this.pricePrefix || ''}${this.singlePrice || ''}${symbol}`;
+        return this.priceHtml || '';
       }
 
       if (min === max) {
@@ -97,5 +154,5 @@ export class ProductCardComponent {
       }
     }
     return '';
-  }
+  });
 }

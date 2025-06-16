@@ -351,7 +351,6 @@
     "lastNameLabel": "Nachname",
     "addressTitle": "Adresse",
     "billingAddressTitle": "Rechnungsadresse",
-    "shippingAddressTitle": "Lieferadresse",
     "noBillingAddress": "Keine Rechnungsadresse hinterlegt.",
     "noShippingAddress": "Keine Lieferadresse hinterlegt.",
     "shippingSameAsBilling": "Meine Lieferadresse ist die gleiche wie die Rechnungsadresse.",
@@ -423,7 +422,6 @@
   "cartPage": {
     "title": "Warenkorb - Your Garden Eden",
     "loadingCart": "Warenkorb wird geladen...",
-  
     "yourItems": "Ihre Artikel",
     "table": {
       "product": "Produkt",
@@ -453,7 +451,9 @@
       "itemPlural": "Artikel",
       "continueShopping": "Weiter einkaufen",
       "shippingAddressNote": "Für die Berechnung der Versandkosten und die Fortsetzung des Checkouts ist eine vollständige Lieferadresse (Land und PLZ) erforderlich.",
-      "addressButton": "Lieferadresse hinzufügen"
+      "addressButton": "Lieferadresse hinzufügen",
+      "coupon": "Gutschein \"{{code}}\"",
+      "removeCouponAria": "Gutschein {{code}} entfernen"
     },
     "noteLabel": "Hinweis",
     "empty": {
@@ -466,7 +466,8 @@
       "updateFailed": "Menge konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut.",
       "removeItem": "Artikel konnte nicht entfernt werden.",
       "checkoutNotPossible": "Weiterleitung zur Kasse ist derzeit nicht möglich.",
-      "emptyCartCheckout": "Ihr Warenkorb ist leer. Bitte fügen Sie zuerst Produkte hinzu."
+      "emptyCartCheckout": "Ihr Warenkorb ist leer. Bitte fügen Sie zuerst Produkte hinzu.",
+      "removeCouponFailed": "Der Gutschein konnte nicht entfernt werden."
     },
     "errorFromService": "Ein Fehler ist aufgetreten: {serviceErrorMsg}",
     "errorGlobalDefault": "Ein unbekannter Fehler im Warenkorb ist aufgetreten.",
@@ -475,7 +476,15 @@
       "message": "Möchten Sie wirklich alle Artikel aus Ihrem Warenkorb entfernen?",
       "confirmButton": "Ja, leeren"
     },
-    "clearCartButton": "Warenkorb leeren"
+    "clearCartButton": "Warenkorb leeren",
+    "coupon": {
+      "label": "Gutscheincode",
+      "placeholder": "Code eingeben...",
+      "applyButton": "Anwenden",
+      "errorRequired": "Bitte geben Sie einen Code ein.",
+      "potentialDiscount": "Mit unserem Dankeschön-Gutschein <strong class='highlight-success'>{{amount}}</strong> sparen! Hier klicken zum Anwenden.",
+      "openDiscountInfoAria": "Klicken, um Informationen zum Rabatt zu erhalten und diesen anzuwenden."
+    }
   },
   "wishlistPage": {
     "title": "Meine Wunschliste",
@@ -590,7 +599,13 @@
     "availableInVariants": "In mehreren Varianten",
     "priceFrom": "Ab",
     "addToWishlist": "Zur Wunschliste hinzufügen",
-    "removeFromWishlist": "Von Wunschliste entfernen"
+    "removeFromWishlist": "Von Wunschliste entfernen",
+    "addToCart": "In den Warenkorb",
+    "selectOptions": "Optionen wählen",
+    "addedToCart": "\"{productName}\" wurde zum Warenkorb hinzugefügt.",
+    "errorAddingToCart": "Produkt konnte nicht zum Warenkorb hinzugefügt werden.",
+    "soonAvailable": "In Kürze verfügbar",
+    "priceOnRequest": "Derzeit nicht bestellbar"
   },
   "checkoutDetailsPage": {
     "title": "Bestelldetails & Adresse",
@@ -692,6 +707,9 @@
   },
   "cartService": {
     "errorLoadingCart": "Warenkorb konnte nicht geladen werden.",
+    "errorRemovingCoupon": "Der Gutschein konnte nicht entfernt werden.",
+    "errorApplyingCoupon": "Der Gutschein konnte nicht angewendet werden.",
+    "errorUnknownCoupon": "Der Gutschein ist ungültig oder konnte nicht angewendet werden.",
     "errorAddingItem": "Fehler beim Hinzufügen zum Warenkorb.",
     "errorUpdatingQuantity": "Menge konnte nicht aktualisiert werden.",
     "errorRemovingItem": "Artikel konnte nicht entfernt werden.",
@@ -705,7 +723,6 @@
     "errorRemovingUserCartItem": "Der Artikel konnte nicht aus dem Warenkorb entfernt werden.",
     "errorSyncingCart": "Der Warenkorb konnte nicht synchronisiert werden.",
     "errorUpdatingUserCart": "Der Warenkorb konnte nicht aktualisiert werden."
-    
   },
   "errors": {
     "unknownError": "Ein unbekannter Fehler ist aufgetreten (Operation: {{operation}}).",
@@ -742,10 +759,12 @@
       "confirmButton": "Verstanden"
     },
     "cartDiscount": {
-      "title": "Ihr 5% Rabatt!",
-      "paragraph1": "Vielen Dank für Ihren Einkauf! Aufgrund aktueller Optimierungen an unserer Webseite möchten wir Ihnen 5% Rabatt schenken.",
-      "paragraph2": "Bitte geben Sie hierfür einfach den Gutscheincode im entsprechenden Feld auf der Kassenseite ein.",
-      "couponCodeLabel": "Gutscheincode:",
+      "title": "Willkommen in unserem verbesserten Shop!",
+      "applyButton": "5% Rabatt anwenden & schließen",
+      "closeButton": "Später anwenden",
+      "paragraph1": "Wir entwickeln unseren Online-Shop gerade für Sie weiter! Als Dankeschön für Ihr Verständnis, falls kleinere Unannehmlichkeiten während dieser Phase auftreten, schenken wir Ihnen <span class='highlight-success'>5% Rabatt</span> auf Ihre Bestellung.",
+      "paragraph2": "Klicken Sie einfach auf <span class='highlight-action'>'Rabatt anwenden'</span>, um den Vorteil sofort zu aktivieren. Wir arbeiten mit Hochdruck daran, Ihnen bald das bestmögliche Einkaufserlebnis zu bieten.",
+      "couponCodeLabel": "Ihr Gutscheincode (wird automatisch angewendet):",
       "couponCodeValue": "DeinGartenEden",
       "copyCodeButton": {
         "ariaLabelIdle": "Gutscheincode {{code}} kopieren",
@@ -753,8 +772,7 @@
         "titleIdle": "Code kopieren",
         "titleCopied": "Kopiert!",
         "feedbackCopied": "Kopiert!"
-      },
-      "confirmButton": "Verstanden"
+      }
     },
     "shared": {
       "closeButtonAriaLabel": "Schließen"

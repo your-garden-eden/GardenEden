@@ -1,4 +1,4 @@
-<!-- /src/app/features/cart/cart-page/cart-page.component.html -->
+<!-- /src/app/features/cart/pages/cart-page/cart-page.component.html -->
 <div class="cart-page-container" [class.is-busy]="isBusy()">
 
   <h1>{{ 'cartPage.title' | transloco }}</h1>
@@ -13,19 +13,13 @@
     @if (uiError(); as error) {
       <div class="error-message global-cart-error">
         <p>{{ error }}</p>
-        <button (click)="uiError.set(null)" class="close-error-btn" [title]="'general.close' | transloco">×</button>
+        <button (click)="_uiError.set(null)" class="close-error-btn" [title]="'general.close' | transloco">×</button>
       </div>
     }
 
-    @if (itemCount() === 0 && !cartService.isProcessing()) {
-      <div class="empty-cart-message">
-        <h2>{{ 'cartPage.empty.title' | transloco }}</h2>
-        <p>{{ 'cartPage.empty.message' | transloco }}</p>
-        <a routerLink="/" class="primary-button">{{ 'cartPage.empty.continueShopping' | transloco }}</a>
-      </div>
-    }
-
+    <!-- NEUE, VERBESSERTE LOGIK: Klare Trennung zwischen gefülltem und leerem Warenkorb -->
     @if (itemCount() > 0 && cart(); as cartData) {
+      <!-- Ansicht, wenn Artikel im Warenkorb sind -->
       <div class="content-wrapper">
         <div class="cart-content">
           <div class="cart-items-list">
@@ -34,13 +28,13 @@
                 <tr>
                   <th colspan="2">{{ 'cartPage.table.product' | transloco }}</th>
                   <th class="quantity-header">{{ 'cartPage.table.quantity' | transloco }}</th>
-                  <th class="subtotal-header">{{ 'cartPage.table.priceUnit' | transloco }}</th>
+                  <th class="subtotal-header">{{ 'cartPage.table.total' | transloco }}</th>
                   <th></th>
                 </tr>
               </thead>
               <tbody>
                 @for (item of cartItems(); track trackByItemKey($index, item)) {
-                  <tr class="cart-item" [class.updating]="cartService.isUpdatingItemKey() === getItemLoadingKey(item)">
+                  <tr class="cart-item" [class.updating]="cartService.isUpdatingItemKey() === item.key">
                     <td class="item-image-cell">
                       <a [routerLink]="getProductLink(item)">
                         @if (getProductImage(item); as imgUrl) {
@@ -61,9 +55,14 @@
                           }
                         </div>
                       }
+                      @if(item.prices.regular_price) {
+                        <div class="item-single-price-desktop">
+                          <small>{{ 'cartPage.table.priceUnit' | transloco }}: {{ item.prices.regular_price | formatPrice }}</small>
+                        </div>
+                      }
                     </td>
                     <td class="item-quantity-cell">
-                      @if (cartService.isUpdatingItemKey() === getItemLoadingKey(item)) {
+                      @if (cartService.isUpdatingItemKey() === item.key) {
                         <app-loading-spinner [showOverlay]="false"></app-loading-spinner>
                       } @else {
                         <div class="quantity-control">
@@ -74,7 +73,7 @@
                       }
                     </td>
                     <td class="item-price-cell">
-                      <div class="price-block" [innerHTML]="item.totals.line_total | formatPrice | safeHtml"></div>
+                      <div class="price-block" [innerHTML]="calculateLinePrice(item) | formatPrice | safeHtml"></div>
                     </td>
                     <td class="item-remove-cell">
                       <button (click)="removeItem(item)" [disabled]="isBusy()" class="remove-button" [title]="'cartPage.removeItemAria' | transloco : { itemName: item.name }">
@@ -88,7 +87,7 @@
 
             <ul class="cart-list mobile-only">
               @for (item of cartItems(); track trackByItemKey($index, item)) {
-                <li class="cart-item-mobile" [class.updating]="cartService.isUpdatingItemKey() === getItemLoadingKey(item)">
+                <li class="cart-item-mobile" [class.updating]="cartService.isUpdatingItemKey() === item.key">
                   <div class="item-image">
                     <a [routerLink]="getProductLink(item)">
                       @if (getProductImage(item); as imgUrl) {
@@ -107,10 +106,15 @@
                         }
                       </div>
                     }
-                    <div class="item-price-mobile price-block" [innerHTML]="item.totals.line_total | formatPrice | safeHtml"></div>
+                    @if(item.prices.regular_price) {
+                      <div class="item-single-price-mobile">
+                        <small>{{ 'cartPage.table.priceUnit' | transloco }}: {{ item.prices.regular_price | formatPrice }}</small>
+                      </div>
+                    }
+                    <div class="item-price-mobile price-block" [innerHTML]="calculateLinePrice(item) | formatPrice | safeHtml"></div>
                   </div>
                   <div class="item-actions-mobile">
-                    @if (cartService.isUpdatingItemKey() === getItemLoadingKey(item)) {
+                    @if (cartService.isUpdatingItemKey() === item.key) {
                       <app-loading-spinner [showOverlay]="false"></app-loading-spinner>
                     } @else {
                       <div class="quantity-control">
@@ -128,7 +132,7 @@
             </ul>
 
             <div class="cart-actions">
-              <button class="clear-cart-button" (click)="clearCart()" [disabled]="isBusy()">
+              <button class="clear-cart-button" (click)="clearCart()" [disabled]="isBusy() || cartService.isClearingCart()">
                 @if (cartService.isClearingCart()) {
                   <app-loading-spinner [showOverlay]="false" [diameter]="20"></app-loading-spinner>
                 } @else {
@@ -142,11 +146,27 @@
 
           <div class="cart-summary">
             <h2>{{ 'cartPage.summary.title' | transloco }}</h2>
+            
             @if(cartTotals(); as totals) {
               <div class="summary-row">
                 <span>{{ 'cartPage.summary.subtotal' | transloco }}:</span>
-                <span [innerHTML]="totals.total_items | formatPrice | safeHtml"></span>
+                <span [innerHTML]="undiscountedSubtotal() | formatPrice | safeHtml"></span>
               </div>
+
+              @if(totals.total_discount && +totals.total_discount > 0) {
+                @for(coupon of cartData.coupons; track coupon.code) {
+                  <div class="summary-row discount">
+                    <span class="coupon-code-label">
+                      {{ 'cartPage.summary.coupon' | transloco : {code: coupon.code} }}
+                      <button (click)="removeCoupon(coupon.code)" class="remove-coupon-button" [title]="'cartPage.summary.removeCouponAria' | transloco: {code: coupon.code}" [disabled]="cartService.isApplyingCoupon()">
+                         (x)
+                      </button>
+                    </span>
+                    <span class="amount discount-amount" [innerHTML]="'-' + totals.total_discount | formatPrice | safeHtml"></span>
+                  </div>
+                }
+              }
+
               <div class="summary-row shipping">
                 <span>{{ 'cartPage.summary.shipping' | transloco }}:</span>
                 <span class="amount free-shipping">{{ 'general.free' | transloco }}</span>
@@ -155,14 +175,29 @@
                 <span>{{ 'cartPage.summary.total' | transloco }}:</span>
                 <span class="amount total-amount" [innerHTML]="totals.total_price | formatPrice | safeHtml"></span>
               </div>
-              <!-- +++ KORREKTUR: MwSt.-Zeile entfernt und "inkl. MwSt."-Hinweis wieder hinzugefügt +++ -->
               <p class="vat-summary-subtext">{{ 'cartPage.summary.inclVatShort' | transloco }}</p>
             }
+
+            <div class="coupon-section">
+              <form [formGroup]="couponForm" (ngSubmit)="applyCoupon()">
+                <label for="coupon_code">{{ 'cartPage.coupon.label' | transloco }}</label>
+                <div class="coupon-input-group">
+                  <input type="text" id="coupon_code" formControlName="code" [placeholder]="'cartPage.coupon.placeholder' | transloco">
+                  <button type="submit" [disabled]="couponForm.invalid || cartService.isApplyingCoupon()">
+                    @if (cartService.isApplyingCoupon()) {
+                      <app-loading-spinner [showOverlay]="false" [diameter]="24"></app-loading-spinner>
+                    } @else {
+                      {{ 'cartPage.coupon.applyButton' | transloco }}
+                    }
+                  </button>
+                </div>
+              </form>
+            </div>
 
             <div class="checkout-actions">
               @if (isLoggedIn()) {
                 <button class="checkout-button primary" (click)="goToCheckout()" [disabled]="isBusy()">
-                  @if (cartService.isProcessing() || cartService.isClearingCart()) {
+                  @if (cartService.isProcessing()) {
                     <app-loading-spinner [showOverlay]="false" [diameter]="24"></app-loading-spinner>
                   } @else {
                     {{ 'cartPage.summary.directCheckoutButton' | transloco }}
@@ -173,7 +208,7 @@
                 </button>
               } @else {
                  <button class="checkout-button primary" (click)="goToCheckout()" [disabled]="isBusy()">
-                  @if (cartService.isProcessing() || cartService.isClearingCart()) {
+                  @if (cartService.isProcessing()) {
                     <app-loading-spinner [showOverlay]="false" [diameter]="24"></app-loading-spinner>
                   } @else {
                     {{ 'cartPage.summary.addressButton' | transloco }}
@@ -184,6 +219,13 @@
             <a routerLink="/" class="continue-shopping-link">{{ 'cartPage.summary.continueShopping' | transloco }}</a>
           </div>
         </div>
+      </div>
+    } @else {
+      <!-- Ansicht, wenn der Warenkorb leer ist -->
+      <div class="empty-cart-message">
+        <h2>{{ 'cartPage.empty.title' | transloco }}</h2>
+        <p>{{ 'cartPage.empty.message' | transloco }}</p>
+        <a routerLink="/" class="primary-button">{{ 'cartPage.empty.continueShopping' | transloco }}</a>
       </div>
     }
   }
