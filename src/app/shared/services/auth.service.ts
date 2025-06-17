@@ -5,7 +5,6 @@ import { Router } from '@angular/router';
 import { Observable, BehaviorSubject, throwError, of, Subscription } from 'rxjs';
 import { catchError, tap, map, switchMap, finalize } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
-// Kein Import von environment.ts, da URLs hartcodiert sind
 import { TranslocoService } from '@ngneat/transloco';
 
 // --- TYPSICHERE API RESPONSE INTERFACES ---
@@ -39,8 +38,8 @@ export interface WordPressUserFromAuth {
     user_email?: string;
     display_name?: string;
   };
-  first_name?: string; // Hinzugefügt für Vollständigkeit
-  last_name?: string;  // Hinzugefügt für Vollständigkeit
+  first_name?: string;
+  last_name?: string;
 }
 
 export interface WordPressLoginResponseData {
@@ -53,13 +52,10 @@ export interface WordPressLoginResponseData {
   user_display_name?: string;
 }
 
+// **ANGEPASST FÜR UNSEREN NEUEN ENDPUNKT**
 export interface WordPressRegisterSuccessData {
-  message?: string;
-  ID?: number;
-  user_login?: string;
-  user_email?: string;
-  jwt?: string;
-  refresh_token?: string;
+  jwt: string;
+  user: WordPressUserFromAuth;
 }
 
 export interface WordPressRefreshResponseData {
@@ -104,13 +100,16 @@ export interface WordPressUser {
 }
 
 export interface ConfirmPasswordResetPayload { key: string; login: string; new_password: string; }
+
+// **INTERFACE ERWEITERT FÜR ALLE DATEN**
 export interface WordPressRegisterData {
   email: string;
   password?: string;
-  user_login?: string;
   first_name?: string;
   last_name?: string;
-  display_name?: string;
+  address_1?: string;
+  postcode?: string;
+  city?: string;
 }
 
 @Injectable({
@@ -123,16 +122,20 @@ export class AuthService implements OnDestroy {
   private translocoService = inject(TranslocoService);
 
   private wordpressApiUrl = 'https://your-garden-eden-4ujzpfm5qt.live-website.com/wp-json';
+  private ygeApiNamespace = 'your-garden-eden/v1';
+
+  // Alte URLs bleiben für Login etc. erhalten
   private jwtPluginNamespace = 'simple-jwt-login';
   private simpleJwtLoginBase = `${this.wordpressApiUrl}/${this.jwtPluginNamespace}/v1`;
-
   private loginUrl = `${this.simpleJwtLoginBase}/auth`;
-  private registerUrl = `${this.simpleJwtLoginBase}/users`;
   private validateTokenUrl = `${this.simpleJwtLoginBase}/auth/validate`;
   private refreshTokenUrl = `${this.simpleJwtLoginBase}/auth/refresh`;
   private revokeTokenUrl = `${this.simpleJwtLoginBase}/auth/revoke`;
   private requestPasswordResetUrl = `${this.simpleJwtLoginBase}/users/reset_password`;
   private confirmPasswordResetUrl = `${this.simpleJwtLoginBase}/users/new_password`;
+
+  // **NEUE REGISTER URL, DIE AUF UNSEREN CUSTOM ENDPUNKT ZEIGT**
+  private registerUrl = `${this.wordpressApiUrl}/${this.ygeApiNamespace}/register`;
 
   private wpTokenKey = 'wordpress_jwt_token';
   private wpRefreshTokenKey = 'wordpress_refresh_token';
@@ -152,7 +155,6 @@ export class AuthService implements OnDestroy {
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
-      console.log('[AuthService] Constructor: Loading user and attempting validation/refresh.');
       this.initSubscription = this.loadUserFromStorageAndValidateOrRefresh().subscribe();
     }
   }
@@ -172,7 +174,7 @@ export class AuthService implements OnDestroy {
         const user = JSON.parse(userJson) as WordPressUser;
         user.jwt = token; user.refreshToken = refreshToken ?? undefined;
         return user;
-      } catch (e) { console.error('[AuthService] Error parsing user from localStorage', e); this.clearLocalUserData(); }
+      } catch (e) { this.clearLocalUserData(); }
     }
     return null;
   }
@@ -196,7 +198,6 @@ export class AuthService implements OnDestroy {
     this.currentWordPressUserSubject.next(userToStore);
     this.authError.set(null);
     this.scheduleTokenRefresh(token);
-    console.log('[AuthService] Auth Data Stored. User:', userToStore.email, 'JWT set.');
   }
 
   private clearLocalUserData(): void {
@@ -205,24 +206,19 @@ export class AuthService implements OnDestroy {
     }
     this.currentWordPressUserSubject.next(null); this.authError.set(null);
     if (this.refreshTimer) { clearTimeout(this.refreshTimer); this.refreshTimer = null; }
-    console.log('[AuthService] Cleared all local auth data.');
   }
 
   private loadUserFromStorageAndValidateOrRefresh(): Observable<WordPressUser | null> {
-    console.log('[AuthService] loadUserFromStorageAndValidateOrRefresh CALLED');
     this.isLoading.set(true); const storedUser = this.loadUserFromLocalStorage();
     if (storedUser?.jwt) {
       return this.validateToken(storedUser.jwt).pipe(
         switchMap(validUserDetails => {
           if (validUserDetails) {
-            console.log('[AuthService] Token validation successful from storage.');
             const finalUser: WordPressUser = { ...validUserDetails, jwt: storedUser.jwt!, refreshToken: storedUser.refreshToken };
             this.storeAuthData(finalUser, finalUser.jwt, finalUser.refreshToken); return of(finalUser);
           } else if (storedUser.refreshToken) {
-            console.warn('[AuthService] Token validation FAILED, attempting refresh.');
             return this.refreshTokenInternal(storedUser.refreshToken);
           } else {
-            console.warn('[AuthService] Token validation FAILED, no refresh token. Clearing local data.');
             this.clearLocalUserData(); return of(null);
           }
         }),
@@ -235,7 +231,6 @@ export class AuthService implements OnDestroy {
   }
 
   private handleAuthSuccess(responseData: WordPressLoginResponseData | WordPressRefreshResponseData, operation: 'Login' | 'Refresh'): Observable<WordPressUser> {
-    console.log(`[AuthService] handleAuthSuccess for '${operation}'.`);
     this.isLoading.set(true); const newJwt = responseData.jwt; const newRefreshToken = responseData.refresh_token;
     const directUserPayload = (responseData as WordPressLoginResponseData).user || responseData as WordPressLoginResponseData;
     const userIdFromPayload = Number((directUserPayload as any).ID || (directUserPayload as any).id);
@@ -287,27 +282,25 @@ export class AuthService implements OnDestroy {
     );
   }
 
+  // **FINALE, ÜBERARBEITETE REGISTER-METHODE**
   register(data: WordPressRegisterData): Observable<WordPressUser | null> {
-    this.isLoading.set(true); this.authError.set(null);
-    const payload: any = {
-      email: data.email, password: data.password, user_login: data.user_login || data.email.split('@')[0] + Math.floor(Math.random() * 10000),
-      first_name: data.first_name, last_name: data.last_name, display_name: data.display_name || `${data.first_name || ''} ${data.last_name || ''}`.trim()
-    };
-    if (!payload.display_name && payload.user_login) { payload.display_name = payload.user_login; }
-    if (!data.password) { delete payload.password; }
-    Object.keys(payload).forEach(key => { if (payload[key] === undefined || payload[key] === '') { delete payload[key]; } });
+    this.isLoading.set(true);
+    this.authError.set(null);
+    
+    // Payload bleibt identisch, da das Interface schon korrekt war
+    const payload: WordPressRegisterData = data;
+
     return this.http.post<WordPressAuthResponse<WordPressRegisterSuccessData>>(this.registerUrl, payload).pipe(
       switchMap(response => {
-        if (response.success) {
-          if (response.data?.jwt && response.data?.ID) {
-            const partialUser: WordPressUserFromAuth = { ID: response.data.ID, user_email: data.email, display_name: payload.display_name, user_login: payload.user_login, first_name: data.first_name, last_name: data.last_name };
-            const loginData: WordPressLoginResponseData = { jwt: response.data.jwt, user: partialUser, refresh_token: response.data.refresh_token };
-            return this.handleAuthSuccess(loginData, 'Login');
-          }
-          this.setSuccessMessageKey('registerPage.successMessage', { email: data.email }); return of(null);
+        if (response.success && response.data?.jwt && response.data?.user) {
+          const loginData: WordPressLoginResponseData = {
+              jwt: response.data.jwt,
+              user: response.data.user
+          };
+          return this.handleAuthSuccess(loginData, 'Login');
         } else {
-          const errorMsg = response.message || (response.data as any)?.message || response.error_description || 'Registrierung fehlgeschlagen.';
-          throw new HttpErrorResponse({ error: { message: errorMsg, ...response.data, code: response.code }, status: response.statusCode || 400 });
+          const errorMsg = response.message || 'Registrierung fehlgeschlagen.';
+          throw new HttpErrorResponse({ error: { message: errorMsg, ...response.data }, status: response.statusCode || 400 });
         }
       }),
       catchError(err => this.handleError(err, 'Register')),
@@ -316,65 +309,42 @@ export class AuthService implements OnDestroy {
   }
 
   validateToken(token: string): Observable<Omit<WordPressUser, 'jwt' | 'refreshToken'> | null> {
-    console.log('[AuthService] validateToken CALLED (URL Param Test) with token:', token ? '******' : 'null/undefined');
-    if (!token) { this.authError.set(this.translocoService.translate('errors.auth.missingToken')); return of(null); }
-
+    if (!token) { return of(null); }
     const validateUrlWithTokenParam = `${this.validateTokenUrl}?JWT=${encodeURIComponent(token)}`;
-    console.log('[AuthService] Validating token via URL param:', validateUrlWithTokenParam);
     const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
 
     return this.http.post<WordPressAuthResponse<WordPressValidateInnerData>>(validateUrlWithTokenParam, {}, { headers }).pipe(
       map(response => {
-        console.log('[AuthService] WP Validate Token Raw Response (URL Param Test):', response);
-        const pluginResponseCode = response.code || response.data?.code; // Prüfe Code auf beiden Ebenen
-        console.log(`[AuthService] Validate Codes: response.data.code = ${response.data?.code}, response.code = ${response.code}`);
-        const isValidByCode = pluginResponseCode === 'jwt_auth_valid_token';
         const userDataFromResponse = response.data?.user;
-        const rolesFromResponse = response.data?.roles || [];
         const userId = userDataFromResponse?.ID || (userDataFromResponse as any)?.id;
         const userEmail = userDataFromResponse?.user_email || (userDataFromResponse as any)?.email;
         const displayName = userDataFromResponse?.display_name || userDataFromResponse?.user_login;
 
-        console.log(`[AuthService] isValidByCode = ${isValidByCode}`);
-        console.log('[AuthService] Validate userDataFromResponse:', userDataFromResponse);
-        console.log(`[AuthService] Validate Extracted: userId=${userId}, userEmail=${userEmail}, displayName=${displayName}`);
-
         if (response.success && userDataFromResponse && userId && userEmail && displayName) {
-           // Der Code 'jwt_auth_valid_token' ist eine zusätzliche Bestätigung, aber success und User-Daten sind primär.
-           // Wenn der Code fehlt, aber success true ist und User-Daten da sind, ist es wahrscheinlich trotzdem okay.
-           console.log('[AuthService] Token validation successful (URL), user data found:', userDataFromResponse);
           return {
             id: parseInt(String(userId), 10),
             email: userEmail,
             displayName: displayName,
             username: userDataFromResponse.user_login,
-            roles: rolesFromResponse,
-            firstName: (userDataFromResponse as any).first_name || displayName.split(' ')[0] || '',
-            lastName: (userDataFromResponse as any).last_name || displayName.split(' ').slice(1).join(' ') || '',
+            roles: response.data?.roles || [],
+            firstName: (userDataFromResponse as any).first_name || '',
+            lastName: (userDataFromResponse as any).last_name || '',
           };
         }
-        const errorMessage = response.message || response.data?.message || this.translocoService.translate('errors.auth.jwtSpecific.jwt_auth_invalid_token');
-        console.warn('[AuthService] Token validation (URL) API failed or data incomplete:', errorMessage, response);
-        this.authError.set(this.translocoService.translate('errors.auth.tokenValidationFailed', { details: errorMessage }));
         return null;
       }),
       catchError(err => {
-        const httpError = err instanceof HttpErrorResponse ? err : null;
-        const errMessage = httpError?.error?.message || (httpError?.error as any)?.data?.message || (httpError?.error as any)?.code || httpError?.message || this.translocoService.translate('errors.unknownError');
-        this.authError.set(this.translocoService.translate('errors.auth.tokenValidationApiError', { details: errMessage }));
-        console.error('[AuthService] Error in validateToken HTTP call (URL):', errMessage, err);
         return of(null);
       })
     );
   }
 
   private refreshTokenInternal(refreshToken: string): Observable<WordPressUser | null> {
-    console.log('[AuthService] refreshTokenInternal CALLED.');
     this.isLoading.set(true); this.authError.set(null);
     const payload = { refresh_token: refreshToken };
     return this.http.post<WordPressAuthResponse<WordPressRefreshResponseData>>(this.refreshTokenUrl, payload).pipe(
       switchMap(response => {
-        const responseData = response.data; // response.data ist hier vom Typ WordPressRefreshResponseData
+        const responseData = response.data;
         if (response.success && responseData?.jwt) {
           return this.handleAuthSuccess(responseData, 'Refresh');
         } else {
@@ -395,7 +365,6 @@ export class AuthService implements OnDestroy {
   }
 
   logout(): Observable<void> {
-    console.log('[AuthService] logout CALLED');
     this.isLoading.set(true); const currentToken = this.getStoredToken();
     const performClientLogout = () => {
       this.clearLocalUserData(); this.router.navigate(['/']); this.isLoading.set(false);
@@ -403,10 +372,9 @@ export class AuthService implements OnDestroy {
     if (currentToken) {
       const revokeUrlWithToken = `${this.revokeTokenUrl}?JWT=${encodeURIComponent(currentToken)}`;
       return this.http.post<WordPressAuthResponse<null>>(revokeUrlWithToken, {}).pipe(
-        tap(() => console.log('[AuthService] Token revoke serverseitig (via URL) erfolgreich.')),
+        tap(() => {}),
         map(() => performClientLogout()),
         catchError(err => {
-          console.warn('[AuthService] Fehler beim Revoken des Tokens (via URL), Logout nur clientseitig.', err);
           performClientLogout(); return of(undefined);
         }),
         finalize(() => this.isLoading.set(false))
@@ -453,7 +421,6 @@ export class AuthService implements OnDestroy {
     this.isLoading.set(false);
     let displayMessage = this.translocoService.translate('errors.unknownError', { operation });
     if (error instanceof HttpErrorResponse) {
-      console.error(`[AuthService] ${operation} HttpError:`, error.status, error.message, error.error);
       const errData = error.error as WordPressAuthResponse<any>;
       let serverMessage = errData?.message || errData?.data?.message || errData?.error_description || errData?.error;
       if (errData?.errors && typeof errData.errors === 'object' && Object.keys(errData.errors).length > 0) {
@@ -467,7 +434,6 @@ export class AuthService implements OnDestroy {
         displayMessage = this.translocoService.translate('errors.serverError', { status: error.status });
       }
     } else if (error instanceof Error) {
-      console.error(`[AuthService] ${operation} Error:`, error.message, error);
       displayMessage = error.message;
     }
     this.authError.set(displayMessage);
@@ -482,9 +448,9 @@ export class AuthService implements OnDestroy {
       if (this.refreshTimer) clearTimeout(this.refreshTimer);
       try {
         const payloadBase64 = token.split('.')[1];
-        if (!payloadBase64) { console.error('[AuthService] Invalid JWT: Missing payload.'); return; }
+        if (!payloadBase64) { return; }
         const decodedPayload = JSON.parse(atob(payloadBase64));
-        if (typeof decodedPayload.exp !== 'number') { console.error('[AuthService] Invalid JWT: "exp" claim is missing or not a number.'); return; }
+        if (typeof decodedPayload.exp !== 'number') { return; }
         const expiresAt = decodedPayload.exp * 1000;
         const now = Date.now();
         const fiveMinutes = 5 * 60 * 1000;
@@ -493,20 +459,16 @@ export class AuthService implements OnDestroy {
         if (refreshIn <= 0) {
           const currentRefreshToken = this.getStoredRefreshToken();
           if (currentRefreshToken) {
-            console.log('[AuthService] Token is about to expire or expired, attempting refresh immediately.');
             this.tryRefreshToken().subscribe();
           } else {
-            console.warn('[AuthService] Token expired or about to, no refresh token. Logging out.');
             this.logout().subscribe();
           }
           return;
         }
-        console.log(`[AuthService] Token expires at: ${new Date(expiresAt).toLocaleString()}. Scheduling refresh in approx. ${Math.round(refreshIn / 60000)} min.`);
         this.refreshTimer = setTimeout(() => {
-          console.log('[AuthService] Scheduled token refresh initiated.');
-          this.tryRefreshToken().subscribe({ error: () => { console.error('[AuthService] Scheduled token refresh failed. User might need to re-login.'); this.logout().subscribe(); }});
+          this.tryRefreshToken().subscribe({ error: () => { this.logout().subscribe(); }});
         }, refreshIn);
-      } catch (error) { console.error('[AuthService] Could not decode JWT for scheduling refresh:', error); }
+      } catch (error) { }
     }
   }
 }
