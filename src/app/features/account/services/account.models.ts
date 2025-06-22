@@ -39,7 +39,6 @@ export interface ShippingAddress {
   phone?: string;
 }
 
-// KORREKTUR: 'export' hinzugefügt, um das Interface verfügbar zu machen.
 export interface UserAddressesResponse {
   billing: BillingAddress;
   shipping: ShippingAddress;
@@ -144,4 +143,10 @@ export interface OrderDetailsPayload {
 export interface UserProfile {
     wpUser: WpUserMeResponse;
     wooCustomer: WooCommerceCustomer;
+}
+
+// NEU: Interface für das Ändern des Passworts
+export interface ChangePasswordPayload {
+  current_password: string;
+  new_password: string;
 }

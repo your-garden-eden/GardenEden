@@ -1,108 +1,73 @@
-// /src/app/shared/services/auth.service.ts
-import { Injectable, inject, signal, WritableSignal, PLATFORM_ID, OnDestroy } from '@angular/core';
-import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
+// /src/app/shared/services/auth.service.ts (Version 2.3 - Mit "Username vergessen"-Funktion)
+
+import { Injectable, inject, signal, WritableSignal, PLATFORM_ID, OnDestroy, computed, Signal } from '@angular/core';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, BehaviorSubject, throwError, of, Subscription } from 'rxjs';
+import { Observable, BehaviorSubject, throwError, of } from 'rxjs';
 import { catchError, tap, map, switchMap, finalize } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
-import { TranslocoService } from '@ngneat/transloco';
 
-// --- TYPSICHERE API RESPONSE INTERFACES ---
-export interface WordPressAuthResponse<TData> {
-  success: boolean;
-  data?: TData;
-  message?: string;
-  statusCode?: number;
-  error?: string;
-  error_description?: string;
-  errors?: { [key: string]: string[] };
-  code?: string;
-}
-
-export interface WordPressUserFromAuth {
-  ID?: string | number;
-  id?: string | number;
-  user_login?: string;
-  user_nicename?: string;
-  user_email?: string;
-  email?: string;
-  user_url?: string;
-  user_registered?: string;
-  user_activation_key?: string;
-  user_status?: string;
-  display_name?: string;
-  roles?: string[];
-  data?: {
-    ID?: string | number;
-    user_login?: string;
-    user_email?: string;
-    display_name?: string;
-  };
-  first_name?: string;
-  last_name?: string;
-}
-
-export interface WordPressLoginResponseData {
-  jwt: string;
-  user?: WordPressUserFromAuth;
-  refresh_token?: string;
-  id?: number;
-  user_email?: string;
-  user_nicename?: string;
-  user_display_name?: string;
-}
-
-// **ANGEPASST FÜR UNSEREN NEUEN ENDPUNKT**
-export interface WordPressRegisterSuccessData {
-  jwt: string;
-  user: WordPressUserFromAuth;
-}
-
-export interface WordPressRefreshResponseData {
-  jwt: string;
-  refresh_token?: string;
-  user?: WordPressUserFromAuth;
-  id?: number;
-  user_email?: string;
-  user_nicename?: string;
-  user_display_name?: string;
-}
-
-export interface WordPressTokenDetailsInValidate {
+// --- Interfaces ---
+export interface JwtLoginResponse {
   token: string;
-  header?: { typ?: string; alg?: string };
-  payload?: {
-    iat?: number; exp?: number; email?: string; id?: string | number;
-    site?: string; username?: string; iss?: string;
-  };
-  expire_in?: number;
+  user_email: string;
+  user_nicename: string;
+  user_display_name: string;
 }
 
-export interface WordPressValidateInnerData {
-  user: WordPressUserFromAuth;
-  jwt?: WordPressTokenDetailsInValidate | WordPressTokenDetailsInValidate[];
-  roles?: string[];
-  message?: string;
-  code?: string;
+export interface JwtValidateResponse {
+  code: string;
+  data: {
+    status: number;
+  };
 }
-// --- END: TYPSICHERE API RESPONSE INTERFACES ---
+
+export interface JwtErrorResponse {
+  code: string;
+  message: string;
+  data: {
+    status: number;
+  };
+}
+
+export interface GuestTokenResponse {
+  token: string;
+}
+
+export interface CustomRegisterResponse {
+    success: boolean;
+    code: string;
+    message: string;
+    data: {
+        status: number;
+        user: {
+            id: number;
+            email: string;
+            username: string;
+        }
+    }
+}
 
 export interface WordPressUser {
   id: number;
   email: string;
   displayName: string;
-  username?: string;
+  username: string; // Wichtig: Dies ist der 'user_login', den wir für den Login brauchen
   roles: string[];
   jwt: string;
-  refreshToken?: string;
   firstName?: string;
   lastName?: string;
 }
 
-export interface ConfirmPasswordResetPayload { key: string; login: string; new_password: string; }
+export interface PasswordResetPayload {
+  key: string;
+  login: string;
+  password: string;
+}
 
-// **INTERFACE ERWEITERT FÜR ALLE DATEN**
+// GEÄNDERT: Schnittstelle um 'username' erweitert
 export interface WordPressRegisterData {
+  username: string; // Das ist der neue, separate Benutzername
   email: string;
   password?: string;
   first_name?: string;
@@ -110,6 +75,8 @@ export interface WordPressRegisterData {
   address_1?: string;
   postcode?: string;
   city?: string;
+  billing_phone?: string;
+  billing_country?: string;
 }
 
 @Injectable({
@@ -119,356 +86,351 @@ export class AuthService implements OnDestroy {
   private http = inject(HttpClient);
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
-  private translocoService = inject(TranslocoService);
 
   private wordpressApiUrl = 'https://your-garden-eden-4ujzpfm5qt.live-website.com/wp-json';
   private ygeApiNamespace = 'your-garden-eden/v1';
-
-  // Alte URLs bleiben für Login etc. erhalten
-  private jwtPluginNamespace = 'simple-jwt-login';
-  private simpleJwtLoginBase = `${this.wordpressApiUrl}/${this.jwtPluginNamespace}/v1`;
-  private loginUrl = `${this.simpleJwtLoginBase}/auth`;
-  private validateTokenUrl = `${this.simpleJwtLoginBase}/auth/validate`;
-  private refreshTokenUrl = `${this.simpleJwtLoginBase}/auth/refresh`;
-  private revokeTokenUrl = `${this.simpleJwtLoginBase}/auth/revoke`;
-  private requestPasswordResetUrl = `${this.simpleJwtLoginBase}/users/reset_password`;
-  private confirmPasswordResetUrl = `${this.simpleJwtLoginBase}/users/new_password`;
-
-  // **NEUE REGISTER URL, DIE AUF UNSEREN CUSTOM ENDPUNKT ZEIGT**
+  private jwtPluginNamespace = 'jwt-auth/v1';
+  private jwtBaseUrl = `${this.wordpressApiUrl}/${this.jwtPluginNamespace}`;
+  private loginUrl = `${this.jwtBaseUrl}/token`;
+  private validateTokenUrl = `${this.jwtBaseUrl}/token/validate`;
+  
   private registerUrl = `${this.wordpressApiUrl}/${this.ygeApiNamespace}/register`;
+  private ygeRequestPasswordResetUrl = `${this.wordpressApiUrl}/${this.ygeApiNamespace}/users/request-password-reset`;
+  private ygeRequestUsernameUrl = `${this.wordpressApiUrl}/${this.ygeApiNamespace}/users/request-username`; // NEU
+  private ygeSetNewPasswordUrl = `${this.wordpressApiUrl}/${this.ygeApiNamespace}/users/set-new-password`;
+  private guestTokenUrl = `${this.wordpressApiUrl}/${this.ygeApiNamespace}/guest-token`;
 
   private wpTokenKey = 'wordpress_jwt_token';
-  private wpRefreshTokenKey = 'wordpress_refresh_token';
   private wpUserKey = 'wordpress_user_data';
+  private wpGuestTokenKey = 'wordpress_guest_jwt_token';
 
   private currentWordPressUserSubject = new BehaviorSubject<WordPressUser | null>(this.loadUserFromLocalStorage());
   public currentWordPressUser$: Observable<WordPressUser | null> = this.currentWordPressUserSubject.asObservable();
   public isLoggedIn$: Observable<boolean> = this.currentWordPressUser$.pipe(map(user => !!user && !!user.jwt));
 
+  private guestJwt: WritableSignal<string | null> = signal(this.loadGuestTokenFromStorage());
+  public activeJwt: Signal<string | null> = computed(() => this.getCurrentUserValue()?.jwt || this.guestJwt());
+
   public isLoading: WritableSignal<boolean> = signal(false);
   public authError: WritableSignal<string | null> = signal(null);
   public successMessage: WritableSignal<string | null> = signal(null);
-  private successMessageKey: WritableSignal<string | null> = signal(null);
 
-  private initSubscription: Subscription | undefined;
-  private refreshTimer: any;
+  constructor() {}
 
-  constructor() {
-    if (isPlatformBrowser(this.platformId)) {
-      this.initSubscription = this.loadUserFromStorageAndValidateOrRefresh().subscribe();
+  public init(): Observable<any> {
+    if (!isPlatformBrowser(this.platformId)) {
+      return of(null);
     }
+    return this.loadUserAndValidate().pipe(
+      switchMap((userIsValid) => {
+        if (!userIsValid && !this.guestJwt()) {
+          return this.fetchAndStoreGuestToken();
+        }
+        return of(null);
+      })
+    );
   }
 
-  ngOnDestroy(): void {
-    this.initSubscription?.unsubscribe();
-    if (this.refreshTimer) { clearTimeout(this.refreshTimer); }
-  }
+  ngOnDestroy(): void {}
 
   private loadUserFromLocalStorage(): WordPressUser | null {
     if (!isPlatformBrowser(this.platformId)) return null;
     const token = localStorage.getItem(this.wpTokenKey);
-    const refreshToken = localStorage.getItem(this.wpRefreshTokenKey);
     const userJson = localStorage.getItem(this.wpUserKey);
     if (token && userJson) {
       try {
         const user = JSON.parse(userJson) as WordPressUser;
-        user.jwt = token; user.refreshToken = refreshToken ?? undefined;
+        user.jwt = token;
         return user;
       } catch (e) { this.clearLocalUserData(); }
     }
     return null;
   }
 
+  private loadGuestTokenFromStorage(): string | null {
+    if (!isPlatformBrowser(this.platformId)) return null;
+    return localStorage.getItem(this.wpGuestTokenKey);
+  }
+
   public getStoredToken(): string | null {
     return isPlatformBrowser(this.platformId) ? localStorage.getItem(this.wpTokenKey) : null;
   }
 
-  private getStoredRefreshToken(): string | null {
-    return isPlatformBrowser(this.platformId) ? localStorage.getItem(this.wpRefreshTokenKey) : null;
-  }
-
-  private storeAuthData(user: WordPressUser, token: string, refreshToken?: string): void {
-    const userToStore: WordPressUser = { ...user, jwt: token, refreshToken: refreshToken ?? user.refreshToken ?? undefined };
+  private storeAuthData(user: WordPressUser): void {
     if (isPlatformBrowser(this.platformId)) {
-      localStorage.setItem(this.wpTokenKey, token);
-      if (userToStore.refreshToken) localStorage.setItem(this.wpRefreshTokenKey, userToStore.refreshToken);
-      else localStorage.removeItem(this.wpRefreshTokenKey);
-      localStorage.setItem(this.wpUserKey, JSON.stringify(userToStore));
+      localStorage.setItem(this.wpTokenKey, user.jwt);
+      localStorage.setItem(this.wpUserKey, JSON.stringify(user));
+      localStorage.removeItem(this.wpGuestTokenKey);
+      this.guestJwt.set(null);
     }
-    this.currentWordPressUserSubject.next(userToStore);
+    this.currentWordPressUserSubject.next(user);
     this.authError.set(null);
-    this.scheduleTokenRefresh(token);
+  }
+  
+  public updateLocalUserData(updatedFields: Partial<Omit<WordPressUser, 'jwt' | 'id'>>): void {
+    const currentUser = this.getCurrentUserValue();
+    if (!currentUser) return;
+
+    const updatedUser: WordPressUser = { ...currentUser, ...updatedFields };
+    this.storeAuthData(updatedUser);
   }
 
   private clearLocalUserData(): void {
     if (isPlatformBrowser(this.platformId)) {
-      localStorage.removeItem(this.wpTokenKey); localStorage.removeItem(this.wpRefreshTokenKey); localStorage.removeItem(this.wpUserKey);
+      localStorage.removeItem(this.wpTokenKey);
+      localStorage.removeItem(this.wpUserKey);
     }
-    this.currentWordPressUserSubject.next(null); this.authError.set(null);
-    if (this.refreshTimer) { clearTimeout(this.refreshTimer); this.refreshTimer = null; }
+    this.currentWordPressUserSubject.next(null);
+    this.authError.set(null);
   }
 
-  private loadUserFromStorageAndValidateOrRefresh(): Observable<WordPressUser | null> {
-    this.isLoading.set(true); const storedUser = this.loadUserFromLocalStorage();
-    if (storedUser?.jwt) {
-      return this.validateToken(storedUser.jwt).pipe(
-        switchMap(validUserDetails => {
-          if (validUserDetails) {
-            const finalUser: WordPressUser = { ...validUserDetails, jwt: storedUser.jwt!, refreshToken: storedUser.refreshToken };
-            this.storeAuthData(finalUser, finalUser.jwt, finalUser.refreshToken); return of(finalUser);
-          } else if (storedUser.refreshToken) {
-            return this.refreshTokenInternal(storedUser.refreshToken);
-          } else {
-            this.clearLocalUserData(); return of(null);
-          }
-        }),
-        catchError((err) => { this.clearLocalUserData(); return of(null); }),
-        finalize(() => this.isLoading.set(false))
-      );
-    } else {
-      this.clearLocalUserData(); this.isLoading.set(false); return of(null);
+  private loadUserAndValidate(): Observable<boolean> {
+    const storedUser = this.loadUserFromLocalStorage();
+    if (!storedUser || !storedUser.jwt) {
+      this.clearLocalUserData();
+      return of(false);
     }
+
+    this.isLoading.set(true);
+    return this.validateToken(storedUser.jwt).pipe(
+      map(isValid => {
+        if (isValid) {
+          this.currentWordPressUserSubject.next(storedUser);
+          return true;
+        } else {
+          this.clearLocalUserData();
+          return false;
+        }
+      }),
+      catchError(() => {
+        this.clearLocalUserData();
+        return of(false);
+      }),
+      finalize(() => this.isLoading.set(false))
+    );
+  }
+  
+  private fetchAndStoreGuestToken(): Observable<string | null> {
+    if (this.getCurrentUserValue()) {
+      return of(null);
+    }
+    this.isLoading.set(true);
+    return this.http.get<GuestTokenResponse>(this.guestTokenUrl).pipe(
+      map(response => {
+        if (response && response.token) {
+          if (isPlatformBrowser(this.platformId)) {
+            localStorage.setItem(this.wpGuestTokenKey, response.token);
+          }
+          this.guestJwt.set(response.token);
+          return response.token;
+        }
+        return null;
+      }),
+      catchError(err => {
+        console.error('Failed to fetch guest token:', err);
+        this.authError.set('Could not establish a guest session.');
+        return of(null);
+      }),
+      finalize(() => this.isLoading.set(false))
+    );
   }
 
-  private handleAuthSuccess(responseData: WordPressLoginResponseData | WordPressRefreshResponseData, operation: 'Login' | 'Refresh'): Observable<WordPressUser> {
-    this.isLoading.set(true); const newJwt = responseData.jwt; const newRefreshToken = responseData.refresh_token;
-    const directUserPayload = (responseData as WordPressLoginResponseData).user || responseData as WordPressLoginResponseData;
-    const userIdFromPayload = Number((directUserPayload as any).ID || (directUserPayload as any).id);
-    const userEmailFromPayload = (directUserPayload as any).user_email || (directUserPayload as any).email;
-
-    if (userIdFromPayload && userEmailFromPayload) {
-      const user: WordPressUser = {
-        id: userIdFromPayload, email: userEmailFromPayload,
-        displayName: (directUserPayload as any).display_name || (directUserPayload as any).user_display_name || (directUserPayload as any).user_login || userEmailFromPayload.split('@')[0],
-        username: (directUserPayload as any).user_login, roles: (directUserPayload as WordPressUserFromAuth).roles || [],
-        firstName: (directUserPayload as WordPressUserFromAuth).first_name,
-        lastName: (directUserPayload as WordPressUserFromAuth).last_name,
-        jwt: newJwt, refreshToken: newRefreshToken || this.getStoredRefreshToken() || undefined
-      };
-      this.storeAuthData(user, newJwt, user.refreshToken); this.isLoading.set(false); return of(user);
-    } else {
-      return this.validateToken(newJwt).pipe(
-        map(userDetails => {
-          if (userDetails) {
-            const userToStore: WordPressUser = { ...userDetails, jwt: newJwt, refreshToken: newRefreshToken || this.getStoredRefreshToken() || undefined };
-            this.storeAuthData(userToStore, newJwt, userToStore.refreshToken); return userToStore;
-          } else {
-            this.clearLocalUserData(); const errorMsg = `Konnte Benutzerdetails nach ${operation} nicht validieren.`;
-            this.authError.set(errorMsg); throw new Error(errorMsg);
-          }
-        }),
-        catchError(valErr => {
-          this.clearLocalUserData(); const errorMsg = `Benutzerverifizierung nach ${operation} fehlgeschlagen: ${valErr.message||valErr}`;
-          this.authError.set(errorMsg); return throwError(() => new Error(errorMsg));
-        }),
-        finalize(() => this.isLoading.set(false))
-      );
+  private decodeJwtPayload(token: string): any | null {
+    try {
+      const payloadBase64 = token.split('.')[1];
+      if (!payloadBase64) return null;
+      return JSON.parse(atob(payloadBase64));
+    } catch (e) {
+      console.error('Error decoding JWT', e);
+      return null;
     }
   }
 
   login(credentials: { emailOrUsername: string; password: string }): Observable<WordPressUser> {
-    this.isLoading.set(true); this.authError.set(null);
-    const payload = { email: credentials.emailOrUsername, password: credentials.password };
-    return this.http.post<WordPressAuthResponse<WordPressLoginResponseData>>(this.loginUrl, payload).pipe(
-      switchMap(response => {
-        if (response.success && response.data?.jwt) { return this.handleAuthSuccess(response.data, 'Login'); }
-        else {
-          const errorMsg = response.message || (response.data as any)?.message || response.error_description || 'Login fehlgeschlagen.';
-          throw new HttpErrorResponse({ error: { message: errorMsg, ...response.data, code: response.code }, status: response.statusCode || 400 });
+    this.isLoading.set(true);
+    this.authError.set(null);
+    
+    const payload = {
+      username: credentials.emailOrUsername,
+      password: credentials.password
+    };
+    
+    return this.http.post<JwtLoginResponse>(this.loginUrl, payload).pipe(
+      map(response => {
+        const decodedPayload = this.decodeJwtPayload(response.token);
+        if (!decodedPayload?.data?.user?.id) {
+          throw new Error('Invalid token received from server.');
         }
+
+        const user: WordPressUser = {
+          jwt: response.token,
+          email: response.user_email,
+          displayName: response.user_display_name,
+          username: response.user_nicename,
+          id: parseInt(decodedPayload.data.user.id, 10),
+          roles: decodedPayload.data.user.roles || []
+        };
+        
+        this.storeAuthData(user);
+        return user;
       }),
       catchError(err => this.handleError(err, 'Login')),
       finalize(() => this.isLoading.set(false))
     );
   }
 
-  // **FINALE, ÜBERARBEITETE REGISTER-METHODE**
-  register(data: WordPressRegisterData): Observable<WordPressUser | null> {
+  register(data: WordPressRegisterData): Observable<CustomRegisterResponse> {
     this.isLoading.set(true);
     this.authError.set(null);
-    
-    // Payload bleibt identisch, da das Interface schon korrekt war
-    const payload: WordPressRegisterData = data;
-
-    return this.http.post<WordPressAuthResponse<WordPressRegisterSuccessData>>(this.registerUrl, payload).pipe(
-      switchMap(response => {
-        if (response.success && response.data?.jwt && response.data?.user) {
-          const loginData: WordPressLoginResponseData = {
-              jwt: response.data.jwt,
-              user: response.data.user
-          };
-          return this.handleAuthSuccess(loginData, 'Login');
+    return this.http.post<CustomRegisterResponse>(this.registerUrl, data).pipe(
+      tap(response => {
+        if (response.success && response.message) {
+            this.setSuccessMessage(response.message);
         } else {
-          const errorMsg = response.message || 'Registrierung fehlgeschlagen.';
-          throw new HttpErrorResponse({ error: { message: errorMsg, ...response.data }, status: response.statusCode || 400 });
+            throw new HttpErrorResponse({ error: response, status: 400 });
         }
       }),
       catchError(err => this.handleError(err, 'Register')),
       finalize(() => this.isLoading.set(false))
     );
   }
+  
+  validateToken(token: string): Observable<boolean> {
+    if (!token) {
+      return of(false);
+    }
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
 
-  validateToken(token: string): Observable<Omit<WordPressUser, 'jwt' | 'refreshToken'> | null> {
-    if (!token) { return of(null); }
-    const validateUrlWithTokenParam = `${this.validateTokenUrl}?JWT=${encodeURIComponent(token)}`;
-    const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-
-    return this.http.post<WordPressAuthResponse<WordPressValidateInnerData>>(validateUrlWithTokenParam, {}, { headers }).pipe(
+    return this.http.post<JwtValidateResponse>(this.validateTokenUrl, {}, { headers }).pipe(
       map(response => {
-        const userDataFromResponse = response.data?.user;
-        const userId = userDataFromResponse?.ID || (userDataFromResponse as any)?.id;
-        const userEmail = userDataFromResponse?.user_email || (userDataFromResponse as any)?.email;
-        const displayName = userDataFromResponse?.display_name || userDataFromResponse?.user_login;
-
-        if (response.success && userDataFromResponse && userId && userEmail && displayName) {
-          return {
-            id: parseInt(String(userId), 10),
-            email: userEmail,
-            displayName: displayName,
-            username: userDataFromResponse.user_login,
-            roles: response.data?.roles || [],
-            firstName: (userDataFromResponse as any).first_name || '',
-            lastName: (userDataFromResponse as any).last_name || '',
-          };
-        }
-        return null;
+        return response.code === 'jwt_auth_valid_token';
       }),
       catchError(err => {
-        return of(null);
+        return of(false);
       })
     );
   }
 
-  private refreshTokenInternal(refreshToken: string): Observable<WordPressUser | null> {
-    this.isLoading.set(true); this.authError.set(null);
-    const payload = { refresh_token: refreshToken };
-    return this.http.post<WordPressAuthResponse<WordPressRefreshResponseData>>(this.refreshTokenUrl, payload).pipe(
-      switchMap(response => {
-        const responseData = response.data;
-        if (response.success && responseData?.jwt) {
-          return this.handleAuthSuccess(responseData, 'Refresh');
-        } else {
-          this.clearLocalUserData();
-          const errorMsg = response.message || 'Token Refresh fehlgeschlagen.';
-          throw new HttpErrorResponse({ error: { message: errorMsg, ...response.data }, status: 401 });
-        }
-      }),
-      catchError(err => { this.clearLocalUserData(); return this.handleError(err, 'Refresh Token'); }),
-      finalize(() => this.isLoading.set(false))
+  logout(): Observable<void> {
+    this.isLoading.set(true);
+    this.clearLocalUserData();
+    
+    return this.fetchAndStoreGuestToken().pipe(
+        tap(() => {
+            this.router.navigate(['/']);
+            this.isLoading.set(false);
+        }),
+        map(() => undefined),
+        catchError(() => {
+            this.router.navigate(['/']);
+            this.isLoading.set(false);
+            return of(undefined);
+        })
     );
   }
 
-  public tryRefreshToken(): Observable<WordPressUser | null> {
-    const rToken = this.getStoredRefreshToken();
-    if (rToken) return this.refreshTokenInternal(rToken);
-    this.clearLocalUserData(); return of(null);
+  public getCurrentUserValue(): WordPressUser | null {
+    return this.currentWordPressUserSubject.value;
   }
 
-  logout(): Observable<void> {
-    this.isLoading.set(true); const currentToken = this.getStoredToken();
-    const performClientLogout = () => {
-      this.clearLocalUserData(); this.router.navigate(['/']); this.isLoading.set(false);
-    };
-    if (currentToken) {
-      const revokeUrlWithToken = `${this.revokeTokenUrl}?JWT=${encodeURIComponent(currentToken)}`;
-      return this.http.post<WordPressAuthResponse<null>>(revokeUrlWithToken, {}).pipe(
-        tap(() => {}),
-        map(() => performClientLogout()),
-        catchError(err => {
-          performClientLogout(); return of(undefined);
-        }),
-        finalize(() => this.isLoading.set(false))
-      );
-    } else { performClientLogout(); return of(undefined); }
-  }
+  requestPasswordReset(email: string): Observable<any> {
+    this.isLoading.set(true); 
+    this.authError.set(null);
+    this.successMessage.set(null);
 
-  public getCurrentUserValue(): WordPressUser | null { return this.currentWordPressUserSubject.value; }
-
-  requestPasswordReset(email: string): Observable<WordPressAuthResponse<any>> {
-    this.isLoading.set(true); this.authError.set(null);
-    return this.http.post<WordPressAuthResponse<any>>(this.requestPasswordResetUrl, { email: email }).pipe(
+    return this.http.post<any>(this.ygeRequestPasswordResetUrl, { email: email }).pipe(
       tap(response => {
-        if (response.success) this.setSuccessMessageKey('profilePage.passwordResetRequested', { email });
-        else this.authError.set(response.message || 'Fehler bei Passwort-Reset-Anfrage.');
+        if (response.success) {
+          this.setSuccessMessage(response.message || 'Anfrage erfolgreich.');
+        } else {
+          this.authError.set(response.message || 'Fehler bei Passwort-Reset-Anfrage.');
+        }
       }),
       catchError(err => this.handleError(err, 'RequestPasswordReset')),
       finalize(() => this.isLoading.set(false))
     );
   }
 
-  confirmPasswordReset(data: ConfirmPasswordResetPayload): Observable<WordPressAuthResponse<any>> {
-    this.isLoading.set(true); this.authError.set(null);
-    return this.http.post<WordPressAuthResponse<any>>(this.confirmPasswordResetUrl, data).pipe(
+  // NEU: Methode zur Anforderung des Benutzernamens
+  requestUsername(email: string): Observable<any> {
+    this.isLoading.set(true);
+    this.authError.set(null);
+    this.successMessage.set(null);
+
+    return this.http.post<any>(this.ygeRequestUsernameUrl, { email: email }).pipe(
       tap(response => {
-        if (response.success) this.setSuccessMessageKey('profilePage.successPasswordChange');
-        else this.authError.set(response.message || 'Fehler beim Setzen des neuen Passworts.');
+        // Unser neuer Endpunkt gibt immer eine Erfolgsmeldung zurück, um User-Enumeration zu verhindern.
+        if (response.success && response.message) {
+          this.setSuccessMessage(response.message);
+        } else {
+          // Fallback, sollte mit unserem Backend-Code nicht eintreten
+          this.authError.set(response.message || 'Fehler bei der Anforderung des Benutzernamens.');
+        }
+      }),
+      catchError(err => this.handleError(err, 'RequestUsername')),
+      finalize(() => this.isLoading.set(false))
+    );
+  }
+  
+  confirmPasswordReset(payload: PasswordResetPayload): Observable<any> {
+    this.isLoading.set(true);
+    this.authError.set(null);
+    this.successMessage.set(null);
+
+    return this.http.post<any>(this.ygeSetNewPasswordUrl, payload).pipe(
+      tap(response => {
+        if (response.success && response.message) {
+          this.setSuccessMessage(response.message);
+        }
       }),
       catchError(err => this.handleError(err, 'ConfirmPasswordReset')),
       finalize(() => this.isLoading.set(false))
     );
   }
 
-  private setSuccessMessageKey(key: string, params?: object) {
-    this.successMessageKey.set(key);
-    this.successMessage.set(this.translocoService.translate(key, params));
-    setTimeout(() => { this.successMessage.set(null); this.successMessageKey.set(null); }, 5000);
+  public setSuccessMessage(message: string) {
+    this.successMessage.set(message);
+    setTimeout(() => { this.successMessage.set(null); }, 5000);
   }
-   private updateSuccessMessage(): void {
-     if (this.successMessageKey()) this.successMessage.set(this.translocoService.translate(this.successMessageKey()!));
-   }
-
+  
   private handleError(error: HttpErrorResponse | Error, operation: string): Observable<never> {
     this.isLoading.set(false);
-    let displayMessage = this.translocoService.translate('errors.unknownError', { operation });
+    let displayMessage = `Ein unbekannter Fehler ist aufgetreten: ${operation}`;
+
     if (error instanceof HttpErrorResponse) {
-      const errData = error.error as WordPressAuthResponse<any>;
-      let serverMessage = errData?.message || errData?.data?.message || errData?.error_description || errData?.error;
-      if (errData?.errors && typeof errData.errors === 'object' && Object.keys(errData.errors).length > 0) {
-        const firstErrorKey = Object.keys(errData.errors)[0];
-        serverMessage = `${serverMessage || ''} (${firstErrorKey}: ${errData.errors[firstErrorKey].join(', ')})`;
+      const errData = error.error as JwtErrorResponse;
+      let serverMessage = errData?.message;
+      
+      if (operation === 'Login' && error.status === 403) {
+         if (serverMessage && serverMessage.includes('**Fehler**: Ungültiger Benutzername.')) {
+            serverMessage = 'Der angegebene Benutzername oder die E-Mail-Adresse ist ungültig.';
+         } else if (serverMessage && serverMessage.includes('Das Passwort, das du für den Benutzernamen')) {
+            serverMessage = 'Das eingegebene Passwort ist nicht korrekt.';
+         } else {
+            serverMessage = 'Benutzername oder Passwort ist ungültig.';
+         }
       }
-      if (serverMessage && typeof serverMessage === 'string') displayMessage = serverMessage;
-      else if (error.status === 0 || error.status === 503 || error.status === 504) {
-        displayMessage = this.translocoService.translate('errors.networkError');
+
+      if (serverMessage && typeof serverMessage === 'string') {
+        displayMessage = serverMessage;
+      } else if (error.status === 0 || error.status === 503 || error.status === 504) {
+        displayMessage = 'Netzwerkfehler: Es konnte keine Verbindung zum Server hergestellt werden.';
       } else {
-        displayMessage = this.translocoService.translate('errors.serverError', { status: error.status });
+        displayMessage = `Serverfehler (Status: ${error.status})`;
       }
+
     } else if (error instanceof Error) {
       displayMessage = error.message;
     }
+
     this.authError.set(displayMessage);
-    if (['Login', 'Register', 'Refresh Token', 'Validate Token on Load'].includes(operation)) {
+    
+    if (['Login', 'Register'].includes(operation)) {
       this.clearLocalUserData();
     }
+    
     return throwError(() => new Error(displayMessage));
-  }
-
-  private scheduleTokenRefresh(token: string): void {
-    if (isPlatformBrowser(this.platformId) && token) {
-      if (this.refreshTimer) clearTimeout(this.refreshTimer);
-      try {
-        const payloadBase64 = token.split('.')[1];
-        if (!payloadBase64) { return; }
-        const decodedPayload = JSON.parse(atob(payloadBase64));
-        if (typeof decodedPayload.exp !== 'number') { return; }
-        const expiresAt = decodedPayload.exp * 1000;
-        const now = Date.now();
-        const fiveMinutes = 5 * 60 * 1000;
-        let refreshIn = expiresAt - now - fiveMinutes;
-        if (refreshIn < 0) refreshIn = Math.max(0, expiresAt - now - (60 * 1000));
-        if (refreshIn <= 0) {
-          const currentRefreshToken = this.getStoredRefreshToken();
-          if (currentRefreshToken) {
-            this.tryRefreshToken().subscribe();
-          } else {
-            this.logout().subscribe();
-          }
-          return;
-        }
-        this.refreshTimer = setTimeout(() => {
-          this.tryRefreshToken().subscribe({ error: () => { this.logout().subscribe(); }});
-        }, refreshIn);
-      } catch (error) { }
-    }
   }
 }

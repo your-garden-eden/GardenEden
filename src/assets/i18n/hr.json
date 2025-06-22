@@ -13,7 +13,13 @@
     "updating": "Ažuriranje...",
     "not": "Ne",
     "defaultMetaDescription": "Otkrijte visokokvalitetni vrtni namještaj i dodatke u Your Garden Eden.",
-    "notSupported": "Nije podržano"
+    "notSupported": "Nije podržano",
+    "actions": {
+      "confirm": "Potvrdi",
+      "cancel": "Odustani",
+      "close": "Zatvori",
+      "delete": "Izbriši"
+    }
   },
   "header": {
     "searchPlaceholder": "Traži proizvode...",
@@ -169,6 +175,7 @@
     "noImageAvailable": "Slika nije dostupna",
     "thumbnailAlt": "Minijaturna slika {{index}}",
     "successAddToCart": "Proizvod uspješno dodan u košaricu.",
+    "optionNotAvailable": "Ova opcija nije dostupna.",
     "availability": {
       "inStock": "Na zalihi",
       "outOfStock": "Nije na zalihi",
@@ -179,7 +186,8 @@
       "addingToCart": "Dodavanje...",
       "wishlistLogin": "Molimo prijavite se kako biste koristili listu želja",
       "addToWishlist": "Dodaj na listu želja",
-      "removeFromWishlist": "Ukloni s liste želja"
+      "removeFromWishlist": "Ukloni s liste želja",
+      "inWishlist": "Na listi želja"
     },
     "description": {
       "title": "Opis",
@@ -251,6 +259,9 @@
     "companyLabel": "Tvrtka (opcionalno)",
     "companyPlaceholder": "Naziv tvrtke",
     "mainTitle": "Kreiraj novi račun",
+    "addressDetailsTitle": "Vaša adresa",
+    "accountDetailsTitle": "Podaci o vašem računu",
+    "selectCountryPlaceholder": "Molimo odaberite državu",
     "successHeadline": "Registracija uspješna!",
     "successMessage": "Hvala na registraciji! E-mail s potvrdom poslan je na {{email}}. Molimo provjerite svoj sandučić (i mapu neželjene pošte) i kliknite na poveznicu da biste aktivirali svoj račun.",
     "successMessagePendingVerification": "Registracija uspješna! Molimo provjerite svoju e-poštu ({{email}}) kako biste potvrdili svoj račun.",
@@ -275,6 +286,8 @@
     "addressCityLabel": "Grad",
     "addressCityPlaceholder": "Primjergrad",
     "errorAddressCityRequired": "Grad je obavezan.",
+    "errorCountryRequired": "Molimo odaberite vašu državu.",
+    "errorPhoneRequired": "Broj telefona je obavezan.",
     "emailLabel": "E-mail adresa",
     "emailPlaceholder": "ivan.horvat@mail.com",
     "errorEmailRequired": "E-mail je obavezan.",
@@ -317,7 +330,7 @@
     "cancelButton": "Odustani",
     "editProfileButton": "Uredi profil",
     "editButton": "Uredi",
-    "personalDataTitle": "Osobni podaci",
+    "personalDataTitle": "Osobni podaci i kontakt",
     "emailLabel": "E-mail adresa",
     "emailNotChangeableHint": "E-mail adresa se ovdje ne može promijeniti.",
     "firstNameLabel": "Ime",
@@ -326,30 +339,27 @@
     "billingAddressTitle": "Adresa za naplatu",
     "shippingAddressTitle": "Adresa za dostavu",
     "noBillingAddress": "Nema adrese za naplatu.",
-    "noShippingAddress": "Nema adrese za dostavu.",
-    "shippingSameAsBilling": "Adresa za dostavu je ista kao adresa za naplatu.",
+    "shippingSameAsBilling": "Moja adresa za dostavu je ista kao adresa za naplatu.",
     "phoneLabel": "Telefon",
     "addressStreetLabel": "Ulica i kućni broj",
     "addressZipLabel": "Poštanski broj",
     "addressCityLabel": "Grad",
     "saveChangesButton": "Spremi promjene",
     "savingButton": "Spremanje...",
-    "successProfileUpdate": "Profil uspješno ažuriran!",
-    "successBillingUpdate": "Adresa za naplatu uspješno ažurirana!",
-    "successShippingUpdate": "Adresa za dostavu uspješno ažurirana!",
-    "errorProfileSave": "Pogreška pri spremanju profila.",
-    "errorAddressSave": "Pogreška pri spremanju adrese.",
+    "successProfileUpdate": "Vaši podaci su uspješno ažurirani.",
     "navOverview": "Pregled",
     "navPersonalData": "Moji podaci",
     "navAddresses": "Adrese",
     "navOrders": "Narudžbe",
     "navChangePassword": "Promijeni lozinku",
+    "changePasswordSubtitle": "Iz sigurnosnih razloga, ovdje možete postaviti novu lozinku za svoj račun.",
+    "currentPasswordLabel": "Trenutna lozinka",
+    "newPasswordLabel": "Nova lozinka",
+    "confirmNewPasswordLabel": "Potvrdi novu lozinku",
     "welcomeMessage": "Pozdrav {{name}}!",
     "overviewIntro": "Ovdje možete pregledati i upravljati svojim osobnim podacima, adresama i narudžbama.",
-    "sectionUnderMaintenanceTitle": "Odjeljak u održavanju",
-    "sectionAddressesMaintenanceMessage": "Upravljanje adresama se trenutno revidira i uskoro će opet biti dostupno s punom funkcionalnošću. Hvala na razumijevanju.",
-    "sectionChangePasswordMaintenanceMessage": "Funkcija promjene lozinke se trenutno revidira. Ako je hitno, molimo koristite funkciju 'Zaboravljena lozinka' na stranici za prijavu ili kontaktirajte našu podršku.",
     "noOrders": "Još niste napravili nijednu narudžbu.",
+    "browseProducts": "Otkrijte proizvode sada",
     "orderNumber": "Br. narudžbe",
     "orderDate": "Datum",
     "orderStatus": "Status",
@@ -377,14 +387,11 @@
     "notAvailable": "N/A",
     "errorUserNotFoundContext": "Informacije o korisniku nisu mogle biti učitane.",
     "errorUserNotLoggedIn": "Molimo prijavite se da biste vidjeli svoj profil.",
-    "errorWpUserLoad": "Osnovni korisnički podaci nisu mogli biti učitani.",
-    "errorOrdersLoad": "Narudžbe nisu mogle biti učitane.",
-    "errorOrderDetailLoad": "Detalji narudžbe nisu mogli biti učitani.",
-    "errorProfileLoadGeneral": "Pogreška pri učitavanju profila.",
-    "passwordResetRequested": "Zahtjev za poništavanje lozinke poslan",
     "successPasswordChange": "Vaša lozinka je uspješno promijenjena.",
+    "costSummaryTitle": "Sažetak troškova",
+    "noShippingAddress": "Nije navedena druga adresa za dostavu.",
     "errors": {
-      "formInvalid": "Obrazac je nevažeći. Molimo provjerite svoje unose.",
+      "formInvalid": "Molimo provjerite svoje unose. Neka polja su nevažeća.",
       "loadOrderDetailsError": "Detalji narudžbe nisu mogli biti učitani.",
       "loadOrdersError": "Narudžbe nisu mogle biti učitane.",
       "loadProfileError": "Profil nije mogao biti učitan.",
@@ -406,13 +413,15 @@
     "summary": {
       "title": "Sažetak", "shipping": "Dostava", "shippingText": "Izračunava se na blagajni",
       "total": "Ukupno", "inclVatShort": "s PDV-om", "allPricesInclVat": "Sve cijene uključuju zakonski PDV.",
-      "checkoutButton": "Dodaj adresu i idi na plaćanje",
+      "checkoutButton": "Na blagajnu",
       "directCheckoutButton": "Izravno na plaćanje",
       "changeAddressButton": "Promijeni adresu",
       "itemSingular": "artikl", "itemPlural": "artikala",
       "continueShopping": "Nastavi s kupovinom",
       "shippingAddressNote": "Potpuna adresa za dostavu (država i poštanski broj) potrebna je za izračun troškova dostave i nastavak plaćanja.",
-      "addressButton": "Dodaj adresu za dostavu"
+      "addressButton": "Dodaj adresu za dostavu",
+      "coupon": "Kupon \"{{code}}\"",
+      "removeCouponAria": "Ukloni kupon {{code}}"
     },
     "noteLabel": "Napomena",
     "empty": { "title": "Vaša košarica je prazna.", "message": "Dodajte proizvode da biste ih vidjeli ovdje.", "continueShopping": "Kupujte sada" },
@@ -421,10 +430,25 @@
       "updateFailed": "Količina nije mogla biti ažurirana. Molimo pokušajte ponovo.",
       "removeItem": "Artikl nije mogao biti uklonjen.",
       "checkoutNotPossible": "Preusmjeravanje na blagajnu trenutno nije moguće.",
-      "emptyCartCheckout": "Vaša košarica je prazna. Molimo prvo dodajte proizvode."
+      "emptyCartCheckout": "Vaša košarica je prazna. Molimo prvo dodajte proizvode.",
+      "removeCouponFailed": "Kupon nije mogao biti uklonjen."
     },
     "errorFromService": "Došlo je do pogreške: {serviceErrorMsg}",
-    "errorGlobalDefault": "Došlo je do nepoznate pogreške u košarici."
+    "errorGlobalDefault": "Došlo je do nepoznate pogreške u košarici.",
+    "confirmClear": {
+      "title": "Isprazni košaricu?",
+      "message": "Jeste li sigurni da želite ukloniti sve artikle iz košarice?",
+      "confirmButton": "Da, isprazni"
+    },
+    "clearCartButton": "Isprazni košaricu",
+    "coupon": {
+      "label": "Kod kupona",
+      "placeholder": "Unesite kod...",
+      "applyButton": "Primijeni",
+      "errorRequired": "Molimo unesite kod.",
+      "potentialDiscount": "Uštedite <strong class='highlight-success'>{{amount}}</strong> s našim kuponom zahvale! Kliknite ovdje da biste ga primijenili.",
+      "openDiscountInfoAria": "Kliknite da biste dobili informacije o popustu i primijenili ga."
+    }
   },
   "wishlistPage": {
     "title": "Moja lista želja",
@@ -449,7 +473,7 @@
       "message": "Dodajte proizvode koji vam se sviđaju klikom na ikonu srca.",
       "continueShopping": "Otkrijte proizvode sada"
     },
-    "confirmClear": "Jeste li sigurni da želite ukloniti sve artikle s vaše liste želja?"
+    "confirmClear": "Jeste li sigurni da želite ukloniti sve artikle s vaše liste želja? Ova radnja se ne može poništiti."
   },
   "wishlist": {
     "errors": {
@@ -491,7 +515,14 @@
     "errorInvalidCredentials": "Nevažeći e-mail/korisničko ime ili pogrešna lozinka.",
     "errorUnknown": "Došlo je do nepoznate pogreške prilikom prijave.",
     "errorGoogleInvalidResponse": "Prijava s Googleom nije uspjela (nevažeći odgovor).",
-    "errorGoogleFirebase": "Prijava s Googleom na Firebase nije uspjela."
+    "errorGoogleFirebase": "Prijava s Googleom na Firebase nije uspjela.",
+    "passwordResetRequested": "Ako postoji račun s ovom e-mail adresom, poslan je link za poništavanje lozinke.",
+    "forgotPassword": {
+      "title": "Poništi lozinku",
+      "subtitle": "Nema problema! Unesite svoju e-mail adresu i poslat ćemo vam link za poništavanje lozinke.",
+      "sendButton": "Pošalji link za poništavanje",
+      "backToLoginLink": "Natrag na prijavu"
+    }
   },
   "miniCart": {
     "title": "Košarica",
@@ -528,7 +559,13 @@
     "availableInVariants": "U više varijanti",
     "priceFrom": "Od",
     "addToWishlist": "Dodaj na listu želja",
-    "removeFromWishlist": "Ukloni s liste želja"
+    "removeFromWishlist": "Ukloni s liste želja",
+    "addToCart": "Dodaj u košaricu",
+    "selectOptions": "Odaberi opcije",
+    "addedToCart": "\"{productName}\" je dodan u košaricu.",
+    "errorAddingToCart": "Proizvod nije mogao biti dodan u košaricu.",
+    "soonAvailable": "Uskoro dostupno",
+    "priceOnRequest": "Trenutno nije moguće naručiti"
   },
   "checkoutDetailsPage": {
     "title": "Detalji narudžbe i adresa",
@@ -583,7 +620,8 @@
       "checkoutProcessFailed": "Proces plaćanja nije mogao biti dovršen. Detalji: {details}"
     },
     "emptyCartMessage": "Vaša košarica je prazna. Molimo dodajte proizvode prije nastavka.",
-    "backToCart": "Natrag u košaricu"
+    "backToCart": "Natrag u košaricu",
+    "addressSaveSuccess": "Vaše adrese su uspješno spremljene!"
   },
   "cartService": {
     "errorLoadingCart": "Košarica nije mogla biti učitana.",
@@ -637,9 +675,11 @@
     },
     "cartDiscount": {
       "title": "Vaš popust od 5%!",
-      "paragraph1": "Hvala na kupnji! Zbog trenutnih optimizacija na našoj web stranici, želimo vam pokloniti 5% popusta.",
-      "paragraph2": "Da biste to učinili, jednostavno unesite kod kupona u odgovarajuće polje na stranici za plaćanje.",
-      "couponCodeLabel": "Kod kupona:",
+      "applyButton": "Primijeni 5% popusta i zatvori",
+      "closeButton": "Primijeni kasnije",
+      "paragraph1": "Trenutno razvijamo našu online trgovinu za vas! Kao zahvalu za vaše razumijevanje ako dođe do manjih neugodnosti tijekom ove faze, poklanjamo vam <span class='highlight-success'>5% popusta</span> na vašu narudžbu.",
+      "paragraph2": "Jednostavno kliknite na <span class='highlight-action'>'Primijeni popust'</span> da biste odmah aktivirali pogodnost. Naporno radimo kako bismo vam uskoro pružili najbolje moguće iskustvo kupovine.",
+      "couponCodeLabel": "Vaš kod kupona (bit će primijenjen automatski):",
       "couponCodeValue": "YourGardenEden",
       "copyCodeButton": {
         "ariaLabelIdle": "Kopiraj kod kupona {{code}}",
@@ -647,8 +687,7 @@
         "titleIdle": "Kopiraj kod",
         "titleCopied": "Kopirano!",
         "feedbackCopied": "Kopirano!"
-      },
-      "confirmButton": "Razumijem"
+      }
     },
     "shared": {
       "closeButtonAriaLabel": "Zatvori"
@@ -657,5 +696,19 @@
   "validators": {
     "firstNameRequired": "Ime je obavezno polje.",
     "lastNameRequired": "Prezime je obavezno polje."
+  },
+  "resetPasswordPage": {
+    "title": "Poništi lozinku",
+    "subtitle": "Unesite svoju novu lozinku da biste dovršili postupak.",
+    "submitButton": "Spremi novu lozinku",
+    "successTitle": "Lozinka uspješno promijenjena!",
+    "successMessage": "Vaša lozinka je ažurirana. Uskoro ćete biti preusmjereni na početnu stranicu.",
+    "toHomepageButton": "Na početnu stranicu",
+    "invalidLinkTitle": "Nevažeća poveznica",
+    "invalidLinkDefaultMessage": "Ova poveznica za poništavanje lozinke čini se nevažećom ili je istekla. Molimo zatražite novu."
+  },
+  "checkout": {
+    "subtotal": "Međuzbroj",
+    "shipping": "Dostava"
   }
 }

@@ -13,7 +13,13 @@
     "updating": "Actualizando...",
     "not": "No",
     "defaultMetaDescription": "Descubre muebles y accesorios de jardín de alta calidad en Your Garden Eden.",
-    "notSupported": "No soportado"
+    "notSupported": "No soportado",
+    "actions": {
+      "confirm": "Confirmar",
+      "cancel": "Cancelar",
+      "close": "Cerrar",
+      "delete": "Eliminar"
+    }
   },
   "header": {
     "searchPlaceholder": "Buscar productos...",
@@ -169,6 +175,7 @@
     "noImageAvailable": "No hay imagen disponible",
     "thumbnailAlt": "Imagen en miniatura {{index}}",
     "successAddToCart": "Producto añadido al carrito correctamente.",
+    "optionNotAvailable": "Esta opción no está disponible.",
     "availability": {
       "inStock": "En stock",
       "outOfStock": "Agotado",
@@ -179,7 +186,8 @@
       "addingToCart": "Añadiendo...",
       "wishlistLogin": "Por favor, inicia sesión para usar la lista de deseos",
       "addToWishlist": "Añadir a la lista de deseos",
-      "removeFromWishlist": "Eliminar de la lista de deseos"
+      "removeFromWishlist": "Eliminar de la lista de deseos",
+      "inWishlist": "En la lista de deseos"
     },
     "description": {
       "title": "Descripción",
@@ -251,6 +259,9 @@
     "companyLabel": "Empresa (opcional)",
     "companyPlaceholder": "Nombre de la empresa",
     "mainTitle": "Crear nueva cuenta",
+    "addressDetailsTitle": "Tu dirección",
+    "accountDetailsTitle": "Datos de tu cuenta",
+    "selectCountryPlaceholder": "Por favor, selecciona un país",
     "successHeadline": "¡Registro exitoso!",
     "successMessage": "¡Gracias por registrarte! Se ha enviado un correo de confirmación a {{email}}. Por favor, revisa tu bandeja de entrada (y la carpeta de spam) y haz clic en el enlace para activar tu cuenta.",
     "successMessagePendingVerification": "¡Registro exitoso! Por favor, revisa tu correo electrónico ({{email}}) para confirmar tu cuenta.",
@@ -275,6 +286,8 @@
     "addressCityLabel": "Ciudad",
     "addressCityPlaceholder": "Ciudad Ejemplo",
     "errorAddressCityRequired": "La ciudad es obligatoria.",
+    "errorCountryRequired": "Por favor, selecciona tu país.",
+    "errorPhoneRequired": "El número de teléfono es obligatorio.",
     "emailLabel": "Correo electrónico",
     "emailPlaceholder": "juan.perez@mail.com",
     "errorEmailRequired": "El correo electrónico es obligatorio.",
@@ -317,7 +330,7 @@
     "cancelButton": "Cancelar",
     "editProfileButton": "Editar perfil",
     "editButton": "Editar",
-    "personalDataTitle": "Datos personales",
+    "personalDataTitle": "Datos personales y de contacto",
     "emailLabel": "Correo electrónico",
     "emailNotChangeableHint": "La dirección de correo electrónico no se puede cambiar aquí.",
     "firstNameLabel": "Nombre",
@@ -326,36 +339,33 @@
     "billingAddressTitle": "Dirección de facturación",
     "shippingAddressTitle": "Dirección de envío",
     "noBillingAddress": "No se ha proporcionado una dirección de facturación.",
-    "noShippingAddress": "No se ha proporcionado una dirección de envío.",
-    "shippingSameAsBilling": "La dirección de envío es la misma que la de facturación.",
+    "shippingSameAsBilling": "Mi dirección de envío es la misma que la de facturación.",
     "phoneLabel": "Teléfono",
     "addressStreetLabel": "Calle y número",
     "addressZipLabel": "Código postal",
     "addressCityLabel": "Ciudad",
     "saveChangesButton": "Guardar cambios",
     "savingButton": "Guardando...",
-    "successProfileUpdate": "¡Perfil actualizado con éxito!",
-    "successBillingUpdate": "¡Dirección de facturación actualizada con éxito!",
-    "successShippingUpdate": "¡Dirección de envío actualizada con éxito!",
-    "errorProfileSave": "Error al guardar el perfil.",
-    "errorAddressSave": "Error al guardar la dirección.",
+    "successProfileUpdate": "Tus datos se han actualizado correctamente.",
     "navOverview": "Resumen",
     "navPersonalData": "Mis datos",
     "navAddresses": "Direcciones",
     "navOrders": "Pedidos",
     "navChangePassword": "Cambiar contraseña",
+    "changePasswordSubtitle": "Por razones de seguridad, aquí puedes establecer una nueva contraseña para tu cuenta.",
+    "currentPasswordLabel": "Contraseña actual",
+    "newPasswordLabel": "Nueva contraseña",
+    "confirmNewPasswordLabel": "Confirmar nueva contraseña",
     "welcomeMessage": "¡Hola {{name}}!",
     "overviewIntro": "Aquí puedes ver y gestionar tus datos personales, direcciones y pedidos.",
-    "sectionUnderMaintenanceTitle": "Sección en mantenimiento",
-    "sectionAddressesMaintenanceMessage": "La gestión de direcciones está siendo revisada y volverá a estar disponible pronto con todas sus funciones. Gracias por tu comprensión.",
-    "sectionChangePasswordMaintenanceMessage": "La función de cambio de contraseña está siendo revisada. Si es urgente, utiliza la función 'Olvidé mi contraseña' en la página de inicio de sesión o contacta con nuestro soporte.",
     "noOrders": "Aún no has realizado ningún pedido.",
+    "browseProducts": "Descubrir productos ahora",
     "orderNumber": "Nº de pedido",
     "orderDate": "Fecha",
     "orderStatus": "Estado",
     "orderTotal": "Total",
     "viewOrderDetails": "Ver detalles",
-    "orderDetailsTitle": "Detalles del pedido Nº.",
+    "orderDetailsTitle": "Detalles del pedido Nº",
     "paymentMethod": "Método de pago",
     "customerNote": "Nota del cliente",
     "backToOrders": "Volver a los pedidos",
@@ -377,14 +387,11 @@
     "notAvailable": "N/D",
     "errorUserNotFoundContext": "No se pudo cargar la información del usuario.",
     "errorUserNotLoggedIn": "Por favor, inicia sesión para ver tu perfil.",
-    "errorWpUserLoad": "No se pudieron cargar los datos básicos del usuario.",
-    "errorOrdersLoad": "No se pudieron cargar los pedidos.",
-    "errorOrderDetailLoad": "No se pudieron cargar los detalles del pedido.",
-    "errorProfileLoadGeneral": "Error al cargar el perfil.",
-    "passwordResetRequested": "Solicitud de restablecimiento de contraseña enviada",
     "successPasswordChange": "Tu contraseña se ha cambiado correctamente.",
+    "costSummaryTitle": "Resumen de costos",
+    "noShippingAddress": "No se ha proporcionado una dirección de envío diferente.",
     "errors": {
-      "formInvalid": "El formulario no es válido. Por favor, comprueba tus datos.",
+      "formInvalid": "Por favor, comprueba tus datos. Algunos campos no son válidos.",
       "loadOrderDetailsError": "No se pudieron cargar los detalles del pedido.",
       "loadOrdersError": "No se pudieron cargar los pedidos.",
       "loadProfileError": "No se pudo cargar el perfil.",
@@ -406,13 +413,15 @@
     "summary": {
       "title": "Resumen", "shipping": "Envío", "shippingText": "Calculado en la caja",
       "total": "Total", "inclVatShort": "IVA incl.", "allPricesInclVat": "Todos los precios incluyen el IVA legal.",
-      "checkoutButton": "Añadir dirección y pagar",
+      "checkoutButton": "Ir a la caja",
       "directCheckoutButton": "Ir directamente al pago",
       "changeAddressButton": "Cambiar dirección",
       "itemSingular": "artículo", "itemPlural": "artículos",
       "continueShopping": "Seguir comprando",
       "shippingAddressNote": "Se requiere una dirección de envío completa (país y código postal) para calcular los gastos de envío y continuar con el pago.",
-      "addressButton": "Añadir dirección de envío"
+      "addressButton": "Añadir dirección de envío",
+      "coupon": "Cupón \"{{code}}\"",
+      "removeCouponAria": "Eliminar cupón {{code}}"
     },
     "noteLabel": "Nota",
     "empty": { "title": "Tu carrito está vacío.", "message": "Añade productos para verlos aquí.", "continueShopping": "Comprar ahora" },
@@ -421,10 +430,25 @@
       "updateFailed": "No se pudo actualizar la cantidad. Por favor, inténtalo de nuevo.",
       "removeItem": "No se pudo eliminar el artículo.",
       "checkoutNotPossible": "La redirección a la caja no es posible actualmente.",
-      "emptyCartCheckout": "Tu carrito está vacío. Por favor, añade productos primero."
+      "emptyCartCheckout": "Tu carrito está vacío. Por favor, añade productos primero.",
+      "removeCouponFailed": "No se pudo eliminar el cupón."
     },
     "errorFromService": "Ha ocurrido un error: {serviceErrorMsg}",
-    "errorGlobalDefault": "Ha ocurrido un error desconocido en el carrito."
+    "errorGlobalDefault": "Ha ocurrido un error desconocido en el carrito.",
+    "confirmClear": {
+      "title": "¿Vaciar carrito?",
+      "message": "¿Estás seguro de que quieres eliminar todos los artículos de tu carrito?",
+      "confirmButton": "Sí, vaciar"
+    },
+    "clearCartButton": "Vaciar carrito",
+    "coupon": {
+      "label": "Código de cupón",
+      "placeholder": "Introduce el código...",
+      "applyButton": "Aplicar",
+      "errorRequired": "Por favor, introduce un código.",
+      "potentialDiscount": "¡Ahorra un <strong class='highlight-success'>{{amount}}</strong> con nuestro cupón de agradecimiento! Haz clic aquí para aplicarlo.",
+      "openDiscountInfoAria": "Haz clic para obtener información sobre el descuento y aplicarlo."
+    }
   },
   "wishlistPage": {
     "title": "Mi lista de deseos",
@@ -449,7 +473,7 @@
       "message": "Añade productos que te gusten haciendo clic en el icono del corazón.",
       "continueShopping": "Descubrir productos ahora"
     },
-    "confirmClear": "¿Estás seguro de que quieres eliminar todos los artículos de tu lista de deseos?"
+    "confirmClear": "¿Estás seguro de que quieres eliminar todos los artículos de tu lista de deseos? Esta acción no se puede deshacer."
   },
   "wishlist": {
     "errors": {
@@ -491,7 +515,14 @@
     "errorInvalidCredentials": "Correo/nombre de usuario no válido o contraseña incorrecta.",
     "errorUnknown": "Ocurrió un error desconocido durante el inicio de sesión.",
     "errorGoogleInvalidResponse": "Falló el inicio de sesión con Google (respuesta no válida).",
-    "errorGoogleFirebase": "Falló el inicio de sesión con Google en Firebase."
+    "errorGoogleFirebase": "Falló el inicio de sesión con Google en Firebase.",
+    "passwordResetRequested": "Si existe una cuenta con esta dirección de correo electrónico, se ha enviado un enlace para restablecer la contraseña.",
+    "forgotPassword": {
+      "title": "Restablecer contraseña",
+      "subtitle": "¡No hay problema! Introduce tu dirección de correo electrónico y te enviaremos un enlace para restablecer tu contraseña.",
+      "sendButton": "Enviar enlace de restablecimiento",
+      "backToLoginLink": "Volver a Iniciar sesión"
+    }
   },
   "miniCart": {
     "title": "Carrito",
@@ -528,7 +559,13 @@
     "availableInVariants": "En varias variantes",
     "priceFrom": "Desde",
     "addToWishlist": "Añadir a la lista de deseos",
-    "removeFromWishlist": "Eliminar de la lista de deseos"
+    "removeFromWishlist": "Eliminar de la lista de deseos",
+    "addToCart": "Añadir al carrito",
+    "selectOptions": "Seleccionar opciones",
+    "addedToCart": "\"{productName}\" se ha añadido al carrito.",
+    "errorAddingToCart": "No se pudo añadir el producto al carrito.",
+    "soonAvailable": "Disponible pronto",
+    "priceOnRequest": "Actualmente no se puede pedir"
   },
   "checkoutDetailsPage": {
     "title": "Detalles del Pedido y Dirección",
@@ -583,10 +620,14 @@
       "checkoutProcessFailed": "No se pudo completar el proceso de pago. Detalles: {details}"
     },
     "emptyCartMessage": "Tu carrito está vacío. Por favor, añade productos antes de continuar.",
-    "backToCart": "Volver al carrito"
+    "backToCart": "Volver al carrito",
+    "addressSaveSuccess": "¡Tus direcciones se han guardado correctamente!"
   },
   "cartService": {
     "errorLoadingCart": "No se pudo cargar el carrito.",
+    "errorRemovingCoupon": "No se pudo eliminar el cupón.",
+    "errorApplyingCoupon": "No se pudo aplicar el cupón.",
+    "errorUnknownCoupon": "El cupón no es válido o no se pudo aplicar.",
     "errorAddingItem": "Error al añadir al carrito.",
     "errorUpdatingQuantity": "No se pudo actualizar la cantidad.",
     "errorRemovingItem": "No se pudo eliminar el artículo.",
@@ -637,9 +678,11 @@
     },
     "cartDiscount": {
       "title": "¡Tu 5% de descuento!",
-      "paragraph1": "¡Gracias por tu compra! Debido a las optimizaciones actuales en nuestro sitio web, nos gustaría ofrecerte un 5% de descuento.",
-      "paragraph2": "Para ello, simplemente introduce el código de cupón en el campo correspondiente en la página de pago.",
-      "couponCodeLabel": "Código de cupón:",
+      "applyButton": "Aplicar 5% de descuento y cerrar",
+      "closeButton": "Aplicar más tarde",
+      "paragraph1": "¡Estamos desarrollando nuestra tienda online para ti! Como agradecimiento por tu comprensión si surgen pequeños inconvenientes durante esta fase, te regalamos un <span class='highlight-success'>5% de descuento</span> en tu pedido.",
+      "paragraph2": "Simplemente haz clic en <span class='highlight-action'>'Aplicar descuento'</span> para activar el beneficio de inmediato. Estamos trabajando arduamente para ofrecerte la mejor experiencia de compra posible pronto.",
+      "couponCodeLabel": "Tu código de cupón (se aplicará automáticamente):",
       "couponCodeValue": "YourGardenEden",
       "copyCodeButton": {
         "ariaLabelIdle": "Copiar código de cupón {{code}}",
@@ -647,8 +690,7 @@
         "titleIdle": "Copiar código",
         "titleCopied": "¡Copiado!",
         "feedbackCopied": "¡Copiado!"
-      },
-      "confirmButton": "Entendido"
+      }
     },
     "shared": {
       "closeButtonAriaLabel": "Cerrar"
@@ -657,5 +699,15 @@
   "validators": {
     "firstNameRequired": "El nombre es un campo obligatorio.",
     "lastNameRequired": "El apellido es un campo obligatorio."
+  },
+  "resetPasswordPage": {
+    "title": "Restablecer contraseña",
+    "subtitle": "Introduce tu nueva contraseña para completar el proceso.",
+    "submitButton": "Guardar nueva contraseña",
+    "successTitle": "¡Contraseña cambiada con éxito!",
+    "successMessage": "Tu contraseña ha sido actualizada. Serás redirigido a la página de inicio en breve.",
+    "toHomepageButton": "A la página de inicio",
+    "invalidLinkTitle": "Enlace no válido",
+    "invalidLinkDefaultMessage": "Este enlace para restablecer la contraseña parece no ser válido o haber expirado. Por favor, solicita uno nuevo."
   }
 }

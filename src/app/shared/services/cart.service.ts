@@ -10,7 +10,8 @@ import {
   WooCommerceStoreCartTotals,
   StageCartPayload,
   WooCommerceStoreAddress,
-  WooCommerceStoreCartCoupon, // KORRIGIERT: Der korrekte Typenname wird importiert
+  WooCommerceStoreCartCoupon,
+  WooCommerceProduct,
 } from '../../core/services/woocommerce.service';
 import { AuthService, WordPressUser } from './auth.service';
 import { AccountService } from '../../features/account/services/account.service';
@@ -19,6 +20,7 @@ import { catchError, tap, distinctUntilChanged, switchMap, map } from 'rxjs/oper
 import { TranslocoService } from '@ngneat/transloco';
 
 export interface ExtendedCartItem extends WooCommerceStoreCartItem {
+  slug?: string;
   prices: WooCommerceStoreCartItem['prices'] & {
     line_regular_price?: string;
   }
@@ -65,6 +67,16 @@ export class CartService implements OnDestroy {
   ngOnDestroy(): void {
     this.authSubscription?.unsubscribe();
   }
+  
+  private async setProcessedCart(fetchedCart: WooCommerceStoreCart | null): Promise<void> {
+    if (!fetchedCart) {
+      this.cart.set(null);
+      return;
+    }
+    const convertedCart = this._processAndConvertCart(fetchedCart);
+    const enrichedCart = await this._enrichCartItemsWithSlugs(convertedCart);
+    this.cart.set(enrichedCart);
+  }
 
   private subscribeToAuthState(): void {
     this.authSubscription = this.authService.currentWordPressUser$.pipe(
@@ -79,7 +91,7 @@ export class CartService implements OnDestroy {
     this.isProcessing.set(true); this.error.set(null);
     try {
       const fetchedCart = await firstValueFrom(this.woocommerceService.getWcCart());
-      this.cart.set(this._processAndConvertCart(fetchedCart));
+      await this.setProcessedCart(fetchedCart);
     } catch (err) {
       this.cart.set(null);
       this.error.set(this.translocoService.translate('cartService.errorLoadingCart'));
@@ -94,7 +106,7 @@ export class CartService implements OnDestroy {
     this.isAddingItemId.set(variationId || productId); this.error.set(null);
     try {
       const updatedCart = await firstValueFrom(this.woocommerceService.addItemToWcCart(productId, quantity, undefined, variationId));
-      this.cart.set(this._processAndConvertCart(updatedCart));
+      await this.setProcessedCart(updatedCart);
     } catch(err: any) {
       this.error.set(err.message || this.translocoService.translate('cartService.errorAddingItem'));
       throw err;
@@ -111,7 +123,7 @@ export class CartService implements OnDestroy {
     this.isUpdatingItemKey.set(itemKey); this.error.set(null);
     try {
       const updatedCart = await firstValueFrom(this.woocommerceService.updateWcCartItemQuantity(itemKey, quantity));
-      this.cart.set(this._processAndConvertCart(updatedCart));
+      await this.setProcessedCart(updatedCart);
     } catch(err: any) {
       this.error.set(err.message || this.translocoService.translate('cartService.errorUpdatingQuantity'));
       throw err;
@@ -125,7 +137,7 @@ export class CartService implements OnDestroy {
     this.isUpdatingItemKey.set(itemKey); this.error.set(null);
     try {
       const updatedCart = await firstValueFrom(this.woocommerceService.removeWcCartItem(itemKey));
-      this.cart.set(this._processAndConvertCart(updatedCart));
+      await this.setProcessedCart(updatedCart);
     } catch(err: any) {
       this.error.set(err.message || this.translocoService.translate('cartService.errorRemovingItem'));
       throw err;
@@ -159,7 +171,7 @@ export class CartService implements OnDestroy {
       const updatedCart = await firstValueFrom(
         this.woocommerceService.proxyRequest<WooCommerceStoreCart>(url, body)
       );
-      this.cart.set(this._processAndConvertCart(updatedCart));
+      await this.setProcessedCart(updatedCart);
     } catch (err: any) {
       const errorMessage = err.error?.message || this.translocoService.translate('cartService.errorApplyingCoupon');
       this.error.set(errorMessage);
@@ -180,7 +192,7 @@ export class CartService implements OnDestroy {
        const updatedCart = await firstValueFrom(
         this.woocommerceService.proxyRequest<WooCommerceStoreCart>(url, body)
       );
-      this.cart.set(this._processAndConvertCart(updatedCart));
+      await this.setProcessedCart(updatedCart);
     } catch (err: any) {
       const errorMessage = err.error?.message || this.translocoService.translate('cartService.errorRemovingCoupon');
       this.error.set(errorMessage);
@@ -190,7 +202,7 @@ export class CartService implements OnDestroy {
       this.isApplyingCoupon.set(false);
     }
   }
-
+  
   public async updateCustomerAddresses(billing: Partial<WooCommerceStoreAddress>, shipping: Partial<WooCommerceStoreAddress>): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
     try {
@@ -198,7 +210,7 @@ export class CartService implements OnDestroy {
         billing_address: billing,
         shipping_address: shipping
       }));
-      this.cart.set(this._processAndConvertCart(updatedCart));
+      await this.setProcessedCart(updatedCart);
     } catch (err: any) {
        console.error('[CartService] Error updating customer addresses:', err);
        this.error.set(err.message || 'Error updating addresses.');
@@ -253,7 +265,9 @@ export class CartService implements OnDestroy {
       const stageResponse = await firstValueFrom(this.woocommerceService.stageCartForPopulation(payload));
 
       if (stageResponse?.success && stageResponse.token) {
-        window.location.href = this.woocommerceService.getCheckoutUrl(stageResponse.token);
+        // NEU START: Der JWT des Benutzers wird an die URL-Generierung übergeben
+        window.location.href = this.woocommerceService.getCheckoutUrl(stageResponse.token, currentUser.jwt);
+        // NEU ENDE
       } else {
         throw new Error(stageResponse.message || 'Vorbereitung des Warenkorbs fehlgeschlagen.');
       }
@@ -283,7 +297,7 @@ export class CartService implements OnDestroy {
     this.isProcessing.set(true); this.error.set(null);
     try {
       const loadedCart = await this.woocommerceService.loadCartFromToken(token);
-      this.cart.set(this._processAndConvertCart(loadedCart));
+      await this.setProcessedCart(loadedCart);
     } catch (error) {
       this.error.set(this.translocoService.translate('cartService.errorLoadingCartWithToken'));
       this.cart.set(null);
@@ -301,16 +315,35 @@ export class CartService implements OnDestroy {
     };
   }
   
-  private _processAndConvertCart(cart: WooCommerceStoreCart | null): ExtendedWooCommerceStoreCart | null {
-    if (!cart) return null;
+  private async _enrichCartItemsWithSlugs(cart: ExtendedWooCommerceStoreCart | null): Promise<ExtendedWooCommerceStoreCart | null> {
+    if (!cart || !cart.items || cart.items.length === 0) {
+      return cart;
+    }
+    const productIds = Array.from(new Set(cart.items.map(item => item.parent_product_id || item.id)));
+    if (productIds.length === 0) {
+      return cart;
+    }
+    try {
+      const productsData = await firstValueFrom(this.woocommerceService.getProductsByIds(productIds));
+      const slugMap = new Map<number, string>();
+      productsData.forEach(product => { slugMap.set(product.id, product.slug); });
+      cart.items.forEach(item => {
+        const productId = item.parent_product_id || item.id;
+        if (slugMap.has(productId)) { item.slug = slugMap.get(productId); }
+      });
+    } catch (error) {
+      console.error("[CartService] Failed to enrich cart items with slugs:", error);
+    }
+    return cart;
+  }
+  
+  private _processAndConvertCart(cart: WooCommerceStoreCart): ExtendedWooCommerceStoreCart {
     const newCart: ExtendedWooCommerceStoreCart = JSON.parse(JSON.stringify(cart));
     const minorUnit = newCart.totals.currency_minor_unit ?? 2;
-
     const convert = (value: string | undefined | null): string => {
       if (!value) return "0.00";
       return (parseFloat(value) / (10 ** minorUnit)).toFixed(minorUnit);
     };
-
     newCart.items.forEach((item: ExtendedCartItem) => {
       item.prices.price = convert(item.prices.price);
       item.prices.regular_price = convert(item.prices.regular_price);
@@ -319,16 +352,13 @@ export class CartService implements OnDestroy {
       item.totals.line_subtotal = convert(item.totals.line_subtotal);
       item.totals.line_total_tax = convert(item.totals.line_total_tax);
     });
-    
     newCart.totals.total_items = convert(newCart.totals.total_items);
     newCart.totals.total_price = convert(newCart.totals.total_price);
     newCart.totals.total_discount = convert(newCart.totals.total_discount);
     newCart.totals.total_tax = convert(newCart.totals.total_tax);
     newCart.totals.total_shipping = convert(newCart.totals.total_shipping);
     newCart.totals.total_shipping_tax = convert(newCart.totals.total_shipping_tax);
-
     if (newCart.coupons) {
-      // KORRIGIERT: Der korrekte Typenname wird hier verwendet
       newCart.coupons.forEach((coupon: WooCommerceStoreCartCoupon) => {
          if (coupon.totals) {
             coupon.totals.total_discount = convert(coupon.totals.total_discount!);
@@ -336,7 +366,6 @@ export class CartService implements OnDestroy {
          }
       });
     }
-
     return newCart;
   }
 }

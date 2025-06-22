@@ -1,119 +1,168 @@
 // /src/app/shared/components/login-overlay/login-overlay.component.ts
-import { Component, OnInit, inject, signal, WritableSignal, OnDestroy, ViewChild, ElementRef, NgZone, ChangeDetectorRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, inject, signal, WritableSignal, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { AuthService, WordPressUser } from '../../services/auth.service'; // WordPressUser importieren
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormControl } from '@angular/forms';
+import { AuthService } from '../../services/auth.service';
 import { UiStateService } from '../../services/ui-state.service';
-import { TranslocoService, TranslocoModule } from '@ngneat/transloco';
+import { TranslocoModule } from '@ngneat/transloco';
 import { Subscription } from 'rxjs';
-// import { environment } from '../../../../environments/environment'; // Vorerst nicht für Google Client ID benötigt
-// declare var google: any; // Vorerst nicht für Google Sign-In benötigt
-
 
 @Component({
   selector: 'app-login-overlay',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterModule, TranslocoModule],
   templateUrl: './login-overlay.component.html',
-  styleUrls: ['./login-overlay.component.scss'] // styleUrl zu styleUrls korrigiert (üblicher Standard)
+  styleUrls: ['./login-overlay.component.scss']
 })
-export class LoginOverlayComponent implements OnInit, OnDestroy { // AfterViewInit entfernt, da Google Sign-In auskommentiert
+export class LoginOverlayComponent implements OnInit, OnDestroy {
+  // --- Services & Injections ---
   private fb = inject(FormBuilder);
   public authService = inject(AuthService);
   private router = inject(Router);
   private uiStateService = inject(UiStateService);
-  private translocoService = inject(TranslocoService);
-  private cdr = inject(ChangeDetectorRef);
-  // private ngZone = inject(NgZone); // Vorerst nicht für Google Sign-In benötigt
 
+  // --- Forms & State ---
   loginForm!: FormGroup;
+  forgotPasswordForm!: FormGroup;
+  forgotUsernameForm!: FormGroup; // NEU
+  public viewMode: WritableSignal<'login' | 'forgotPassword' | 'forgotUsername'> = signal('login'); // ERWEITERT
   formSubmitted: WritableSignal<boolean> = signal(false);
-  private errorMessageKey: WritableSignal<string | null> = signal(null); // Für spezifische Übersetzungsschlüssel
-
-  // @ViewChild('googleBtnContainerOverlay') googleBtnContainer!: ElementRef<HTMLDivElement>; // Google-Login auskommentiert
-  // private googleClientId = environment.googleClientId; // Google-Login auskommentiert
-
-  private langChangeSubscription: Subscription | null = null;
+  
+  private subscriptions = new Subscription();
 
   ngOnInit(): void {
+    // KORRIGIERT: Das Feld heißt jetzt 'username' für mehr Klarheit im Code
     this.loginForm = this.fb.group({
-      emailOrUsername: ['', [Validators.required]],
+      username: ['', [Validators.required]],
       password: ['', Validators.required]
     });
 
-    this.langChangeSubscription = this.translocoService.langChanges$.subscribe(() => {
-      // Wenn ein Fehler-Key gesetzt wurde, die Nachricht im AuthService mit der neuen Übersetzung aktualisieren
-      if (this.errorMessageKey() && this.authService.authError()) {
-         this.authService.authError.set(this.translocoService.translate(this.errorMessageKey()!));
-         this.cdr.detectChanges(); // Sicherstellen, dass die UI die Änderung mitbekommt
-      }
+    this.forgotPasswordForm = this.fb.group({
+      email: ['', [Validators.required, Validators.email]]
+    });
+
+    // NEU: Formular für "Benutzername vergessen"
+    this.forgotUsernameForm = this.fb.group({
+      email: ['', [Validators.required, Validators.email]]
     });
   }
 
   ngOnDestroy(): void {
-      if (this.langChangeSubscription) {
-          this.langChangeSubscription.unsubscribe();
-      }
+      this.subscriptions.unsubscribe();
+      // Zustand beim Verlassen der Komponente zurücksetzen
+      this.authService.authError.set(null);
+      this.authService.successMessage.set(null);
   }
 
-  get emailOrUsername() { return this.loginForm.get('emailOrUsername'); }
-  get password() { return this.loginForm.get('password'); }
+  // --- GETTERS FÜR FORMULARFELDER ---
+  get username(): FormControl { return this.loginForm.get('username') as FormControl; } // KORRIGIERT
+  get password(): FormControl { return this.loginForm.get('password') as FormControl; }
+  get forgotPasswordEmail(): FormControl { return this.forgotPasswordForm.get('email') as FormControl; }
+  get forgotUsernameEmail(): FormControl { return this.forgotUsernameForm.get('email') as FormControl; } // NEU
 
-  onSubmit(): void {
+  // --- VIEW-WECHSEL LOGIK ---
+  private resetStateAndSwitchView(view: 'login' | 'forgotPassword' | 'forgotUsername'): void {
+    this.viewMode.set(view);
+    this.authService.authError.set(null);
+    this.authService.successMessage.set(null);
+    this.formSubmitted.set(false);
+  }
+
+  switchToForgotPasswordView(): void {
+    this.resetStateAndSwitchView('forgotPassword');
+  }
+
+  switchToForgotUsernameView(): void { // NEU
+    this.resetStateAndSwitchView('forgotUsername');
+  }
+
+  switchToLoginView(): void {
+    this.resetStateAndSwitchView('login');
+  }
+
+  // --- SUBMIT-METHODEN ---
+
+  onLoginSubmit(): void {
     this.formSubmitted.set(true);
-    this.authService.authError.set(null); // Fehler vor neuem Versuch zurücksetzen
-    this.errorMessageKey.set(null); // Key zurücksetzen
+    this.authService.authError.set(null);
+    this.authService.successMessage.set(null);
     this.loginForm.markAllAsTouched();
 
     if (this.loginForm.invalid) { return; }
 
+    // Das Backend erwartet 'emailOrUsername', auch wenn die UI nur 'Benutzername' anzeigt.
     const credentials = {
-      emailOrUsername: this.loginForm.value.emailOrUsername,
+      emailOrUsername: this.loginForm.value.username,
       password: this.loginForm.value.password
     };
 
-    this.authService.login(credentials).subscribe({
-        next: (user) => { // user ist WordPressUser | null (oder nur WordPressUser)
-          if (user) {
-            console.log('Login-Overlay: Login erfolgreich über WordPress JWT Plugin', user);
-            this.closeOverlay();
-            // Optional: Intelligente Weiterleitung basierend auf vorheriger Seite oder zu "Mein Konto"
-            // const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/mein-konto';
-            // this.router.navigateByUrl(returnUrl);
-          } else {
-            // Dieser Block sollte seltener getroffen werden, wenn authService.login bei Fehlern (auch success:false)
-            // einen Fehler wirft, der im error-Callback unten behandelt wird.
-            // Falls doch, setzen wir hier einen generischen Fehler.
-            if (!this.authService.authError()) {
-                this.errorMessageKey.set('loginOverlay.errorUnknown');
-                this.authService.authError.set(this.translocoService.translate(this.errorMessageKey()!));
+    this.subscriptions.add(
+      this.authService.login(credentials).subscribe({
+          next: (user) => {
+            if (user) {
+              console.log('Login-Overlay: Login erfolgreich.');
+              this.closeOverlay();
             }
+          },
+          error: (err) => {
+            console.error('Login-Overlay: Fehler von authService.login abgefangen.', err.message);
+          }
+        })
+    );
+  }
+
+  onForgotPasswordSubmit(): void {
+    this.formSubmitted.set(true);
+    this.authService.authError.set(null);
+    this.authService.successMessage.set(null);
+    this.forgotPasswordForm.markAllAsTouched();
+
+    if (this.forgotPasswordForm.invalid) { return; }
+    
+    const email = this.forgotPasswordForm.value.email;
+    
+    this.subscriptions.add(
+      this.authService.requestPasswordReset(email).subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.forgotPasswordForm.reset();
+            this.formSubmitted.set(false);
           }
         },
         error: (err) => {
-          // Der AuthService setzt authError. Hier können wir den errorMessageKey setzen für spezifische Übersetzungen.
-          console.error('Login-Overlay: Fehler Detail von authService.login:', err.message);
-          // Beispiel für spezifischere Fehlermeldung basierend auf der Nachricht vom Service:
-          if (err && err.message) {
-            const lowerCaseError = err.message.toLowerCase();
-            if (lowerCaseError.includes('invalid') || lowerCaseError.includes('ungültig') || lowerCaseError.includes('credentials') || lowerCaseError.includes('password') || lowerCaseError.includes('benutzername')) {
-              this.errorMessageKey.set('loginOverlay.errorInvalidCredentials');
-            } else {
-              this.errorMessageKey.set('loginOverlay.errorUnknown');
-            }
-          } else {
-            this.errorMessageKey.set('loginOverlay.errorUnknown');
-          }
-          // Stelle sicher, dass der authError im Service mit der übersetzten Nachricht aktualisiert wird,
-          // falls er im Service selbst nicht schon übersetzt wurde oder wir hier eine spezifischere wollen.
-          if (this.errorMessageKey()) {
-             this.authService.authError.set(this.translocoService.translate(this.errorMessageKey()!));
-          }
+          console.error('Login-Overlay: Fehler bei Passwort-Reset-Anfrage abgefangen:', err.message);
         }
-      });
+      })
+    );
   }
 
+  onRequestUsernameSubmit(): void { // NEU
+    this.formSubmitted.set(true);
+    this.authService.authError.set(null);
+    this.authService.successMessage.set(null);
+    this.forgotUsernameForm.markAllAsTouched();
+
+    if (this.forgotUsernameForm.invalid) { return; }
+
+    const email = this.forgotUsernameForm.value.email;
+    
+    this.subscriptions.add(
+      this.authService.requestUsername(email).subscribe({
+        next: (response) => {
+          if(response.success) {
+            this.forgotUsernameForm.reset();
+            this.formSubmitted.set(false);
+          }
+        },
+        error: (err) => {
+           console.error('Login-Overlay: Fehler bei Benutzername-Anfrage abgefangen:', err.message);
+        }
+      })
+    );
+  }
+
+  // --- NAVIGATION & OVERLAY STEUERUNG ---
   closeOverlay(): void {
     this.uiStateService.closeLoginOverlay();
   }
@@ -122,9 +171,4 @@ export class LoginOverlayComponent implements OnInit, OnDestroy { // AfterViewIn
     this.closeOverlay();
     this.router.navigate(['/register']);
   }
-
-   navigateToForgotPassword(): void {
-     this.closeOverlay();
-     this.router.navigate(['/passwort-vergessen']);
-   }
 }

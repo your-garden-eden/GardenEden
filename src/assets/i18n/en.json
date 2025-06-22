@@ -13,7 +13,13 @@
     "updating": "Updating...",
     "not": "Not",
     "defaultMetaDescription": "Discover high-quality garden furniture and accessories at Your Garden Eden.",
-    "notSupported": "Not supported"
+    "notSupported": "Not supported",
+    "actions": {
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "close": "Close",
+      "delete": "Delete"
+    }
   },
   "header": {
     "searchPlaceholder": "Search for products...",
@@ -169,6 +175,7 @@
     "noImageAvailable": "No image available",
     "thumbnailAlt": "Thumbnail image {{index}}",
     "successAddToCart": "Product successfully added to cart.",
+    "optionNotAvailable": "This option is not available.",
     "availability": {
       "inStock": "In Stock",
       "outOfStock": "Out of Stock",
@@ -179,7 +186,8 @@
       "addingToCart": "Adding...",
       "wishlistLogin": "Please log in to use the wishlist",
       "addToWishlist": "Add to Wishlist",
-      "removeFromWishlist": "Remove from Wishlist"
+      "removeFromWishlist": "Remove from Wishlist",
+      "inWishlist": "On Wishlist"
     },
     "description": {
       "title": "Description",
@@ -251,6 +259,9 @@
     "companyLabel": "Company (optional)",
     "companyPlaceholder": "Company Name",
     "mainTitle": "Create New Account",
+    "addressDetailsTitle": "Your Address",
+    "accountDetailsTitle": "Your Account Details",
+    "selectCountryPlaceholder": "Please select a country",
     "successHeadline": "Registration Successful!",
     "successMessage": "Thank you for registering! A confirmation email has been sent to {{email}}. Please check your inbox (and spam folder) and click the link to activate your account.",
     "successMessagePendingVerification": "Registration successful! Please check your emails ({{email}}) to confirm your account.",
@@ -275,6 +286,8 @@
     "addressCityLabel": "City",
     "addressCityPlaceholder": "Example City",
     "errorAddressCityRequired": "City is required.",
+    "errorCountryRequired": "Please select your country.",
+    "errorPhoneRequired": "Phone number is required.",
     "emailLabel": "Email Address",
     "emailPlaceholder": "john.doe@mail.com",
     "errorEmailRequired": "Email is required.",
@@ -317,78 +330,36 @@
     "cancelButton": "Cancel",
     "editProfileButton": "Edit Profile",
     "editButton": "Edit",
-    "personalDataTitle": "Personal Data",
+    "personalDataTitle": "Personal Data & Contact",
     "emailLabel": "Email Address",
-    "emailHint": "Email address cannot be changed.",
     "emailNotChangeableHint": "The email address cannot be changed here.",
     "firstNameLabel": "First Name",
-    "errorFirstNameRequired": "First name is required.",
     "lastNameLabel": "Last Name",
-    "errorLastNameRequired": "Last name is required.",
     "addressTitle": "Address",
     "billingAddressTitle": "Billing Address",
-    "shippingAddressTitle": "Shipping Address",
     "noBillingAddress": "No billing address provided.",
-    "noShippingAddress": "No shipping address provided.",
-    "shippingSameAsBilling": "Shipping address is not the same as billing address.",
+    "shippingAddressTitle": "Shipping Address",
+    "shippingSameAsBilling": "My shipping address is the same as my billing address.",
     "phoneLabel": "Phone",
     "addressStreetLabel": "Street & House No.",
-    "errorAddressStreetRequired": "Street and house number are required.",
     "addressZipLabel": "ZIP Code",
-    "errorAddressZipRequired": "ZIP code is required.",
-    "errorAddressZipPattern": "Invalid ZIP code.",
     "addressCityLabel": "City",
-    "errorAddressCityRequired": "City is required.",
-    "settingsTitle": "Settings",
-    "newsletterLabel": "Yes, I want to subscribe to the newsletter.",
-    "statusLabel": "Status",
-    "subscribed": "Subscribed",
-    "notSubscribed": "Not subscribed",
-    "passwordLabel": "Password",
-    "currentPasswordLabel": "Current Password",
-    "newPasswordLabel": "New Password",
-    "confirmNewPasswordLabel": "Confirm New Password",
-    "changePasswordButton": "Change Password",
-    "changePasswordHint": "Function will be added later.",
-    "passwordResetInfoText": "To change your password, please request a password reset link. It will be sent to your email address {{email}}.",
-    "emailForResetLabel": "Email for Password Reset",
-    "yourEmailAddress": "Your email address",
-    "requestPasswordResetButton": "Request Password Reset",
-    "successPasswordResetRequested": "Password reset email sent successfully.",
     "saveChangesButton": "Save Changes",
     "savingButton": "Saving...",
-    "profileNotAvailable": "User profile not available.",
-    "notAvailable": "N/A",
-    "errorUserNotFound": "User not found. Please log in again.",
-    "errorUserNotFoundSave": "User not found. Save failed.",
-    "errorUserNotFoundContext": "User information could not be loaded. Please try again later.",
-    "errorUserNotLoggedIn": "Please log in to view your profile.",
-    "errorProfileLoad": "Could not load user profile.",
-    "errorWpUserLoad": "Could not load basic user data.",
-    "errorWooCustomerLoad": "Could not load WooCommerce customer details (addresses, etc.).",
-    "errorProfileLoadGeneral": "Error loading profile.",
-    "successProfileUpdate": "Profile updated successfully!",
-    "successBillingUpdate": "Billing address updated successfully!",
-    "successShippingUpdate": "Shipping address updated successfully!",
-    "errorProfileSave": "Error saving profile.",
-    "errorAddressSave": "Error saving address.",
-    "errorPasswordChange": "Error changing password.",
-    "errorOrdersLoad": "Could not load orders.",
-    "errorOrderDetailLoad": "Could not load order details.",
+    "successProfileUpdate": "Your data has been updated successfully.",
     "navOverview": "Overview",
     "navPersonalData": "My Data",
     "navAddresses": "Addresses",
     "navOrders": "Orders",
     "navChangePassword": "Change Password",
-    "navLogout": "Logout",
-    "overviewTitle": "Welcome to Your Account",
+    "changePasswordSubtitle": "For security reasons, you can set a new password for your account here.",
+    "currentPasswordLabel": "Current Password",
+    "newPasswordLabel": "New Password",
+    "confirmNewPasswordLabel": "Confirm New Password",
     "welcomeMessage": "Hello {{name}}!",
     "overviewIntro": "Here you can view and manage your personal data, addresses, and orders.",
-    "overviewDevelopmentNotice": "We are continuously working on improving your account area. New features and optimizations will be available soon. Thank you for your patience!",
-    "sectionUnderMaintenanceTitle": "Section Under Maintenance",
-    "sectionAddressesMaintenanceMessage": "Address management is currently being revised and will be available again soon with full functionality. Thank you for your understanding.",
-    "sectionChangePasswordMaintenanceMessage": "The password change function is currently being revised. If urgent, please use the 'Forgot Password' function on the login page or contact our support.",
     "noOrders": "You have not placed any orders yet.",
+    "browseProducts": "Discover Products Now",
     "orderNumber": "Order No.",
     "orderDate": "Date",
     "orderStatus": "Status",
@@ -412,10 +383,15 @@
     "orderStatus_refunded": "Refunded",
     "orderStatus_failed": "Failed",
     "loginButton": "To Login",
-    "passwordResetRequested": "Password reset requested",
+    "profileNotAvailable": "User profile not available.",
+    "notAvailable": "N/A",
+    "errorUserNotFoundContext": "User information could not be loaded.",
+    "errorUserNotLoggedIn": "Please log in to view your profile.",
     "successPasswordChange": "Your password has been changed successfully.",
+    "costSummaryTitle": "Cost Summary",
+    "noShippingAddress": "No separate shipping address provided.",
     "errors": {
-      "formInvalid": "The form is invalid. Please check your entries.",
+      "formInvalid": "Please check your entries. Some fields are invalid.",
       "loadOrderDetailsError": "Could not load order details.",
       "loadOrdersError": "Could not load orders.",
       "loadProfileError": "Could not load profile.",
@@ -437,22 +413,39 @@
     "summary": {
       "title": "Summary", "shipping": "Shipping", "shippingText": "Calculated at checkout",
       "total": "Total", "inclVatShort": "incl. VAT", "allPricesInclVat": "All prices include statutory VAT.",
-      "checkoutButton": "Proceed to Checkout", "itemSingular": "item", "itemPlural": "items",
-      "continueShopping": "Continue Shopping",
+      "checkoutButton": "Proceed to Checkout", "directCheckoutButton": "Direct to Payment", "changeAddressButton": "Change Address",
+      "itemSingular": "item", "itemPlural": "items", "continueShopping": "Continue Shopping",
       "shippingAddressNote": "A complete shipping address (country and ZIP code) is required to calculate shipping costs and proceed with checkout.",
-      "addressButton": "Add Shipping Address"
+      "addressButton": "Add Shipping Address",
+      "coupon": "Coupon \"{{code}}\"",
+      "removeCouponAria": "Remove coupon {{code}}"
     },
     "noteLabel": "Note",
     "empty": { "title": "Your cart is empty.", "message": "Add products to see them here.", "continueShopping": "Shop Now" },
     "priceUnavailable": "Price unavailable",
     "errors": {
       "updateFailed": "Could not update quantity. Please try again.",
-      "updateQuantity": "Could not update quantity.", "removeItem": "Could not remove item.",
+      "removeItem": "Could not remove item.",
       "checkoutNotPossible": "Redirecting to checkout is currently not possible.",
-      "emptyCartCheckout": "Your cart is empty. Please add products first."
+      "emptyCartCheckout": "Your cart is empty. Please add products first.",
+      "removeCouponFailed": "Could not remove coupon."
     },
     "errorFromService": "An error occurred: {serviceErrorMsg}",
-    "errorGlobalDefault": "An unknown error occurred in the cart."
+    "errorGlobalDefault": "An unknown error occurred in the cart.",
+    "confirmClear": {
+      "title": "Clear cart?",
+      "message": "Are you sure you want to remove all items from your cart?",
+      "confirmButton": "Yes, clear"
+    },
+    "clearCartButton": "Clear Cart",
+    "coupon": {
+      "label": "Coupon Code",
+      "placeholder": "Enter code...",
+      "applyButton": "Apply",
+      "errorRequired": "Please enter a code.",
+      "potentialDiscount": "Save <strong class='highlight-success'>{{amount}}</strong> with our thank-you coupon! Click here to apply.",
+      "openDiscountInfoAria": "Click to get information about the discount and apply it."
+    }
   },
   "wishlistPage": {
     "title": "My Wishlist",
@@ -477,7 +470,11 @@
       "message": "Add products you like by clicking the heart icon.",
       "continueShopping": "Discover Products Now"
     },
-    "confirmClear": "Are you sure you want to remove all items from your wishlist?"
+    "confirmClear": {
+      "title": "Clear wishlist?",
+      "message": "Are you sure you want to remove all items from your wishlist? This action cannot be undone.",
+      "confirmButton": "Yes, delete all"
+    }
   },
   "wishlist": {
     "errors": {
@@ -501,7 +498,7 @@
   "loginOverlay": {
     "title": "Login",
     "subtitle": "Log in to your account.",
-    "emailLabel": "Email Address or Username",
+    "emailLabel": "Email Address",
     "emailPlaceholder": "Email or Username",
     "emailRequiredError": "Email is required.",
     "emailOrUsernameRequiredError": "Email or username is required.",
@@ -519,7 +516,14 @@
     "errorInvalidCredentials": "Invalid email address/username or wrong password.",
     "errorUnknown": "An unknown error occurred during login.",
     "errorGoogleInvalidResponse": "Login with Google failed (invalid response).",
-    "errorGoogleFirebase": "Login with Google to Firebase failed."
+    "errorGoogleFirebase": "Login with Google to Firebase failed.",
+    "passwordResetRequested": "If an account with this email address exists, a password reset link has been sent.",
+    "forgotPassword": {
+      "title": "Reset Password",
+      "subtitle": "No problem! Enter your email address and we will send you a link to reset your password.",
+      "sendButton": "Send Reset Link",
+      "backToLoginLink": "Back to Login"
+    }
   },
    "miniCart": {
     "title": "Cart", "closeButtonAria": "Close cart", "updating": "Updating...",
@@ -546,7 +550,15 @@
   },
   "productCard": {
     "sale": "Sale!", "outOfStock": "Out of Stock",
-    "availableInVariants": "In multiple variants", "priceFrom": "From"
+    "availableInVariants": "In multiple variants", "priceFrom": "From",
+    "addToWishlist": "Add to Wishlist",
+    "removeFromWishlist": "Remove from Wishlist",
+    "addToCart": "Add to Cart",
+    "selectOptions": "Select Options",
+    "addedToCart": "\"{productName}\" has been added to the cart.",
+    "errorAddingToCart": "Could not add product to cart.",
+    "soonAvailable": "Available soon",
+    "priceOnRequest": "Currently not orderable"
   },
   "checkoutDetailsPage": {
     "title": "Order Details & Address", "loadingData": "Loading data...",
@@ -600,10 +612,14 @@
       "checkoutProcessFailed": "The checkout process could not be completed. Details: {details}"
     },
     "emptyCartMessage": "Your cart is empty. Please add products before proceeding.",
-    "backToCart": "Back to Cart"
+    "backToCart": "Back to Cart",
+    "addressSaveSuccess": "Your addresses have been saved successfully!"
   },
   "cartService": {
     "errorLoadingCart": "Could not load cart.",
+    "errorRemovingCoupon": "Could not remove coupon.",
+    "errorApplyingCoupon": "Could not apply coupon.",
+    "errorUnknownCoupon": "The coupon is invalid or could not be applied.",
     "errorAddingItem": "Error adding to cart.",
     "errorUpdatingQuantity": "Could not update quantity.",
     "errorRemovingItem": "Could not remove item.",
@@ -653,10 +669,12 @@
       "confirmButton": "Understood"
     },
     "cartDiscount": {
-      "title": "Your 5% Discount!",
-      "paragraph1": "Thank you for your purchase! Due to current optimizations on our website, we would like to give you a 5% discount.",
-      "paragraph2": "To do this, simply enter the coupon code in the corresponding field on the checkout page.",
-      "couponCodeLabel": "Coupon code:",
+      "title": "Welcome to our improved shop!",
+      "applyButton": "Apply 5% discount & close",
+      "closeButton": "Apply later",
+      "paragraph1": "We are currently developing our online shop for you! As a thank you for your understanding if minor inconveniences occur during this phase, we are giving you a <span class='highlight-success'>5% discount</span> on your order.",
+      "paragraph2": "Just click on <span class='highlight-action'>'Apply discount'</span> to activate the benefit immediately. We are working hard to provide you with the best possible shopping experience soon.",
+      "couponCodeLabel": "Your coupon code (will be applied automatically):",
       "couponCodeValue": "YourGardenEden",
       "copyCodeButton": {
         "ariaLabelIdle": "Copy coupon code {{code}}",
@@ -664,8 +682,7 @@
         "titleIdle": "Copy code",
         "titleCopied": "Copied!",
         "feedbackCopied": "Copied!"
-      },
-      "confirmButton": "Understood"
+      }
     },
     "shared": {
       "closeButtonAriaLabel": "Close"
@@ -674,5 +691,19 @@
   "validators": {
     "firstNameRequired": "First name is a required field.",
     "lastNameRequired": "Last name is a required field."
+  },
+  "resetPasswordPage": {
+    "title": "Reset Password",
+    "subtitle": "Enter your new password to complete the process.",
+    "submitButton": "Save New Password",
+    "successTitle": "Password changed successfully!",
+    "successMessage": "Your password has been updated. You will be redirected to the homepage shortly.",
+    "toHomepageButton": "To Homepage",
+    "invalidLinkTitle": "Invalid Link",
+    "invalidLinkDefaultMessage": "This password reset link seems to be invalid or expired. Please request a new one."
+  },
+  "checkout": {
+    "subtotal": "Subtotal",
+    "shipping": "Shipping"
   }
 }

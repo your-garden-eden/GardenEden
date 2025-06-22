@@ -9,6 +9,8 @@ import { RegisterPageComponent } from './features/auth/register-page/register-pa
 import { authGuard } from './core/guards/auth.guard';
 import { CheckoutDetailsPageComponent } from './features/checkout/checkout-details-page/checkout-details-page.component';
 import { OrderConfirmationComponent } from './features/checkout/order-confirmation/order-confirmation.component';
+// NEUER IMPORT
+import { ResetPasswordPageComponent } from './features/auth/reset-password-page/reset-password-page.component';
 
 
 export const routes: Routes = [
@@ -78,6 +80,13 @@ export const routes: Routes = [
     component: RegisterPageComponent,
     data: { titleKey: 'registerPage.title' },
     title: 'Registrieren'
+  },
+  // NEUE ROUTE FÜR PASSWORT-RESET
+  {
+    path: 'reset-password',
+    component: ResetPasswordPageComponent,
+    data: { titleKey: 'resetPasswordPage.title' },
+    title: 'Passwort zurücksetzen'
   },
 
   // --- Geschützte "Mein Konto" Sektion ---

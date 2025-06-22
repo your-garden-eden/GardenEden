@@ -1,19 +1,19 @@
 // /src/app/features/checkout/pages/checkout-details-page/checkout-details-page.component.ts
 import {
-  Component, OnInit, inject, signal, computed, effect, untracked,
+  Component, OnInit, inject, signal, computed,
   ChangeDetectorRef, OnDestroy, AfterViewInit, ViewChild, ElementRef, NgZone,
   WritableSignal,
   PLATFORM_ID,
   DestroyRef,
-  Signal
+  Injector
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidatorFn } from '@angular/forms';
 import { Title } from '@angular/platform-browser';
 import { TranslocoModule, TranslocoService } from '@ngneat/transloco';
-import { firstValueFrom, of } from 'rxjs';
-import { startWith, switchMap, tap, catchError, filter, take } from 'rxjs/operators';
+import { firstValueFrom, of, Subscription, Observable } from 'rxjs';
+import { startWith, switchMap, tap, filter, take } from 'rxjs/operators';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 
 import { GoogleMapsModule } from '@angular/google-maps';
@@ -24,8 +24,7 @@ import {
   WooCommerceStoreAddress,
   WooCommerceStoreCartItem,
   StageCartPayload,
-  StageCartResponse,
-  WooCommerceStoreCartTotals
+  WooCommerceCountry
 } from '../../../core/services/woocommerce.service';
 import { CartService } from '../../../shared/services/cart.service';
 import { AuthService, WordPressUser } from '../../../shared/services/auth.service';
@@ -64,17 +63,24 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
   private destroyRef = inject(DestroyRef);
   private zone = inject(NgZone);
   private woocommerceService = inject(WoocommerceService);
+  private injector = inject(Injector);
 
   billingForm!: FormGroup;
   shippingForm!: FormGroup;
 
-  public availableCountries = [
-    { code: 'DE', name: 'Deutschland' },
-    { code: 'AT', name: 'Österreich' },
-    { code: 'CH', name: 'Schweiz' }
-  ];
+  public availableCountries: WritableSignal<WooCommerceCountry[]> = signal([]);
+  public isLoadingCountries = signal(true);
+  
+  @ViewChild('billingAddressStreetInput') billingAddressStreetInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('shippingAddressStreetInput') shippingAddressStreetInput!: ElementRef<HTMLInputElement>;
+  private billingAutocomplete: google.maps.places.Autocomplete | undefined;
+  private shippingAutocomplete: google.maps.places.Autocomplete | undefined;
+  
+  private subscriptions = new Subscription();
 
   showShippingForm = signal(false);
+  private showShippingForm$!: Observable<boolean>;
+
   formSubmitted = signal(false);
 
   public isLoggedIn = computed(() => !!this.authService.getCurrentUserValue());
@@ -86,16 +92,16 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
   addressSuccess = signal<string | null>(null);
   
   isRedirecting = signal(false);
-
-  @ViewChild('billingAddressStreetInput') billingAddressStreetInput!: ElementRef<HTMLInputElement>;
-  @ViewChild('shippingAddressStreetInput') shippingAddressStreetInput!: ElementRef<HTMLInputElement>;
   
-  constructor() {}
+  constructor() {
+    this.showShippingForm$ = toObservable(this.showShippingForm, { injector: this.injector });
+  }
 
   ngOnInit(): void {
     this.setupForms();
     this.setupTitleObserver();
     if (isPlatformBrowser(this.platformId)) {
+      this.loadCountries();
       this.loadInitialData().catch(err => { 
         console.error("Checkout ngOnInit: Error during initial data load:", err); 
         this.setError('checkoutDetailsPage.errors.loadDataFailed'); 
@@ -103,9 +109,121 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
     }
   }
 
-  ngAfterViewInit(): void {}
-  ngOnDestroy(): void {}
+  ngAfterViewInit(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      this.initAutocompletes();
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+    if (this.billingAutocomplete) google.maps.event.clearInstanceListeners(this.billingAutocomplete);
+    if (this.shippingAutocomplete) google.maps.event.clearInstanceListeners(this.shippingAutocomplete);
+  }
   
+  private loadCountries(): void {
+    this.isLoadingCountries.set(true);
+    const sub = this.woocommerceService.getCountries().pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: (countries) => {
+        this.availableCountries.set(countries);
+        this.isLoadingCountries.set(false);
+      },
+      error: (err) => {
+        console.error('Failed to load countries', err);
+        this.isLoadingCountries.set(false);
+      }
+    });
+    this.subscriptions.add(sub);
+  }
+  
+  private initAutocompletes(): void {
+    if (this.isLoadingCountries()) {
+      const sub = toObservable(this.isLoadingCountries, { injector: this.injector }).pipe(
+        filter(loading => !loading),
+        take(1)
+      ).subscribe(() => this.setupInitialAutocompletes());
+      this.subscriptions.add(sub);
+    } else {
+      this.setupInitialAutocompletes();
+    }
+  }
+
+  private setupInitialAutocompletes(): void {
+    if (this.billingAddressStreetInput?.nativeElement) {
+      this.setupAutocompleteForForm(this.billingForm, this.billingAddressStreetInput, 'billing');
+    }
+    
+    const sub = this.showShippingForm$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(show => {
+      setTimeout(() => {
+        if (show && this.shippingAddressStreetInput?.nativeElement) {
+          this.setupAutocompleteForForm(this.shippingForm, this.shippingAddressStreetInput, 'shipping');
+        } else if (!show && this.shippingAutocomplete) {
+          google.maps.event.clearInstanceListeners(this.shippingAutocomplete);
+          this.shippingAutocomplete = undefined;
+        }
+      }, 0);
+    });
+    this.subscriptions.add(sub);
+  }
+
+  private setupAutocompleteForForm(form: FormGroup, inputElement: ElementRef<HTMLInputElement>, formType: 'billing' | 'shipping'): void {
+    const countryControl = form.get('country');
+    if (!countryControl) return;
+
+    const setup = (countryCode: string) => {
+      const autocompleteInstance = new google.maps.places.Autocomplete(inputElement.nativeElement, {
+        types: ['address'],
+        componentRestrictions: { country: countryCode },
+        fields: ['address_components']
+      });
+
+      autocompleteInstance.addListener('place_changed', () => {
+        this.zone.run(() => {
+          const place = autocompleteInstance.getPlace();
+          if (place?.address_components) {
+            this.fillInAddress(form, place.address_components);
+          }
+        });
+      });
+      
+      if (formType === 'billing') this.billingAutocomplete = autocompleteInstance;
+      else this.shippingAutocomplete = autocompleteInstance;
+    };
+    
+    setup(countryControl.value);
+    const sub = countryControl.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(newCountryCode => {
+      if (formType === 'billing' && this.billingAutocomplete) google.maps.event.clearInstanceListeners(this.billingAutocomplete);
+      if (formType === 'shipping' && this.shippingAutocomplete) google.maps.event.clearInstanceListeners(this.shippingAutocomplete);
+      setup(newCountryCode);
+    });
+    this.subscriptions.add(sub);
+  }
+
+  private fillInAddress(form: FormGroup, components: google.maps.GeocoderAddressComponent[]): void {
+    const componentMap: { [key: string]: string } = {};
+    for (const component of components) {
+      const type = component.types[0];
+      if (type) componentMap[type] = component.long_name;
+    }
+    
+    const route = componentMap['route'] || '';
+    const streetNumber = componentMap['street_number'] || '';
+    let fullStreet = route;
+    if (route && streetNumber) fullStreet = `${route} ${streetNumber}`;
+
+    form.patchValue({
+      address_1: fullStreet,
+      city: componentMap['locality'] || componentMap['administrative_area_level_3'] || '',
+      postcode: componentMap['postal_code'] || ''
+    });
+
+    form.get('city')?.updateValueAndValidity();
+    form.get('postcode')?.updateValueAndValidity();
+    form.get('address_1')?.updateValueAndValidity();
+  }
+
   private setupTitleObserver(): void { 
     this.translocoService.langChanges$.pipe(
       takeUntilDestroyed(this.destroyRef),
@@ -175,7 +293,7 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
   private async loadInitialData(): Promise<void> {
     this.isLoadingAddress.set(true);
     if (this.cartService.isProcessing()) {
-      await firstValueFrom(toObservable(this.cartService.isProcessing).pipe(filter(p => p === false), take(1)));
+      await firstValueFrom(toObservable(this.cartService.isProcessing, { injector: this.injector }).pipe(filter(p => p === false), take(1)));
     }
 
     if (this.cartService.cartItemCount() === 0) {
@@ -231,53 +349,65 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
     return item.images?.[0]?.thumbnail;
   }
   
-  async handleAddressFormSubmit(): Promise<boolean> {
+  async handleAddressFormSubmit(): Promise<void> {
     this.clearMessages();
     this.formSubmitted.set(true);
+    
     if (!this.validateForms()) {
       this.setError('checkoutDetailsPage.errors.fillRequiredFields');
-      return false;
+      throw new Error("Form validation failed");
+    }
+
+    if (!this.isLoggedIn()) {
+      return;
     }
 
     this.isSavingAddress.set(true);
+
     try {
-      if (this.isLoggedIn()) {
-        const billing = this.billingForm.getRawValue();
-        let shipping = this.showShippingForm() ? this.shippingForm.getRawValue() : {};
-        if (!this.showShippingForm()) {
-            Object.keys(this.shippingForm.controls).forEach(key => { shipping[key] = '' });
-            shipping.country = 'DE';
-        }
-        await firstValueFrom(this.accountService.updateUserAddresses({ billing, shipping }));
+      const billing = this.billingForm.getRawValue();
+      let shipping = this.showShippingForm() ? this.shippingForm.getRawValue() : {};
+      if (!this.showShippingForm()) {
+          Object.keys(this.shippingForm.controls).forEach(key => { shipping[key] = '' });
+          shipping.country = 'DE';
       }
-      
+      await firstValueFrom(this.accountService.updateUserAddresses({ billing, shipping }));
       this.addressSuccess.set(this.translocoService.translate('checkoutDetailsPage.addressSaveSuccess'));
-      return true; // Erfolg
     } catch (error: any) {
       this.setError('checkoutDetailsPage.errors.addressSaveFailed', { details: error.message || '' });
-      return false; // Fehler
+      throw error;
     } finally {
       this.isSavingAddress.set(false);
     }
   }
 
   async proceedToPayment(): Promise<void> {
-    const isAddressValidAndSaved = await this.handleAddressFormSubmit();
-    if (!isAddressValidAndSaved) {
+    this.clearMessages();
+    this.formSubmitted.set(true);
+
+    if (!this.validateForms()) {
+      this.setError('checkoutDetailsPage.errors.fillRequiredFields');
       return;
     }
-    
+
+    if (this.isLoggedIn()) {
+      try {
+        await this.handleAddressFormSubmit();
+      } catch (error) {
+        return;
+      }
+    }
+
     this.isRedirecting.set(true);
-    
+
     try {
       const currentCart = this.cartService.cart();
-      if (!currentCart) {
-        throw new Error("Warenkorb nicht gefunden.");
+      if (!currentCart || this.cartService.cartItemCount() === 0) {
+        throw new Error("Cannot proceed with an empty cart.");
       }
-
-      const billing_address = this.billingForm.getRawValue();
-      const shipping_address = this.showShippingForm() ? this.shippingForm.getRawValue() : { ...billing_address };
       
+      const billing_address = this.billingForm.getRawValue();
+      const shipping_address = this.showShippingForm() ? this.shippingForm.getRawValue() : billing_address;
       const couponCodes = currentCart.coupons.map(c => c.code).join(',');
 
       const payload: StageCartPayload = {
@@ -290,16 +420,23 @@ export class CheckoutDetailsPageComponent implements OnInit, AfterViewInit, OnDe
         shipping_address: shipping_address,
         coupon_code: couponCodes || undefined
       };
-
+      
       const stageResponse = await firstValueFrom(this.woocommerceService.stageCartForPopulation(payload));
-
+      
       if (stageResponse?.success && stageResponse.token) {
-        window.location.href = this.woocommerceService.getCheckoutUrl(stageResponse.token);
+        const currentUser = this.authService.getCurrentUserValue();
+        const jwt = currentUser ? currentUser.jwt : null;
+        
+        // HIER IST DIE FINALE ÄNDERUNG: Der JWT wird jetzt übergeben.
+        window.location.href = this.woocommerceService.getCheckoutUrl(stageResponse.token, jwt);
+        
       } else {
-        throw new Error(stageResponse.message || 'Vorbereitung des Warenkorbs für den Checkout ist fehlgeschlagen.');
+        throw new Error(stageResponse.message || 'Vorbereitung des Warenkorbs fehlgeschlagen.');
       }
+
     } catch (error: any) {
-      this.setError('checkoutDetailsPage.errors.checkoutProcessFailed', { details: error.message || '' });
+      console.error('[Checkout] Proceed to payment failed:', error);
+      this.setError('checkoutDetailsPage.errors.checkoutInitFailed', { message: error.message });
       this.isRedirecting.set(false);
     }
   }

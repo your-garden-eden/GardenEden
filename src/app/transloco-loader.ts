@@ -1,15 +1,22 @@
 // /src/app/transloco-loader.ts
+// KORREKTUR START: HttpClient durch HttpBackend ersetzt, um zirkuläre Abhängigkeiten zu beheben.
 import { inject, Injectable } from "@angular/core";
 import { Translation, TranslocoLoader } from "@ngneat/transloco";
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpBackend } from "@angular/common/http";
+// KORREKTUR ENDE
 
 @Injectable({ providedIn: 'root' })
 export class TranslocoHttpLoader implements TranslocoLoader {
-    private http = inject(HttpClient);
+    // KORREKTUR START: Wir erstellen eine "saubere" HttpClient-Instanz, die Interceptors umgeht.
+    private http: HttpClient;
+
+    constructor(private handler: HttpBackend) {
+        this.http = new HttpClient(handler);
+    }
+    // KORREKTUR ENDE
 
     getTranslation(lang: string) {
-        // ÄNDERUNG: Wir entfernen die Abhängigkeit von environment.baseUrl
-        // und verwenden einen relativen Pfad. Der neue Interceptor wird dies auf dem Server abfangen.
+        // Diese Anfrage verwendet jetzt den HttpClient ohne Interceptors und verursacht keine zirkuläre Abhängigkeit mehr.
         return this.http.get<Translation>(`/assets/i18n/${lang}.json`);
     }
 }

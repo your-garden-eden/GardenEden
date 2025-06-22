@@ -1,5 +1,6 @@
 // /src/app/app.config.ts
-import { ApplicationConfig, LOCALE_ID, isDevMode, PLATFORM_ID, inject } from '@angular/core';
+import { ApplicationConfig, LOCALE_ID, isDevMode, PLATFORM_ID, inject, APP_INITIALIZER } from '@angular/core';
+import { AuthService } from './shared/services/auth.service';
 import { isPlatformBrowser } from '@angular/common';
 import {
   provideRouter,
@@ -10,6 +11,7 @@ import {
 } from '@angular/router';
 import { provideClientHydration } from '@angular/platform-browser';
 import { provideHttpClient, HTTP_INTERCEPTORS, withInterceptorsFromDi, withFetch } from '@angular/common/http';
+import { Observable } from 'rxjs';
 
 // Firebase-Imports (Kern)
 import { initializeApp, provideFirebaseApp, getApp } from '@angular/fire/app';
@@ -33,35 +35,44 @@ import localeDe from '@angular/common/locales/de';
 import localeDeExtra from '@angular/common/locales/extra/de';
 import localeEs from '@angular/common/locales/es';
 import localePl from '@angular/common/locales/pl';
+// KORREKTUR START: Fehlende Locales für en und hr hinzufügen
+import localeEn from '@angular/common/locales/en';
+import localeHr from '@angular/common/locales/hr';
+// KORREKTUR ENDE
 
 // --- TRANSLOCO IMPORTS ---
 import { TranslocoHttpLoader } from './transloco-loader';
 import { provideTransloco } from '@ngneat/transloco';
-// --- provideTranslocoPersistLang wird hier NICHT mehr importiert ---
 
 // --- BENUTZERDEFINIERTER HTTP INTERCEPTOR ---
 import { AuthHttpInterceptor } from './core/interceptors/auth-http.interceptor';
 
 // --- BENUTZERDEFINIERTE ROUTE REUSE STRATEGY ---
 import { CustomRouteReuseStrategy } from './core/strategies/custom-route-reuse.service'
+
+// KORREKTUR START: Alle verfügbaren Locales registrieren
 registerLocaleData(localeDe, 'de-DE', localeDeExtra);
 registerLocaleData(localeEs, 'es');
 registerLocaleData(localePl, 'pl');
+registerLocaleData(localeEn, 'en');
+registerLocaleData(localeHr, 'hr');
+// KORREKTUR ENDE
 // --- ENDE LOCALE ---
 
 
-function getFirebaseRegion(): string {
-  if (environment.firebase.functionsUrl) {
-    if (environment.firebase.functionsUrl.includes('europe-west1')) return 'europe-west1';
-    if (environment.firebase.functionsUrl.includes('europe-west3')) return 'europe-west3';
-    if (environment.firebase.functionsUrl.includes('us-central1')) return 'us-central1';
-  }
-  return 'europe-west1';
+export function appInitializerFactory(authService: AuthService): () => Observable<any> {
+  return () => authService.init();
 }
 
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    {
+      provide: APP_INITIALIZER,
+      useFactory: appInitializerFactory,
+      deps: [AuthService],
+      multi: true
+    },
     provideRouter(
       routes,
       withComponentInputBinding(),
@@ -93,7 +104,7 @@ export const appConfig: ApplicationConfig = {
 
     provideFirebaseApp(() => initializeApp(environment.firebase)),
     provideFirestore(() => getFirestore()),
-    provideFunctions(() => getFunctions(getApp(), getFirebaseRegion())),
+    provideFunctions(() => getFunctions(getApp(), 'europe-west1')),
     provideStorage(() => getStorage()),
     provideAnalytics(() => getAnalytics()),
     ScreenTrackingService,
@@ -108,8 +119,5 @@ export const appConfig: ApplicationConfig = {
       },
       loader: TranslocoHttpLoader
     }),
-
-    // +++ DER provideTranslocoPersistLang-BLOCK WURDE KOMPLETT ENTFERNT +++
-    
   ]
 };

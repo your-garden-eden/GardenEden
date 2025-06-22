@@ -7,7 +7,7 @@ import { catchError, map, tap, switchMap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../../shared/services/auth.service';
 
-// --- WooCommerce Data Interfaces (unverändert) ---
+// --- Interfaces (vollständig) ---
 export interface WooCommerceImage { id: number; date_created: string; date_created_gmt: string; date_modified: string; date_modified_gmt: string; src: string; name: string; alt: string; position?: number; }
 export interface WooCommerceCategoryRef { id: number; name: string; slug: string; }
 export interface WooCommerceTagRef { id: number; name: string; slug: string; }
@@ -33,7 +33,7 @@ export interface StageCartPayload { items: { product_id: number; quantity: numbe
 export interface StageCartResponse { success: boolean; token: string; message?: string; expires_in: number; }
 export interface OrderDetailsLineItem { id: number; name: string; product_id: number; quantity: number; total: string; image_url: string | null; }
 export interface OrderDetails { id: number; order_key: string; order_number: string; status: string; date_created: string; total: string; currency: string; payment_method_title: string; billing_address: string; shipping_address: string; line_items: OrderDetailsLineItem[]; }
-
+export interface WooCommerceCountry { code: string; name: string; }
 
 @Injectable({
   providedIn: 'root',
@@ -42,10 +42,10 @@ export class WoocommerceService {
   private http = inject(HttpClient);
   private platformId: object = inject(PLATFORM_ID);
   private authService = inject(AuthService);
-  private apiUrlV3 = environment.woocommerce.apiUrl;
+
+  private backendBaseUrl = environment.woocommerce.apiUrl.split('/wc/v3/')[0];
+  private proxyApiUrlV3 = `${this.backendBaseUrl}/your-garden-eden/v1/wc-proxy/`;
   private storeApiUrl = `${environment.woocommerce.storeUrl}/wp-json/wc/store/v1`;
-  private consumerKey = environment.woocommerce.consumerKey;
-  private consumerSecret = environment.woocommerce.consumerSecret;
   private storeUrl = environment.woocommerce.storeUrl;
 
   private _storeApiNonce: string | null = null;
@@ -55,14 +55,11 @@ export class WoocommerceService {
 
   constructor() {
     console.log('[WC_SERVICE] Constructor initializing.');
-    if (!this.apiUrlV3 || !this.consumerKey || !this.consumerSecret || !this.storeUrl) {
-      console.error('[WC_SERVICE] Constructor Error: WooCommerce Core API URL, Consumer Key, Consumer Secret, or Store URL is not set in environment variables.');
+    if (!this.proxyApiUrlV3 || !this.storeUrl) {
+      console.error('[WC_SERVICE] Constructor Error: Proxy URL or Store URL could not be determined from environment variables.');
     } else {
-      console.log(`[WC_SERVICE] apiUrlV3: ${this.apiUrlV3}`);
+      console.log(`[WC_SERVICE] proxyApiUrlV3: ${this.proxyApiUrlV3}`);
       console.log(`[WC_SERVICE] storeApiUrl: ${this.storeApiUrl}`);
-    }
-    if (this.apiUrlV3 && !this.apiUrlV3.endsWith('/')) {
-        console.warn(`[WC_SERVICE] Warning: apiUrlV3 ("${this.apiUrlV3}") from environment.ts does not end with a trailing slash. This service expects it to simplify endpoint concatenation.`);
     }
     if (isPlatformBrowser(this.platformId)) {
       this._cartToken = localStorage.getItem(this.CART_TOKEN_STORAGE_KEY);
@@ -71,23 +68,16 @@ export class WoocommerceService {
     }
   }
 
-  private getAuthParamsV3(): HttpParams {
-    if (!this.consumerKey || !this.consumerSecret) {
-        console.error("[WC_SERVICE] Consumer Key or Secret is MISSING for getAuthParamsV3!");
-    }
-    return new HttpParams()
-      .set('consumer_key', this.consumerKey)
-      .set('consumer_secret', this.consumerSecret);
-  }
-
   private getStoreApiHeaders(customHeaders?: { [header: string]: string | string[] }): HttpHeaders {
     let headers = new HttpHeaders().set('Content-Type', 'application/json');
     if (this._cartToken) {
       headers = headers.set('Cart-Token', this._cartToken);
     }
-    const authToken = this.authService.getStoredToken();
+    const authToken = this.authService.activeJwt();
     if(authToken) {
-      headers = headers.set('Authorization', `Bearer ${authToken}`);
+      if (!headers.has('Authorization')) {
+        headers = headers.set('Authorization', `Bearer ${authToken}`);
+      }
     }
     if (this._storeApiNonce) {
       headers = headers.set('X-WC-Store-API-Nonce', this._storeApiNonce);
@@ -103,6 +93,7 @@ export class WoocommerceService {
   private updateTokensFromResponse(response: HttpResponse<any>, requestUrlForLog: string = 'N/A'): void {
     const cartTokenHeaderKey = 'Cart-Token';
     const nonceHeaderKey = 'X-WC-Store-API-Nonce';
+    
     const newCartToken: string | null = response.headers.get(cartTokenHeaderKey);
     if (newCartToken && newCartToken.trim() !== '') {
       if (newCartToken !== this._cartToken) {
@@ -110,10 +101,20 @@ export class WoocommerceService {
         if (isPlatformBrowser(this.platformId)) { localStorage.setItem(this.CART_TOKEN_STORAGE_KEY, this._cartToken); }
          console.log(`[WC_SERVICE] ${requestUrlForLog}: Cart-Token updated to ${this._cartToken}`);
       }
-    } else if (!response.headers.has(cartTokenHeaderKey) && this._cartToken && (requestUrlForLog.includes("/cart/clear") || (requestUrlForLog.includes("/cart/items") && response.status === 200 && requestUrlForLog.startsWith('DELETE')) )) {
-       console.log(`[WC_SERVICE] ${requestUrlForLog}: Cart-Token header was missing, clearing local token.`);
+    } 
+    // ENTSCHÄRFTE LOGIK: Token nur bei expliziten "clear cart"-Aktionen löschen.
+    else if (
+        !response.headers.has(cartTokenHeaderKey) && 
+        this._cartToken && 
+        (
+            requestUrlForLog.includes('/cart/items') || 
+            requestUrlForLog.includes('/cart/clear')
+        )
+    ) {
+       console.warn(`[WC_SERVICE] ${requestUrlForLog}: Cart-Token header was missing on a potential clear-cart action, clearing local token.`);
       this.clearLocalCartToken();
     }
+
     const newNonce: string | null = response.headers.get(nonceHeaderKey);
     if (newNonce && newNonce.trim() !== '') {
       if (newNonce !== this._storeApiNonce) {
@@ -122,6 +123,7 @@ export class WoocommerceService {
       }
     }
   }
+
   private async fetchAndSetTokensAsync(): Promise<{ cartToken: string | null, nonce: string | null }> {
     if (!isPlatformBrowser(this.platformId)) { return { cartToken: null, nonce: null }; }
     const requestUrl = `${this.storeApiUrl}/cart`;
@@ -141,6 +143,7 @@ export class WoocommerceService {
       return { cartToken: this._cartToken, nonce: this._storeApiNonce };
     }
   }
+
   private initializeTokens(): void {
     if (!isPlatformBrowser(this.platformId) || this.tokenPromise) { return; }
     if (!this._cartToken || !this._storeApiNonce) {
@@ -150,6 +153,7 @@ export class WoocommerceService {
         console.log(`[WC_SERVICE] initializeTokens: Cart token and Nonce seem present.`);
     }
   }
+
   public async ensureTokensPresent(): Promise<{ cartToken: string | null, nonce: string | null }> {
     if (!isPlatformBrowser(this.platformId)) { throw new Error('Token operations are not supported on non-browser platform.');}
     if (this.tokenPromise) {
@@ -164,60 +168,99 @@ export class WoocommerceService {
     return { cartToken: this._cartToken, nonce: this._storeApiNonce };
   }
 
-  private buildCoreApiUrl(endpoint: string): string {
+  private buildProxyUrl(endpoint: string): string {
     const cleanEndpoint = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
-    return `${this.apiUrlV3}${cleanEndpoint}`;
+    return `${this.proxyApiUrlV3}${cleanEndpoint}`;
   }
 
   getProducts( categoryId?: number, perPage: number = 10, page: number = 1, otherParams?: HttpParams ): Observable<WooCommerceProductsResponse> {
-    let params = this.getAuthParamsV3().set('per_page', perPage.toString()).set('page', page.toString());
-    if (categoryId) { params = params.set('category', categoryId.toString()); }
+    let params = new HttpParams()
+      .set('per_page', perPage.toString())
+      .set('page', page.toString());
+    if (categoryId) { 
+      params = params.set('category', categoryId.toString()); 
+    }
     params = this.appendParams(params, otherParams);
-    const requestUrl = this.buildCoreApiUrl('products');
-    console.log(`[WC_SERVICE] getProducts - Requesting from URL: ${requestUrl} with params:`, params.toString());
+    
+    const requestUrl = this.buildProxyUrl('products');
+    console.log(`[WC_SERVICE] getProducts (via Proxy) - Requesting from URL: ${requestUrl} with params:`, params.toString());
+    
     return this.http.get<WooCommerceProduct[]>(requestUrl, { params, observe: 'response' })
       .pipe(
-          tap(response => console.log('[WC_SERVICE] getProducts - Raw HTTP Response Status:', response.status)),
+          tap(response => console.log('[WC_SERVICE] getProducts (via Proxy) - Raw HTTP Response Status:', response.status)),
           map((res: HttpResponse<WooCommerceProduct[]>) => {
-            return { products: res.body || [], totalPages: parseInt(res.headers.get('X-WP-TotalPages') || '0', 10), totalCount: parseInt(res.headers.get('X-WP-Total') || '0', 10) };
+            return { products: res.body || [], totalPages: parseInt(res.headers.get('x-wp-totalpages') || '0', 10), totalCount: parseInt(res.headers.get('x-wp-total') || '0', 10) };
           }),
           catchError(this.handleError)
       );
   }
+
   getProductById(productId: number): Observable<WooCommerceProduct> {
-    const params = this.getAuthParamsV3();
-    const requestUrl = this.buildCoreApiUrl(`products/${productId}`);
-    console.log(`[WC_SERVICE] getProductById - Requesting product ${productId} from URL: ${requestUrl}`);
-    return this.http.get<WooCommerceProduct>(requestUrl, { params }).pipe(catchError(this.handleError));
+    const requestUrl = this.buildProxyUrl(`products/${productId}`);
+    console.log(`[WC_SERVICE] getProductById (via Proxy) - Requesting product ${productId} from URL: ${requestUrl}`);
+    return this.http.get<WooCommerceProduct>(requestUrl).pipe(catchError(this.handleError));
   }
+
   getProductBySlug(productSlug: string): Observable<WooCommerceProduct | undefined> {
-    const params = this.getAuthParamsV3().set('slug', productSlug);
-    const requestUrl = this.buildCoreApiUrl('products');
-    console.log(`[WC_SERVICE] getProductBySlug - Requesting product with slug ${productSlug} from URL: ${requestUrl}`);
+    const params = new HttpParams().set('slug', productSlug);
+    const requestUrl = this.buildProxyUrl('products');
+    console.log(`[WC_SERVICE] getProductBySlug (via Proxy) - Requesting product with slug ${productSlug} from URL: ${requestUrl}`);
     return this.http.get<WooCommerceProduct[]>(requestUrl, { params }).pipe(map(p => p && p.length > 0 ? p[0] : undefined), catchError(this.handleError));
   }
+  
+  getProductsByIds(productIds: number[]): Observable<WooCommerceProduct[]> {
+    if (!productIds || productIds.length === 0) {
+      return of([]);
+    }
+    const params = new HttpParams()
+      .set('include', productIds.join(','))
+      .set('per_page', productIds.length.toString());
+      
+    const requestUrl = this.buildProxyUrl('products');
+    console.log(`[WC_SERVICE] getProductsByIds (via Proxy) - Requesting products with IDs: ${productIds.join(',')} from URL: ${requestUrl}`);
+    
+    return this.http.get<WooCommerceProduct[]>(requestUrl, { params }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
   getProductVariations(productId: number): Observable<WooCommerceProductVariation[]> {
-    const params = this.getAuthParamsV3().set('per_page', '100');
-    const requestUrl = this.buildCoreApiUrl(`products/${productId}/variations`);
-    console.log(`[WC_SERVICE] getProductVariations - Requesting variations for product ${productId} from URL: ${requestUrl}`);
+    const params = new HttpParams().set('per_page', '100');
+    const requestUrl = this.buildProxyUrl(`products/${productId}/variations`);
+    console.log(`[WC_SERVICE] getProductVariations (via Proxy) - Requesting variations for product ${productId} from URL: ${requestUrl}`);
     return this.http.get<WooCommerceProductVariation[]>(requestUrl, { params }).pipe(catchError(this.handleError));
   }
+
   getCategories(parentId?: number, otherParams?: HttpParams): Observable<WooCommerceCategory[]> {
-    let params = this.getAuthParamsV3();
-    if (parentId !== undefined) { params = params.set('parent', parentId.toString()); }
-    if (!otherParams || !otherParams.has('hide_empty')) { params = params.set('hide_empty', 'true');}
+    let params = new HttpParams();
+    if (parentId !== undefined) { 
+      params = params.set('parent', parentId.toString()); 
+    }
+    if (!otherParams || !otherParams.has('hide_empty')) { 
+      params = params.set('hide_empty', 'true');
+    }
     params = this.appendParams(params, otherParams);
-    const requestUrl = this.buildCoreApiUrl('products/categories');
-    console.log(`[WC_SERVICE] getCategories - Requesting categories from URL: ${requestUrl}`);
+    const requestUrl = this.buildProxyUrl('products/categories');
+    console.log(`[WC_SERVICE] getCategories (via Proxy) - Requesting categories from URL: ${requestUrl}`);
     return this.http.get<WooCommerceCategory[]>(requestUrl, { params }).pipe(catchError(this.handleError));
   }
+
   getCategoryBySlug(categorySlug: string): Observable<WooCommerceCategory | undefined> {
-    const params = this.getAuthParamsV3().set('slug', categorySlug);
-    const requestUrl = this.buildCoreApiUrl('products/categories');
-    console.log(`[WC_SERVICE] getCategoryBySlug - Requesting category with slug ${categorySlug} from URL: ${requestUrl}`);
+    const params = new HttpParams().set('slug', categorySlug);
+    const requestUrl = this.buildProxyUrl('products/categories');
+    console.log(`[WC_SERVICE] getCategoryBySlug (via Proxy) - Requesting category with slug ${categorySlug} from URL: ${requestUrl}`);
     return this.http.get<WooCommerceCategory[]>(requestUrl, { params }).pipe(map(c => c && c.length > 0 ? c[0] : undefined), catchError(this.handleError));
   }
 
+  public getCountries(): Observable<WooCommerceCountry[]> {
+    const requestUrl = `${this.storeUrl}/wp-json/your-garden-eden/v1/data/countries`;
+    console.log(`[WC_SERVICE] getCountries - Requesting countries from URL: ${requestUrl}`);
+    return this.http.get<WooCommerceCountry[]>(requestUrl, { withCredentials: true })
+      .pipe(
+        tap(response => console.log(`[WC_SERVICE] getCountries response:`, response)),
+        catchError(this.handleError)
+      );
+  }
   public getWcCart(): Observable<WooCommerceStoreCart | null> {
     if (!isPlatformBrowser(this.platformId)) { return of(null); }
     const requestUrl = `${this.storeApiUrl}/cart`;
@@ -291,7 +334,6 @@ export class WoocommerceService {
       }),
       tap((res: HttpResponse<WooCommerceStoreCart | null>) => {
         this.updateTokensFromResponse(res, 'DELETE /cart/items');
-        if (!res.headers.get('Cart-Token') && !res.headers.get('cart-token')) { this.clearLocalCartToken(); }
       }),
       map(res => res.body),
       catchError(this.handleError)
@@ -339,18 +381,25 @@ export class WoocommerceService {
     );
   }
 
-  public getCheckoutUrl(cartPopulationToken?: string): string {
+  public getCheckoutUrl(cartPopulationToken?: string, jwt?: string | null): string {
     let url = `${this.storeUrl}/checkout`;
+    let hasParams = false;
+
     if (cartPopulationToken) {
-      url += url.includes('?') ? '&' : '?';
-      url += `yge_cart_token=${encodeURIComponent(cartPopulationToken)}`;
+      url += `?yge_cart_token=${encodeURIComponent(cartPopulationToken)}`;
+      hasParams = true;
     }
+
+    if (jwt) {
+      url += hasParams ? '&' : '?';
+      url += `JWT=${encodeURIComponent(jwt)}`;
+    }
+    
     return url;
   }
 
-  // HIER NEU
   public getCheckoutUrlWithCartToken(cartToken: string): string {
-    let url = `${this.storeUrl}/checkout/`; // Wichtig: Slash am Ende
+    let url = `${this.storeUrl}/checkout/`;
     if (cartToken) {
       url += `?cart_token=${encodeURIComponent(cartToken)}`;
     }

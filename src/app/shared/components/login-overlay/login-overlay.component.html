@@ -5,62 +5,170 @@
       <span class="material-symbols-outlined">close</span>
     </button>
 
-    <div class="overlay-header">
-      <h1>{{ 'loginOverlay.title' | transloco }}</h1>
-      <p>{{ 'loginOverlay.subtitle' | transloco }}</p>
-    </div>
+    @if (viewMode() === 'login') {
+      <div class="overlay-header">
+        <h1>{{ 'loginOverlay.title' | transloco }}</h1>
+        <p>{{ 'loginOverlay.subtitle' | transloco }}</p>
+      </div>
 
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate class="auth-form overlay-form">
-      <div class="form-field">
-        <label for="overlayLoginEmailOrUsername">{{ 'loginOverlay.emailOrUsernameLabel' | transloco }}</label> <!-- Label ggf. anpassen -->
-        <input type="text" id="overlayLoginEmailOrUsername" formControlName="emailOrUsername" [placeholder]="'loginOverlay.emailOrUsernamePlaceholder' | transloco" required
-               [attr.aria-invalid]="emailOrUsername?.invalid && (emailOrUsername?.touched || formSubmitted())"
-               aria-describedby="overlayLoginEmailOrUsernameError">
-        <div id="overlayLoginEmailOrUsernameError" class="error-container"
-             *ngIf="emailOrUsername?.invalid && (emailOrUsername?.touched || formSubmitted())">
-          <!-- Hier könnten spezifischere Fehler für E-Mail-Format ODER Benutzername stehen, oder ein allgemeines "Pflichtfeld" -->
-          <small *ngIf="emailOrUsername?.errors?.['required']">{{ 'loginOverlay.emailOrUsernameRequiredError' | transloco }}</small>
-          <!-- <small *ngIf="emailOrUsername?.errors?.['email']">{{ 'loginOverlay.emailInvalidError' | transloco }}</small> -->
+      <form [formGroup]="loginForm" (ngSubmit)="onLoginSubmit()" novalidate class="auth-form overlay-form">
+        <!-- KORREKTUR: Label und Feld für "Benutzername" -->
+        <div class="form-field">
+          <label for="overlayLoginUsername">{{ 'loginOverlay.usernameLabel' | transloco }}</label>
+          <input type="text" id="overlayLoginUsername" formControlName="username" [placeholder]="'loginOverlay.usernamePlaceholder' | transloco" required
+                 [attr.aria-invalid]="username.invalid && (username.touched || formSubmitted())"
+                 aria-describedby="overlayLoginUsernameError"
+                 autocomplete="username">
+          @if (username.invalid && (username.touched || formSubmitted())) {
+            <div id="overlayLoginUsernameError" class="error-container">
+              @if (username.errors?.['required']) {
+                <small>{{ 'loginOverlay.usernameRequiredError' | transloco }}</small>
+              }
+            </div>
+          }
         </div>
-      </div>
 
-      <div class="form-field">
-        <label for="overlayLoginPassword">{{ 'loginOverlay.passwordLabel' | transloco }}</label>
-        <input type="password" id="overlayLoginPassword" formControlName="password" required
-               [attr.aria-invalid]="password?.invalid && (password?.touched || formSubmitted())"
-               aria-describedby="overlayLoginPasswordError">
-         <div id="overlayLoginPasswordError" class="error-container"
-             *ngIf="password?.invalid && (password?.touched || formSubmitted())">
-          <small *ngIf="password?.errors?.['required']">{{ 'loginOverlay.passwordRequiredError' | transloco }}</small>
+        <div class="form-field">
+          <label for="overlayLoginPassword">{{ 'loginOverlay.passwordLabel' | transloco }}</label>
+          <input type="password" id="overlayLoginPassword" formControlName="password" required
+                 [attr.aria-invalid]="password.invalid && (password.touched || formSubmitted())"
+                 aria-describedby="overlayLoginPasswordError"
+                 autocomplete="current-password">
+          @if (password.invalid && (password.touched || formSubmitted())) {
+            <div id="overlayLoginPasswordError" class="error-container">
+              @if (password.errors?.['required']) {
+                <small>{{ 'loginOverlay.passwordRequiredError' | transloco }}</small>
+              }
+            </div>
+          }
+          <!-- ERWEITERT: Zwei Links für "Vergessen"-Funktionen -->
+          <div class="forgot-links-container">
+            <button type="button" class="link-button" (click)="switchToForgotUsernameView()">{{ 'loginOverlay.forgotUsernameLink' | transloco }}</button>
+            <button type="button" class="link-button" (click)="switchToForgotPasswordView()">{{ 'loginOverlay.forgotPasswordLink' | transloco }}</button>
+          </div>
         </div>
-         <div class="forgot-password-link">
-            <button type="button" class="link-button" (click)="navigateToForgotPassword()">{{ 'loginOverlay.forgotPasswordLink' | transloco }}</button>
-         </div>
+
+        @if (authService.authError()) {
+          <div class="error-message general-error">
+            {{ authService.authError() }}
+          </div>
+        }
+
+        <button type="submit" class="submit-button" [disabled]="authService.isLoading()">
+          @if (!authService.isLoading()) {
+            <span>{{ 'loginOverlay.loginButton' | transloco }}</span>
+          } @else {
+            <span class="button-loading-spinner"></span>
+            <span>{{ 'loginOverlay.loggingInButton' | transloco }}</span>
+          }
+        </button>
+      </form>
+      
+      <div class="auth-switch-link overlay-switch-link">
+        <p>{{ 'loginOverlay.noAccountPrompt' | transloco }} <button type="button" class="link-button" (click)="navigateToRegister()">{{ 'loginOverlay.registerNowLink' | transloco }}</button></p>
       </div>
 
-      <!-- Fehlermeldung vom AuthService anzeigen -->
-      <div *ngIf="authService.authError()" class="error-message general-error">
-        {{ authService.authError() }}
+    } @else if (viewMode() === 'forgotUsername') {
+      <!-- NEUE ANSICHT FÜR "BENUTZERNAME VERGESSEN" -->
+      <div class="overlay-header">
+        <h1>{{ 'loginOverlay.forgotUsername.title' | transloco }}</h1>
+        <p>{{ 'loginOverlay.forgotUsername.subtitle' | transloco }}</p>
       </div>
 
-      <button type="submit" class="submit-button" [disabled]="loginForm.invalid || authService.isLoading()">
-        <span *ngIf="!authService.isLoading()">{{ 'loginOverlay.loginButton' | transloco }}</span>
-        <span *ngIf="authService.isLoading()" class="button-loading-spinner"></span>
-        <span *ngIf="authService.isLoading()">{{ 'loginOverlay.loggingInButton' | transloco }}</span>
-      </button>
-    </form>
+      <form [formGroup]="forgotUsernameForm" (ngSubmit)="onRequestUsernameSubmit()" novalidate class="auth-form overlay-form">
+        <div class="form-field">
+          <label for="overlayForgotUsernameEmail">{{ 'loginOverlay.emailLabel' | transloco }}</label>
+          <input type="email" id="overlayForgotUsernameEmail" formControlName="email" [placeholder]="'registerPage.emailPlaceholder' | transloco" required
+                 [attr.aria-invalid]="forgotUsernameEmail.invalid && (forgotUsernameEmail.touched || formSubmitted())"
+                 aria-describedby="overlayForgotUsernameEmailError"
+                 autocomplete="email">
+          @if (forgotUsernameEmail.invalid && (forgotUsernameEmail.touched || formSubmitted())) {
+            <div id="overlayForgotUsernameEmailError" class="error-container">
+              @if (forgotUsernameEmail.errors?.['required']) {
+                <small>{{ 'registerPage.errorEmailRequired' | transloco }}</small>
+              }
+              @if (forgotUsernameEmail.errors?.['email']) {
+                <small>{{ 'registerPage.errorEmailInvalid' | transloco }}</small>
+              }
+            </div>
+          }
+        </div>
 
-    <!-- Google Login (vorerst auskommentiert) -->
-    <!--
-    <div class="social-login-divider"><span>{{ 'loginOverlay.orDivider' | transloco }}</span></div>
-    <div class="social-login-buttons">
-       <div #googleBtnContainerOverlay class="google-button-container-overlay">
-       </div>
-    </div>
-    -->
+        @if (authService.successMessage()) {
+          <div class="success-message general-success">
+            {{ authService.successMessage() }}
+          </div>
+        }
+        @if (authService.authError()) {
+          <div class="error-message general-error">
+            {{ authService.authError() }}
+          </div>
+        }
 
-    <div class="auth-switch-link overlay-switch-link">
-      <p>{{ 'loginOverlay.noAccountPrompt' | transloco }} <button type="button" class="link-button" (click)="navigateToRegister()">{{ 'loginOverlay.registerNowLink' | transloco }}</button></p>
-    </div>
+        <button type="submit" class="submit-button" [disabled]="authService.isLoading()">
+          @if (!authService.isLoading()) {
+            <span>{{ 'loginOverlay.forgotUsername.sendButton' | transloco }}</span>
+          } @else {
+            <span class="button-loading-spinner"></span>
+            <span>{{ 'general.processing' | transloco }}</span>
+          }
+        </button>
+      </form>
+
+      <div class="auth-switch-link overlay-switch-link">
+        <p><button type="button" class="link-button" (click)="switchToLoginView()">{{ 'loginOverlay.forgotUsername.backToLoginLink' | transloco }}</button></p>
+      </div>
+
+    } @else {
+      <!-- ANSICHT FÜR "PASSWORT VERGESSEN" -->
+      <div class="overlay-header">
+        <h1>{{ 'loginOverlay.forgotPassword.title' | transloco }}</h1>
+        <p>{{ 'loginOverlay.forgotPassword.subtitle' | transloco }}</p>
+      </div>
+
+      <form [formGroup]="forgotPasswordForm" (ngSubmit)="onForgotPasswordSubmit()" novalidate class="auth-form overlay-form">
+        <div class="form-field">
+          <label for="overlayForgotPasswordEmail">{{ 'loginOverlay.emailLabel' | transloco }}</label>
+          <input type="email" id="overlayForgotPasswordEmail" formControlName="email" [placeholder]="'registerPage.emailPlaceholder' | transloco" required
+                 [attr.aria-invalid]="forgotPasswordEmail.invalid && (forgotPasswordEmail.touched || formSubmitted())"
+                 aria-describedby="overlayForgotPasswordEmailError"
+                 autocomplete="email">
+          @if (forgotPasswordEmail.invalid && (forgotPasswordEmail.touched || formSubmitted())) {
+            <div id="overlayForgotPasswordEmailError" class="error-container">
+              @if (forgotPasswordEmail.errors?.['required']) {
+                <small>{{ 'registerPage.errorEmailRequired' | transloco }}</small>
+              }
+              @if (forgotPasswordEmail.errors?.['email']) {
+                <small>{{ 'registerPage.errorEmailInvalid' | transloco }}</small>
+              }
+            </div>
+          }
+        </div>
+
+        @if (authService.successMessage()) {
+          <div class="success-message general-success">
+            {{ authService.successMessage() }}
+          </div>
+        }
+        @if (authService.authError()) {
+          <div class="error-message general-error">
+            {{ authService.authError() }}
+          </div>
+        }
+
+        <button type="submit" class="submit-button" [disabled]="authService.isLoading()">
+          @if (!authService.isLoading()) {
+            <span>{{ 'loginOverlay.forgotPassword.sendButton' | transloco }}</span>
+          } @else {
+            <span class="button-loading-spinner"></span>
+            <span>{{ 'general.processing' | transloco }}</span>
+          }
+        </button>
+      </form>
+
+      <div class="auth-switch-link overlay-switch-link">
+        <p><button type="button" class="link-button" (click)="switchToLoginView()">{{ 'loginOverlay.forgotPassword.backToLoginLink' | transloco }}</button></p>
+      </div>
+    }
   </div>
 </div>

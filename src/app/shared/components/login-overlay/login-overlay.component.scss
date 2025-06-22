@@ -77,7 +77,7 @@ $transition-duration: 0.3s;
       font-size: 0.85rem;
       color: var(--text-color-base);
     }
-    input[type="text"], input[type="email"], input[type="password"] { // <- HIER GEÄNDERT
+    input[type="text"], input[type="email"], input[type="password"] {
       padding: var(--spacing-sm) var(--spacing-md);
       border: 1px solid var(--border-color-base);
       border-radius: var(--border-radius-md);
@@ -93,8 +93,11 @@ $transition-duration: 0.3s;
         border-color: var(--error-color);
       }
     }
-    .forgot-password-link {
-      text-align: right;
+    // STYLING-KORREKTUR: Ersetzt den alten ".forgot-password-link"-Block
+    .forgot-links-container {
+      display: flex;
+      justify-content: flex-end; // Richtet die Links rechtsbündig aus
+      gap: var(--spacing-lg);      // Fügt einen Abstand zwischen den Links hinzu
       margin-top: var(--spacing-xxs);
     }
   }
@@ -146,11 +149,11 @@ $transition-duration: 0.3s;
 
 .link-button {
   background: none; border: none; padding: 0; margin: 0;
-  font-size: inherit;
+  font-size: 0.8rem; // Etwas kleiner, um sicherzustellen, dass sie gut nebeneinander passen
   color: var(--text-color-link);
   text-decoration: underline;
   cursor: pointer;
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-normal); // Etwas weniger fett für ein dezenteres Erscheinungsbild
   &:hover { color: var(--text-color-link-hover); }
 }
 
@@ -189,19 +192,12 @@ $transition-duration: 0.3s;
     height: auto; // Höhe passt sich Inhalt an
     max-width: none; // Keine Desktop-max-width
     max-height: calc(100% - (2 * var(--spacing-lg))); // Lässt Rand oben/unten
-
-    // border-radius: var(--border-radius-lg); // Erbt Radius von oben oder spezifisch:
-    // border-radius: var(--border-radius-md); // Kleinerer Radius für Mobile?
-
     box-shadow: var(--box-shadow-lg); // Schatten beibehalten
-
     margin-left: auto;   // Zentrierung
     margin-right: auto;  // Zentrierung
     margin-top: var(--spacing-lg);    // Abstand oben
     margin-bottom: var(--spacing-lg); // Abstand unten
-
     display: flex; flex-direction: column;
-    // padding: var(--spacing-lg); // Padding ist schon im Desktop-Style, wird geerbt
     overflow-y: auto;
   }
   .close-button { top: var(--spacing-lg); right: var(--spacing-lg); }

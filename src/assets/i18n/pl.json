@@ -13,7 +13,13 @@
     "updating": "Aktualizowanie...",
     "not": "Nie",
     "defaultMetaDescription": "Odkryj wysokiej jakości meble ogrodowe i akcesoria w Your Garden Eden.",
-    "notSupported": "Nieobsługiwane"
+    "notSupported": "Nieobsługiwane",
+    "actions": {
+      "confirm": "Potwierdź",
+      "cancel": "Anuluj",
+      "close": "Zamknij",
+      "delete": "Usuń"
+    }
   },
   "header": {
     "searchPlaceholder": "Szukaj produktów...",
@@ -169,6 +175,7 @@
     "noImageAvailable": "Brak dostępnego obrazu",
     "thumbnailAlt": "Miniaturka {{index}}",
     "successAddToCart": "Produkt pomyślnie dodany do koszyka.",
+    "optionNotAvailable": "Ta opcja jest niedostępna.",
     "availability": {
       "inStock": "W magazynie",
       "outOfStock": "Brak w magazynie",
@@ -179,7 +186,8 @@
       "addingToCart": "Dodawanie...",
       "wishlistLogin": "Zaloguj się, aby korzystać z listy życzeń",
       "addToWishlist": "Dodaj do listy życzeń",
-      "removeFromWishlist": "Usuń z listy życzeń"
+      "removeFromWishlist": "Usuń z listy życzeń",
+      "inWishlist": "Na liście życzeń"
     },
     "description": {
       "title": "Opis",
@@ -251,6 +259,9 @@
     "companyLabel": "Firma (opcjonalnie)",
     "companyPlaceholder": "Nazwa firmy",
     "mainTitle": "Utwórz nowe konto",
+    "addressDetailsTitle": "Twój adres",
+    "accountDetailsTitle": "Dane Twojego konta",
+    "selectCountryPlaceholder": "Proszę wybrać kraj",
     "successHeadline": "Rejestracja pomyślna!",
     "successMessage": "Dziękujemy za rejestrację! E-mail z potwierdzeniem został wysłany na adres {{email}}. Sprawdź swoją skrzynkę odbiorczą (i folder spam) i kliknij link, aby aktywować konto.",
     "successMessagePendingVerification": "Rejestracja pomyślna! Sprawdź swoją pocztę e-mail ({{email}}), aby potwierdzić konto.",
@@ -275,6 +286,8 @@
     "addressCityLabel": "Miasto",
     "addressCityPlaceholder": "Przykładowe Miasto",
     "errorAddressCityRequired": "Miasto jest wymagane.",
+    "errorCountryRequired": "Proszę wybrać swój kraj.",
+    "errorPhoneRequired": "Numer telefonu jest wymagany.",
     "emailLabel": "Adres e-mail",
     "emailPlaceholder": "jan.kowalski@mail.com",
     "errorEmailRequired": "E-mail jest wymagany.",
@@ -317,7 +330,7 @@
     "cancelButton": "Anuluj",
     "editProfileButton": "Edytuj profil",
     "editButton": "Edytuj",
-    "personalDataTitle": "Dane osobowe",
+    "personalDataTitle": "Dane osobowe i kontaktowe",
     "emailLabel": "Adres e-mail",
     "emailNotChangeableHint": "Adres e-mail nie może być tutaj zmieniony.",
     "firstNameLabel": "Imię",
@@ -326,30 +339,27 @@
     "billingAddressTitle": "Adres rozliczeniowy",
     "shippingAddressTitle": "Adres dostawy",
     "noBillingAddress": "Brak adresu rozliczeniowego.",
-    "noShippingAddress": "Brak adresu dostawy.",
-    "shippingSameAsBilling": "Adres dostawy jest taki sam jak adres rozliczeniowy.",
+    "shippingSameAsBilling": "Mój adres dostawy jest taki sam jak adres rozliczeniowy.",
     "phoneLabel": "Telefon",
     "addressStreetLabel": "Ulica i numer domu",
     "addressZipLabel": "Kod pocztowy",
     "addressCityLabel": "Miasto",
     "saveChangesButton": "Zapisz zmiany",
     "savingButton": "Zapisywanie...",
-    "successProfileUpdate": "Profil zaktualizowany pomyślnie!",
-    "successBillingUpdate": "Adres rozliczeniowy zaktualizowany pomyślnie!",
-    "successShippingUpdate": "Adres dostawy zaktualizowany pomyślnie!",
-    "errorProfileSave": "Błąd podczas zapisywania profilu.",
-    "errorAddressSave": "Błąd podczas zapisywania adresu.",
+    "successProfileUpdate": "Twoje dane zostały pomyślnie zaktualizowane.",
     "navOverview": "Przegląd",
     "navPersonalData": "Moje dane",
     "navAddresses": "Adresy",
     "navOrders": "Zamówienia",
     "navChangePassword": "Zmień hasło",
+    "changePasswordSubtitle": "Ze względów bezpieczeństwa, tutaj możesz ustawić nowe hasło do swojego konta.",
+    "currentPasswordLabel": "Aktualne hasło",
+    "newPasswordLabel": "Nowe hasło",
+    "confirmNewPasswordLabel": "Potwierdź nowe hasło",
     "welcomeMessage": "Witaj {{name}}!",
     "overviewIntro": "Tutaj możesz przeglądać i zarządzać swoimi danymi osobowymi, adresami i zamówieniami.",
-    "sectionUnderMaintenanceTitle": "Sekcja w trakcie konserwacji",
-    "sectionAddressesMaintenanceMessage": "Zarządzanie adresami jest obecnie w trakcie aktualizacji i wkrótce będzie ponownie dostępne w pełnej funkcjonalności. Dziękujemy za wyrozumiałość.",
-    "sectionChangePasswordMaintenanceMessage": "Funkcja zmiany hasła jest obecnie w trakcie aktualizacji. W razie pilnej potrzeby skorzystaj z funkcji 'Zapomniałem hasła' na stronie logowania lub skontaktuj się z naszą obsługą.",
     "noOrders": "Nie złożyłeś/aś jeszcze żadnych zamówień.",
+    "browseProducts": "Odkryj produkty teraz",
     "orderNumber": "Nr zamówienia",
     "orderDate": "Data",
     "orderStatus": "Status",
@@ -377,14 +387,11 @@
     "notAvailable": "B/D",
     "errorUserNotFoundContext": "Nie można było załadować informacji o użytkowniku.",
     "errorUserNotLoggedIn": "Zaloguj się, aby wyświetlić swój profil.",
-    "errorWpUserLoad": "Nie można było załadować podstawowych danych użytkownika.",
-    "errorOrdersLoad": "Nie można było załadować zamówień.",
-    "errorOrderDetailLoad": "Nie można było załadować szczegółów zamówienia.",
-    "errorProfileLoadGeneral": "Błąd podczas ładowania profilu.",
-    "passwordResetRequested": "Wysłano żądanie resetowania hasła",
     "successPasswordChange": "Twoje hasło zostało pomyślnie zmienione.",
+    "costSummaryTitle": "Podsumowanie kosztów",
+    "noShippingAddress": "Nie podano osobnego adresu dostawy.",
     "errors": {
-      "formInvalid": "Formularz jest nieprawidłowy. Sprawdź swoje wpisy.",
+      "formInvalid": "Proszę sprawdzić swoje wpisy. Niektóre pola są nieprawidłowe.",
       "loadOrderDetailsError": "Nie można było załadować szczegółów zamówienia.",
       "loadOrdersError": "Nie można było załadować zamówień.",
       "loadProfileError": "Nie można było załadować profilu.",
@@ -406,13 +413,15 @@
     "summary": {
       "title": "Podsumowanie", "shipping": "Wysyłka", "shippingText": "Obliczana przy kasie",
       "total": "Suma całkowita", "inclVatShort": "z VAT", "allPricesInclVat": "Wszystkie ceny zawierają ustawowy podatek VAT.",
-      "checkoutButton": "Dodaj adres i przejdź do kasy",
+      "checkoutButton": "Do kasy",
       "directCheckoutButton": "Przejdź bezpośrednio do płatności",
       "changeAddressButton": "Zmień adres",
       "itemSingular": "produkt", "itemPlural": "produkty",
       "continueShopping": "Kontynuuj zakupy",
       "shippingAddressNote": "Do obliczenia kosztów wysyłki i kontynuacji procesu płatności wymagany jest pełny adres dostawy (kraj i kod pocztowy).",
-      "addressButton": "Dodaj adres dostawy"
+      "addressButton": "Dodaj adres dostawy",
+      "coupon": "Kupon \"{{code}}\"",
+      "removeCouponAria": "Usuń kupon {{code}}"
     },
     "noteLabel": "Notatka",
     "empty": { "title": "Twój koszyk jest pusty.", "message": "Dodaj produkty, aby je tutaj zobaczyć.", "continueShopping": "Kupuj teraz" },
@@ -421,10 +430,25 @@
       "updateFailed": "Nie udało się zaktualizować ilości. Proszę spróbować ponownie.",
       "removeItem": "Nie udało się usunąć produktu.",
       "checkoutNotPossible": "Przekierowanie do kasy jest obecnie niemożliwe.",
-      "emptyCartCheckout": "Twój koszyk jest pusty. Proszę najpierw dodać produkty."
+      "emptyCartCheckout": "Twój koszyk jest pusty. Proszę najpierw dodać produkty.",
+      "removeCouponFailed": "Nie udało się usunąć kuponu."
     },
     "errorFromService": "Wystąpił błąd: {serviceErrorMsg}",
-    "errorGlobalDefault": "Wystąpił nieznany błąd w koszyku."
+    "errorGlobalDefault": "Wystąpił nieznany błąd w koszyku.",
+    "confirmClear": {
+      "title": "Opróżnić koszyk?",
+      "message": "Czy na pewno chcesz usunąć wszystkie produkty z koszyka?",
+      "confirmButton": "Tak, opróżnij"
+    },
+    "clearCartButton": "Opróżnij koszyk",
+    "coupon": {
+      "label": "Kod kuponu",
+      "placeholder": "Wpisz kod...",
+      "applyButton": "Zastosuj",
+      "errorRequired": "Proszę wpisać kod.",
+      "potentialDiscount": "Zaoszczędź <strong class='highlight-success'>{{amount}}</strong> dzięki naszemu kuponowi z podziękowaniem! Kliknij tutaj, aby go zastosować.",
+      "openDiscountInfoAria": "Kliknij, aby uzyskać informacje o zniżce i ją zastosować."
+    }
   },
   "wishlistPage": {
     "title": "Moja lista życzeń",
@@ -449,7 +473,7 @@
       "message": "Dodaj produkty, które Ci się podobają, klikając ikonę serca.",
       "continueShopping": "Odkryj produkty teraz"
     },
-    "confirmClear": "Czy na pewno chcesz usunąć wszystkie produkty z listy życzeń?"
+    "confirmClear": "Czy na pewno chcesz usunąć wszystkie produkty z listy życzeń? Ta akcja jest nieodwracalna."
   },
   "wishlist": {
     "errors": {
@@ -491,7 +515,14 @@
     "errorInvalidCredentials": "Nieprawidłowy e-mail/nazwa użytkownika lub błędne hasło.",
     "errorUnknown": "Wystąpił nieznany błąd podczas logowania.",
     "errorGoogleInvalidResponse": "Logowanie przez Google nie powiodło się (nieprawidłowa odpowiedź).",
-    "errorGoogleFirebase": "Logowanie przez Google do Firebase nie powiodło się."
+    "errorGoogleFirebase": "Logowanie przez Google do Firebase nie powiodło się.",
+    "passwordResetRequested": "Jeśli istnieje konto o tym adresie e-mail, wysłano link do resetowania hasła.",
+    "forgotPassword": {
+      "title": "Resetowanie hasła",
+      "subtitle": "Nie ma problemu! Wpisz swój adres e-mail, a my wyślemy Ci link do zresetowania hasła.",
+      "sendButton": "Wyślij link do resetowania",
+      "backToLoginLink": "Powrót do logowania"
+    }
   },
   "miniCart": {
     "title": "Koszyk",
@@ -528,7 +559,13 @@
     "availableInVariants": "W wielu wariantach",
     "priceFrom": "Od",
     "addToWishlist": "Dodaj do listy życzeń",
-    "removeFromWishlist": "Usuń z listy życzeń"
+    "removeFromWishlist": "Usuń z listy życzeń",
+    "addToCart": "Dodaj do koszyka",
+    "selectOptions": "Wybierz opcje",
+    "addedToCart": "\"{productName}\" został dodany do koszyka.",
+    "errorAddingToCart": "Nie można było dodać produktu do koszyka.",
+    "soonAvailable": "Dostępne wkrótce",
+    "priceOnRequest": "Obecnie niedostępne do zamówienia"
   },
   "checkoutDetailsPage": {
     "title": "Szczegóły zamówienia i adres",
@@ -583,10 +620,14 @@
       "checkoutProcessFailed": "Nie można było zakończyć procesu płatności. Szczegóły: {details}"
     },
     "emptyCartMessage": "Twój koszyk jest pusty. Dodaj produkty, zanim przejdziesz dalej.",
-    "backToCart": "Powrót do koszyka"
+    "backToCart": "Powrót do koszyka",
+    "addressSaveSuccess": "Twoje adresy zostały pomyślnie zapisane!"
   },
   "cartService": {
     "errorLoadingCart": "Nie można było załadować koszyka.",
+    "errorRemovingCoupon": "Nie można było usunąć kuponu.",
+    "errorApplyingCoupon": "Nie można było zastosować kuponu.",
+    "errorUnknownCoupon": "Kupon jest nieprawidłowy lub nie można go było zastosować.",
     "errorAddingItem": "Błąd podczas dodawania do koszyka.",
     "errorUpdatingQuantity": "Nie można było zaktualizować ilości.",
     "errorRemovingItem": "Nie można było usunąć produktu.",
@@ -637,9 +678,11 @@
     },
     "cartDiscount": {
       "title": "Twoja 5% zniżka!",
-      "paragraph1": "Dziękujemy za zakupy! Z powodu obecnych optymalizacji na naszej stronie, chcielibyśmy Ci podarować 5% zniżki.",
-      "paragraph2": "W tym celu wystarczy wpisać kod kuponu w odpowiednie pole na stronie kasy.",
-      "couponCodeLabel": "Kod kuponu:",
+      "applyButton": "Zastosuj 5% zniżki i zamknij",
+      "closeButton": "Zastosuj później",
+      "paragraph1": "Obecnie rozwijamy dla Ciebie nasz sklep internetowy! W podziękowaniu za wyrozumiałość, jeśli wystąpią drobne niedogodności podczas tej fazy, dajemy Ci <span class='highlight-success'>5% zniżki</span> na Twoje zamówienie.",
+      "paragraph2": "Wystarczy kliknąć <span class='highlight-action'>'Zastosuj zniżkę'</span>, aby natychmiast aktywować korzyść. Ciężko pracujemy, aby wkrótce zapewnić Ci najlepsze możliwe doświadczenie zakupowe.",
+      "couponCodeLabel": "Twój kod kuponu (zostanie zastosowany automatycznie):",
       "couponCodeValue": "YourGardenEden",
       "copyCodeButton": {
         "ariaLabelIdle": "Skopiuj kod kuponu {{code}}",
@@ -647,8 +690,7 @@
         "titleIdle": "Skopiuj kod",
         "titleCopied": "Skopiowano!",
         "feedbackCopied": "Skopiowano!"
-      },
-      "confirmButton": "Zrozumiałem"
+      }
     },
     "shared": {
       "closeButtonAriaLabel": "Zamknij"
@@ -657,5 +699,15 @@
   "validators": {
     "firstNameRequired": "Imię jest polem wymaganym.",
     "lastNameRequired": "Nazwisko jest polem wymaganym."
+  },
+  "resetPasswordPage": {
+    "title": "Resetowanie hasła",
+    "subtitle": "Wprowadź nowe hasło, aby zakończyć proces.",
+    "submitButton": "Zapisz nowe hasło",
+    "successTitle": "Hasło zmienione pomyślnie!",
+    "successMessage": "Twoje hasło zostało zaktualizowane. Wkrótce zostaniesz przekierowany na stronę główną.",
+    "toHomepageButton": "Na stronę główną",
+    "invalidLinkTitle": "Nieprawidłowy link",
+    "invalidLinkDefaultMessage": "Ten link do resetowania hasła wydaje się być nieprawidłowy lub wygasł. Poproś o nowy."
   }
 }

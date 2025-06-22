@@ -1,153 +1,195 @@
-<!-- /src/app/features/auth/register-page/register-page.component.html -->
+<!-- /src/app/features/auth/register-page/register-page.component.html (v2.0 - Mit Benutzername) -->
 <div class="auth-page-container register-page">
   <h1>{{ 'registerPage.mainTitle' | transloco }}</h1>
 
-  @if (registrationSuccessMessage()) {
+  @if (registrationSuccessful()) {
     <div class="success-message registration-success">
       <span class="material-symbols-outlined icon-large">mark_email_read</span>
       <h2>{{ 'registerPage.successHeadline' | transloco }}</h2>
-      <p>{{ registrationSuccessMessage() }}</p>
+      <!-- NEU: Text angepasst, um den Benutzernamen zu erwähnen -->
+      <p>{{ 'registerPage.successMessageNew' | transloco: { username: registerForm.get('username')?.value } }}</p>
       <p>
         {{ 'registerPage.successLoginPrompt' | transloco }}
         <a href="#" (click)="openLoginOverlay($event)">{{ 'registerPage.loginHereLink' | transloco }}</a>.
       </p>
     </div>
-  }
+  } @else {
+    <p class="subtitle">{{ 'registerPage.subtitle' | transloco }}</p>
 
-  @if (!registrationSuccessMessage()) {
-    <p>{{ 'registerPage.subtitle' | transloco }}</p>
-
-    <div class="form-wrapper">
+    <div class="form-wrapper" [class.is-loading]="authService.isLoading() || isLoadingCountries()">
       
-      @if (authService.isLoading()) {
+      @if (authService.isLoading() || isLoadingCountries()) {
         <div class="loading-overlay">
           <app-loading-spinner></app-loading-spinner>
-          <p>{{ 'registerPage.creatingAccountButton' | transloco }}</p>
+          <p>
+            @if (authService.isLoading() && formSubmitted()) {
+              {{ 'registerPage.creatingAccountButton' | transloco }}
+            } @else {
+              {{ 'checkoutDetailsPage.loadingData' | transloco }}
+            }
+          </p>
         </div>
       }
 
-      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" novalidate class="auth-form" [class.is-loading]="authService.isLoading()">
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" novalidate class="auth-form">
         
+        <h2>{{ 'registerPage.addressDetailsTitle' | transloco }}</h2>
+        
+        <div class="form-row">
+          <div class="form-field">
+            <label for="first_name">{{ 'registerPage.firstNameLabel' | transloco }} *</label>
+            <input type="text" id="first_name" formControlName="first_name" [placeholder]="'registerPage.firstNamePlaceholder' | transloco"
+                   [attr.aria-invalid]="f['first_name'].invalid && (f['first_name'].touched || formSubmitted())">
+            @if (f['first_name'].invalid && (f['first_name'].touched || formSubmitted())) {
+              <div class="error-container">
+                @if (f['first_name'].errors?.['required']) { <small>{{ 'registerPage.errorFirstNameRequired' | transloco }}</small> }
+              </div>
+            }
+          </div>
+
+          <div class="form-field">
+            <label for="last_name">{{ 'registerPage.lastNameLabel' | transloco }} *</label>
+            <input type="text" id="last_name" formControlName="last_name" [placeholder]="'registerPage.lastNamePlaceholder' | transloco"
+                   [attr.aria-invalid]="f['last_name'].invalid && (f['last_name'].touched || formSubmitted())">
+             @if (f['last_name'].invalid && (f['last_name'].touched || formSubmitted())) {
+              <div class="error-container">
+                @if (f['last_name'].errors?.['required']) { <small>{{ 'registerPage.errorLastNameRequired' | transloco }}</small> }
+              </div>
+            }
+          </div>
+        </div>
+
         <div class="form-field">
-          <label for="first_name">{{ 'registerPage.firstNameLabel' | transloco }}</label>
-          <input type="text" id="first_name" formControlName="first_name" [placeholder]="'registerPage.firstNamePlaceholder' | transloco" required
-                 [attr.aria-invalid]="registerForm.get('first_name')!.invalid && (registerForm.get('first_name')!.touched || formSubmitted())"
-                 aria-describedby="firstNameError">
-          @if (registerForm.get('first_name')!.invalid && (registerForm.get('first_name')!.touched || formSubmitted())) {
-            <div id="firstNameError" class="error-container">
-              @if (registerForm.get('first_name')!.errors?.['required']) { <small>{{ 'registerPage.errorFirstNameRequired' | transloco }}</small> }
+          <label for="billing_country">{{ 'checkoutDetailsPage.billingAddress.countryLabel' | transloco }} *</label>
+          <select id="billing_country" formControlName="billing_country" [attr.aria-invalid]="f['billing_country'].invalid && (f['billing_country'].touched || formSubmitted())">
+            @for(country of countries(); track country.code){
+              <option [value]="country.code">{{country.name}}</option>
+            }
+          </select>
+          @if (f['billing_country'].invalid && (f['billing_country'].touched || formSubmitted())) {
+            <div class="error-container">
+              @if (f['billing_country'].errors?.['required']) { <small>{{ 'registerPage.errorCountryRequired' | transloco }}</small> }
             </div>
           }
         </div>
 
         <div class="form-field">
-          <label for="last_name">{{ 'registerPage.lastNameLabel' | transloco }}</label>
-          <input type="text" id="last_name" formControlName="last_name" [placeholder]="'registerPage.lastNamePlaceholder' | transloco" required
-                 [attr.aria-invalid]="registerForm.get('last_name')!.invalid && (registerForm.get('last_name')!.touched || formSubmitted())"
-                 aria-describedby="lastNameError">
-           @if (registerForm.get('last_name')!.invalid && (registerForm.get('last_name')!.touched || formSubmitted())) {
-            <div id="lastNameError" class="error-container">
-              @if (registerForm.get('last_name')!.errors?.['required']) { <small>{{ 'registerPage.errorLastNameRequired' | transloco }}</small> }
-            </div>
-          }
-        </div>
-
-        <div class="form-field">
-          <label for="address_1">{{ 'registerPage.addressStreetLabel' | transloco }}</label>
-          <input type="text" id="address_1" formControlName="address_1"
-                 [placeholder]="'registerPage.addressStreetPlaceholder' | transloco" required
-                 [attr.aria-invalid]="registerForm.get('address_1')!.invalid && (registerForm.get('address_1')!.touched || formSubmitted())"
-                 aria-describedby="addressStreetError">
-          @if (registerForm.get('address_1')!.invalid && (registerForm.get('address_1')!.touched || formSubmitted())) {
-            <div id="addressStreetError" class="error-container">
-              @if (registerForm.get('address_1')!.errors?.['required']) { <small>{{ 'registerPage.errorAddressStreetRequired' | transloco }}</small> }
+          <label for="address_1">{{ 'registerPage.addressStreetLabel' | transloco }} *</label>
+          <input type="text" #addressStreetInput id="address_1" formControlName="address_1" [placeholder]="'registerPage.addressStreetPlaceholder' | transloco"
+                 [attr.aria-invalid]="f['address_1'].invalid && (f['address_1'].touched || formSubmitted())">
+          @if (f['address_1'].invalid && (f['address_1'].touched || formSubmitted())) {
+            <div class="error-container">
+              @if (f['address_1'].errors?.['required']) { <small>{{ 'registerPage.errorAddressStreetRequired' | transloco }}</small> }
             </div>
           }
         </div>
 
         <div class="form-row">
           <div class="form-field zip-field">
-            <label for="postcode">{{ 'registerPage.addressZipLabel' | transloco }}</label>
-            <input type="text" id="postcode" formControlName="postcode" [placeholder]="'registerPage.addressZipPlaceholder' | transloco" required inputmode="numeric"
-                  [attr.aria-invalid]="registerForm.get('postcode')!.invalid && (registerForm.get('postcode')!.touched || formSubmitted())"
-                  aria-describedby="addressZipError">
-            @if (registerForm.get('postcode')!.invalid && (registerForm.get('postcode')!.touched || formSubmitted())) {
-              <div id="addressZipError" class="error-container">
-                @if (registerForm.get('postcode')!.errors?.['required']) { <small>{{ 'registerPage.errorAddressZipRequired' | transloco }}</small> }
-                @if (registerForm.get('postcode')!.errors?.['pattern']) { <small>{{ 'registerPage.errorAddressZipPattern' | transloco }}</small> }
+            <label for="postcode">{{ 'registerPage.addressZipLabel' | transloco }} *</label>
+            <input type="text" id="postcode" formControlName="postcode" inputmode="numeric" [placeholder]="'registerPage.addressZipPlaceholder' | transloco"
+                  [attr.aria-invalid]="f['postcode'].invalid && (f['postcode'].touched || formSubmitted())">
+            @if (f['postcode'].invalid && (f['postcode'].touched || formSubmitted())) {
+              <div class="error-container">
+                @if (f['postcode'].errors?.['required']) { <small>{{ 'registerPage.errorAddressZipRequired' | transloco }}</small> }
+                @if (f['postcode'].errors?.['pattern']) { <small>{{ 'registerPage.errorAddressZipPattern' | transloco }}</small> }
               </div>
             }
           </div>
           <div class="form-field city-field">
-            <label for="city">{{ 'registerPage.addressCityLabel' | transloco }}</label>
-            <input type="text" id="city" formControlName="city" [placeholder]="'registerPage.addressCityPlaceholder' | transloco" required
-                  [attr.aria-invalid]="registerForm.get('city')!.invalid && (registerForm.get('city')!.touched || formSubmitted())"
-                  aria-describedby="addressCityError">
-            @if (registerForm.get('city')!.invalid && (registerForm.get('city')!.touched || formSubmitted())) {
-              <div id="addressCityError" class="error-container">
-                @if (registerForm.get('city')!.errors?.['required']) { <small>{{ 'registerPage.errorAddressCityRequired' | transloco }}</small> }
+            <label for="city">{{ 'registerPage.addressCityLabel' | transloco }} *</label>
+            <input type="text" id="city" formControlName="city" [placeholder]="'registerPage.addressCityPlaceholder' | transloco"
+                  [attr.aria-invalid]="f['city'].invalid && (f['city'].touched || formSubmitted())">
+            @if (f['city'].invalid && (f['city'].touched || formSubmitted())) {
+              <div class="error-container">
+                @if (f['city'].errors?.['required']) { <small>{{ 'registerPage.errorAddressCityRequired' | transloco }}</small> }
               </div>
             }
           </div>
         </div>
 
         <div class="form-field">
-          <label for="email">{{ 'registerPage.emailLabel' | transloco }}</label>
-          <input type="email" id="email" formControlName="email" [placeholder]="'registerPage.emailPlaceholder' | transloco" required
-                 [attr.aria-invalid]="registerForm.get('email')!.invalid && (registerForm.get('email')!.touched || formSubmitted())"
-                 aria-describedby="emailError">
-          @if (registerForm.get('email')!.invalid && (registerForm.get('email')!.touched || formSubmitted())) {
-            <div id="emailError" class="error-container">
-              @if (registerForm.get('email')!.errors?.['required']) { <small>{{ 'registerPage.errorEmailRequired' | transloco }}</small> }
-              @if (registerForm.get('email')!.errors?.['email']) { <small>{{ 'registerPage.errorEmailInvalid' | transloco }}</small> }
-              @if (registerForm.get('email')!.errors?.['alreadyInUse']) { <small>{{ 'registerPage.errorEmailInUse' | transloco }}</small> }
+          <label for="billing_phone">{{ 'checkoutDetailsPage.billingAddress.phoneLabel' | transloco }} *</label>
+          <input type="tel" id="billing_phone" formControlName="billing_phone" [placeholder]="'checkoutDetailsPage.billingAddress.phonePlaceholder' | transloco"
+                 [attr.aria-invalid]="f['billing_phone'].invalid && (f['billing_phone'].touched || formSubmitted())">
+          @if (f['billing_phone'].invalid && (f['billing_phone'].touched || formSubmitted())) {
+            <div class="error-container">
+              @if (f['billing_phone'].errors?.['required']) { <small>{{ 'registerPage.errorPhoneRequired' | transloco }}</small> }
+            </div>
+          }
+        </div>
+        
+        <hr class="form-divider">
+        
+        <h2>{{ 'registerPage.accountDetailsTitle' | transloco }}</h2>
+
+        <!-- NEU: Feld für den Benutzernamen -->
+        <div class="form-field">
+          <label for="username">{{ 'registerPage.usernameLabel' | transloco }} *</label>
+          <input type="text" id="username" formControlName="username" [placeholder]="'registerPage.usernamePlaceholder' | transloco"
+                 [attr.aria-invalid]="f['username'].invalid && (f['username'].touched || formSubmitted())">
+          <small class="field-hint">{{ 'registerPage.usernameHint' | transloco }}</small>
+          @if (f['username'].invalid && (f['username'].touched || formSubmitted())) {
+            <div class="error-container">
+              @if (f['username'].errors?.['required']) { <small>{{ 'registerPage.errorUsernameRequired' | transloco }}</small> }
+              @if (f['username'].errors?.['noAtSymbol']) { <small>{{ 'registerPage.errorUsernameAtSymbol' | transloco }}</small> }
+              @if (f['username'].errors?.['minlength']) { <small>{{ 'registerPage.errorUsernameMinlength' | transloco }}</small> }
+            </div>
+          }
+        </div>
+
+        <div class="form-field">
+          <label for="email">{{ 'registerPage.emailLabel' | transloco }} *</label>
+          <input type="email" id="email" formControlName="email" [placeholder]="'registerPage.emailPlaceholder' | transloco"
+                 [attr.aria-invalid]="f['email'].invalid && (f['email'].touched || formSubmitted())">
+          @if (f['email'].invalid && (f['email'].touched || formSubmitted())) {
+            <div class="error-container">
+              @if (f['email'].errors?.['required']) { <small>{{ 'registerPage.errorEmailRequired' | transloco }}</small> }
+              @if (f['email'].errors?.['email']) { <small>{{ 'registerPage.errorEmailInvalid' | transloco }}</small> }
+              @if (f['email'].errors?.['alreadyInUse']) { <small>{{ 'registerPage.errorEmailInUse' | transloco }}</small> }
             </div>
           }
         </div>
         
         <div class="form-field">
-          <label for="password">{{ 'registerPage.passwordLabel' | transloco }}</label>
+          <label for="password">{{ 'registerPage.passwordLabel' | transloco }} *</label>
           <div class="input-with-icon-wrapper">
-            <input [type]="passwordFieldType()" id="password" formControlName="password" required minlength="6"
-                   [attr.aria-invalid]="registerForm.get('password')!.invalid && (registerForm.get('password')!.touched || formSubmitted())"
-                   aria-describedby="passwordError">
+            <input [type]="passwordFieldType()" id="password" formControlName="password" minlength="6"
+                   [attr.aria-invalid]="f['password'].invalid && (f['password'].touched || formSubmitted())">
             <button type="button" class="password-toggle-button" (click)="togglePasswordVisibility('password')" [title]="'buttons.togglePassword' | transloco">
-              <span class="material-symbols-outlined">
-                {{ passwordFieldType() === 'password' ? 'visibility' : 'visibility_off' }}
-              </span>
+              <span class="material-symbols-outlined">{{ passwordFieldType() === 'password' ? 'visibility' : 'visibility_off' }}</span>
             </button>
           </div>
-           @if (registerForm.get('password')!.invalid && (registerForm.get('password')!.touched || formSubmitted())) {
-            <div id="passwordError" class="error-container">
-              @if (registerForm.get('password')!.errors?.['required']) { <small>{{ 'registerPage.errorPasswordRequired' | transloco }}</small> }
-              @if (registerForm.get('password')!.errors?.['minlength']) { <small>{{ 'registerPage.errorPasswordMinlength' | transloco }}</small> }
+           @if (f['password'].invalid && (f['password'].touched || formSubmitted())) {
+            <div class="error-container">
+              @if (f['password'].errors?.['required']) { <small>{{ 'registerPage.errorPasswordRequired' | transloco }}</small> }
+              @if (f['password'].errors?.['minlength']) { <small>{{ 'registerPage.errorPasswordMinlength' | transloco }}</small> }
             </div>
           }
         </div>
 
         <div class="form-field">
-          <label for="confirmPassword">{{ 'registerPage.confirmPasswordLabel' | transloco }}</label>
+          <label for="confirmPassword">{{ 'registerPage.confirmPasswordLabel' | transloco }} *</label>
           <div class="input-with-icon-wrapper">
-            <input [type]="confirmPasswordFieldType()" id="confirmPassword" formControlName="confirmPassword" required
-                   [attr.aria-invalid]="(registerForm.get('confirmPassword')!.invalid || registerForm.errors?.['passwordsMismatch']) && (registerForm.get('confirmPassword')!.touched || formSubmitted())"
-                   aria-describedby="confirmPasswordError passwordMatchError">
+            <input [type]="confirmPasswordFieldType()" id="confirmPassword" formControlName="confirmPassword"
+                   [attr.aria-invalid]="(f['confirmPassword'].invalid || registerForm.errors?.['passwordsMismatch']) && (f['confirmPassword'].touched || formSubmitted())">
             <button type="button" class="password-toggle-button" (click)="togglePasswordVisibility('confirmPassword')" [title]="'buttons.togglePassword' | transloco">
-              <span class="material-symbols-outlined">
-                {{ confirmPasswordFieldType() === 'password' ? 'visibility' : 'visibility_off' }}
-              </span>
+              <span class="material-symbols-outlined">{{ confirmPasswordFieldType() === 'password' ? 'visibility' : 'visibility_off' }}</span>
             </button>
           </div>
-           @if (registerForm.get('confirmPassword')!.invalid && (registerForm.get('confirmPassword')!.touched || formSubmitted())) {
-            <div id="confirmPasswordError" class="error-container">
-             @if (registerForm.get('confirmPassword')!.errors?.['required']) { <small>{{ 'registerPage.errorConfirmPasswordRequired' | transloco }}</small> }
+           @if (f['confirmPassword'].invalid && (f['confirmPassword'].touched || formSubmitted())) {
+            <div class="error-container">
+             @if (f['confirmPassword'].errors?.['required']) { <small>{{ 'registerPage.errorConfirmPasswordRequired' | transloco }}</small> }
            </div>
           }
-           @if (registerForm.errors?.['passwordsMismatch'] && (registerForm.get('confirmPassword')!.touched || registerForm.get('password')!.touched || formSubmitted())) {
-            <div id="passwordMatchError" class="error-container">
+           @if (registerForm.errors?.['passwordsMismatch'] && (f['confirmPassword'].touched || f['password'].touched || formSubmitted())) {
+            <div class="error-container">
              <small>{{ 'registerPage.errorPasswordsMismatch' | transloco }}</small>
            </div>
           }
         </div>
+
+        <hr class="form-divider">
 
         <div class="form-field checkbox-field">
            <input type="checkbox" id="newsletter" formControlName="newsletter">
@@ -155,9 +197,8 @@
         </div>
 
         <div class="form-field checkbox-field terms-field">
-           <input type="checkbox" id="acceptTerms" formControlName="acceptTerms" required
-                  [attr.aria-invalid]="registerForm.get('acceptTerms')!.invalid && (registerForm.get('acceptTerms')!.touched || formSubmitted())"
-                  aria-describedby="acceptTermsError">
+           <input type="checkbox" id="acceptTerms" formControlName="acceptTerms"
+                  [attr.aria-invalid]="f['acceptTerms'].invalid && (f['acceptTerms'].touched || formSubmitted())">
            <label for="acceptTerms">
              {{ 'registerPage.acceptTermsPrefix' | transloco }}
              <a routerLink="/agb" target="_blank" rel="noopener noreferrer">{{ 'registerPage.acceptTermsAGBLink' | transloco }}</a>
@@ -165,16 +206,16 @@
              <a routerLink="/datenschutz" target="_blank" rel="noopener noreferrer">{{ 'registerPage.acceptTermsPrivacyLink' | transloco }}</a>
              {{ 'registerPage.acceptTermsSuffix' | transloco }} *
            </label>
-            @if (registerForm.get('acceptTerms')!.invalid && (registerForm.get('acceptTerms')!.touched || formSubmitted())) {
-              <div id="acceptTermsError" class="error-container">
-               @if (registerForm.get('acceptTerms')!.errors?.['required']) { <small>{{ 'registerPage.errorAcceptTermsRequired' | transloco }}</small> }
+            @if (f['acceptTerms'].invalid && (f['acceptTerms'].touched || formSubmitted())) {
+              <div class="error-container">
+               @if (f['acceptTerms'].errors?.['required']) { <small>{{ 'registerPage.errorAcceptTermsRequired' | transloco }}</small> }
              </div>
             }
         </div>
 
-        @if (authService.authError() && !registrationSuccessMessage()) {
+        @if (authService.authError()) {
           <div class="error-message general-error">
-            {{ authService.authError() }}
+            <p>{{ authService.authError() }}</p>
           </div>
         }
 

@@ -1,169 +1,255 @@
-// /src/app/features/auth/register-page/register-page.component.scss
+// /src/app/features/auth/register-page/register-page.component.scss (v2.0 - Mit Benutzername-Styling)
+@use "sass:color";
 
-// Basis-Styling für die Auth-Seiten
+// Basis-Container, angepasst an Checkout-Details für einheitliche Optik
 .auth-page-container {
-  max-width: 550px;
+  max-width: 700px;
   margin: var(--spacing-xxxl, 3rem) auto;
-  padding: var(--spacing-xl, 2rem) var(--spacing-xxl, 2.5rem);
-  background-color: var(--background-color-component);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--box-shadow-md);
+  padding: var(--spacing-lg, 1.5rem);
+
+  @media (max-width: 768px) {
+    margin: var(--spacing-xl, 2rem) auto;
+    padding: var(--spacing-md, 1rem);
+  }
 
   h1 {
     text-align: center;
-    margin-top: 0;
     margin-bottom: var(--spacing-sm, 0.5rem);
-    font-size: 1.8rem;
+    font-size: clamp(1.8em, 4vw, 2.4em);
     color: var(--text-color-headings);
+    font-family: var(--font-family-headings);
   }
 
-  p {
+  p.subtitle {
     text-align: center;
     margin-bottom: var(--spacing-xl, 2rem);
     color: var(--text-color-muted);
+    max-width: 550px;
+    margin-left: auto;
+    margin-right: auto;
   }
 }
 
+// Wrapper für Formular und Lade-Spinner
+.form-wrapper {
+  position: relative;
+  background-color: var(--background-color-component);
+  padding: var(--spacing-xl, 2rem);
+  border-radius: var(--border-radius-lg, 8px);
+  box-shadow: var(--box-shadow-sm);
+
+  @media (max-width: 600px) {
+    padding: var(--spacing-lg, 1.5rem);
+  }
+}
+
+// Lade-Overlay, identisch zu Checkout
+.loading-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(255, 255, 255, 0.85);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  border-radius: var(--border-radius-lg, 8px);
+  backdrop-filter: blur(3px);
+  gap: 1rem;
+  color: var(--text-color-headings);
+  font-weight: var(--font-weight-medium);
+}
+
+.form-wrapper.is-loading {
+  .auth-form {
+    filter: blur(2px);
+    pointer-events: none;
+  }
+}
+
+// Generelles Formular-Styling
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg, 1.25rem);
+
+  h2 {
+    font-size: clamp(1.3em, 3vw, 1.6em);
+    color: var(--text-color-headings);
+    margin-top: 0;
+    margin-bottom: var(--spacing-lg, 1.5rem);
+    padding-bottom: var(--spacing-sm, 0.5rem);
+    border-bottom: 1px solid var(--border-color-light);
+
+    &:not(:first-of-type) {
+      margin-top: var(--spacing-xl, 2rem);
+    }
+  }
+
+  hr.form-divider {
+    border: none;
+    border-top: 1px solid var(--border-color-light);
+    margin: var(--spacing-xl, 2rem) 0 var(--spacing-md, 1rem) 0;
+  }
 }
 
 .form-field {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs, 0.4rem);
+  gap: var(--spacing-xs, 0.25rem);
+  margin-bottom: var(--spacing-lg, 1.5rem);
 
   label {
-    font-weight: var(--font-weight-semibold);
-    font-size: 0.9rem;
+    font-weight: var(--font-weight-semibold, 600);
+    font-size: var(--font-size-sm, 0.875rem);
     color: var(--text-color-base);
+    margin-bottom: var(--spacing-xxs, 0.125rem);
   }
 
   input[type="text"],
   input[type="email"],
-  input[type="password"] {
-    padding: var(--spacing-sm, 10px) var(--spacing-md, 12px);
+  input[type="password"],
+  input[type="tel"],
+  select {
+    padding: var(--spacing-sm, 0.75rem) var(--spacing-md, 1rem);
     border: 1px solid var(--border-color-base);
-    border-radius: var(--border-radius-md);
-    font-size: 1rem;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    border-radius: var(--border-radius-md, 5px);
+    font-size: var(--font-size-base, 1rem);
+    font-family: var(--font-family-base, 'Roboto', sans-serif);
+    color: var(--text-color-base);
     background-color: var(--background-color-component);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    height: 48px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 100%;
+
+    &::placeholder {
+      color: var(--text-color-muted);
+      opacity: 0.6;
+    }
 
     &:focus {
       outline: none;
-      border-color: var(--accent-color-vibrant-green);
-      box-shadow: 0 0 0 2px var(--accent-color-vibrant-green-rgba-02);
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb, 161, 180, 138), 0.25);
     }
 
     &[aria-invalid="true"] {
       border-color: var(--error-color);
       &:focus {
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(var(--error-color-rgb, 220, 53, 69), 0.25);
+        box-shadow: 0 0 0 3px rgba(var(--error-color-rgb, 220, 53, 69), 0.25);
       }
     }
   }
+  
+  select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right var(--spacing-md, 1rem) center;
+    background-size: 16px 12px;
+    padding-right: calc(var(--spacing-md, 1rem) * 2.5);
+  }
+
+  // NEU: Styling für den Hilfetext
+  .field-hint {
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--text-color-muted);
+    margin-top: calc(-1 * var(--spacing-xs)); // Reduziert den Abstand, den gap erzeugt
+  }
 }
 
-// *** FINALE, KORRIGIERTE STRUKTUR FÜR INPUT MIT ICON ***
 .input-with-icon-wrapper {
-  position: relative; // Bezugspunkt für den Button
+  position: relative;
+  display: flex;
 
   input {
-    // Input füllt den Wrapper aus, Padding schafft Platz für den Button
-    width: 100%;
-    padding-right: 45px !important; // !important, um generische Stile zu überschreiben
+    flex-grow: 1;
+    padding-right: 45px !important;
   }
 
   .password-toggle-button {
     position: absolute;
     right: 0;
     top: 0;
-    height: 100%; // Nimmt die volle Höhe des Inputs ein
-    width: 45px; // Klickbarer Bereich
-    
+    height: 100%;
+    width: 45px;
     display: flex;
     align-items: center;
     justify-content: center;
-
     background: none;
     border: none;
     cursor: pointer;
     color: var(--text-color-muted);
 
-    .material-symbols-outlined {
-      font-size: 22px;
-    }
-
-    &:hover {
-      color: var(--text-color-base);
-    }
+    .material-symbols-outlined { font-size: 22px; }
+    &:hover { color: var(--text-color-base); }
   }
 }
 
-
 .form-row {
   display: flex;
-  gap: var(--spacing-lg, 1rem);
-  .zip-field { flex: 1 1 120px; }
-  .city-field { flex: 2 1 auto; }
+  gap: var(--spacing-lg, 1.5rem);
+  .form-field {
+    flex: 1 1 0;
+    &.zip-field { flex-grow: 1; }
+    &.city-field { flex-grow: 2; }
+  }
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+    gap: var(--spacing-lg, 1.5rem);
+  }
 }
 
 .error-container {
-  min-height: 1.2em; 
+  min-height: 1.2em;
+  margin-top: var(--spacing-xs, 0.25rem);
   small {
     color: var(--error-color);
-    font-size: 0.8rem;
+    font-size: var(--font-size-sm, 0.875rem);
     display: block;
   }
 }
 
 .checkbox-field {
+  display: flex;
   flex-direction: row;
-  align-items: flex-start; 
-  gap: var(--spacing-sm, 0.8rem);
-  margin-top: var(--spacing-sm, 0.5rem);
+  align-items: flex-start;
+  gap: var(--spacing-sm, 0.75rem);
+  margin-bottom: var(--spacing-md, 1rem);
 
   input[type="checkbox"] {
     margin-top: 0.2em;
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     cursor: pointer;
     flex-shrink: 0;
+    accent-color: var(--primary-color);
   }
   label {
     font-weight: var(--font-weight-normal);
-    font-size: 0.9rem;
-    color: var(--text-color-muted);
+    font-size: var(--font-size-base, 1rem);
+    color: var(--text-color-base);
     cursor: pointer;
     line-height: 1.4;
 
     a {
       color: var(--text-color-link);
       text-decoration: underline;
-      &:hover {
-        color: var(--text-color-link-hover);
-      }
+      &:hover { color: var(--text-color-link-hover); }
     }
-  }
-
-  &.terms-field {
-    margin-top: var(--spacing-lg, 1rem);
   }
 }
 
 .error-message.general-error {
   background-color: var(--error-background-color);
   color: var(--error-text-color);
-  border: 1px solid var(--error-color);
-  border-radius: var(--border-radius-md);
-  padding: var(--spacing-sm, 10px) var(--spacing-md, 15px);
-  text-align: center;
-  font-size: 0.9rem;
-  margin-top: var(--spacing-sm, 0.5rem);
-  margin-bottom: var(--spacing-lg, 1.25rem);
+  border: 1px solid rgba(var(--error-color-rgb, 220, 53, 69), 0.5);
+  border-radius: var(--border-radius-md, 5px);
+  padding: var(--spacing-md, 1rem);
+  margin-bottom: var(--spacing-lg, 1.5rem);
+  p { margin: 0; }
 }
 
 .submit-button {
@@ -171,21 +257,19 @@
   align-items: center;
   justify-content: center;
   gap: var(--spacing-sm, 8px);
+  width: 100%;
   padding: var(--spacing-md, 12px) var(--spacing-lg, 20px);
   background-color: var(--primary-color);
   color: var(--primary-color-text);
   border: none;
   border-radius: var(--border-radius-md);
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: var(--font-weight-semibold);
   cursor: pointer;
   transition: background-color 0.2s ease, opacity 0.2s ease;
   margin-top: var(--spacing-lg, 1rem);
 
-  &:hover:not(:disabled) {
-    background-color: var(--primary-color-dark);
-  }
-
+  &:hover:not(:disabled) { background-color: var(--primary-color-dark); }
   &:disabled {
     background-color: var(--disabled-background-color);
     color: var(--text-color-muted);
@@ -204,24 +288,19 @@
     color: var(--text-color-link);
     font-weight: var(--font-weight-semibold);
     text-decoration: underline;
-    &:hover {
-      color: var(--text-color-link-hover);
-    }
+    &:hover { color: var(--text-color-link-hover); }
   }
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
 }
 
 .success-message.registration-success {
   background-color: var(--success-background-color);
   color: var(--success-text-color);
   border: 1px solid var(--success-color);
-  padding: var(--spacing-lg);
+  padding: var(--spacing-xl, 2rem);
   border-radius: var(--border-radius-lg);
   text-align: center;
-  margin-bottom: var(--spacing-lg);
+  margin: 0 auto;
+  max-width: 600px;
 
   .icon-large {
     font-size: 48px;
@@ -231,6 +310,7 @@
   }
 
   h2 {
+    border: none;
     margin-top: 0;
     margin-bottom: var(--spacing-md);
     font-size: 1.5rem;
@@ -246,54 +326,52 @@
   }
 
   a {
-    color: var(--text-color-link);
+    color: var(--success-text-color);
     font-weight: var(--font-weight-semibold);
     text-decoration: underline;
-    &:hover { color: var(--text-color-link-hover); }
+    &:hover { color: var(--success-color-dark); }
   }
 }
 
-@media (max-width: 600px) {
-  .auth-page-container {
-    margin: var(--spacing-lg) var(--spacing-md);
-    padding: var(--spacing-lg);
+:host ::ng-deep {
+  .google-autocomplete-input {
+    width: 100%;
+    display: block;
+    --gmp-places-autocomplete-icon-size: 0px;
+    --gmp-input-padding: var(--spacing-sm, 0.75rem) var(--spacing-md, 1rem);
+    --gmp-input-border-color: var(--border-color-base);
+    --gmp-input-border-radius: var(--border-radius-md, 5px);
+    --gmp-input-font-size: var(--font-size-base, 1rem);
+    --gmp-input-font-family: var(--font-family-base, 'Roboto', sans-serif);
+    --gmp-input-text-color: var(--text-color-base);
+    --gmp-input-background-color: var(--background-color-component);
+    --gmp-input-height: 48px;
+    --gmp-input-focus-border-color: var(--primary-color);
+    --gmp-input-focus-box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb, 161, 180, 138), 0.25);
+    
+    &::part(input) {
+      &::placeholder {
+        color: var(--text-color-muted);
+        opacity: 0.6;
+      }
+    }
   }
-  .form-row {
-    flex-direction: column;
-    gap: var(--spacing-lg);
-    .zip-field, .city-field { flex: 1 1 auto; }
-  }
-  .success-message.registration-success {
-    padding: var(--spacing-md);
-    h2 { font-size: 1.3rem; }
-    .icon-large { font-size: 40px; }
-    p { font-size: 0.95rem; }
+  
+  .ng-invalid.ng-touched .google-autocomplete-input {
+    --gmp-input-border-color: var(--error-color);
+    &:focus, &.is-focused {
+       --gmp-input-focus-box-shadow: 0 0 0 3px rgba(var(--error-color-rgb, 220, 53, 69), 0.25);
+    }
   }
 }
 
-.form-wrapper {
-  position: relative;
-}
-
-.loading-overlay {
+.visually-hidden {
+  border: 0;
+  clip: rect(0 0 0 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(255, 255, 255, 0.8);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  z-index: 10;
-  border-radius: var(--border-radius-lg);
-  gap: 1rem;
-  color: var(--text-color-headings);
-  font-weight: var(--font-weight-medium);
-}
-
-form.is-loading {
-  opacity: 0.5;
-  pointer-events: none;
+  width: 1px;
 }

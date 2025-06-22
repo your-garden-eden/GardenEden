@@ -1,44 +1,37 @@
 // /src/app/core/interceptors/auth-http.interceptor.ts
 import { Injectable, PLATFORM_ID, inject } from '@angular/core';
-import {
-  HttpRequest,
-  HttpHandler,
-  HttpEvent,
-  HttpInterceptor
-} from '@angular/common/http';
+import { HttpRequest, HttpHandler, HttpEvent, HttpInterceptor } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { isPlatformBrowser } from '@angular/common';
-import { environment } from '../../../environments/environment'; // Import environment
+import { environment } from '../../../environments/environment';
+// NEU START: AuthService wird benötigt, um an den aktiven Token zu kommen.
+import { AuthService } from '../../shared/services/auth.service';
+// NEU ENDE
 
 @Injectable()
 export class AuthHttpInterceptor implements HttpInterceptor {
 
   private platformId = inject(PLATFORM_ID);
-  private backendBaseUrl: string;
+  // NEU START: AuthService wird injiziert.
+  private authService = inject(AuthService);
+  // NEU ENDE
+  
+  // GEÄNDERT START: Basis-URL wird direkt aus der Environment bezogen und die Ausschlussliste angepasst.
+  private backendApiUrl = environment.woocommerce.apiUrl.split('/wc/v3/')[0]; // Sollte https://.../wp-json sein
 
-  // Endpunkte, die explizit KEINEN Authorization-Header benötigen
+  // Endpunkte, die explizit KEINEN Authorization-Header benötigen, auch wenn ein Token vorhanden ist.
   private excludedFromAuthHeaderEndpoints: string[] = [
-    '/simple-jwt-login/v1/auth',          // Login
-    '/simple-jwt-login/v1/users',         // Register (POST), Reset Password (POST), New Password (POST)
-    // Pfade, bei denen Token via URL kommt (optional, aber kann Klarheit schaffen):
-    // '/simple-jwt-login/v1/auth/validate',
-    // '/simple-jwt-login/v1/auth/refresh',
-    // '/simple-jwt-login/v1/auth/revoke',
-    '/wc/store/v1/',                      // WooCommerce Store API
+    `${this.backendApiUrl}/simple-jwt-login/v1/auth`,       // Login
+    `${this.backendApiUrl}/your-garden-eden/v1/guest-token`, // Abrufen des Gast-Tokens
+    `${this.backendApiUrl}/your-garden-eden/v1/users/request-password-reset`, // Passwort-Reset anfordern
+    `${this.backendApiUrl}/your-garden-eden/v1/users/set-new-password`,       // Neues Passwort setzen
+    // Die WooCommerce Store API (/wc/store/v1/) wird separat behandelt, da sie eine andere Basis-URL hat
+    // und ihre eigene Header-Logik (z.B. Cart-Token) verwendet.
   ];
+  // GEÄNDERT ENDE
 
   constructor() {
-    let tempBaseUrl = environment.woocommerce.apiUrl; // z.B. https://.../wp-json/wc/v3/
-    const wcApiSuffix = '/wc/v3/';
-
-    // Stellt sicher, dass die Basis-URL für WP REST API (z.B. /wp-json) korrekt ist
-    if (tempBaseUrl.endsWith(wcApiSuffix)) {
-      tempBaseUrl = tempBaseUrl.substring(0, tempBaseUrl.length - wcApiSuffix.length);
-    }
-    // tempBaseUrl sollte jetzt 'https://your-garden-eden-4ujzpfm5qt.live-website.com/wp-json' sein
-    this.backendBaseUrl = tempBaseUrl;
-    // console.log('[AuthInterceptor] Initialized. Determined backendBaseUrl for WP REST API:', this.backendBaseUrl);
-    // console.log('[AuthInterceptor] WooCommerce Store URL for exclusions:', environment.woocommerce.storeUrl);
+    // console.log('[AuthInterceptor] Initialized. Backend API URL:', this.backendApiUrl);
   }
 
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
@@ -48,59 +41,53 @@ export class AuthHttpInterceptor implements HttpInterceptor {
       return next.handle(request);
     }
 
-    const isRequestForOurWpApi = request.url.startsWith(this.backendBaseUrl);
-    // WooCommerce Store API Anfragen beginnen mit der storeUrl, die KEIN /wp-json enthält
-    // z.B. https://your-garden-eden-4ujzpfm5qt.live-website.com/wc/store/v1/cart
-    const isRequestForWcStoreApi = request.url.startsWith(environment.woocommerce.storeUrl + '/wc/store/v1/');
-
-
-    if (!isRequestForOurWpApi && !isRequestForWcStoreApi) {
-      // console.log('[AuthInterceptor] Request is not for our backend or WC Store, proceeding without modification.');
+    // GEÄNDERT START: Die Logik wird komplett überarbeitet, um den AuthService und das activeJwt Signal zu nutzen.
+    
+    // Prüfen, ob die Anfrage an unser Backend geht.
+    const isRequestForOurBackend = request.url.startsWith(this.backendApiUrl);
+    
+    // Anfragen an die WooCommerce Store API werden ignoriert, da sie eine separate Authentifizierung haben.
+    if (request.url.includes('/wc/store/v1/')) {
+      // console.log('[AuthInterceptor] Request is for WC Store API, proceeding without modification.');
       return next.handle(request);
     }
 
-    const wordpressJwt = localStorage.getItem('wordpressJwt');
-    let modifiedRequest = request;
-    let requestPathForExclusionCheck = '';
-
-    if (isRequestForOurWpApi) {
-        requestPathForExclusionCheck = request.url.substring(this.backendBaseUrl.length);
-    } else if (isRequestForWcStoreApi) {
-        // Der Pfad für den Ausschluss-Check der Store API beginnt mit /wc/store/v1/
-        // z.B. request.url = https://.../wc/store/v1/cart
-        // environment.woocommerce.storeUrl = https://...
-        // Wir brauchen den Teil ab /wc/store/v1/
-        const storeApiBasePath = environment.woocommerce.storeUrl;
-        if (request.url.startsWith(storeApiBasePath)) {
-            requestPathForExclusionCheck = request.url.substring(storeApiBasePath.length);
-        }
+    if (!isRequestForOurBackend) {
+      // console.log('[AuthInterceptor] Request is not for our backend, proceeding without modification.');
+      return next.handle(request);
     }
-
-    const pathOnly = requestPathForExclusionCheck.split('?')[0];
-    // console.log('[AuthInterceptor] Relative path for exclusion check:', pathOnly);
-
+    
+    // Prüfen, ob der spezifische Endpunkt von der Authentifizierung ausgenommen ist.
     const isSpecificallyExcluded = this.excludedFromAuthHeaderEndpoints.some(
-      excludedPath => pathOnly.startsWith(excludedPath)
+      excludedUrl => request.url.startsWith(excludedUrl)
     );
 
-    // console.log('[AuthInterceptor] Token available:', !!wordpressJwt);
-    // console.log('[AuthInterceptor] URL is specifically excluded from Auth Header:', isSpecificallyExcluded);
+    if (isSpecificallyExcluded) {
+      // console.log('[AuthInterceptor] URL is specifically excluded from Auth Header, proceeding without modification.');
+      return next.handle(request);
+    }
+    
+    // Den aktiven Token (Benutzer oder Gast) vom AuthService holen.
+    const activeToken = this.authService.activeJwt();
 
-    if (wordpressJwt && !isSpecificallyExcluded) {
+    let modifiedRequest = request;
+    
+    if (activeToken) {
       if (!request.headers.has('Authorization')) {
         // console.log('[AuthInterceptor] Adding JWT to request for:', request.url);
         modifiedRequest = request.clone({
           setHeaders: {
-            Authorization: `Bearer ${wordpressJwt}`
+            Authorization: `Bearer ${activeToken}`
           }
         });
       } else {
         // console.log('[AuthInterceptor] Authorization header already present, not overwriting for:', request.url);
       }
     } else {
-      // console.log('[AuthInterceptor] Proceeding without adding/modifying Authorization header for:', request.url);
+      // console.log('[AuthInterceptor] No active token available, proceeding without modification for:', request.url);
     }
 
     return next.handle(modifiedRequest);
+    // GEÄNDERT ENDE
   }
 }

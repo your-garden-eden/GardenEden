@@ -101,7 +101,7 @@ export class CartPageComponent implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
-  trackByItemKey(index: number, item: WooCommerceStoreCartItem): string {
+  trackByItemKey(index: number, item: ExtendedCartItem): string {
     return item.key;
   }
 
@@ -109,7 +109,7 @@ export class CartPageComponent implements OnInit, OnDestroy {
     return variant.attribute;
   }
 
-  async updateQuantity(item: WooCommerceStoreCartItem, newQuantity: number): Promise<void> {
+  async updateQuantity(item: ExtendedCartItem, newQuantity: number): Promise<void> {
     this._uiError.set(null);
     try {
       await this.cartService.updateItemQuantity(item.key, newQuantity);
@@ -118,10 +118,10 @@ export class CartPageComponent implements OnInit, OnDestroy {
     }
   }
 
-  incrementQuantity(item: WooCommerceStoreCartItem): void { this.updateQuantity(item, item.quantity + 1); }
-  decrementQuantity(item: WooCommerceStoreCartItem): void { this.updateQuantity(item, item.quantity - 1); }
+  incrementQuantity(item: ExtendedCartItem): void { this.updateQuantity(item, item.quantity + 1); }
+  decrementQuantity(item: ExtendedCartItem): void { this.updateQuantity(item, item.quantity - 1); }
 
-  async removeItem(item: WooCommerceStoreCartItem): Promise<void> {
+  async removeItem(item: ExtendedCartItem): Promise<void> {
     this._uiError.set(null);
     try {
       await this.cartService.removeItem(item.key);
@@ -185,16 +185,25 @@ export class CartPageComponent implements OnInit, OnDestroy {
     }
   }
 
-  getProductLink(item: WooCommerceStoreCartItem): string {
-    const productId = item.parent_product_id || item.id;
-    return `/product/${productId}`;
+  // [BUGFIX & ÄNDERUNG] Methode angepasst, um den Produkt-Slug anstelle der ID für den Link zu verwenden.
+  // Die Methodensignatur wurde von `WooCommerceStoreCartItem` auf `ExtendedCartItem` aktualisiert,
+  // um typsicher auf die `slug`-Eigenschaft zugreifen zu können.
+  getProductLink(item: ExtendedCartItem): string {
+    if (!item.slug) {
+      // Fallback, falls der Slug aus irgendeinem Grund nicht vorhanden ist.
+      const productId = item.parent_product_id || item.id;
+      return `/product/${productId}`;
+    }
+    return `/product/${item.slug}`;
   }
 
-  getProductImage(item: WooCommerceStoreCartItem): string | undefined {
+  // [ÄNDERUNG] Typsignatur für Konsistenz angepasst.
+  getProductImage(item: ExtendedCartItem): string | undefined {
     return item.images?.[0]?.thumbnail || item.images?.[0]?.src;
   }
   
-  calculateLinePrice(item: WooCommerceStoreCartItem): string {
+  // [ÄNDERUNG] Typsignatur für Konsistenz angepasst.
+  calculateLinePrice(item: ExtendedCartItem): string {
     const price = parseFloat(item.prices?.regular_price || '0');
     return (price * item.quantity).toFixed(2);
   }

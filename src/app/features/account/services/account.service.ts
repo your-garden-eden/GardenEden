@@ -2,14 +2,15 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams, HttpResponse, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError, map, tap, switchMap } from 'rxjs/operators';
+import { catchError, map, tap } from 'rxjs/operators';
 import {
   WooCommerceCustomer,
   WooCommerceOrder,
   PaginatedOrdersResponse,
   WooCommerceCustomerUpdatePayload,
   UserAddressesResponse,
-  WpUserMeResponse // KORREKTUR: Importiert aus den Models
+  WpUserMeResponse,
+  ChangePasswordPayload 
 } from './account.models';
 import { AuthService } from '../../../shared/services/auth.service';
 
@@ -23,6 +24,9 @@ export class AccountService {
   private wooCommerceApiBase = `${this.wordpressApiUrl}/wc/v3`;
   private wpUserApiBase = `${this.wordpressApiUrl}/wp/v2`;
   private customApiBase = `${this.wordpressApiUrl}/your-garden-eden/v1`;
+
+  // NEUE URL
+  private changePasswordUrl = `${this.customApiBase}/user/change-password`;
 
   constructor() { }
   
@@ -128,11 +132,10 @@ export class AccountService {
     );
   }
 
-  changePassword(userId: number, newPassword: string): Observable<any> {
+  // METHODE ERSETZT FÜR MEHR SICHERHEIT
+  changePassword(payload: ChangePasswordPayload): Observable<{ success: boolean, message: string }> {
     const headers = this.getAuthHeaders();
-    const updateUserUrl = `${this.wpUserApiBase}/users/${userId}`;
-    const payload = { password: newPassword };
-    return this.http.post<any>(updateUserUrl, payload, { headers }).pipe(
+    return this.http.post<{ success: boolean, message: string }>(this.changePasswordUrl, payload, { headers }).pipe(
       tap(response => console.log('[AccountService] Password change response:', response)),
       catchError(err => this.handleError(err, 'changePassword'))
     );
