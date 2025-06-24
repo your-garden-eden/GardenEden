@@ -32,7 +32,6 @@ import {
 import { ReactiveFormsModule, FormControl, FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 
-// Services & Daten
 import { AuthService, WordPressUser } from '../../../shared/services/auth.service';
 import { CartService } from '../../../shared/services/cart.service';
 import { UiStateService } from '../../../shared/services/ui-state.service';
@@ -43,11 +42,10 @@ import {
   WooCommerceProduct,
   WooCommerceProductsResponse,
 } from '../../../core/services/woocommerce.service';
+import { TrackingService } from '../../../core/services/tracking.service';
 
-// Breakpoint-Erkennung
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 
-// Transloco
 import { TranslocoModule, TranslocoService, LangDefinition } from '@ngneat/transloco';
 import { HttpParams } from '@angular/common/http';
 import { LoadingSpinnerComponent } from '../loading-spinner/loading-spinner.component';
@@ -80,6 +78,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   private breakpointObserver = inject(BreakpointObserver);
   private cdr = inject(ChangeDetectorRef);
   public translocoService = inject(TranslocoService);
+  private trackingService = inject(TrackingService);
 
   currentUser$: Observable<WordPressUser | null> = this.authService.currentWordPressUser$;
   itemCount$: Signal<number> = this.cartService.cartItemCount;
@@ -106,7 +105,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   private currentSearchPage: WritableSignal<number> = signal(1);
   private totalSearchPages: WritableSignal<number> = signal(1);
   private currentSearchTerm: string | null = null;
-  private readonly SEARCH_RESULTS_PER_PAGE = 30; // Anzahl der Ergebnisse pro Seite
+  private readonly SEARCH_RESULTS_PER_PAGE = 30;
 
   constructor() {
     effect(() => {
@@ -177,13 +176,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
-  // +++ HIER IST DIE EINZIGE ÄNDERUNG +++
   changeLanguage(langId: string): void {
     if (langId) {
       this.translocoService.setActiveLang(langId);
       
-      // Manuelles Speichern im localStorage, da wir das Persist-Modul entfernt haben.
-      // Dies wird nur im Browser ausgeführt.
       if (isPlatformBrowser(this.platformId)) {
         localStorage.setItem('transloco-lang', langId);
       }
@@ -414,6 +410,15 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   toggleSubmenu(item: NavItem): void {
     item.isExpanded = !item.isExpanded;
+  }
+
+  /**
+   * KORRIGIERT: Nimmt den i18n-Schlüssel an und übersetzt ihn innerhalb der Methode.
+   * @param categoryI18nKey Der i18n-Schlüssel der Kategorie (z.B. 'nav.gartenmoebel').
+   */
+  trackCategoryClick(categoryI18nKey: string): void {
+    const categoryName = this.translocoService.translate(categoryI18nKey);
+    this.trackingService.trackCategoryView(categoryName);
   }
 
   getSearchResultLink(product: WooCommerceProduct): string {

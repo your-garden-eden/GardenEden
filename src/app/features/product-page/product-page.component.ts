@@ -30,6 +30,8 @@ import { TranslocoModule, TranslocoService } from '@ngneat/transloco';
 import { FormsModule } from '@angular/forms';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 
+import { TrackingService } from '../../core/services/tracking.service';
+
 
 interface SelectedOptions {
   [attributeSlug: string]: string;
@@ -67,6 +69,8 @@ export class ProductPageComponent implements OnInit, OnDestroy, AfterViewInit {
   private platformId = inject(PLATFORM_ID);
   private cdr = inject(ChangeDetectorRef);
   private currencyPipe = inject(CurrencyPipe);
+
+  private trackingService = inject(TrackingService);
 
 
   product: WritableSignal<WooCommerceProduct | null> = signal(null);
@@ -250,6 +254,7 @@ export class ProductPageComponent implements OnInit, OnDestroy, AfterViewInit {
               return of(null);
             }
             this.product.set(productData);
+            this.trackingService.trackViewItem(productData);
             this.updatePageTitleAndMeta(productData);
             if (productData.type === 'variable' && productData.variations && productData.variations.length > 0) {
               return this.woocommerceService.getProductVariations(productData.id).pipe(
@@ -444,11 +449,14 @@ export class ProductPageComponent implements OnInit, OnDestroy, AfterViewInit {
   async addToCart(): Promise<void> {
     const productData = this.product();
     if (!productData) return;
+    
     let productIdToAdd = productData.id;
     let variationIdToAdd: number | undefined;
     const quantityToAdd = 1;
+    let selectedVar: WooCommerceProductVariation | null = null; // Variable für das Tracking deklarieren
+
     if (productData.type === 'variable') {
-      const selectedVar = this.currentSelectedVariation();
+      selectedVar = this.currentSelectedVariation(); // Wert zuweisen
       if (!selectedVar) {
         this.addToCartErrorKey.set('productPage.errorSelectVariant');
         this.addToCartError.set(this.translocoService.translate(this.addToCartErrorKey()!));
@@ -467,6 +475,10 @@ export class ProductPageComponent implements OnInit, OnDestroy, AfterViewInit {
         this.cdr.markForCheck(); return;
       }
     }
+
+    // --- NEU: Tracking-Event hier auslösen, NACH allen Validierungen ---
+    this.trackingService.trackAddToCart(productData, quantityToAdd, selectedVar || undefined);
+
     this.isAddingToCart.set(true);
     this.addToCartError.set(null); this.addToCartErrorKey.set(null);
     try {
