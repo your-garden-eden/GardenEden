@@ -1,3 +1,4 @@
+// src/app/shared/components/product-card/product-card.component.ts
 import { Component, Input, ChangeDetectionStrategy, inject, computed, Signal, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -8,8 +9,10 @@ import { AuthService } from '../../services/auth.service';
 import { UiStateService } from '../../services/ui-state.service';
 import { CartService } from '../../services/cart.service';
 import { LoadingSpinnerComponent } from '../loading-spinner/loading-spinner.component';
+// --- HINZUGEFÜGT: TrackingService und WooCommerceProduct importieren ---
+import { TrackingService } from '../../../core/services/tracking.service';
+import { WooCommerceProduct } from '../../../core/services/woocommerce.service';
 
-// HIER NEU: Eigener Typ für den klaren Status
 type ProductEffectiveStatus = 'available' | 'on_backorder' | 'out_of_stock' | 'price_unavailable';
 
 @Component({
@@ -47,6 +50,8 @@ export class ProductCardComponent {
   private uiStateService = inject(UiStateService);
   private cartService = inject(CartService);
   private transloco = inject(TranslocoService);
+  // --- HINZUGEFÜGT: TrackingService injizieren ---
+  private trackingService = inject(TrackingService);
 
   // --- State Signals ---
   public isLoggedIn: Signal<boolean> = toSignal(this.authService.isLoggedIn$, { initialValue: false });
@@ -57,7 +62,6 @@ export class ProductCardComponent {
     return this.wishlistService.wishlistProductIds().has(`${this.productId}_0`);
   });
   
-  // HIER NEU: Zentralisierte Logik für den Produktstatus
   public effectiveStatus: Signal<ProductEffectiveStatus> = computed(() => {
     if (this.stockStatus === 'outofstock') {
       return 'out_of_stock';
@@ -94,11 +98,19 @@ export class ProductCardComponent {
     event.preventDefault();
     event.stopPropagation();
     
-    // HIER GEÄNDERT: Logik prüft jetzt den neuen Status
     const status = this.effectiveStatus();
     if (this.isVariable || !['available', 'on_backorder'].includes(status) || this.isAddingToCart()) {
       return;
     }
+    
+    // --- HINZUGEFÜGT: Tracking-Event auslösen ---
+    const productForTracking: Pick<WooCommerceProduct, 'id' | 'name' | 'price' | 'categories'> = {
+      id: this.productId,
+      name: this.productName,
+      price: this.singlePrice || '0',
+      categories: []
+    };
+    this.trackingService.trackAddToCart(productForTracking as WooCommerceProduct, 1);
 
     this.isAddingToCart.set(true);
 
@@ -120,6 +132,7 @@ export class ProductCardComponent {
   }
 
   public onImageLoad(): void {
+    // KORREKTUR: Der Wert wird auf 'false' gesetzt, um den Spinner auszublenden.
     this.isImageLoading.set(false);
   }
 
@@ -128,7 +141,6 @@ export class ProductCardComponent {
   }
 
   // --- Getters ---
-  // HIER GEÄNDERT: displayPrice ist jetzt auch ein Signal, damit effectiveStatus darauf reagieren kann
   public displayPrice: Signal<string> = computed(() => {
     if (this.isVariable && this.priceRange) {
       const min = parseFloat(this.priceRange.min);

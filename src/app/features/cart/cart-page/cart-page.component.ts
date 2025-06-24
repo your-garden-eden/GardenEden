@@ -27,6 +27,8 @@ import {
 import { FormatPricePipe } from '../../../shared/pipes/format-price.pipe';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 import { SafeHtmlPipe } from '../../../shared/pipes/safe-html.pipe';
+// --- NEU: TrackingService importieren ---
+import { TrackingService } from '../../../core/services/tracking.service';
 
 @Component({
   selector: 'app-cart-page',
@@ -53,6 +55,8 @@ export class CartPageComponent implements OnInit, OnDestroy {
   private translocoService = inject(TranslocoService);
   public uiStateService = inject(UiStateService);
   private fb = inject(FormBuilder);
+  // --- NEU: TrackingService injizieren ---
+  private trackingService = inject(TrackingService);
 
   couponForm!: FormGroup;
 
@@ -156,10 +160,15 @@ export class CartPageComponent implements OnInit, OnDestroy {
   }
 
   public goToCheckout(changeAddress: boolean = false): void {
-    if (this.itemCount() === 0) {
+    const currentCart = this.cart(); // Warenkorb einmal abrufen
+    if (this.itemCount() === 0 || !currentCart) {
       this._uiError.set(this.translocoService.translate('cartPage.errors.emptyCartCheckout'));
       return;
     }
+    
+    // --- NEU: Tracking-Event hier auslösen ---
+    this.trackingService.trackBeginCheckout(currentCart);
+
     if (changeAddress && this.isLoggedIn()) {
       this.router.navigate(['/checkout-details']);
       return;
@@ -185,24 +194,18 @@ export class CartPageComponent implements OnInit, OnDestroy {
     }
   }
 
-  // [BUGFIX & ÄNDERUNG] Methode angepasst, um den Produkt-Slug anstelle der ID für den Link zu verwenden.
-  // Die Methodensignatur wurde von `WooCommerceStoreCartItem` auf `ExtendedCartItem` aktualisiert,
-  // um typsicher auf die `slug`-Eigenschaft zugreifen zu können.
   getProductLink(item: ExtendedCartItem): string {
     if (!item.slug) {
-      // Fallback, falls der Slug aus irgendeinem Grund nicht vorhanden ist.
       const productId = item.parent_product_id || item.id;
       return `/product/${productId}`;
     }
     return `/product/${item.slug}`;
   }
 
-  // [ÄNDERUNG] Typsignatur für Konsistenz angepasst.
   getProductImage(item: ExtendedCartItem): string | undefined {
     return item.images?.[0]?.thumbnail || item.images?.[0]?.src;
   }
   
-  // [ÄNDERUNG] Typsignatur für Konsistenz angepasst.
   calculateLinePrice(item: ExtendedCartItem): string {
     const price = parseFloat(item.prices?.regular_price || '0');
     return (price * item.quantity).toFixed(2);

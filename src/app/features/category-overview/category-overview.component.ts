@@ -13,7 +13,7 @@ import {
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Title } from '@angular/platform-browser';
-import { forkJoin, of, Observable, from } from 'rxjs'; // 'from' importieren
+import { forkJoin, of, Observable, from } from 'rxjs';
 import {
   map,
   catchError,
@@ -33,6 +33,7 @@ import {
   WooCommerceProduct,
   WooCommerceProductsResponse,
 } from '../../core/services/woocommerce.service';
+import { TrackingService } from '../../core/services/tracking.service';
 
 import { ProductCardComponent } from '../../shared/components/product-card/product-card.component';
 import { TranslocoModule, TranslocoService } from '@ngneat/transloco';
@@ -54,6 +55,7 @@ export class CategoryOverviewComponent implements OnInit {
   private cdr = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
   private platformId = inject(PLATFORM_ID);
+  private trackingService = inject(TrackingService);
 
   isLoading: WritableSignal<boolean> = signal(true); 
 
@@ -143,10 +145,7 @@ export class CategoryOverviewComponent implements OnInit {
         );
         return forkJoin(productObservables);
       }),
-      // +++ KORRIGIERT: Wir warten auf die asynchrone Bildvalidierung +++
       switchMap(productArrays => {
-        // Wir konvertieren das Promise von validateAndSetPreview in ein Observable,
-        // damit die RxJS-Pipe darauf warten kann.
         return from(this.validateAndSetPreview(productArrays));
       }),
       finalize(() => {
@@ -268,5 +267,14 @@ export class CategoryOverviewComponent implements OnInit {
       return product.price ? { min: product.price, max: product.price } : null;
     }
     return null;
+  }
+  
+  /**
+   * Sendet ein Tracking-Event, wenn auf eine Unterkategorie geklickt wird.
+   * @param categoryI18nKey Der i18n-Schlüssel der Kategorie.
+   */
+  trackSubCategoryClick(categoryI18nKey: string): void {
+    const categoryName = this.translocoService.translate(categoryI18nKey);
+    this.trackingService.trackCategoryView(categoryName);
   }
 }
