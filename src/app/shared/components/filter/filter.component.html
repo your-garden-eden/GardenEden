@@ -1,0 +1,68 @@
+<!-- src/app/shared/components/filter/filter.component.html -->
+<div class="filter-container">
+  <h3 class="filter-title">{{ 'search.filters.title' | transloco }}</h3>
+
+  <!-- Kategorie-Filter -->
+  <div class="filter-section">
+    <label for="category-filter" class="filter-section__title">{{ 'search.filters.category' | transloco }}</label>
+    <div class="select-wrapper">
+      <select 
+        id="category-filter" 
+        class="filter-select"
+        [value]="filterState.selectedCategorySlug() || ''"
+        [size]="categorySelectSize()"
+        (focus)="onCategoryFocus()"
+        (blur)="onCategoryBlur()"
+        (change)="onCategoryChange($event)">
+        <!-- HINWEIS: "Alle Kategorien" ist jetzt die Standardauswahl, wenn nichts anderes gewählt ist -->
+        @if (!filterState.selectedCategorySlug()) {
+          <option value="" selected>{{ 'search.filters.allCategories' | transloco }}</option>
+        } @else {
+          <option value="">{{ 'search.filters.allCategories' | transloco }}</option>
+        }
+        
+        @for (option of filterState.categoryOptions(); track option.i18nId) {
+          @if (option.isMainCategory) {
+            <optgroup [label]="option.i18nId | transloco"></optgroup>
+          } @else {
+            <option [value]="option.slug">{{ '  ' + (option.i18nId | transloco) }}</option>
+          }
+        }
+      </select>
+    </div>
+  </div>
+
+  <!-- Preis-Filter -->
+  <div class="filter-section">
+    <label class="filter-section__title">{{ 'search.filters.priceRange' | transloco }}</label>
+    <app-price-range-slider
+      [min]="0"
+      [max]="2000"
+      [step]="10"
+      [initialMin]="filterState.priceRange().min"
+      [initialMax]="filterState.priceRange().max"
+      (valueChange)="onPriceValueChange($event)">
+    </app-price-range-slider>
+  </div>
+
+  <!-- Verfügbarkeits-Filter -->
+  <div class="filter-section filter-section--inline">
+    <input 
+      type="checkbox" 
+      id="instock-filter"
+      class="filter-checkbox"
+      [checked]="filterState.inStockOnly()"
+      (change)="onInStockToggle($event)">
+    <label for="instock-filter" class="filter-checkbox__label">{{ 'search.filters.showInStockOnly' | transloco }}</label>
+  </div>
+
+  <!-- Aktions-Buttons -->
+  <div class="filter-actions">
+    <button class="filter-button filter-button--secondary" (click)="resetAllFilters()">
+      {{ 'search.filters.reset' | transloco }}
+    </button>
+    <button class="filter-button filter-button--primary" (click)="apply()">
+      {{ 'search.filters.apply' | transloco }}
+    </button>
+  </div>
+</div>

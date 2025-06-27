@@ -1,0 +1,89 @@
+// src/app/shared/components/filter/price-range-slider/price-range-slider.component.scss
+:host {
+  display: block;
+  width: 100%;
+}
+
+.slider-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.slider-track {
+  position: relative;
+  height: 6px;
+  background-color: var(--border-color-base);
+  border-radius: var(--border-radius-sm);
+  margin: var(--spacing-md) 0;
+}
+
+.slider-progress {
+  position: absolute;
+  height: 100%;
+  background-color: var(--primary-color-dark);
+  border-radius: var(--border-radius-sm);
+}
+
+.slider-thumb {
+  position: absolute;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  background-color: var(--primary-color);
+  border: 2px solid var(--background-color-component);
+  border-radius: var(--border-radius-circle);
+  box-shadow: var(--box-shadow-sm);
+  transform: translate(-50%, -50%);
+  cursor: grab;
+  z-index: 2;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+
+  &:active, &:focus {
+    cursor: grabbing;
+    transform: translate(-50%, -50%) scale(1.2);
+    box-shadow: 0 0 0 4px var(--primary-color-text-rgba-03);
+    outline: none;
+  }
+}
+
+.slider-inputs {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-sm);
+
+  .separator {
+    color: var(--text-color-muted);
+  }
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border-color-base);
+  border-radius: var(--border-radius-md);
+  padding-right: var(--spacing-sm);
+  background-color: var(--background-color-component);
+  flex-basis: 45%;
+
+  .slider-input-field {
+    width: 100%;
+    border: none;
+    outline: none;
+    padding: var(--spacing-sm);
+    font-size: var(--font-size-sm);
+    background: none;
+    -moz-appearance: textfield;
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+  }
+
+  .currency-symbol {
+    font-size: var(--font-size-sm);
+    color: var(--text-color-muted);
+  }
+}

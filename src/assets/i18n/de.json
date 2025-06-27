@@ -132,6 +132,18 @@
       "instagram": "Besuche uns auf Instagram"
     }
   },
+  "search": {
+    "filters": {
+      "title": "Filter",
+      "category": "Kategorie",
+      "allCategories": "Alle Kategorien",
+      "priceRange": "Preisspanne",
+      "availability": "Verfügbarkeit",
+      "showInStockOnly": "Nur verfügbare Artikel",
+      "apply": "Anwenden",
+      "reset": "Zurücksetzen"
+    }
+  },
   "categoryOverview": {
     "pageTitleSuffix": "- Your Garden Eden",
     "notFoundTitle": "Kategorie nicht gefunden",

@@ -1,0 +1,161 @@
+// src/app/shared/components/filter/filter.component.scss
+@use "sass:color";
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+.filter-container {
+  background-color: transparent; 
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.filter-title {
+  display: none;
+}
+
+.filter-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+
+  &--inline {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--spacing-md);
+  }
+}
+
+.filter-section__title {
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-base);
+  color: var(--text-color-base);
+  margin-bottom: var(--spacing-xs);
+}
+
+// --- Angepasstes Dropdown Styling ---
+.select-wrapper {
+  position: relative;
+  width: 100%;
+  
+  // Pfeil-Icon für das Dropdown (nur sichtbar, wenn size=1)
+  &::after {
+    content: 'expand_more';
+    font-family: 'Material Symbols Outlined';
+    position: absolute;
+    top: 50%;
+    right: var(--spacing-md);
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: var(--text-color-muted);
+    transition: opacity 0.1s ease;
+  }
+}
+
+.filter-select {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--border-color-base);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-base);
+  background-color: var(--background-color-light-gray);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary-color-dark);
+    box-shadow: 0 0 0 3px var(--primary-color-text-rgba-03);
+  }
+  
+  // Wenn das Dropdown als Liste angezeigt wird (size > 1)
+  &[size]:not([size="1"]) {
+    padding: 0; // Entferne Innenabstand für die Liste
+    
+    // Verstecke den benutzerdefinierten Pfeil
+    + .select-wrapper::after {
+      opacity: 0;
+    }
+  }
+}
+
+.filter-select option {
+  padding: var(--spacing-sm) var(--spacing-md);
+  
+  &:hover {
+    background-color: var(--primary-color-light);
+    color: var(--text-color-base);
+  }
+}
+
+.filter-select optgroup {
+  font-weight: var(--font-weight-bold);
+  font-style: italic;
+  color: var(--text-color-muted);
+  background-color: var(--background-color-light-gray);
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin-top: var(--spacing-xs);
+}
+
+
+// --- Checkbox & Button Styles (unverändert) ---
+.filter-checkbox {
+  opacity: 0; width: 0; height: 0; position: absolute;
+  + .filter-checkbox__label {
+    position: relative; padding-left: calc(var(--spacing-xl) + var(--spacing-sm));
+    cursor: pointer; user-select: none;
+    &::before {
+      content: ''; position: absolute; left: 0; top: 50%;
+      transform: translateY(-50%); width: var(--spacing-xl); height: var(--spacing-xl);
+      border: 2px solid var(--border-color-base); border-radius: var(--border-radius-sm);
+      background-color: var(--background-color-component);
+      transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+    &::after {
+      content: ''; position: absolute; left: 6px; top: 50%;
+      transform: translateY(-50%) rotate(45deg) scale(0);
+      width: 6px; height: 12px;
+      border: solid var(--primary-color-text); border-width: 0 3px 3px 0;
+      transition: transform 0.2s ease;
+    }
+  }
+  &:checked + .filter-checkbox__label {
+    &::before { background-color: var(--primary-color); border-color: var(--primary-color-dark); }
+    &::after { transform: translateY(-50%) rotate(45deg) scale(1); }
+  }
+  &:focus-visible + .filter-checkbox__label::before {
+    box-shadow: 0 0 0 3px var(--primary-color-text-rgba-03);
+  }
+}
+
+.filter-actions {
+  display: flex; gap: var(--spacing-md); justify-content: space-between;
+  border-top: 1px solid var(--border-color-light);
+  padding-top: var(--spacing-lg);
+  margin-top: var(--spacing-sm);
+}
+
+.filter-button {
+  flex-grow: 1; padding: var(--spacing-sm) var(--spacing-lg); font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium); border-radius: var(--border-radius-md);
+  border: 1px solid transparent; cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  text-align: center;
+
+  &--primary {
+    background-color: var(--primary-color-dark); color: var(--primary-color-text); border-color: var(--primary-color-dark);
+    &:hover:not(:disabled) { background-color: var(--primary-color); border-color: var(--primary-color); }
+  }
+  &--secondary {
+    background-color: transparent; color: var(--text-color-muted); border-color: var(--border-color-base);
+    &:hover:not(:disabled) { background-color: var(--background-color-light-gray); color: var(--text-color-base); border-color: var(--text-color-muted); }
+  }
+  &:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--primary-color-text-rgba-03); }
+}

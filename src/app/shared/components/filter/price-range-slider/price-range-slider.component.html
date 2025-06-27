@@ -1,0 +1,19 @@
+<!-- src/app/shared/components/filter/price-range-slider/price-range-slider.component.html -->
+<div class="slider-container">
+  <div #sliderTrack class="slider-track">
+    <div class="slider-progress" [style.left]="progressLeft" [style.width]="progressWidth"></div>
+    <button class="slider-thumb" [style.left]="minPosPercent + '%'" (mousedown)="startDrag($event, 'min')" (touchstart)="startDrag($event, 'min')"></button>
+    <button class="slider-thumb" [style.left]="maxPosPercent + '%'" (mousedown)="startDrag($event, 'max')" (touchstart)="startDrag($event, 'max')"></button>
+  </div>
+  <div class="slider-inputs">
+    <div class="input-group">
+      <input type="number" class="slider-input-field" [(ngModel)]="_minValue" (ngModelChange)="onModelChange()" [min]="min" [max]="max" [step]="step" placeholder="Min" aria-label="Minimaler Preis Input">
+      <span class="currency-symbol">{{ currencySymbol }}</span>
+    </div>
+    <span class="separator">-</span>
+    <div class="input-group">
+      <input type="number" class="slider-input-field" [(ngModel)]="_maxValue" (ngModelChange)="onModelChange()" [min]="min" [max]="max" [step]="step" placeholder="Max" aria-label="Maximaler Preis Input">
+      <span class="currency-symbol">{{ currencySymbol }}</span>
+    </div>
+  </div>
+</div>
