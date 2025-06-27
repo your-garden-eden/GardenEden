@@ -1,5 +1,5 @@
 <!-- /src/app/shared/components/header/header.component.html -->
-<header class="app-header two-rows">
+<header class="app-header two-rows" (click)="$event.stopPropagation()">
   <div class="top-row">
     <div class="language-selector-container desktop-language-selector">
       <span class="material-symbols-outlined language-icon" aria-hidden="true">language</span>
@@ -19,13 +19,13 @@
             [attr.aria-label]="'header.menuOpenClose' | transloco" [attr.aria-expanded]="isMobileMenuOpen">
       <span class="material-symbols-outlined">menu</span>
     </button>
-
-    <div class="search-bar-container">
-      <div class="search-input-wrapper">
+    
+    <div class="search-bar-container desktop-search">
+      <div class="search-input-wrapper" (click)="onDesktopSearchFocus($event)">
         <span class="material-symbols-outlined search-icon-prefix">search</span>
-        <input type="text" id="search-query" [placeholder]="'header.searchPlaceholder' | transloco"
+        <input type="text" id="search-query-desktop" [placeholder]="'header.searchPlaceholder' | transloco"
                [formControl]="searchControl"
-               (focus)="onSearchFocus()"
+               (focus)="onDesktopSearchFocus($event)"
                autocomplete="off">
         @if(searchControl.value) {
           <button class="icon-button clear-button" (click)="clearSearch()" [attr.aria-label]="'header.clearSearch' | transloco">
@@ -33,66 +33,25 @@
           </button>
         }
       </div>
-
-      @if(isSearchOverlayVisible()) {
-        <div
-          class="search-results-overlay"
-          (click)="$event.stopPropagation()"
-          (scroll)="onSearchOverlayScroll($event)"
-        >
-          @if(isSearchLoading() && !isSearchLoadingMore()) {
-            <div class="search-loading"><app-loading-spinner></app-loading-spinner></div>
-          } @else if (searchError() && searchResults().length === 0) {
-            <div class="search-error">{{ searchError() }}</div>
-          } @else if (searchResults().length > 0) {
-            <ul>
-              @for(product of searchResults(); track product.id) {
-                <li>
-                  <a [routerLink]="getSearchResultLink(product)" (click)="onSearchResultClick()" class="search-result-item">
-                    @if(getSearchResultImage(product); as imgUrl) {
-                      <img [src]="imgUrl" [alt]="product.name" width="40" height="40">
-                    } @else {
-                      <div class="search-result-placeholder-img"></div>
-                    }
-                    <span class="search-result-title">{{ product.name }}</span>
-                  </a>
-                </li>
-              }
-            </ul>
-          } @else if (searchControl.value && (searchControl.value.length > 2) && !isSearchLoading() && !searchError() && !isSearchLoadingMore()) {
-              <div class="search-no-results">{{ 'header.searchNoResults' | transloco : { term: searchControl.value } }}</div>
-          } @else if (searchControl.value && (searchControl.value.length <= 2) && !isSearchLoading() && !isSearchLoadingMore()) {
-              <div class="search-prompt">{{ 'general.searchPrompt' | transloco }}</div>
-          }
-
-          @if(isSearchLoadingMore()) {
-            <div class="search-loading-more"><app-loading-spinner></app-loading-spinner></div>
-          }
-        </div>
-      }
-
     </div>
-
+    
     <div class="user-actions">
-      <!-- ANGEPASSTER WISHLIST-LINK OHNE BADGE -->
+      <button class="icon-button mobile-search-trigger" (click)="toggleSearchOverlay($event)">
+        <span class="material-symbols-outlined">search</span>
+      </button>
       <a routerLink="/mein-konto/wunschliste"
          [title]="isLoggedIn() ? ('header.wishlist' | transloco) : ('header.loginForWishlist' | transloco)"
          class="icon-button wishlist-button"
          [class.disabled]="!isLoggedIn()"
          [class.active]="isLoggedIn() && wishlistItemCount() > 0">
-        <span class="material-symbols-outlined" [class.filled]="isLoggedIn() && wishlistItemCount() > 0">
-          favorite
-        </span>
+        <span class="material-symbols-outlined" [class.filled]="isLoggedIn() && wishlistItemCount() > 0">favorite</span>
       </a>
-
-      <!-- WARENKORB-ICON -->
       <a routerLink="/warenkorb" [title]="'header.cart' | transloco" class="icon-button cart-button">
         <span class="material-symbols-outlined">shopping_cart</span>
         @if (itemCount$() > 0) {
           <span class="cart-badge">{{ itemCount$() }}</span>
         }
       </a>
-
       @if (currentUser$ | async; as user) {
         <a routerLink="/mein-konto" [title]="'header.account' | transloco" class="icon-button account-button">
           <span class="material-symbols-outlined">person</span>
@@ -118,24 +77,22 @@
     <ul class="desktop-nav-list">
       @for (item of navItems; track item.link) {
         <li class="nav-item" [class.has-submenu]="item.subItems && item.subItems.length > 0">
-          <a [routerLink]="item.link" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: item.link === '/'}" (click)="trackCategoryClick(item.i18nId)">{{ item.i18nId | transloco }}</a>
+          <a [routerLink]="item.link" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: item.link === '/'}">{{ item.i18nId | transloco }}</a>
           @if (item.subItems && item.subItems.length > 0) {
             <ul class="submenu">
               @for (child of item.subItems; track child.link) {
-                <li><a [routerLink]="child.link" routerLinkActive="active-link" (click)="trackCategoryClick(child.i18nId)">{{ child.i18nId | transloco }}</a></li>
+                <li><a [routerLink]="child.link" routerLinkActive="active-link">{{ child.i18nId | transloco }}</a></li>
               }
             </ul>
           }
         </li>
       }
     </ul>
-
     <div class="mobile-menu-overlay" (click)="closeMobileMenu()"></div>
     <div class="mobile-menu-panel">
        <button class="icon-button close-mobile-menu-button" (click)="closeMobileMenu()" [attr.aria-label]="'header.closeMenu' | transloco">
          <span class="material-symbols-outlined">close</span>
        </button>
-
        <ul class="mobile-nav-list">
           <li class="mobile-nav-item mobile-language-selector-item">
             <div class="mobile-language-header">
@@ -145,25 +102,18 @@
             <ul class="mobile-language-list">
               @for(lang of availableLangsSignal(); track lang.id) {
                 <li>
-                  <button type="button"
-                          class="language-button"
-                          [class.active]="lang.id === activeLang()"
-                          (click)="changeLanguage(lang.id)">
+                  <button type="button" class="language-button" [class.active]="lang.id === activeLang()" (click)="changeLanguage(lang.id)">
                     {{ lang.label }}
                   </button>
                 </li>
               }
             </ul>
           </li>
-
           @for (item of navItems; track item.link) {
             <li class="mobile-nav-item">
               <div class="mobile-nav-item-content">
-                 <a [routerLink]="item.link"
-                    [class.main-category-link]="true"
-                    routerLinkActive="active-link"
-                    [routerLinkActiveOptions]="{exact: item.link === '/'}"
-                    (click)="trackCategoryClick(item.i18nId); !item.subItems ? closeMobileMenu() : null">{{ item.i18nId | transloco }}</a>
+                 <a [routerLink]="item.link" [class.main-category-link]="true" routerLinkActive="active-link"
+                    [routerLinkActiveOptions]="{exact: item.link === '/'}" (click)="!item.subItems ? closeMobileMenu() : null">{{ item.i18nId | transloco }}</a>
                  @if (item.subItems && item.subItems.length > 0) {
                     <button class="icon-button expand-button" (click)="toggleSubmenu(item)" [attr.aria-expanded]="item.isExpanded">
                       <span class="material-symbols-outlined"> {{ item.isExpanded ? 'expand_less' : 'expand_more' }} </span>
@@ -173,7 +123,7 @@
               @if (item.subItems && item.subItems.length > 0 && item.isExpanded) {
                 <ul class="mobile-submenu">
                    @for (child of item.subItems; track child.link) {
-                     <li><a [routerLink]="child.link" routerLinkActive="active-link" (click)="trackCategoryClick(child.i18nId); closeMobileMenu()">{{ child.i18nId | transloco }}</a></li>
+                     <li><a [routerLink]="child.link" routerLinkActive="active-link" (click)="closeMobileMenu()">{{ child.i18nId | transloco }}</a></li>
                    }
                 </ul>
               }
@@ -197,4 +147,82 @@
        </ul>
     </div>
   </nav>
+
+  @if(isSearchOverlayVisible()) {
+    <div class="search-results-overlay">
+      <div class="mobile-search-input-container">
+        <div class="search-input-wrapper">
+          <span class="material-symbols-outlined search-icon-prefix">search</span>
+          <input type="text" [placeholder]="'header.searchPlaceholder' | transloco" [formControl]="searchControl" autocomplete="off">
+          @if(searchControl.value) {
+            <button class="icon-button clear-button" (click)="clearSearch()">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          }
+        </div>
+      </div>
+      <div class="search-addons-container">
+        <app-filter (applyFilters)="searchStateService.applyFiltersAndSearch()"></app-filter>
+      </div>
+      <div class="search-results-list">
+        @if(searchStateService.isLoading()) {
+            <div class="search-loading"><app-loading-spinner></app-loading-spinner></div>
+        } @else if(searchStateService.error()) {
+            <div class="search-error">{{ searchStateService.error() }}</div>
+        } @else if(searchStateService.searchTerm().length < 3) {
+            <div class="search-prompt">{{ 'general.searchPrompt' | transloco }}</div>
+        } @else if (searchStateService.searchResults().length > 0 || filterStateService.activeFilterCount() > 0) {
+            @if(filterStateService.activeFilterCount() > 0) {
+              <div class="active-filters-container">
+                @if(filterStateService.priceRange().min !== null || filterStateService.priceRange().max !== null) {
+                  <span class="active-filter-pill">
+                    {{ filterStateService.priceRange().min || 0 }}€ - {{ filterStateService.priceRange().max || '∞' }}€
+                    <button class="remove-pill-button" (click)="removeFilterAndSearch('price')" aria-label="Preisfilter entfernen">×</button>
+                  </span>
+                }
+                @if(filterStateService.inStockOnly()) {
+                  <span class="active-filter-pill">
+                    {{ 'search.filters.showInStockOnly' | transloco }}
+                    <button class="remove-pill-button" (click)="removeFilterAndSearch('inStock')" aria-label="Verfügbarkeitsfilter entfernen">×</button>
+                  </span>
+                }
+                @if(filterStateService.selectedCategorySlug(); as slug) {
+                  <span class="active-filter-pill">
+                    {{ getCategoryNameBySlug(slug) }}
+                    <button class="remove-pill-button" (click)="removeFilterAndSearch('category')" aria-label="Kategoriefilter entfernen">×</button>
+                  </span>
+                }
+              </div>
+            }
+            @if (searchStateService.searchResults().length > 0) {
+              <ul>
+                @for(product of searchStateService.searchResults(); track product.id) {
+                  <li>
+                    <a [routerLink]="getSearchResultLink(product)" (click)="closeAllOverlays()" class="search-result-item">
+                      @if(getSearchResultImage(product); as imgUrl) {
+                        <img [src]="imgUrl" [alt]="product.name" width="40" height="40">
+                      } @else {
+                        <div class="search-result-placeholder-img"></div>
+                      }
+                      <span class="search-result-title">{{ product.name }}</span>
+                    </a>
+                  </li>
+                }
+                @if(searchStateService.hasMoreResults()) {
+                   <li class="load-more-item">
+                      <button type="button" (click)="searchStateService.loadMore()" [disabled]="searchStateService.isLoadingMore()">
+                        {{ searchStateService.isLoadingMore() ? ('general.loading' | transloco) : ('header.searchLoadingMore' | transloco) }}
+                      </button>
+                   </li>
+                }
+              </ul>
+            } @else {
+               <div class="search-no-results">{{ 'header.searchNoResults' | transloco : { term: searchControl.value } }}</div>
+            }
+        } @else {
+            <div class="search-no-results">{{ 'header.searchNoResults' | transloco : { term: searchControl.value } }}</div>
+        }
+      </div>
+    </div>
+  }
 </header>
