@@ -1,36 +1,36 @@
-<!-- src/app/shared/components/filter/filter.component.html -->
 <div class="filter-container">
   <h3 class="filter-title">{{ 'search.filters.title' | transloco }}</h3>
 
-  <!-- Kategorie-Filter -->
-  <div class="filter-section">
-    <label for="category-filter" class="filter-section__title">{{ 'search.filters.category' | transloco }}</label>
-    <div class="select-wrapper">
-      <select 
-        id="category-filter" 
-        class="filter-select"
-        [value]="filterState.selectedCategorySlug() || ''"
-        [size]="categorySelectSize()"
-        (focus)="onCategoryFocus()"
-        (blur)="onCategoryBlur()"
-        (change)="onCategoryChange($event)">
-        <!-- HINWEIS: "Alle Kategorien" ist jetzt die Standardauswahl, wenn nichts anderes gewählt ist -->
-        @if (!filterState.selectedCategorySlug()) {
-          <option value="" selected>{{ 'search.filters.allCategories' | transloco }}</option>
-        } @else {
-          <option value="">{{ 'search.filters.allCategories' | transloco }}</option>
-        }
-        
-        @for (option of filterState.categoryOptions(); track option.i18nId) {
-          @if (option.isMainCategory) {
-            <optgroup [label]="option.i18nId | transloco"></optgroup>
+  <!-- KORREKTUR: Kategorie-Filter wird jetzt konditional angezeigt -->
+  @if (showCategoryFilter) {
+    <div class="filter-section">
+      <label for="category-filter" class="filter-section__title">{{ 'search.filters.category' | transloco }}</label>
+      <div class="select-wrapper">
+        <select 
+          id="category-filter" 
+          class="filter-select"
+          [value]="filterState.selectedCategorySlug() || ''"
+          [size]="categorySelectSize()"
+          (focus)="onCategoryFocus()"
+          (blur)="onCategoryBlur()"
+          (change)="onCategoryChange($event)">
+          @if (!filterState.selectedCategorySlug()) {
+            <option value="" selected>{{ 'search.filters.allCategories' | transloco }}</option>
           } @else {
-            <option [value]="option.slug">{{ '  ' + (option.i18nId | transloco) }}</option>
+            <option value="">{{ 'search.filters.allCategories' | transloco }}</option>
           }
-        }
-      </select>
+          
+          @for (option of filterState.categoryOptions(); track option.i18nId) {
+            @if (option.isMainCategory) {
+              <optgroup [label]="option.i18nId | transloco"></optgroup>
+            } @else {
+              <option [value]="option.slug">{{ '  ' + (option.i18nId | transloco) }}</option>
+            }
+          }
+        </select>
+      </div>
     </div>
-  </div>
+  }
 
   <!-- Preis-Filter -->
   <div class="filter-section">

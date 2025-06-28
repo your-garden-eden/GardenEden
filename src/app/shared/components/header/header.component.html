@@ -33,6 +33,9 @@
           </button>
         }
       </div>
+      @if (isSearchOverlayVisible() && !isMobile()) {
+        <ng-container [ngTemplateOutlet]="searchOverlayContent"></ng-container>
+      }
     </div>
     
     <div class="user-actions">
@@ -68,7 +71,7 @@
     </div>
   </div>
 
-  <nav class="main-nav bottom-row" [class.mobile-menu-active]="isMobileMenuOpen">
+  <nav class="main-nav bottom-row">
     <div class="logo-container">
       <a routerLink="/" [title]="'header.toHomepage' | transloco" (click)="closeMobileMenu()">
         <img src="assets/icons/Logo.png" alt="Your Garden Eden Logo" class="logo">
@@ -88,72 +91,86 @@
         </li>
       }
     </ul>
-    <div class="mobile-menu-overlay" (click)="closeMobileMenu()"></div>
-    <div class="mobile-menu-panel">
-       <button class="icon-button close-mobile-menu-button" (click)="closeMobileMenu()" [attr.aria-label]="'header.closeMenu' | transloco">
-         <span class="material-symbols-outlined">close</span>
-       </button>
-       <ul class="mobile-nav-list">
-          <li class="mobile-nav-item mobile-language-selector-item">
-            <div class="mobile-language-header">
-              <span class="material-symbols-outlined language-icon">language</span>
-              <span>{{ 'header.selectLanguage' | transloco }}</span>
-            </div>
-            <ul class="mobile-language-list">
-              @for(lang of availableLangsSignal(); track lang.id) {
-                <li>
-                  <button type="button" class="language-button" [class.active]="lang.id === activeLang()" (click)="changeLanguage(lang.id)">
-                    {{ lang.label }}
-                  </button>
-                </li>
-              }
-            </ul>
-          </li>
-          @for (item of navItems; track item.link) {
-            <li class="mobile-nav-item">
-              <div class="mobile-nav-item-content">
-                 <a [routerLink]="item.link" [class.main-category-link]="true" routerLinkActive="active-link"
-                    [routerLinkActiveOptions]="{exact: item.link === '/'}" (click)="!item.subItems ? closeMobileMenu() : null">{{ item.i18nId | transloco }}</a>
-                 @if (item.subItems && item.subItems.length > 0) {
-                    <button class="icon-button expand-button" (click)="toggleSubmenu(item)" [attr.aria-expanded]="item.isExpanded">
-                      <span class="material-symbols-outlined"> {{ item.isExpanded ? 'expand_less' : 'expand_more' }} </span>
-                    </button>
-                 }
-              </div>
-              @if (item.subItems && item.subItems.length > 0 && item.isExpanded) {
-                <ul class="mobile-submenu">
-                   @for (child of item.subItems; track child.link) {
-                     <li><a [routerLink]="child.link" routerLinkActive="active-link" (click)="closeMobileMenu()">{{ child.i18nId | transloco }}</a></li>
-                   }
-                </ul>
-              }
-            </li>
-          }
-          @if (currentUser$ | async; as user) {
-            <li class="mobile-nav-item auth-links-mobile">
-              <div class="mobile-nav-item-content"> <a routerLink="/mein-konto" (click)="closeMobileMenu()" class="main-category-link">{{ 'header.account' | transloco }}</a> </div>
-            </li>
-            <li class="mobile-nav-item auth-links-mobile">
-              <div class="mobile-nav-item-content"> <button class="logout-button-mobile main-category-link" (click)="performLogout()">{{ 'header.logout' | transloco }}</button> </div>
-            </li>
-          } @else {
-            <li class="mobile-nav-item auth-links-mobile">
-              <div class="mobile-nav-item-content"> <button class="main-category-link" (click)="toggleLoginOverlay(); closeMobileMenu()">{{ 'header.login' | transloco }}</button> </div>
-            </li>
-            <li class="mobile-nav-item auth-links-mobile">
-              <div class="mobile-nav-item-content"> <a routerLink="/register" (click)="closeMobileMenu()" class="main-category-link">{{ 'header.register' | transloco }}</a> </div>
-            </li>
-          }
-       </ul>
-    </div>
   </nav>
 
-  @if(isSearchOverlayVisible()) {
-    <div class="search-results-overlay">
+  <!-- KORREKTUR: Mobile Elemente sind jetzt direkte Kinder des Headers -->
+  <div class="mobile-menu-overlay" (click)="closeMobileMenu()"></div>
+  <div class="mobile-menu-panel">
+      <button class="icon-button close-mobile-menu-button" (click)="closeMobileMenu()" [attr.aria-label]="'header.closeMenu' | transloco">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+      <ul class="mobile-nav-list">
+        <li class="mobile-nav-item mobile-language-selector-item">
+          <div class="mobile-language-header">
+            <span class="material-symbols-outlined language-icon">language</span>
+            <span>{{ 'header.selectLanguage' | transloco }}</span>
+          </div>
+          <ul class="mobile-language-list">
+            @for(lang of availableLangsSignal(); track lang.id) {
+              <li>
+                <button type="button" class="language-button" [class.active]="lang.id === activeLang()" (click)="changeLanguage(lang.id)">
+                  {{ lang.label }}
+                </button>
+              </li>
+            }
+          </ul>
+        </li>
+        @for (item of navItems; track item.link) {
+          <li class="mobile-nav-item">
+            <div class="mobile-nav-item-content">
+                <a [routerLink]="item.link" [class.main-category-link]="true" routerLinkActive="active-link"
+                  [routerLinkActiveOptions]="{exact: item.link === '/'}" (click)="!item.subItems ? closeMobileMenu() : null">{{ item.i18nId | transloco }}</a>
+                @if (item.subItems && item.subItems.length > 0) {
+                  <button class="icon-button expand-button" (click)="toggleSubmenu(item)" [attr.aria-expanded]="item.isExpanded">
+                    <span class="material-symbols-outlined"> {{ item.isExpanded ? 'expand_less' : 'expand_more' }} </span>
+                  </button>
+                }
+            </div>
+            @if (item.subItems && item.subItems.length > 0 && item.isExpanded) {
+              <ul class="mobile-submenu">
+                  @for (child of item.subItems; track child.link) {
+                    <li><a [routerLink]="child.link" routerLinkActive="active-link" (click)="closeMobileMenu()">{{ child.i18nId | transloco }}</a></li>
+                  }
+              </ul>
+            }
+          </li>
+        }
+        @if (currentUser$ | async; as user) {
+          <li class="mobile-nav-item auth-links-mobile">
+            <div class="mobile-nav-item-content"> <a routerLink="/mein-konto" (click)="closeMobileMenu()" class="main-category-link">{{ 'header.account' | transloco }}</a> </div>
+          </li>
+          <li class="mobile-nav-item auth-links-mobile">
+            <div class="mobile-nav-item-content"> <button class="logout-button-mobile main-category-link" (click)="performLogout()">{{ 'header.logout' | transloco }}</button> </div>
+          </li>
+        } @else {
+          <li class="mobile-nav-item auth-links-mobile">
+            <div class="mobile-nav-item-content"> <button class="main-category-link" (click)="toggleLoginOverlay(); closeMobileMenu()">{{ 'header.login' | transloco }}</button> </div>
+          </li>
+          <li class="mobile-nav-item auth-links-mobile">
+            <div class="mobile-nav-item-content"> <a routerLink="/register" (click)="closeMobileMenu()" class="main-category-link">{{ 'header.register' | transloco }}</a> </div>
+          </li>
+        }
+      </ul>
+  </div>
+
+  @if (isSearchOverlayVisible() && isMobile()) {
+    <ng-container [ngTemplateOutlet]="searchOverlayContent"></ng-container>
+  }
+</header>
+
+<ng-template #searchOverlayContent>
+  <div class="search-results-overlay">
+    <div class="search-overlay-mobile-header">
+      <span class="search-overlay-title">{{ 'header.searchPlaceholder' | transloco }}</span>
+      <button class="icon-button close-search-button" (click)="closeAllOverlays()" [attr.aria-label]="'general.close' | transloco">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="search-content-wrapper">
       <div class="mobile-search-input-container">
         <div class="search-input-wrapper">
           <span class="material-symbols-outlined search-icon-prefix">search</span>
-          <input type="text" [placeholder]="'header.searchPlaceholder' | transloco" [formControl]="searchControl" autocomplete="off">
+          <input type="text" [placeholder]="'header.searchPlaceholder' | transloco" [formControl]="searchControl" autocomplete="off" cdkFocusInitial>
           @if(searchControl.value) {
             <button class="icon-button clear-button" (click)="clearSearch()">
               <span class="material-symbols-outlined">close</span>
@@ -161,9 +178,31 @@
           }
         </div>
       </div>
-      <div class="search-addons-container">
+      <div class="filter-panel">
         <app-filter (applyFilters)="searchStateService.applyFiltersAndSearch()"></app-filter>
       </div>
+      @if(filterStateService.activeFilterCount() > 0) {
+        <div class="active-filters-container">
+          @if(filterStateService.priceRange().min !== null || filterStateService.priceRange().max !== null) {
+            <span class="active-filter-pill">
+              {{ filterStateService.priceRange().min || 0 }}€ - {{ filterStateService.priceRange().max || '∞' }}€
+              <button class="remove-pill-button" (click)="removeFilterAndSearch('price')" aria-label="Preisfilter entfernen">×</button>
+            </span>
+          }
+          @if(filterStateService.inStockOnly()) {
+            <span class="active-filter-pill">
+              {{ 'search.filters.showInStockOnly' | transloco }}
+              <button class="remove-pill-button" (click)="removeFilterAndSearch('inStock')" aria-label="Verfügbarkeitsfilter entfernen">×</button>
+            </span>
+          }
+          @if(filterStateService.selectedCategorySlug(); as slug) {
+            <span class="active-filter-pill">
+              {{ getCategoryNameBySlug(slug) }}
+              <button class="remove-pill-button" (click)="removeFilterAndSearch('category')" aria-label="Kategoriefilter entfernen">×</button>
+            </span>
+          }
+        </div>
+      }
       <div class="search-results-list">
         @if(searchStateService.isLoading()) {
             <div class="search-loading"><app-loading-spinner></app-loading-spinner></div>
@@ -172,28 +211,6 @@
         } @else if(searchStateService.searchTerm().length < 3) {
             <div class="search-prompt">{{ 'general.searchPrompt' | transloco }}</div>
         } @else if (searchStateService.searchResults().length > 0 || filterStateService.activeFilterCount() > 0) {
-            @if(filterStateService.activeFilterCount() > 0) {
-              <div class="active-filters-container">
-                @if(filterStateService.priceRange().min !== null || filterStateService.priceRange().max !== null) {
-                  <span class="active-filter-pill">
-                    {{ filterStateService.priceRange().min || 0 }}€ - {{ filterStateService.priceRange().max || '∞' }}€
-                    <button class="remove-pill-button" (click)="removeFilterAndSearch('price')" aria-label="Preisfilter entfernen">×</button>
-                  </span>
-                }
-                @if(filterStateService.inStockOnly()) {
-                  <span class="active-filter-pill">
-                    {{ 'search.filters.showInStockOnly' | transloco }}
-                    <button class="remove-pill-button" (click)="removeFilterAndSearch('inStock')" aria-label="Verfügbarkeitsfilter entfernen">×</button>
-                  </span>
-                }
-                @if(filterStateService.selectedCategorySlug(); as slug) {
-                  <span class="active-filter-pill">
-                    {{ getCategoryNameBySlug(slug) }}
-                    <button class="remove-pill-button" (click)="removeFilterAndSearch('category')" aria-label="Kategoriefilter entfernen">×</button>
-                  </span>
-                }
-              </div>
-            }
             @if (searchStateService.searchResults().length > 0) {
               <ul>
                 @for(product of searchStateService.searchResults(); track product.id) {
@@ -224,5 +241,5 @@
         }
       </div>
     </div>
-  }
-</header>
+  </div>
+</ng-template>

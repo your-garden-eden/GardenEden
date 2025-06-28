@@ -98,12 +98,54 @@ $mobile-breakpoint: 1024px;
 }
 
 .search-results-overlay {
-  position: absolute;
   background-color: var(--background-color-component);
   box-shadow: var(--box-shadow-md);
   z-index: var(--z-index-dropdown);
   display: flex;
   flex-direction: column;
+}
+
+.desktop-search .search-results-overlay {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  right: 0;
+  border: 1px solid var(--border-color-base);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  max-height: 70vh;
+}
+
+.search-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.search-overlay-mobile-header {
+  display: none;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-bottom: 1px solid var(--border-color-base);
+  background-color: var(--background-color-page);
+
+  .search-overlay-title {
+    font-size: 1.1rem;
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-color-headings);
+  }
+  .close-search-button {
+    color: var(--text-color-base);
+  }
+}
+
+.filter-panel {
+  padding: var(--spacing-lg);
+  background-color: var(--background-color-light-gray);
+  border-bottom: 1px solid var(--border-color-base);
+  flex-shrink: 0;
 }
 
 .search-results-list {
@@ -301,23 +343,19 @@ $mobile-breakpoint: 1024px;
   }
 }
 
-.mobile-menu-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: var(--background-color-dark-overlay);
-  z-index: var(--z-index-modal-backdrop);
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.3s ease, visibility 0s linear 0.3s;
-  .main-nav.mobile-menu-active & {
-    opacity: 1;
-    visibility: visible;
-    transition: opacity 0.3s ease, visibility 0s linear 0s;
-  }
+.mobile-menu-overlay, .mobile-menu-panel, .close-mobile-menu-button, .mobile-nav-list { z-index: var(--z-index-modal); }
+.mobile-menu-overlay { z-index: var(--z-index-modal-backdrop); }
+
+// KORREKTUR: Die Selektoren zielen jetzt auf die Host-Klasse
+:host.mobile-menu-active .mobile-menu-panel {
+  transform: translateX(0);
 }
+:host.mobile-menu-active .mobile-menu-overlay {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.3s ease, visibility 0s linear 0s;
+}
+
 .mobile-menu-panel {
   position: fixed;
   top: 0;
@@ -328,22 +366,29 @@ $mobile-breakpoint: 1024px;
   background-image: linear-gradient(to bottom right, var(--gradient-end), var(--gradient-start));
   color: var(--secondary-color);
   box-shadow: var(--box-shadow-lg);
-  z-index: var(--z-index-modal);
   transform: translateX(-100%);
   transition: transform 0.3s ease;
   overflow-y: auto;
   padding-top: 50px;
-  .main-nav.mobile-menu-active & {
-    transform: translateX(0);
-  }
 }
 .close-mobile-menu-button {
   position: absolute;
   top: var(--spacing-md);
   right: var(--spacing-md);
-  z-index: calc(var(--z-index-modal) + 1);
   color: var(--secondary-color);
 }
+.mobile-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--background-color-dark-overlay);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+}
+
 .mobile-nav-list {
   list-style: none;
   padding: 0;
@@ -462,13 +507,6 @@ $mobile-breakpoint: 1024px;
   }
 }
 
-.search-addons-container {
-  padding: var(--spacing-lg);
-  background-color: var(--background-color-light-gray);
-  border-bottom: 1px solid var(--border-color-base);
-  flex-shrink: 0;
-}
-
 .active-filters-container {
   display: flex;
   flex-wrap: wrap;
@@ -511,15 +549,22 @@ $mobile-breakpoint: 1024px;
   }
 }
 
+.mobile-search-input-container {
+  display: none;
+}
+
 @media (max-width: $mobile-breakpoint) {
   .top-row {
     padding: var(--spacing-sm) var(--spacing-md);
     justify-content: space-between;
   }
   .language-selector-container.desktop-language-selector,
-  .main-nav.bottom-row,
   .user-actions .logout-button-desktop,
   .search-bar-container.desktop-search {
+    display: none;
+  }
+  
+  .main-nav.bottom-row {
     display: none;
   }
 
@@ -532,25 +577,39 @@ $mobile-breakpoint: 1024px;
       display: block;
     }
   }
-  
+
   .search-results-overlay {
     position: fixed;
-    top: 55px; // Höhe der Top-Row anpassen
+    top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(255, 255, 255, 0.98);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    border-radius: 0;
-    border: none;
-    max-height: none;
+    z-index: calc(var(--z-index-modal) + 1);
+  }
+
+  .search-overlay-mobile-header {
+    display: flex;
   }
   
   .mobile-search-input-container {
+    display: block;
     padding: var(--spacing-md);
-    background-color: var(--background-color-light-gray);
+    background-color: var(--background-color-page);
     border-bottom: 1px solid var(--border-color-base);
+  }
+
+  .desktop-search .search-results-overlay {
+    position: static;
+    max-height: none;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    width: 100%;
+    height: 100%;
+  }
+
+  .filter-panel ::ng-deep app-filter .filter-title {
+    display: none;
   }
 }
 
@@ -560,5 +619,11 @@ $mobile-breakpoint: 1024px;
     .language-selector-container.desktop-language-selector { order: 1; }
     .search-bar-container.desktop-search { order: 2; flex-grow: 1; margin: 0 var(--spacing-xl); max-width: 600px; }
     .user-actions { order: 3; }
+  }
+  .mobile-search-input-container {
+    display: none;
+  }
+  .search-overlay-mobile-header {
+    display: none;
   }
 }

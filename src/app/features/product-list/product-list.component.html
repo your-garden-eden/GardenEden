@@ -16,6 +16,36 @@
     <div class="title-align-placeholder"></div>
   </div>
 
+  <div class="filter-controls-wrapper">
+    <div class="desktop-filter-bar">
+      <!-- KORREKTUR: Input wird übergeben, um Kategorie-Filter auszublenden -->
+      <app-filter [showCategoryFilter]="false" (applyFilters)="applyFiltersAndReload()"></app-filter>
+    </div>
+
+    <button class="mobile-filter-trigger" (click)="toggleMobileFilter()">
+      <span class="material-symbols-outlined">filter_list</span>
+      {{ 'search.filters.title' | transloco }}
+      @if (filterStateService.activeFilterCount() > 0) {
+        <span class="filter-count-badge">{{ filterStateService.activeFilterCount() }}</span>
+      }
+    </button>
+  </div>
+  
+  @if (isMobileFilterVisible()) {
+    <div class="mobile-filter-panel">
+      <div class="mobile-filter-panel__header">
+        <h3>{{ 'search.filters.title' | transloco }}</h3>
+        <button class="close-button" (click)="toggleMobileFilter()" [title]="'general.close' | transloco">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="mobile-filter-panel__content">
+        <!-- KORREKTUR: Input wird auch hier übergeben -->
+        <app-filter [showCategoryFilter]="false" (applyFilters)="applyFiltersAndReload()"></app-filter>
+      </div>
+    </div>
+  }
+
   <div class="product-list-container" [class.is-loading]="loadState() === 'loading'">
     @switch (loadState()) {
       @case ('loading') {

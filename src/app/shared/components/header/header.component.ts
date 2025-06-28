@@ -1,7 +1,6 @@
-// /src/app/shared/components/header/header.component.ts
 import {
   Component, inject, Renderer2, PLATFORM_ID, OnDestroy, Signal, OnInit,
-  WritableSignal, signal, ChangeDetectionStrategy, computed, ChangeDetectorRef, ElementRef, ViewChild, HostListener
+  WritableSignal, signal, ChangeDetectionStrategy, computed, ChangeDetectorRef, ElementRef, ViewChild, HostListener, HostBinding
 } from '@angular/core';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { CommonModule, isPlatformBrowser, AsyncPipe } from '@angular/common';
@@ -52,13 +51,16 @@ export class HeaderComponent implements OnInit, OnDestroy {
   private trackingService = inject(TrackingService);
   private hostElement = inject(ElementRef);
 
+  // KORREKTUR: Die Klasse wird jetzt an das Host-Element gebunden
+  @HostBinding('class.mobile-menu-active')
+  isMobileMenuOpen = false;
+
   currentUser$: Observable<WordPressUser | null> = this.authService.currentWordPressUser$;
   itemCount$: Signal<number> = this.cartService.cartItemCount;
   wishlistItemCount: Signal<number> = this.wishlistService.wishlistItemCount;
   isLoggedIn: Signal<boolean> = toSignal(this.authService.isLoggedIn$, { initialValue: false });
 
   public navItems = navItems;
-  isMobileMenuOpen = false;
   isMobile: WritableSignal<boolean> = signal(false);
   isSearchOverlayVisible: WritableSignal<boolean> = signal(false);
 
@@ -86,7 +88,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   @HostListener('document:click', ['$event'])
   handleClickOutside(event: Event) {
-    if (!this.hostElement.nativeElement.contains(event.target)) {
+    if (this.isSearchOverlayVisible() && !this.hostElement.nativeElement.contains(event.target)) {
       this.isSearchOverlayVisible.set(false);
     }
   }
@@ -143,6 +145,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   toggleSearchOverlay(event?: MouseEvent): void {
     event?.stopPropagation();
     this.isSearchOverlayVisible.update(v => !v);
+    this.closeMobileMenu();
   }
 
   onDesktopSearchFocus(event: FocusEvent): void {
@@ -187,6 +190,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   toggleMobileMenu(): void {
     this.isMobileMenuOpen = !this.isMobileMenuOpen;
+    if (this.isMobileMenuOpen) {
+      this.isSearchOverlayVisible.set(false);
+    }
     if (isPlatformBrowser(this.platformId)) {
       this.renderer.setStyle(document.body, 'overflow', this.isMobileMenuOpen ? 'hidden' : '');
     }

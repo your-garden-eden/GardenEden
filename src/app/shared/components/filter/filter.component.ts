@@ -1,5 +1,4 @@
-// src/app/shared/components/filter/filter.component.ts
-import { Component, inject, ChangeDetectionStrategy, Output, EventEmitter, signal } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, Output, EventEmitter, signal, Input } from '@angular/core'; // Input hinzugefügt
 import { CommonModule } from '@angular/common';
 import { TranslocoModule } from '@ngneat/transloco';
 import { FilterStateService } from '../../../core/services/filter-state.service';
@@ -16,10 +15,12 @@ import { PriceRangeSliderComponent } from './price-range-slider/price-range-slid
 export class FilterComponent {
   public readonly filterState = inject(FilterStateService);
 
+  @Input()
+  showCategoryFilter = true; // NEU: Standardmäßig anzeigen, um Abwärtskompatibilität zu gewährleisten
+
   @Output()
   applyFilters = new EventEmitter<void>();
 
-  // NEU: Signal zur Steuerung der Dropdown-Höhe
   public categorySelectSize = signal(1);
 
   onInStockToggle(event: Event): void {
@@ -30,7 +31,7 @@ export class FilterComponent {
   onCategoryChange(event: Event): void {
     const selectedSlug = (event.target as HTMLSelectElement).value;
     this.filterState.selectCategory(selectedSlug || null);
-    this.onCategoryBlur(); // Dropdown nach Auswahl schließen
+    this.onCategoryBlur();
   }
 
   onPriceValueChange(values: { min: number | null; max: number | null }): void {
@@ -45,7 +46,6 @@ export class FilterComponent {
     this.applyFilters.emit();
   }
 
-  // NEUE METHODEN für das Dropdown-Verhalten
   onCategoryFocus(): void {
     this.categorySelectSize.set(10);
   }

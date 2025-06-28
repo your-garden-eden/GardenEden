@@ -1,4 +1,4 @@
-// /src/app/shared/components/product-card/product-card.component.scss
+// src/app/shared/components/product-card/product-card.component.scss
 
 :host {
   display: block;
@@ -16,10 +16,15 @@
   position: relative;
   transition: all 0.3s ease;
   box-shadow: var(--box-shadow-sm);
+  // --- KORREKTUR: Entfernt den Unterstrich vom Link (initial) ---
+  text-decoration: none;
+  color: inherit;
 
+  // --- KORREKTUR: Überschreibt die globale Hover-Regel ---
   &:hover {
     box-shadow: var(--box-shadow-lg);
     transform: translateY(-3px);
+    text-decoration: none !important; // Verhindert den globalen Unterstrich
   }
 
   &.is-unavailable {
@@ -33,12 +38,7 @@
   }
 }
 
-.product-link.disabled-link {
-  pointer-events: none;
-  cursor: default;
-}
-
-.product-card:not(.is-unavailable) .product-link:hover .product-image-container .product-image {
+.product-card:not(.is-unavailable):hover .product-image-container .product-image {
   transform: scale(1.05);
 }
 
@@ -134,22 +134,14 @@
   font-size: 0.9rem;
   font-weight: var(--font-weight-semibold);
   line-height: 1.4;
-  margin: 0 0 var(--spacing-sm) 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-height: calc(0.9rem * 1.4 * 2);
+  margin: 0;
   color: inherit;
 }
 
 .product-actions {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   gap: var(--spacing-sm);
-  margin-top: auto;
 }
 
 .product-price-container {
@@ -234,12 +226,10 @@
     cursor: not-allowed;
   }
 
-  // HIER NEU: Spezifisches Styling für den Spinner im Button
   app-loading-spinner {
     width: 18px;
     height: 18px;
 
-    // Wir greifen in die Komponente hinein, um die Bildgröße anzupassen
     ::ng-deep .spinner-image {
       width: 100%;
       height: 100%;
@@ -264,4 +254,70 @@
   margin-top: var(--spacing-xs);
   font-style: italic;
   width: 100%;
+}
+
+// ======================================================================
+// Desktop-spezifische Anpassungen
+// ======================================================================
+.product-info--desktop {
+  .product-title {
+    margin: 0 0 var(--spacing-sm) 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-height: calc(0.9rem * 1.4 * 2);
+  }
+  .product-actions {
+    justify-content: space-between;
+    margin-top: auto;
+  }
+}
+
+
+// ======================================================================
+// Mobile-spezifische Anpassungen
+// ======================================================================
+.product-card.is-mobile {
+  .product-info--mobile {
+    display: grid;
+    grid-template-areas:
+      "title actions"
+      "price actions"
+      "variant-info variant-info";
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: var(--spacing-xs) var(--spacing-sm);
+    padding: var(--spacing-sm);
+
+    .product-title {
+      grid-area: title;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .product-price-container {
+      grid-area: price;
+    }
+
+    .product-actions {
+      grid-area: actions;
+      flex-direction: column;
+      justify-self: end;
+    }
+    
+    .variable-product-info {
+      grid-area: variant-info;
+      font-size: 0.75rem;
+      margin-top: 0;
+    }
+    
+    .wishlist-toggle, .add-to-cart-button, .select-options-button {
+      width: 32px;
+      height: 32px;
+      .material-symbols-outlined { font-size: 18px; }
+    }
+  }
 }

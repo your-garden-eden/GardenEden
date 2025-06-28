@@ -1,4 +1,4 @@
-// /src/app/features/product-list/product-list.component.ts
+// src/app/features/product-list/product-list.component.ts
 import {
   Component,
   OnInit,
@@ -12,9 +12,12 @@ import {
   ChangeDetectorRef,
   afterNextRender,
   HostListener,
-  PLATFORM_ID
+  PLATFORM_ID,
+  effect,
+  Signal,
+  computed
 } from '@angular/core';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, RouterModule, Router } from '@angular/router';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Title } from '@angular/platform-browser';
 import { Subscription, of, combineLatest, Observable, EMPTY, firstValueFrom } from 'rxjs';
@@ -28,6 +31,9 @@ import {
   filter,
   take,
 } from 'rxjs/operators';
+import { HttpParams } from '@angular/common/http';
+import { BreakpointObserver } from '@angular/cdk/layout';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 import {
   WoocommerceService,
@@ -44,13 +50,22 @@ import {
 
 import { TranslocoModule, TranslocoService } from '@ngneat/transloco';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
+import { FilterStateService } from '../../core/services/filter-state.service';
+import { FilterComponent } from '../../shared/components/filter/filter.component';
 
 type LoadState = 'loading' | 'completed' | 'error';
 
 @Component({
   selector: 'app-product-list-page',
   standalone: true,
-  imports: [CommonModule, ProductCardComponent, RouterModule, TranslocoModule, LoadingSpinnerComponent],
+  imports: [
+    CommonModule,
+    ProductCardComponent,
+    RouterModule,
+    TranslocoModule,
+    LoadingSpinnerComponent,
+    FilterComponent
+  ],
   templateUrl: './product-list.component.html',
   styleUrl: './product-list.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -62,6 +77,9 @@ export class ProductListPageComponent implements OnInit, OnDestroy {
   private translocoService = inject(TranslocoService);
   private cdr = inject(ChangeDetectorRef);
   private platformId = inject(PLATFORM_ID);
+  public filterStateService = inject(FilterStateService);
+  private router = inject(Router);
+  private breakpointObserver = inject(BreakpointObserver);
 
   displayableProducts: WritableSignal<WooCommerceProduct[]> = signal([]);
   categoryTitle: WritableSignal<string | null> = signal(null);
@@ -76,12 +94,21 @@ export class ProductListPageComponent implements OnInit, OnDestroy {
   private currentCategory: WritableSignal<WooCommerceCategory | null | undefined> = signal(null);
   mainCategoryLink: WritableSignal<string | null> = signal(null);
 
+  isMobileFilterVisible: WritableSignal<boolean> = signal(false);
+  private initialLoadWithFiltersDone = false;
+  private hasInitializedFromUrl = false;
+
   @ViewChild('loadMoreTrigger')
   private loadMoreTriggerEl?: ElementRef<HTMLDivElement>;
   private intersectionObserver?: IntersectionObserver;
   private subscriptions = new Subscription();
 
-  private readonly PRODUCTS_PER_PAGE = 25;
+  private isMobile: Signal<boolean> = toSignal(
+    this.breakpointObserver.observe('(max-width: 767.98px)').pipe(
+      map(result => result.matches)
+    ), { initialValue: false }
+  );
+  private productsPerPage: Signal<number> = computed(() => this.isMobile() ? 6 : 10);
 
   private currentFoundSubItem: NavSubItem | undefined;
   private currentMainCategoryNavItem: NavItem | undefined;
@@ -97,22 +124,30 @@ export class ProductListPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    const paramMapAndLang$ = combineLatest([
+    const combinedStream$ = combineLatest([
       this.route.paramMap.pipe(map(params => params.get('slug')), distinctUntilChanged()),
+      this.route.queryParamMap.pipe(distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr))),
       this.translocoService.langChanges$.pipe(startWith(this.translocoService.getActiveLang())),
     ]).pipe(
-      tap(([slug, lang]) => {
+      tap(([slug, queryParams, lang]) => {
         if (slug !== this.categorySlugFromRoute) {
           this.categorySlugFromRoute = slug;
           this.resetStateBeforeLoad();
+          this.hasInitializedFromUrl = false;
         }
+
+        if (!this.hasInitializedFromUrl) {
+          this.initializeFiltersFromUrl();
+          this.hasInitializedFromUrl = true;
+        }
+
         this.updateTitlesAndBreadcrumbs(lang, this.currentCategory()?.name);
       }),
       filter(([slug]) => !!slug)
     );
 
-    const dataLoadingSubscription = paramMapAndLang$.pipe(
-      switchMap(([slug, lang]) => {
+    const dataLoadingSubscription = combinedStream$.pipe(
+      switchMap(([slug, queryParams, lang]) => {
         if (!slug) return EMPTY;
         this.findCategoryMetadata(slug);
         return this.woocommerceService.getCategoryBySlug(slug).pipe(
@@ -133,25 +168,48 @@ export class ProductListPageComponent implements OnInit, OnDestroy {
         );
       })
     ).subscribe(category => {
-      if (category?.id) {
+      if (category?.id && !this.initialLoadWithFiltersDone) {
         this.initialLoad();
+        this.initialLoadWithFiltersDone = true;
       }
     });
     this.subscriptions.add(dataLoadingSubscription);
   }
-  
-  // HIER GEÄNDERT: Vereinfachte und schnellere Ladelogik
+
+  applyFiltersAndReload(): void {
+    this.isMobileFilterVisible.set(false);
+    this.resetForNewFilterSearch();
+    this.initialLoad();
+  }
+
+  toggleMobileFilter(): void {
+    this.isMobileFilterVisible.update(visible => !visible);
+  }
+
   private async initialLoad(): Promise<void> {
     const categoryId = this.currentCategory()?.id;
     if (!categoryId) return;
-    
+
     this.loadState.set('loading');
-    
+
+    const filterParams = this.filterStateService.getFilterParams();
+    this.updateUrlWithFilters();
+
     try {
-      const response = await firstValueFrom(this.woocommerceService.getProducts(categoryId, this.PRODUCTS_PER_PAGE, 1));
-      
+      const response = await firstValueFrom(this.woocommerceService.getProducts(categoryId, this.productsPerPage(), 1, filterParams));
+
+      // ======================================================================
+      // --- TEMPORÄRER DIAGNOSE-CODE ---
+      if (response.products && response.products.length > 0) {
+        console.log("===== DIAGNOSE: BILD-OPTIMIERUNG (PRODUKT-OBJEKT) =====");
+        console.log(response.products[0]);
+        console.log("==========================================================");
+      }
+      // --- ENDE DIAGNOSE-CODE ---
+      // ======================================================================
+
       const validProducts = this.filterProductsWithImageData(response.products);
-      
+
       this.displayableProducts.set(validProducts);
       this.totalProductPages.set(response.totalPages);
       this.currentPage.set(1);
@@ -166,8 +224,7 @@ export class ProductListPageComponent implements OnInit, OnDestroy {
       this.trySetupIntersectionObserver();
     }
   }
-  
-  // HIER GEÄNDERT: Vereinfachte und schnellere Ladelogik
+
   async loadMoreProducts(): Promise<void> {
     const categoryId = this.currentCategory()?.id;
     if (!categoryId || this.isLoadingMore() || !this.hasNextPage()) {
@@ -176,21 +233,18 @@ export class ProductListPageComponent implements OnInit, OnDestroy {
     this.isLoadingMore.set(true);
 
     const nextPage = this.currentPage() + 1;
+    const filterParams = this.filterStateService.getFilterParams();
 
     try {
-      const response = await firstValueFrom(this.woocommerceService.getProducts(categoryId, this.PRODUCTS_PER_PAGE, nextPage));
-      
+      const response = await firstValueFrom(this.woocommerceService.getProducts(categoryId, this.productsPerPage(), nextPage, filterParams));
       const newValidProducts = this.filterProductsWithImageData(response.products);
-
       this.displayableProducts.update(currentProducts => {
         const uniqueNewProducts = newValidProducts.filter(p => !currentProducts.some(cp => cp.id === p.id));
         return [...currentProducts, ...uniqueNewProducts];
       });
-
       this.totalProductPages.set(response.totalPages);
       this.currentPage.set(nextPage);
       this.hasNextPage.set(this.currentPage() < this.totalProductPages());
-
     } catch (err) {
       console.error(`Error on loading page ${nextPage}:`, err);
       this.hasNextPage.set(false);
@@ -200,20 +254,11 @@ export class ProductListPageComponent implements OnInit, OnDestroy {
       this.trySetupIntersectionObserver();
     }
   }
-  
-  /**
-   * HIER GEÄNDERT: Schneller, nicht-blockierender Filter anstelle der langsamen Validierung.
-   */
+
   private filterProductsWithImageData(products: WooCommerceProduct[]): WooCommerceProduct[] {
     if (!products) return [];
     return products.filter(product => product.images && product.images.length > 0 && product.images[0]?.src);
   }
-
-  // --- ENTFERNT ---: Die folgenden Methoden sind nicht mehr nötig und wurden für bessere Performance entfernt:
-  // - processAndDisplayProducts
-  // - getUniqueProducts
-  // - validateProducts
-  // - verifyImageLoad
 
   private resetStateBeforeLoad(): void {
     this.loadState.set('loading');
@@ -228,6 +273,16 @@ export class ProductListPageComponent implements OnInit, OnDestroy {
     this.mainCategoryLabel.set(null);
     this.currentCategory.set(null);
     this.disconnectObserver();
+    this.initialLoadWithFiltersDone = false;
+  }
+
+  private resetForNewFilterSearch(): void {
+    this.displayableProducts.set([]);
+    this.currentPage.set(1);
+    this.totalProductPages.set(1);
+    this.hasNextPage.set(false);
+    this.isLoadingMore.set(false);
+    this.disconnectObserver();
   }
 
   private handleErrorState(errorMessage: string): void {
@@ -238,7 +293,7 @@ export class ProductListPageComponent implements OnInit, OnDestroy {
     this.hasNextPage.set(false);
     this.categoryTitle.set(this.translocoService.translate('productList.errorPageTitle'));
   }
-  
+
   private findCategoryMetadata(slug: string): void {
       const subItemLink = `/product-list/${slug}`;
       this.currentFoundSubItem = this.findSubItemByLink(subItemLink);
@@ -278,6 +333,7 @@ export class ProductListPageComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
     this.disconnectObserver();
+    this.filterStateService.resetFilters();
   }
   
   getProductImage(product: WooCommerceProduct): string | undefined {
@@ -398,5 +454,34 @@ export class ProductListPageComponent implements OnInit, OnDestroy {
 
   scrollToTop(): void {
     if (isPlatformBrowser(this.platformId)) { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  }
+
+  private initializeFiltersFromUrl(): void {
+    const queryParams = this.route.snapshot.queryParamMap;
+    const minPrice = queryParams.has('min_price') ? Number(queryParams.get('min_price')) : null;
+    const maxPrice = queryParams.has('max_price') ? Number(queryParams.get('max_price')) : null;
+    const inStock = queryParams.get('stock_status') === 'instock';
+
+    this.filterStateService.setPriceRange(minPrice, maxPrice);
+    this.filterStateService.setInStockOnly(inStock);
+  }
+  
+  private updateUrlWithFilters(): void {
+    const filterParams = this.filterStateService.getFilterParams();
+    const queryParams: { [key: string]: string } = {};
+
+    filterParams.keys().forEach(key => {
+      const value = filterParams.get(key);
+      if (value !== null && value !== undefined) {
+        queryParams[key] = value;
+      }
+    });
+
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: Object.keys(queryParams).length > 0 ? queryParams : null,
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
   }
 }

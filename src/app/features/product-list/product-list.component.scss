@@ -1,5 +1,5 @@
-// /src/app/features/product-list/product-list.component.scss
 @use '../../../styles';
+@use "sass:color";
 
 // Lokale Breakpoint-Variablen
 $mobile-breakpoint-medium: 768px;
@@ -14,7 +14,6 @@ $back-button-placeholder-width: 200px;
   margin: 0 auto;
 }
 
-// Wrapper für Titel und Zurück-Button
 .page-header-with-back-button {
   display: flex;
   align-items: center;
@@ -45,7 +44,6 @@ $back-button-placeholder-width: 200px;
   }
 }
 
-// Styles für den Zurück-Button selbst
 .back-button.product-list-back-button {
   display: inline-flex;
   align-items: center;
@@ -83,15 +81,160 @@ $back-button-placeholder-width: 200px;
   }
 }
 
-// Der Titel
 .product-list-title {
   font-size: 2.5rem;
   color: var(--text-color-headings);
   font-weight: var(--font-weight-semibold);
 }
 
+.filter-controls-wrapper {
+  margin-bottom: var(--spacing-xxl);
+}
+
+.desktop-filter-bar {
+  display: none;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background-color: var(--background-color-page);
+  backdrop-filter: blur(8px);
+  padding: var(--spacing-md) var(--spacing-lg);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  border: 1px solid var(--border-color-light);
+  border-radius: var(--border-radius-lg);
+  // KORREKTUR: Feste Höhe entfernt, damit der Inhalt die Höhe bestimmt
+  margin-top: calc(-1 * var(--spacing-md));
+  margin-bottom: 0;
+
+  & ::ng-deep app-filter .filter-container {
+    flex-direction: row;
+    // KORREKTUR: An der Unterkante ausrichten für ein sauberes Layout
+    align-items: flex-end;
+    gap: var(--spacing-xl);
+    height: 100%;
+    padding: 0;
+    min-height: 60px; // Sorgt für eine konsistente Mindesthöhe
+  }
+
+  & ::ng-deep app-filter .filter-section {
+    margin-bottom: 0;
+    gap: var(--spacing-xs);
+    justify-content: center;
+    // Preis-Slider bekommt eine definierte Breite
+    flex-basis: 400px;
+    flex-grow: 0;
+    flex-shrink: 0;
+  }
+
+  & ::ng-deep app-filter .filter-section__title {
+    margin-bottom: var(--spacing-sm);
+    white-space: nowrap;
+    font-size: var(--font-size-sm);
+    color: var(--text-color-muted);
+  }
+
+  & ::ng-deep app-filter .filter-section--inline {
+    flex-grow: 0;
+    flex-shrink: 0;
+    // KORREKTUR: Sorgt dafür, dass die Checkbox auf der gleichen Höhe ist
+    padding-bottom: var(--spacing-sm);
+  }
+
+  & ::ng-deep app-filter .filter-actions {
+    border-top: none;
+    padding-top: 0;
+    margin-top: 0;
+    align-self: flex-end; // Richtet sich an der Unterkante aus
+    flex-grow: 0;
+    flex-shrink: 0;
+    margin-left: auto;
+    // KORREKTUR: Sorgt dafür, dass die Buttons auf der gleichen Höhe sind
+    padding-bottom: var(--spacing-sm);
+  }
+
+  & ::ng-deep app-filter .filter-title {
+    display: none;
+  }
+}
+
+.mobile-filter-trigger {
+  display: none;
+  width: 100%;
+  padding: var(--spacing-md);
+  background-color: var(--background-color-light-gray);
+  border: 1px solid var(--border-color-base);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-color-base);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+
+  .filter-count-badge {
+    background-color: var(--primary-color-dark);
+    color: var(--primary-color-text);
+    border-radius: var(--border-radius-circle);
+    font-size: var(--font-size-xs);
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: var(--font-weight-bold);
+  }
+}
+
+.mobile-filter-panel {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--background-color-component);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--box-shadow-lg);
+  padding: var(--spacing-lg);
+  margin-bottom: 0;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color-light);
+    padding-bottom: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+
+    h3 {
+      margin: 0;
+      font-size: 1.2rem;
+      font-weight: var(--font-weight-semibold);
+    }
+
+    .close-button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-color-muted);
+      padding: var(--spacing-xs);
+      border-radius: var(--border-radius-circle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &:hover {
+        background-color: var(--background-color-light-gray);
+        color: var(--text-color-base);
+      }
+    }
+  }
+
+  & ::ng-deep app-filter .filter-title {
+    display: none;
+  }
+}
+
 .product-list-container {
-  position: relative; 
+  position: relative;
 
   &.is-loading {
     display: flex;
@@ -99,23 +242,16 @@ $back-button-placeholder-width: 200px;
     align-items: center;
     min-height: 60vh;
 
-    // Wir können dem Spinner hier direkt eine Größe geben, ohne ng-deep
     app-loading-spinner {
-      // Das Bild im Spinner wird 5x so groß wie die Schriftgröße dieses Elements
-      font-size: 12px; // Ergibt 60x60px
-      
+      font-size: 12px;
       .spinner-image {
-        // Wir setzen die Größe relativ zur Schriftgröße des Host-Elements
-        // um die Größe von außen steuerbar zu machen.
-         width: calc(8 * var(--spacing-unit)); // 64px
-         height: calc(8 * var(--spacing-unit)); // 64px
+         width: calc(8 * var(--spacing-unit));
+         height: calc(8 * var(--spacing-unit));
       }
     }
   }
 }
 
-
-// --- Nachrichten-Styling ---
 .error-message,
 .no-products-message {
   text-align: center;
@@ -135,8 +271,6 @@ $back-button-placeholder-width: 200px;
   padding: var(--spacing-xxl);
   font-style: italic;
 }
-// --- Ende Nachrichten-Styling ---
-
 
 .product-grid {
   display: grid;
@@ -149,7 +283,6 @@ $back-button-placeholder-width: 200px;
   margin-top: var(--spacing-xl);
 }
 
-// +++ VEREINFACHT: Der unsaubere ::ng-deep Hack wurde entfernt +++
 .more-loading-spinner-container {
   display: flex;
   justify-content: center;
@@ -158,23 +291,28 @@ $back-button-placeholder-width: 200px;
   width: 100%;
 
   app-loading-spinner {
-    // Hier wird das Spinner-Bild kleiner, weil die Standardgröße
-    // (12 * 8px = 96px) zu groß ist für einen Nachlade-Indikator.
     .spinner-image {
-      width: calc(6 * var(--spacing-unit)); // 48px
-      height: calc(6 * var(--spacing-unit)); // 48px
+      width: calc(6 * var(--spacing-unit));
+      height: calc(6 * var(--spacing-unit));
     }
   }
 }
 
-// --- Responsive Anpassungen (unverändert) ---
 @media (max-width: 1200px) {
   .product-grid {
     grid-template-columns: repeat(4, 1fr);
   }
 }
 
-@media (max-width: $mobile-breakpoint-medium) { // 768px
+@media (max-width: $mobile-breakpoint-medium) {
+  .desktop-filter-bar {
+    display: none;
+  }
+
+  .mobile-filter-trigger {
+    display: flex;
+  }
+
   .category-page-content {
     padding: var(--spacing-lg);
   }
@@ -214,7 +352,17 @@ $back-button-placeholder-width: 200px;
   }
 }
 
-@media (max-width: $mobile-breakpoint-small) { // 576px
+@media (min-width: calc(#{$mobile-breakpoint-medium} + 1px)) {
+  .desktop-filter-bar {
+    display: block;
+  }
+  .mobile-filter-trigger,
+  .mobile-filter-panel {
+    display: none;
+  }
+}
+
+@media (max-width: $mobile-breakpoint-small) {
   .page-header-with-back-button .product-list-title {
     font-size: 1.5rem;
   }
@@ -223,10 +371,7 @@ $back-button-placeholder-width: 200px;
     gap: var(--spacing-md);
   }
 }
-// --- Ende Responsive ---
 
-
-// --- Scroll-to-Top Button (unverändert) ---
 .scroll-to-top-button {
   position: fixed;
   bottom: 25px;
@@ -284,4 +429,3 @@ $back-button-placeholder-width: 200px;
     right: 20px;
   }
 }
-// --- ENDE Scroll-to-Top Button ---

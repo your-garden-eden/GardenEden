@@ -9,9 +9,11 @@ import { AuthService } from '../../services/auth.service';
 import { UiStateService } from '../../services/ui-state.service';
 import { CartService } from '../../services/cart.service';
 import { LoadingSpinnerComponent } from '../loading-spinner/loading-spinner.component';
-// --- HINZUGEFÜGT: TrackingService und WooCommerceProduct importieren ---
 import { TrackingService } from '../../../core/services/tracking.service';
 import { WooCommerceProduct } from '../../../core/services/woocommerce.service';
+// --- HINZUGEFÜGT: Imports für BreakpointObserver ---
+import { BreakpointObserver } from '@angular/cdk/layout';
+import { map } from 'rxjs/operators';
 
 type ProductEffectiveStatus = 'available' | 'on_backorder' | 'out_of_stock' | 'price_unavailable';
 
@@ -50,13 +52,22 @@ export class ProductCardComponent {
   private uiStateService = inject(UiStateService);
   private cartService = inject(CartService);
   private transloco = inject(TranslocoService);
-  // --- HINZUGEFÜGT: TrackingService injizieren ---
   private trackingService = inject(TrackingService);
+  // --- HINZUGEFÜGT: BreakpointObserver injizieren ---
+  private breakpointObserver = inject(BreakpointObserver);
 
   // --- State Signals ---
   public isLoggedIn: Signal<boolean> = toSignal(this.authService.isLoggedIn$, { initialValue: false });
   public isAddingToCart = signal(false);
   public isImageLoading = signal(true);
+
+  // --- HINZUGEFÜGT: Signal zur Erkennung der mobilen Ansicht ---
+  public isMobile: Signal<boolean> = toSignal(
+    this.breakpointObserver.observe('(max-width: 767.98px)').pipe(
+      map(result => result.matches)
+    ),
+    { initialValue: false }
+  );
 
   public isInWishlist: Signal<boolean> = computed(() => {
     return this.wishlistService.wishlistProductIds().has(`${this.productId}_0`);
@@ -103,7 +114,6 @@ export class ProductCardComponent {
       return;
     }
     
-    // --- HINZUGEFÜGT: Tracking-Event auslösen ---
     const productForTracking: Pick<WooCommerceProduct, 'id' | 'name' | 'price' | 'categories'> = {
       id: this.productId,
       name: this.productName,
@@ -132,7 +142,6 @@ export class ProductCardComponent {
   }
 
   public onImageLoad(): void {
-    // KORREKTUR: Der Wert wird auf 'false' gesetzt, um den Spinner auszublenden.
     this.isImageLoading.set(false);
   }
 
