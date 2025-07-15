@@ -3,7 +3,7 @@ export const environment = {
   production: true,
   maintenanceMode: false,
   firebase: {
-    apiKey: 'AIzaSyA2W0UsyZEPQA8_GbRYbftcDEtGCe6pDSc', // Dein Firebase API Key
+    apiKey: 'AIzaSyA2W0UsyZEPQA8_GbRYbftcDEtGCe6pDSc', // Dieser bleibt, wird für die Firebase-App-Initialisierung benötigt
     authDomain: 'your-garden-eden.firebaseapp.com',
     projectId: 'your-garden-eden',
     storageBucket: 'your-garden-eden.firebasestorage.app',
@@ -12,24 +12,14 @@ export const environment = {
     measurementId: 'G-15H8CCF2WT',
     functionsUrl: 'https://europe-west1-your-garden-eden.cloudfunctions.net',
   },
-  // shopify: {
-  //   storefrontEndpoint: 'https://stygej-6u.myshopify.com/api/2024-04/graphql.json',
-  //   storefrontAccessToken: 'de4ef2d4b85379d8746fa07f77322638'
-  // },
   woocommerce: {
-    // FÜR PRODUKTION: Ersetze diese mit deinen Live-WooCommerce-Daten, wenn du live gehst.
-    // Fürs Erste kannst du hier dieselben Staging-Daten wie in environment.development.ts verwenden,
-    // oder Platzhalter lassen, bis du eine Live-WC-Instanz hast.
-    // Beispielhaft hier mit den Staging-Daten, passe dies für die echte Produktion an!
+    // Die 'apiUrl' und 'storeUrl' bleiben, da sie für die Konstruktion von API-Aufrufen benötigt werden.
     apiUrl: 'https://your-garden-eden-4ujzpfm5qt.live-website.com/wp-json/wc/v3/',
-    consumerKey: 'ck_764caa58c2fd1cc7a0ad705630b3f8f2ea397dad', // SPÄTER ÄNDERN!
-    consumerSecret: 'cs_5ca3357f994013428fb5028baa3bfc8f33e4f969', // SPÄTER ÄNDERN!
-    storeUrl: 'https://your-garden-eden-4ujzpfm5qt.live-website.com', // Dies sollte deine LIVE Shop URL sein, z.B. https://www.your-garden-eden.de
+    storeUrl: 'https://your-garden-eden-4ujzpfm5qt.live-website.com', 
+    // consumerKey und consumerSecret werden entfernt, da sie nicht mehr benötigt und ein Sicherheitsrisiko sind.
   },
   googleMaps: {
-    // Stelle sicher, dass dies ein separater, für Google Maps gedachter API Key ist,
-    // der entsprechend für deine Domain(s) eingeschränkt ist.
-    apiKey: 'AIzaSyA2W0UsyZEPQA8_GbRYbftcDEtGCe6pDSc', // Prüfen: Ist das wirklich der Maps Key oder der Firebase Key? Derselbe wie oben?
+    apiKey: 'AIzaSyA2W0UsyZEPQA8_GbRYbftcDEtGCe6pDSc', 
   },
   googleClientId:
     '218586632439-dhapsmvqqmkc81luuu8r9g6ki4avc9kf.apps.googleusercontent.com',

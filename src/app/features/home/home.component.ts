@@ -14,7 +14,7 @@ import {
   ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Title } from '@angular/platform-browser';
+import { Title, Meta } from '@angular/platform-browser';
 import { TranslocoService, TranslocoModule } from '@ngneat/transloco';
 import { Subscription, of } from 'rxjs';
 import { catchError, finalize, take, map } from 'rxjs/operators';
@@ -51,6 +51,7 @@ import { Autoplay } from 'swiper/modules';
 export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   private woocommerceService = inject(WoocommerceService);
   private titleService = inject(Title);
+  private metaService = inject(Meta);
   private translocoService = inject(TranslocoService);
   private platformId = inject(PLATFORM_ID);
   private cdr = inject(ChangeDetectorRef);
@@ -72,11 +73,11 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnInit(): void {
     this.loadBestsellers();
-    this.updateTitle();
+    this.updateMetaTags();
     this.prepareSubCategorySliderItems();
 
     const langSub = this.translocoService.langChanges$.subscribe(() => {
-      this.updateTitle();
+      this.updateMetaTags();
       if (this.errorBestsellers()) {
         this.errorBestsellers.set(
           this.translocoService.translate('home.errorLoadingBestsellers')
@@ -100,9 +101,12 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  private updateTitle(): void {
+  private updateMetaTags(): void {
     const title = this.translocoService.translate('home.title');
     this.titleService.setTitle(title);
+
+    const description = this.translocoService.translate('home.description');
+    this.metaService.updateTag({ name: 'description', content: description });
   }
 
   private filterProductsWithNoImageArray(products: WooCommerceProduct[]): WooCommerceProduct[] {
@@ -114,8 +118,6 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
     if (!products) return [];
     return products.filter(product => product.stock_status === 'instock');
   }
-
-  // --- ENTFERNT ---: Die Methode verifyImageLoad wurde entfernt, da sie ein Performance-Flaschenhals war.
 
   loadBestsellers(): void {
     this.isLoadingBestsellers.set(true);
@@ -140,11 +142,11 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
           this.errorBestsellers.set(
             this.translocoService.translate('home.errorLoadingBestsellers')
           );
-          return of([]); // Leeres Array zurückgeben, um den Stream am Leben zu halten
+          return of([]);
         }),
         finalize(() => {
           this.isLoadingBestsellers.set(false);
-          this.cdr.markForCheck(); // Change Detection in jedem Fall anstoßen
+          this.cdr.markForCheck();
         })
       )
       .subscribe(verifiedProducts => {

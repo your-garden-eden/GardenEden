@@ -1,4 +1,4 @@
-// /src/app/features/category-overview/category-overview.component.scss
+// /src/app/features/category-overview/category-overview.scss
 @use '../../../styles';
 
 :host {
@@ -7,7 +7,7 @@
 }
 
 .category-overview-page {
-  padding: var(--spacing-xl) var(--spacing-lg);
+  padding: var(--spacing-xl) 0;
   max-width: 1200px;
   margin: 0 auto;
   box-sizing: border-box;
@@ -19,7 +19,67 @@ h1 {
   font-size: 2rem;
   font-weight: var(--font-weight-semibold);
   color: var(--text-color-headings);
+  padding: 0 var(--spacing-lg);
 }
+
+.category-description {
+  text-align: center;
+  padding: 0 var(--spacing-lg) var(--spacing-xxl);
+  max-width: 800px;
+  margin: 0 auto calc(var(--spacing-xxl) * -1);
+  
+  .description-text {
+    position: relative;
+    // HIER GEÄNDERT: Höhe auf ca. 2 Zeilen reduziert
+    max-height: 3.6em; 
+    overflow: hidden;
+    transition: max-height 0.5s ease-in-out;
+
+    p {
+      text-align: left;
+      color: var(--text-color-secondary);
+      line-height: 1.8;
+      margin: 0;
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 40px;
+      background: linear-gradient(to bottom, transparent, var(--background-color-page));
+      transition: opacity 0.3s ease;
+      opacity: 1;
+      pointer-events: none;
+    }
+
+    &.is-expanded {
+      max-height: 50rem;
+      
+      &::after {
+        opacity: 0;
+      }
+    }
+  }
+
+  .read-more-button {
+    background: none;
+    border: none;
+    color: var(--primary-color-dark);
+    font-weight: var(--font-weight-bold);
+    cursor: pointer;
+    padding: var(--spacing-sm) 0;
+    margin-top: var(--spacing-md);
+    text-decoration: underline;
+    
+    &:hover {
+      color: var(--primary-color);
+    }
+  }
+}
+
 
 .error-message {
   text-align: center;
@@ -27,7 +87,7 @@ h1 {
   background-color: var(--error-background-color);
   padding: var(--spacing-lg);
   border-radius: var(--border-radius-md);
-  margin-top: var(--spacing-xxxl);
+  margin: var(--spacing-xxxl) var(--spacing-lg) 0;
 
   a {
     color: var(--error-text-color);
@@ -87,6 +147,7 @@ h1 {
   margin-top: var(--spacing-xxxl);
   position: relative;
   min-height: 200px;
+  padding: 0 var(--spacing-lg);
 
   h2 {
     text-align: center;
@@ -112,7 +173,7 @@ h1 {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: rgba(var(--background-color-page-rgb, 245, 240, 224), 0.5); // Leichter Overlay
+  background-color: rgba(var(--background-color-page-rgb, 245, 240, 224), 0.5);
   z-index: 1;
 
   app-loading-spinner {

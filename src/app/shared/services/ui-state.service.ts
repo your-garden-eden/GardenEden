@@ -15,16 +15,19 @@ export interface GlobalMessage {
   providedIn: 'root'
 })
 export class UiStateService {
-  private platformId = inject(PLATFORM_ID); // <- HIER KORRIGIERT
+  private platformId = inject(PLATFORM_ID);
 
   public readonly enableMaintenancePopup: boolean = false;
-  public readonly enableCartDiscountPopup: boolean = false; // <- HIER GEÄNDERT
+  public readonly enableCartDiscountPopup: boolean = false;
 
   private readonly MAINTENANCE_POPUP_SHOWN_KEY = 'maintenancePopupShownInSession';
   private readonly CART_DISCOUNT_POPUP_SHOWN_KEY = 'cartDiscountPopupShownInSession';
 
   private _isLoginOverlayOpen: WritableSignal<boolean> = signal(false);
   public readonly isLoginOverlayOpen$: Signal<boolean> = this._isLoginOverlayOpen.asReadonly();
+  
+  // NEU: Signal für den globalen Ladezustand des Routers.
+  public readonly isRouting: WritableSignal<boolean> = signal(false);
 
   private _globalMessage: WritableSignal<GlobalMessage | null> = signal(null);
   public readonly globalMessage$ = this._globalMessage.asReadonly();
@@ -125,10 +128,6 @@ export class UiStateService {
     }
   }
   
-  /**
-   * NEUE METHODE: Öffnet das Gutschein-Modal manuell (z.B. per Klick).
-   * Diese Methode umgeht die "nur einmal pro Session anzeigen"-Logik.
-   */
   public showCartDiscountPopup(): void {
     if (!isPlatformBrowser(this.platformId)) {
       return;

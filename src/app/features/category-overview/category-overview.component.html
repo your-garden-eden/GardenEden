@@ -1,4 +1,3 @@
-<!-- /src/app/features/category-overview/category-overview.component.html -->
 <div class="category-overview-page">
 
   @if (isLoading()) {
@@ -12,8 +11,23 @@
         <a routerLink="/">{{ 'categoryOverview.backToHome' | transloco }}</a>
       </div>
     } @else {
-      @if(categoryTitle()) {
+      @if(currentParentCategory(); as category) {
         <h1>{{ categoryTitle() }}</h1>
+
+        @if(category.descriptionI18nId) {
+          <div class="category-description content-container">
+            <div class="description-text" [class.is-expanded]="isDescriptionExpanded()">
+              <p>{{ category.descriptionI18nId | transloco }}</p>
+            </div>
+            <button (click)="toggleDescription()" class="read-more-button">
+              @if (isDescriptionExpanded()) {
+                <span>{{ 'general.actions.readLess' | transloco }}</span>
+              } @else {
+                <span>{{ 'general.actions.readMore' | transloco }}</span>
+              }
+            </button>
+          </div>
+        }
       }
 
       @if (subCategoriesToDisplay().length > 0) {
@@ -42,14 +56,12 @@
 
       @if (subCategoriesToDisplay().length > 0) {
         <section class="product-preview-section">
-          <!-- +++ VEREINFACHT: Überschrift wird nur angezeigt, wenn es etwas anzuzeigen gibt +++ -->
           @if (!isLoading() && !previewError() && displayableProductPreview().length > 0) {
             <h2>
               {{ 'categoryOverview.popularProducts' | transloco }}
             </h2>
           }
 
-          <!-- +++ KORRIGIERT: Logik für die Produktvorschau zusammengefasst +++ -->
           @if (isLoadingPreview()) {
             <div class="preview-loading-spinner-container">
               <app-loading-spinner></app-loading-spinner>

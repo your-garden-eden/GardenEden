@@ -70,7 +70,12 @@
             },
             "allowedCommonJsDependencies": [
               "@grpc/grpc-js",
-              "@grpc/proto-loader"
+              "@grpc/proto-loader",
+              "sitemap",
+              "axios",
+              "form-data",
+              "proxy-from-env",
+              "follow-redirects"
             ],
             "stylePreprocessorOptions": {
               "includePaths": [

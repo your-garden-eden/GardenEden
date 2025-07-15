@@ -1,5 +1,8 @@
-<!-- src/app/shared/components/cookie-consent-banner/cookie-consent-banner.component.html -->
-<div class="cookie-consent-banner" *ngIf="shouldShowBanner()">
+<!-- /src/app/shared/components/cookie-consent-banner/cookie-consent-banner.component.html -->
+<!-- KORREKTUR: Wir verwenden @if (oder *ngIf), um den Banner nur bei Bedarf zu rendern UND
+     [class.is-visible], um das visuelle Erscheinen sicher zu steuern und "Flickern" zu verhindern. -->
+@if (shouldShowBanner()) {
+  <div class="cookie-consent-banner" [class.is-visible]="shouldShowBanner()">
     <div class="banner-content">
       <p class="banner-text">
         {{ 'cookieConsent.bannerTextLine1' | transloco }}
@@ -11,3 +14,4 @@
       </div>
     </div>
   </div>
+}

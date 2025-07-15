@@ -168,9 +168,8 @@ export class CartService implements OnDestroy {
     try {
       const url = `${this.ygeApiBaseUrl}/cart/apply-coupon`;
       const body = { code };
-      const updatedCart = await firstValueFrom(
-        this.woocommerceService.proxyRequest<WooCommerceStoreCart>(url, body)
-      );
+      // Diese Methode ist in der alten wc.service nicht vorhanden, daher direkter http call
+      const updatedCart = await firstValueFrom(this.http.post<WooCommerceStoreCart>(url, body));
       await this.setProcessedCart(updatedCart);
     } catch (err: any) {
       const errorMessage = err.error?.message || this.translocoService.translate('cartService.errorApplyingCoupon');
@@ -189,9 +188,8 @@ export class CartService implements OnDestroy {
     try {
       const url = `${this.ygeApiBaseUrl}/cart/remove-coupon`;
       const body = { code };
-       const updatedCart = await firstValueFrom(
-        this.woocommerceService.proxyRequest<WooCommerceStoreCart>(url, body)
-      );
+      // Diese Methode ist in der alten wc.service nicht vorhanden, daher direkter http call
+       const updatedCart = await firstValueFrom(this.http.post<WooCommerceStoreCart>(url, body));
       await this.setProcessedCart(updatedCart);
     } catch (err: any) {
       const errorMessage = err.error?.message || this.translocoService.translate('cartService.errorRemovingCoupon');
@@ -265,9 +263,7 @@ export class CartService implements OnDestroy {
       const stageResponse = await firstValueFrom(this.woocommerceService.stageCartForPopulation(payload));
 
       if (stageResponse?.success && stageResponse.token) {
-        // NEU START: Der JWT des Benutzers wird an die URL-Generierung übergeben
         window.location.href = this.woocommerceService.getCheckoutUrl(stageResponse.token, currentUser.jwt);
-        // NEU ENDE
       } else {
         throw new Error(stageResponse.message || 'Vorbereitung des Warenkorbs fehlgeschlagen.');
       }
@@ -296,8 +292,11 @@ export class CartService implements OnDestroy {
     if (isLoggedIn || !isPlatformBrowser(this.platformId)) return;
     this.isProcessing.set(true); this.error.set(null);
     try {
-      const loadedCart = await this.woocommerceService.loadCartFromToken(token);
-      await this.setProcessedCart(loadedCart);
+      // Diese Methode existiert in der alten wc.service nicht, daher muss die Logik hier angepasst werden.
+      // Wir rufen direkt die Initialisierungslogik auf, nachdem wir den Token gesetzt haben.
+      this.woocommerceService.clearLocalCartToken(); // Alte Tokens löschen
+      localStorage.setItem('wc_cart_token', token); // Neuen Token setzen (Key muss übereinstimmen)
+      await this.loadInitialStoreApiCart(); // Warenkorb neu laden
     } catch (error) {
       this.error.set(this.translocoService.translate('cartService.errorLoadingCartWithToken'));
       this.cart.set(null);
@@ -342,7 +341,7 @@ export class CartService implements OnDestroy {
     const minorUnit = newCart.totals.currency_minor_unit ?? 2;
     const convert = (value: string | undefined | null): string => {
       if (!value) return "0.00";
-      return (parseFloat(value) / (10 ** minorUnit)).toFixed(minorUnit);
+      return (parseInt(value, 10) / (10 ** minorUnit)).toFixed(minorUnit);
     };
     newCart.items.forEach((item: ExtendedCartItem) => {
       item.prices.price = convert(item.prices.price);

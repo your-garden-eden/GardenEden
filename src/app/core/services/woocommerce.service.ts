@@ -1,13 +1,13 @@
-// /src/app/core/services/woocommerce.service.ts
+// /src/app/core/services/woocommerce.service.ts (Version 2.0 - Event-basiertes Token-Update)
 import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams, HttpResponse } from '@angular/common/http';
-import { Injectable, inject, PLATFORM_ID } from '@angular/core';
+import { Injectable, inject, PLATFORM_ID, OnDestroy } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { Observable, throwError, of, from, firstValueFrom } from 'rxjs';
+import { Observable, throwError, of, from, Subscription, firstValueFrom } from 'rxjs';
 import { catchError, map, tap, switchMap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../../shared/services/auth.service';
 
-// --- Interfaces (vollständig) ---
+// --- Interfaces (unverändert) ---
 export interface WooCommerceImage { id: number; date_created: string; date_created_gmt: string; date_modified: string; date_modified_gmt: string; src: string; name: string; alt: string; position?: number; }
 export interface WooCommerceCategoryRef { id: number; name: string; slug: string; }
 export interface WooCommerceTagRef { id: number; name: string; slug: string; }
@@ -38,7 +38,7 @@ export interface WooCommerceCountry { code: string; name: string; }
 @Injectable({
   providedIn: 'root',
 })
-export class WoocommerceService {
+export class WoocommerceService implements OnDestroy {
   private http = inject(HttpClient);
   private platformId: object = inject(PLATFORM_ID);
   private authService = inject(AuthService);
@@ -53,19 +53,27 @@ export class WoocommerceService {
   private readonly CART_TOKEN_STORAGE_KEY = 'wc_cart_token';
   private tokenPromise: Promise<{ cartToken: string | null, nonce: string | null }> | null = null;
 
+  // NEU: Subscription für das Event vom AuthService.
+  private guestTokenRefreshedSub: Subscription | null = null;
+
   constructor() {
-    console.log('[WC_SERVICE] Constructor initializing.');
-    if (!this.proxyApiUrlV3 || !this.storeUrl) {
-      console.error('[WC_SERVICE] Constructor Error: Proxy URL or Store URL could not be determined from environment variables.');
-    } else {
-      console.log(`[WC_SERVICE] proxyApiUrlV3: ${this.proxyApiUrlV3}`);
-      console.log(`[WC_SERVICE] storeApiUrl: ${this.storeApiUrl}`);
-    }
     if (isPlatformBrowser(this.platformId)) {
       this._cartToken = localStorage.getItem(this.CART_TOKEN_STORAGE_KEY);
-      console.log(`[WC_SERVICE] Initial cart token from localStorage: ${this._cartToken}`);
       this.initializeTokens();
+      
+      // NEU: Auf das Event vom AuthService hören.
+      // Wenn der Gast-Token erneuert wurde, müssen wir unsere Tokens auch erneuern.
+      this.guestTokenRefreshedSub = this.authService.guestTokenRefreshed$.subscribe(() => {
+        console.log('[WC_SERVICE] Gast-Token wurde erneuert. Lösche alte Store-Tokens und initialisiere neu.');
+        this.clearLocalCartToken(); // Löscht die alten, ungültigen Store-Tokens.
+        this.initializeTokens();      // Stößt die Neu-Initialisierung an.
+      });
     }
+  }
+
+  // NEU: OnDestroy-Hook, um die Subscription sauber zu beenden.
+  ngOnDestroy(): void {
+    this.guestTokenRefreshedSub?.unsubscribe();
   }
 
   private getStoreApiHeaders(customHeaders?: { [header: string]: string | string[] }): HttpHeaders {
@@ -99,27 +107,13 @@ export class WoocommerceService {
       if (newCartToken !== this._cartToken) {
         this._cartToken = newCartToken.trim();
         if (isPlatformBrowser(this.platformId)) { localStorage.setItem(this.CART_TOKEN_STORAGE_KEY, this._cartToken); }
-         console.log(`[WC_SERVICE] ${requestUrlForLog}: Cart-Token updated to ${this._cartToken}`);
       }
     } 
-    // ENTSCHÄRFTE LOGIK: Token nur bei expliziten "clear cart"-Aktionen löschen.
-    else if (
-        !response.headers.has(cartTokenHeaderKey) && 
-        this._cartToken && 
-        (
-            requestUrlForLog.includes('/cart/items') || 
-            requestUrlForLog.includes('/cart/clear')
-        )
-    ) {
-       console.warn(`[WC_SERVICE] ${requestUrlForLog}: Cart-Token header was missing on a potential clear-cart action, clearing local token.`);
-      this.clearLocalCartToken();
-    }
 
     const newNonce: string | null = response.headers.get(nonceHeaderKey);
     if (newNonce && newNonce.trim() !== '') {
       if (newNonce !== this._storeApiNonce) {
         this._storeApiNonce = newNonce.trim();
-         console.log(`[WC_SERVICE] ${requestUrlForLog}: X-WC-Store-API-Nonce updated to ${this._storeApiNonce}`);
       }
     }
   }
@@ -128,7 +122,6 @@ export class WoocommerceService {
     if (!isPlatformBrowser(this.platformId)) { return { cartToken: null, nonce: null }; }
     const requestUrl = `${this.storeApiUrl}/cart`;
     const initialHeaders = this.getStoreApiHeaders();
-    console.log(`[WC_SERVICE] fetchAndSetTokensAsync: Attempting GET ${requestUrl} with current headers.`);
     try {
       const response = await firstValueFrom(this.http.get<WooCommerceStoreCart>(requestUrl, { headers: initialHeaders, observe: 'response', withCredentials: true }));
       this.updateTokensFromResponse(response, `GET ${requestUrl} (initial token fetch)`);
@@ -136,7 +129,6 @@ export class WoocommerceService {
     } catch (err: any) {
       console.warn(`[WC_SERVICE] fetchAndSetTokensAsync: Error during GET ${requestUrl}. Status: ${err.status}`, err);
       if (err.status === 403 || err.status === 401 || (err.error?.code && (err.error.code.includes('cart_token_invalid') || err.error.code.includes('nonce_invalid')) )) {
-          console.log(`[WC_SERVICE] fetchAndSetTokensAsync: Invalid token or nonce detected. Clearing local tokens.`);
           this.clearLocalCartToken();
       }
       if (err.headers) { this.updateTokensFromResponse(err as HttpResponse<any>, `ERROR ${requestUrl} (initial token fetch)`); }
@@ -147,21 +139,16 @@ export class WoocommerceService {
   private initializeTokens(): void {
     if (!isPlatformBrowser(this.platformId) || this.tokenPromise) { return; }
     if (!this._cartToken || !this._storeApiNonce) {
-        console.log(`[WC_SERVICE] initializeTokens: Cart token (${this._cartToken}) or Nonce (${this._storeApiNonce}) is missing, initiating fetchAndSetTokensAsync.`);
         this.tokenPromise = this.fetchAndSetTokensAsync().finally(() => { this.tokenPromise = null; });
-    } else {
-        console.log(`[WC_SERVICE] initializeTokens: Cart token and Nonce seem present.`);
     }
   }
 
   public async ensureTokensPresent(): Promise<{ cartToken: string | null, nonce: string | null }> {
     if (!isPlatformBrowser(this.platformId)) { throw new Error('Token operations are not supported on non-browser platform.');}
     if (this.tokenPromise) {
-        console.log(`[WC_SERVICE] ensureTokensPresent: Token promise is active, awaiting its completion.`);
         return this.tokenPromise;
     }
     if (!this._cartToken || !this._storeApiNonce) {
-        console.log(`[WC_SERVICE] ensureTokensPresent: No cart token or no nonce, starting new fetchAndSetTokensAsync.`);
         this.tokenPromise = this.fetchAndSetTokensAsync();
         try { return await this.tokenPromise; } finally { this.tokenPromise = null; }
     }
@@ -183,11 +170,9 @@ export class WoocommerceService {
     params = this.appendParams(params, otherParams);
     
     const requestUrl = this.buildProxyUrl('products');
-    console.log(`[WC_SERVICE] getProducts (via Proxy) - Requesting from URL: ${requestUrl} with params:`, params.toString());
     
     return this.http.get<WooCommerceProduct[]>(requestUrl, { params, observe: 'response' })
       .pipe(
-          tap(response => console.log('[WC_SERVICE] getProducts (via Proxy) - Raw HTTP Response Status:', response.status)),
           map((res: HttpResponse<WooCommerceProduct[]>) => {
             return { products: res.body || [], totalPages: parseInt(res.headers.get('x-wp-totalpages') || '0', 10), totalCount: parseInt(res.headers.get('x-wp-total') || '0', 10) };
           }),
@@ -197,14 +182,12 @@ export class WoocommerceService {
 
   getProductById(productId: number): Observable<WooCommerceProduct> {
     const requestUrl = this.buildProxyUrl(`products/${productId}`);
-    console.log(`[WC_SERVICE] getProductById (via Proxy) - Requesting product ${productId} from URL: ${requestUrl}`);
     return this.http.get<WooCommerceProduct>(requestUrl).pipe(catchError(this.handleError));
   }
 
   getProductBySlug(productSlug: string): Observable<WooCommerceProduct | undefined> {
     const params = new HttpParams().set('slug', productSlug);
     const requestUrl = this.buildProxyUrl('products');
-    console.log(`[WC_SERVICE] getProductBySlug (via Proxy) - Requesting product with slug ${productSlug} from URL: ${requestUrl}`);
     return this.http.get<WooCommerceProduct[]>(requestUrl, { params }).pipe(map(p => p && p.length > 0 ? p[0] : undefined), catchError(this.handleError));
   }
   
@@ -217,7 +200,6 @@ export class WoocommerceService {
       .set('per_page', productIds.length.toString());
       
     const requestUrl = this.buildProxyUrl('products');
-    console.log(`[WC_SERVICE] getProductsByIds (via Proxy) - Requesting products with IDs: ${productIds.join(',')} from URL: ${requestUrl}`);
     
     return this.http.get<WooCommerceProduct[]>(requestUrl, { params }).pipe(
       catchError(this.handleError)
@@ -227,7 +209,6 @@ export class WoocommerceService {
   getProductVariations(productId: number): Observable<WooCommerceProductVariation[]> {
     const params = new HttpParams().set('per_page', '100');
     const requestUrl = this.buildProxyUrl(`products/${productId}/variations`);
-    console.log(`[WC_SERVICE] getProductVariations (via Proxy) - Requesting variations for product ${productId} from URL: ${requestUrl}`);
     return this.http.get<WooCommerceProductVariation[]>(requestUrl, { params }).pipe(catchError(this.handleError));
   }
 
@@ -241,56 +222,43 @@ export class WoocommerceService {
     }
     params = this.appendParams(params, otherParams);
     const requestUrl = this.buildProxyUrl('products/categories');
-    console.log(`[WC_SERVICE] getCategories (via Proxy) - Requesting categories from URL: ${requestUrl}`);
     return this.http.get<WooCommerceCategory[]>(requestUrl, { params }).pipe(catchError(this.handleError));
   }
 
   getCategoryBySlug(categorySlug: string): Observable<WooCommerceCategory | undefined> {
     const params = new HttpParams().set('slug', categorySlug);
     const requestUrl = this.buildProxyUrl('products/categories');
-    console.log(`[WC_SERVICE] getCategoryBySlug (via Proxy) - Requesting category with slug ${categorySlug} from URL: ${requestUrl}`);
     return this.http.get<WooCommerceCategory[]>(requestUrl, { params }).pipe(map(c => c && c.length > 0 ? c[0] : undefined), catchError(this.handleError));
   }
 
-  public getCountries(): Observable<WooCommerceCountry[]> {
-    const requestUrl = `${this.storeUrl}/wp-json/your-garden-eden/v1/data/countries`;
-    console.log(`[WC_SERVICE] getCountries - Requesting countries from URL: ${requestUrl}`);
-    return this.http.get<WooCommerceCountry[]>(requestUrl, { withCredentials: true })
-      .pipe(
-        tap(response => console.log(`[WC_SERVICE] getCountries response:`, response)),
-        catchError(this.handleError)
-      );
-  }
   public getWcCart(): Observable<WooCommerceStoreCart | null> {
     if (!isPlatformBrowser(this.platformId)) { return of(null); }
     const requestUrl = `${this.storeApiUrl}/cart`;
     return from(this.ensureTokensPresent()).pipe(
       switchMap((tokens) => {
-        console.log(`[WC_SERVICE] getWcCart - Ensured tokens: cartToken=${tokens.cartToken}, nonce=${tokens.nonce}`);
         const headers = this.getStoreApiHeaders();
         return this.http.get<WooCommerceStoreCart>(requestUrl, { headers, observe: 'response', withCredentials: true });
       }),
       tap((res: HttpResponse<WooCommerceStoreCart | null>) => this.updateTokensFromResponse(res, `GET ${requestUrl}`)),
       map(res => res.body),
       catchError(err => {
-        console.warn(`[WC_SERVICE] getWcCart: Error fetching cart. Status: ${err.status}`, err);
         if (err.status === 404 && err.error?.code === 'woocommerce_rest_cart_empty') return of(null);
         if (err.status === 403 && err.error?.code?.includes('cart_token_invalid')) { this.clearLocalCartToken(); return of(null); }
         return this.handleError(err);
       })
     );
   }
+
   public addItemToWcCart(productId: number, quantity: number, variationAttributes?: WooCommerceProductVariationAttribute[], variationId?: number): Observable<WooCommerceStoreCart | null> {
     if (!isPlatformBrowser(this.platformId)) return throwError(() => new Error('Cart operations are not supported on non-browser platform.'));
     return from(this.ensureTokensPresent()).pipe(
       switchMap(tokens => {
-        if (!tokens.cartToken && !tokens.nonce) return throwError(() => new Error('Auth token (Cart-Token or Nonce) missing for addItemToWcCart.'));
-        const headers = this.getStoreApiHeaders(); const requestUrl = `${this.storeApiUrl}/cart/add-item`;
+        const headers = this.getStoreApiHeaders(); 
+        const requestUrl = `${this.storeApiUrl}/cart/add-item`;
         let body: any = { quantity };
         if (variationId) { body.id = variationId; }
         else if (variationAttributes && variationAttributes.length > 0) { body.id = productId; body.variation = variationAttributes; }
         else { body.id = productId; }
-        console.log(`[WC_SERVICE] addItemToWcCart: POST to ${requestUrl} with body:`, body);
         return this.http.post<WooCommerceStoreCart>(requestUrl, body, { headers, observe: 'response', withCredentials: true });
       }),
       tap((res: HttpResponse<WooCommerceStoreCart | null>) => this.updateTokensFromResponse(res, 'POST /cart/add-item')),
@@ -298,11 +266,11 @@ export class WoocommerceService {
       catchError(this.handleError)
     );
   }
+
   public updateWcCartItemQuantity(itemKey: string, quantity: number): Observable<WooCommerceStoreCart | null> {
     if (!isPlatformBrowser(this.platformId)) return throwError(() => new Error('Cart operations are not supported on non-browser platform.'));
     return from(this.ensureTokensPresent()).pipe(
       switchMap(tokens => {
-        if (!tokens.cartToken && !tokens.nonce) return throwError(() => new Error('Auth token missing for updateWcCartItemQuantity.'));
         const headers = this.getStoreApiHeaders(); const body = { key: itemKey, quantity };
         return this.http.post<WooCommerceStoreCart>(`${this.storeApiUrl}/cart/update-item`, body, { headers, observe: 'response', withCredentials: true });
       }),
@@ -311,11 +279,11 @@ export class WoocommerceService {
       catchError(this.handleError)
     );
   }
+
   public removeWcCartItem(itemKey: string): Observable<WooCommerceStoreCart | null> {
     if (!isPlatformBrowser(this.platformId)) return throwError(() => new Error('Cart operations are not supported on non-browser platform.'));
     return from(this.ensureTokensPresent()).pipe(
       switchMap(tokens => {
-        if (!tokens.cartToken && !tokens.nonce) return throwError(() => new Error('Auth token missing for removeWcCartItem.'));
         const headers = this.getStoreApiHeaders(); const body = { key: itemKey };
         return this.http.post<WooCommerceStoreCart>(`${this.storeApiUrl}/cart/remove-item`, body, { headers, observe: 'response', withCredentials: true });
       }),
@@ -324,12 +292,13 @@ export class WoocommerceService {
       catchError(this.handleError)
     );
   }
+  
   public clearWcCart(): Observable<WooCommerceStoreCart | null> {
     if (!isPlatformBrowser(this.platformId)) return throwError(() => new Error('Cart operations are not supported on non-browser platform.'));
     return from(this.ensureTokensPresent()).pipe(
       switchMap(tokens => {
-        if (!tokens.cartToken && !tokens.nonce) return throwError(() => new Error('Auth token missing for clearWcCart.'));
-        const headers = this.getStoreApiHeaders(); const requestUrl = `${this.storeApiUrl}/cart/items`;
+        const headers = this.getStoreApiHeaders(); 
+        const requestUrl = `${this.storeApiUrl}/cart/items`;
         return this.http.delete<WooCommerceStoreCart>(requestUrl, { headers, observe: 'response', withCredentials: true });
       }),
       tap((res: HttpResponse<WooCommerceStoreCart | null>) => {
@@ -339,48 +308,29 @@ export class WoocommerceService {
       catchError(this.handleError)
     );
   }
-  
+
   public updateWcCustomer(customerData: { billing_address: Partial<WooCommerceStoreAddress>, shipping_address?: Partial<WooCommerceStoreAddress> }): Observable<WooCommerceStoreCart | null> {
     if (!isPlatformBrowser(this.platformId)) return throwError(() => new Error('Cart operations are not supported on non-browser platform.'));
     return from(this.ensureTokensPresent()).pipe(
-      switchMap(tokens => {
-        if (!tokens.cartToken && !tokens.nonce) return throwError(() => new Error('Auth token missing for updateWcCustomer.'));
-        const headers = this.getStoreApiHeaders(); const requestUrl = `${this.storeApiUrl}/cart/update-customer`;
-        return this.http.post<WooCommerceStoreCart>(requestUrl, customerData, { headers, observe: 'response', withCredentials: true });
-      }),
-      tap((res: HttpResponse<WooCommerceStoreCart | null>) => this.updateTokensFromResponse(res, 'POST /cart/update-customer')),
-      map(res => res.body),
-      catchError(this.handleError)
-    );
-  }
-  public getCartShippingRates(): Observable<WooCommerceStoreShippingPackage[] | null> {
-    if (!isPlatformBrowser(this.platformId)) return of(null);
-    return from(this.ensureTokensPresent()).pipe(
-      switchMap(tokens => {
-        if (!tokens.cartToken && !tokens.nonce) return throwError(() => new Error('Auth token missing for getCartShippingRates.'));
-        const headers = this.getStoreApiHeaders(); const requestUrl = `${this.storeApiUrl}/cart/shipping-rates`;
-        return this.http.get<WooCommerceStoreShippingPackage[]>(requestUrl, { headers, observe: 'response', withCredentials: true });
-      }),
-      tap((res: HttpResponse<WooCommerceStoreShippingPackage[] | null>) => this.updateTokensFromResponse(res, 'GET /cart/shipping-rates')),
-      map(res => res.body),
-      catchError(this.handleError)
-    );
-  }
-  public selectCartShippingRate(packageId: string, rateId: string): Observable<WooCommerceStoreCart | null> {
-    if (!isPlatformBrowser(this.platformId)) return throwError(() => new Error('Cart operations are not supported on non-browser platform.'));
-    return from(this.ensureTokensPresent()).pipe(
-      switchMap(tokens => {
-        if (!tokens.cartToken && !tokens.nonce) return throwError(() => new Error('Auth token missing for selectCartShippingRate.'));
-        const headers = this.getStoreApiHeaders(); const requestUrl = `${this.storeApiUrl}/cart/select-shipping-rate`;
-        const body = { package_id: packageId, rate_id: rateId };
-        return this.http.post<WooCommerceStoreCart>(requestUrl, body, { headers, observe: 'response', withCredentials: true });
-      }),
-      tap((res: HttpResponse<WooCommerceStoreCart | null>) => this.updateTokensFromResponse(res, 'POST /cart/select-shipping-rate')),
-      map(res => res.body),
-      catchError(this.handleError)
+        switchMap(tokens => {
+            if (!tokens.cartToken && !tokens.nonce) return throwError(() => new Error('Auth token missing for updateWcCustomer.'));
+            const headers = this.getStoreApiHeaders(); const requestUrl = `${this.storeApiUrl}/cart/update-customer`;
+            return this.http.post<WooCommerceStoreCart>(requestUrl, customerData, { headers, observe: 'response', withCredentials: true });
+        }),
+        tap((res: HttpResponse<WooCommerceStoreCart | null>) => this.updateTokensFromResponse(res, 'POST /cart/update-customer')),
+        map(res => res.body),
+        catchError(this.handleError)
     );
   }
 
+  public getCountries(): Observable<WooCommerceCountry[]> {
+    const requestUrl = `${this.storeUrl}/wp-json/your-garden-eden/v1/data/countries`;
+    return this.http.get<WooCommerceCountry[]>(requestUrl, { withCredentials: true })
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+  
   public getCheckoutUrl(cartPopulationToken?: string, jwt?: string | null): string {
     let url = `${this.storeUrl}/checkout`;
     let hasParams = false;
@@ -398,80 +348,34 @@ export class WoocommerceService {
     return url;
   }
 
-  public getCheckoutUrlWithCartToken(cartToken: string): string {
-    let url = `${this.storeUrl}/checkout/`;
-    if (cartToken) {
-      url += `?cart_token=${encodeURIComponent(cartToken)}`;
-    }
-    return url;
-  }
-
   public getLocalCartToken(): string | null {
     return this._cartToken;
   }
 
   public clearLocalCartToken(): void {
     if (isPlatformBrowser(this.platformId)) {
-        console.log(`[WC_SERVICE] clearLocalCartToken: Clearing Cart-Token and Nonce from localStorage and service state.`);
         localStorage.removeItem(this.CART_TOKEN_STORAGE_KEY);
         this._cartToken = null;
         this._storeApiNonce = null;
     }
   }
+
   private handleError(error: any): Observable<never> {
     let errorMessage = `WooCommerce API Error! Status: ${error.status || 'N/A'}`;
     if (error.error && typeof error.error === 'object') {
         const errDetails = error.error;
         errorMessage += `. Code: ${errDetails.code || 'N/A'}. Message: ${errDetails.message || JSON.stringify(errDetails)}`;
-        if(errDetails.data && errDetails.data.details) { errorMessage += ` Details: ${JSON.stringify(errDetails.data.details)}`; }
     } else if (error.message) {
         errorMessage += `. Message: ${error.message}`;
-    } else if (typeof error.error === 'string') {
-        errorMessage += `. Message: ${error.error}`;
     }
     console.error(`[WC_SERVICE_ERROR_HANDLER] ${errorMessage}`, error);
     return throwError(() => new Error(errorMessage));
   }
-  public async loadCartFromToken(token: string): Promise<WooCommerceStoreCart | null> {
-    if (!isPlatformBrowser(this.platformId)) throw new Error('Cannot load cart from token on non-browser platform.');
-    console.log(`[WC_SERVICE] loadCartFromToken: Attempting to load cart with token: ${token}`);
-    this._cartToken = token;
-    localStorage.setItem(this.CART_TOKEN_STORAGE_KEY, token);
-    this._storeApiNonce = null;
-    try {
-        const cart = await firstValueFrom(this.getWcCart());
-        if (!this._cartToken) {
-             console.warn(`[WC_SERVICE] loadCartFromToken: Cart-Token was cleared during getWcCart for token ${token}.`);
-             throw new Error (`Failed to load cart with token ${token}. It might be invalid or expired, and was cleared.`);
-        }
-        console.log(`[WC_SERVICE] loadCartFromToken: Successfully loaded cart with token ${token}.`);
-        return cart;
-    } catch (error) {
-        console.error(`[WC_SERVICE] Error in loadCartFromToken for token ${token}:`, error);
-        this.clearLocalCartToken();
-        throw error;
-    }
-  }
-  private appendParams(existingParams: HttpParams, additionalParams?: HttpParams): HttpParams {
-    let newParams = existingParams;
-    if (additionalParams) {
-      additionalParams.keys().forEach(key => {
-        const value = additionalParams.get(key);
-        if (value !== null && value !== undefined) { newParams = newParams.set(key, value as string); }
-      });
-    }
-    return newParams;
-  }
-
+  
   public stageCartForPopulation(cartData: StageCartPayload): Observable<StageCartResponse> {
-    if (!isPlatformBrowser(this.platformId)) {
-      return throwError(() => new Error('Cannot stage cart for population on non-browser platform.'));
-    }
     const requestUrl = `${this.storeUrl}/wp-json/your-garden-eden/v1/stage-cart-for-population`;
-    console.log(`[WC_SERVICE] stageCartForPopulation: POST to ${requestUrl} with payload:`, cartData);
     return this.http.post<StageCartResponse>(requestUrl, cartData, { withCredentials: true })
       .pipe(
-        tap(response => console.log(`[WC_SERVICE] stageCartForPopulation response:`, response)),
         catchError(this.handleError)
       );
   }
@@ -482,32 +386,20 @@ export class WoocommerceService {
       .set('order_id', orderId)
       .set('order_key', orderKey);
       
-    console.log(`[WC_SERVICE] getOrderDetails: GET to ${requestUrl} with orderId ${orderId}`);
-    
     return this.http.get<OrderDetails>(requestUrl, { params, withCredentials: true })
       .pipe(
-        tap(response => console.log(`[WC_SERVICE] getOrderDetails response:`, response)),
         catchError(this.handleError)
       );
   }
   
-  public proxyRequest<T>(url: string, body: any): Observable<T> {
-    if (!isPlatformBrowser(this.platformId)) {
-      return throwError(() => new Error('Proxy requests are not supported on non-browser platforms.'));
+  private appendParams(existingParams: HttpParams, additionalParams?: HttpParams): HttpParams {
+    let newParams = existingParams;
+    if (additionalParams) {
+      additionalParams.keys().forEach(key => {
+        const value = additionalParams.get(key);
+        if (value !== null && value !== undefined) { newParams = newParams.set(key, value as string); }
+      });
     }
-    return from(this.ensureTokensPresent()).pipe(
-      switchMap(() => {
-        const headers = this.getStoreApiHeaders();
-        console.log(`[WC_SERVICE] proxyRequest: POST to ${url}`);
-        return this.http.post<T>(url, body, {
-          headers,
-          observe: 'response',
-          withCredentials: true,
-        });
-      }),
-      tap((res: HttpResponse<T>) => this.updateTokensFromResponse(res, `POST ${url}`)),
-      map(res => res.body as T),
-      catchError(this.handleError)
-    );
+    return newParams;
   }
 }

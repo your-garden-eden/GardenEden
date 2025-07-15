@@ -12,7 +12,7 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Title } from '@angular/platform-browser';
+import { Title, Meta } from '@angular/platform-browser';
 import { forkJoin, of, Observable, from } from 'rxjs';
 import {
   map,
@@ -31,7 +31,6 @@ import {
 import {
   WoocommerceService,
   WooCommerceProduct,
-  WooCommerceProductsResponse,
 } from '../../core/services/woocommerce.service';
 import { TrackingService } from '../../core/services/tracking.service';
 
@@ -50,6 +49,7 @@ import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner
 export class CategoryOverviewComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private titleService = inject(Title);
+  private metaService = inject(Meta);
   private woocommerceService = inject(WoocommerceService);
   private translocoService = inject(TranslocoService);
   private cdr = inject(ChangeDetectorRef);
@@ -67,6 +67,9 @@ export class CategoryOverviewComponent implements OnInit {
   displayableProductPreview: WritableSignal<WooCommerceProduct[]> = signal([]);
   isLoadingPreview: WritableSignal<boolean> = signal(false); 
   previewError: WritableSignal<string | null> = signal(null);
+  
+  // HIER GEÄNDERT: Neue Variable für den "Mehr lesen" Zustand
+  isDescriptionExpanded: WritableSignal<boolean> = signal(false);
 
   private readonly TARGET_PREVIEW_COUNT = 100;
   private readonly FETCH_PRODUCTS_PER_SUBCATEGORY = 8;
@@ -88,7 +91,7 @@ export class CategoryOverviewComponent implements OnInit {
           if (foundParentCategory) {
             this.currentParentCategory.set(foundParentCategory);
             this.subCategoriesToDisplay.set(foundParentCategory.subItems || []);
-            this.updateTitles(foundParentCategory);
+            this.updateTitlesAndMeta(foundParentCategory);
             
             if (foundParentCategory.subItems && foundParentCategory.subItems.length > 0) {
               this.loadProductPreviewForParent(foundParentCategory.subItems);
@@ -113,8 +116,13 @@ export class CategoryOverviewComponent implements OnInit {
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(() => {
       const cat = this.currentParentCategory();
-      if (cat) this.updateTitles(cat);
+      if (cat) this.updateTitlesAndMeta(cat);
     });
+  }
+
+  // HIER GEÄNDERT: Neue Funktion zum Umschalten
+  toggleDescription(): void {
+    this.isDescriptionExpanded.update(value => !value);
   }
   
   private loadProductPreviewForParent(subItems: NavSubItem[]): void {
@@ -212,10 +220,14 @@ export class CategoryOverviewComponent implements OnInit {
     });
   }
 
-  private updateTitles(parentCategory: NavItem): void {
+  private updateTitlesAndMeta(parentCategory: NavItem): void {
     const translatedTitle = this.translocoService.translate(parentCategory.i18nId);
     this.categoryTitle.set(translatedTitle);
     this.titleService.setTitle(`${translatedTitle} - Your Garden Eden`);
+
+    const descriptionKey = `${parentCategory.i18nId}.description`;
+    const description = this.translocoService.translate(descriptionKey);
+    this.metaService.updateTag({ name: 'description', content: description });
   }
 
   private resetState(): void {
@@ -227,6 +239,8 @@ export class CategoryOverviewComponent implements OnInit {
     this.displayableProductPreview.set([]);
     this.isLoadingPreview.set(false);
     this.previewError.set(null);
+    // HIER GEÄNDERT: "Mehr lesen" Zustand beim Laden einer neuen Kategorie zurücksetzen
+    this.isDescriptionExpanded.set(false);
   }
 
   private handleCategoryNotFound(errorMessage: string): void {
@@ -269,10 +283,6 @@ export class CategoryOverviewComponent implements OnInit {
     return null;
   }
   
-  /**
-   * Sendet ein Tracking-Event, wenn auf eine Unterkategorie geklickt wird.
-   * @param categoryI18nKey Der i18n-Schlüssel der Kategorie.
-   */
   trackSubCategoryClick(categoryI18nKey: string): void {
     const categoryName = this.translocoService.translate(categoryI18nKey);
     this.trackingService.trackCategoryView(categoryName);

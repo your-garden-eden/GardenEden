@@ -1,8 +1,7 @@
 // src/app/features/home/home.component.scss
 
 // Basis Swiper Styles
-@use 'swiper/scss'; // GEÄNDERT von @import zu @use
-// @use 'swiper/scss/navigation'; // Falls du spezifische Module laden müsstest, wäre es auch @use
+@use 'swiper/scss';
 
 .content-container {
   max-width: 1400px;
@@ -23,17 +22,67 @@
   border: 0;
 }
 
+.main-heading-section {
+  padding-top: var(--spacing-xxxl);
+  padding-bottom: var(--spacing-xxl);
+  text-align: center;
+
+  h1 {
+    font-family: "Georgia", "Times New Roman", serif;
+    font-size: 3.2rem;
+    font-weight: 600;
+    margin: 0;
+    line-height: 1.2;
+    background: linear-gradient(45deg, var(--gradient-start), var(--primary-color-dark));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+
+    @supports not (-webkit-background-clip: text) {
+      color: var(--text-color-headings);
+    }
+  }
+
+  .hero-subtitle {
+    font-family: "Georgia", "Times New Roman", serif;
+    font-size: 1.3rem;
+    font-style: italic;
+    color: var(--text-color-secondary);
+    max-width: 600px;
+    margin: var(--spacing-md) auto 0;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 768px) {
+    h1 {
+      font-size: 2.5rem;
+    }
+    .hero-subtitle {
+      font-size: 1.1rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    h1 {
+      font-size: 2rem;
+    }
+    .hero-subtitle {
+      font-size: 1rem;
+    }
+  }
+}
+
 .hero-section {
   position: relative;
   width: 100%;
-  height: 70vh; // Standardhöhe Desktop
-  min-height: 300px; // Kleinere Min-Höhe für Flexibilität
+  height: 60vh;
+  min-height: 250px;
   overflow: hidden;
-  background-color: var(--background-color-light-gray); // Für eventuelle Balken bei object-fit: contain
+  background-color: var(--background-color-light-gray);
 
-  @media (max-width: 767px) { // Mobile Anpassung
-    height: 35vh;
-    min-height: 200px;
+  @media (max-width: 767px) {
+    height: 30vh;
+    min-height: 180px;
   }
 }
 
@@ -43,15 +92,12 @@
   left: 50%;
   width: 100%;
   height: 100%;
-  object-fit: cover; // Bleibt für Desktop und als Standard auf cover
+  object-fit: cover;
   transform: translate(-50%, -50%);
   z-index: 1;
 }
 
-// Diese Sektionen nutzen weiterhin .content-container als Klasse direkt auf der section
 .bestseller-section, .news-section, .weather-section {
-  // Diese Sektionen bekommen die .content-container Klasse im HTML zugewiesen,
-  // daher ist hier kein separates .content-container Styling nötig, es sei denn für Überschreibungen.
   padding-top: var(--spacing-xxxl);
   padding-bottom: var(--spacing-xxxl);
 
@@ -63,18 +109,17 @@
     color: var(--text-color-headings);
   }
 
-  // +++ KORRIGIERT: Lade- und Info-Zustände sind spezifisch für die Sektionen +++
   .loading-indicator, .error-message, .info-message {
     text-align: center;
     padding: var(--spacing-xxxl) var(--spacing-lg);
     font-size: 1.1rem;
     color: var(--text-color-muted);
-    min-height: 300px; // Gibt dem Bereich eine Höhe, während er lädt
+    min-height: 300px;
     display: flex;
-    flex-direction: column; // Damit Text unter dem Spinner erscheint
+    flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 1rem; // Abstand zwischen Spinner und Text
+    gap: 1rem;
 
     &.small {
       min-height: 60px;
@@ -94,7 +139,7 @@
   }
 }
 
-.weather-section { // Bleibt spezifisch, falls es eigene Styles hat, die nicht von oben abgedeckt werden
+.weather-section {
   padding-top: var(--spacing-lg);
   padding-bottom: var(--spacing-lg);
   background-color: var(--background-color-light-gray);
@@ -142,7 +187,7 @@
   }
 }
 
-.bestseller-section { // Bleibt spezifisch
+.bestseller-section {
   .product-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -154,7 +199,7 @@
   }
 }
 
-.news-section { // Bleibt spezifisch (ist aktuell im HTML auskommentiert)
+.news-section {
   border-top: 1px solid var(--border-color-light);
   .news-list {
     display: grid;
@@ -258,31 +303,26 @@
 }
 
 @media (max-width: 768px) {
-  .bestseller-section h2, .news-section h2, .weather-section h2 {
+  .bestseller-section h2, .news-section h2, .weather-section h2, .intro-section .text-column h2 {
     font-size: 1.8rem;
     margin-bottom: var(--spacing-xl);
   }
 }
 @media (max-width: 480px) {
-  .bestseller-section h2, .news-section h2, .weather-section h2 {
+  .bestseller-section h2, .news-section h2, .weather-section h2, .intro-section .text-column h2 {
     font-size: 1.5rem;
     margin-bottom: var(--spacing-lg);
   }
 }
 
-/* =============================================== */
-/* Styling für den Unterkategorie-Slider         */
-/* =============================================== */
-.subcategory-slider-section-fullwidth { // Neuer Name, nimmt volle Breite
+.subcategory-slider-section-fullwidth {
   padding-top: var(--spacing-xxl);
   padding-bottom: var(--spacing-xxxl);
-  width: 100%; // Wichtig für volle Breite
+  width: 100%;
   box-sizing: border-box;
 
-  // Wenn ein Titel verwendet wird (auskommentiert im HTML), ist er in einem .content-container
-  > .content-container { // Selektiert den .content-container direkt unter .subcategory-slider-section-fullwidth
-    padding-bottom: var(--spacing-xl); // Abstand zwischen Titel und Slider
-    // Das normale .content-container Styling (max-width, margin, padding) gilt hier
+  > .content-container {
+    padding-bottom: var(--spacing-xl);
     h2 {
       text-align: center;
       margin-bottom: 0;
@@ -293,13 +333,12 @@
   }
 }
 
-.swiper-container-outer { // Dieser Container ist jetzt direkt im Fullwidth-Container
+.swiper-container-outer {
   position: relative;
-  // Kein horizontales Padding mehr hier, der Swiper soll die volle Breite nutzen können
 }
 
 .subcategory-swiper.swiper {
-  width: 100%; // Nimmt volle Breite des .swiper-container-outer
+  width: 100%;
   overflow: hidden;
 
   .swiper-wrapper {
@@ -388,6 +427,74 @@
     }
     .subcategory-slide-label {
       font-size: 1rem;
+    }
+  }
+}
+
+/* ======================================================= */
+/* HIER GEÄNDERT: Styling für 2-spaltiges Layout           */
+/* ======================================================= */
+.intro-section {
+  padding-top: var(--spacing-xxxl);
+  padding-bottom: var(--spacing-xxxl);
+  border-top: 1px solid var(--border-color-light);
+
+  .intro-grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr; // 1 Teil für Icons, 2 Teile für Text
+    gap: var(--spacing-xxxl);
+    align-items: center;
+
+    @media (max-width: 992px) {
+      grid-template-columns: 1fr; // Spalten auf Mobilgeräten stapeln
+      gap: var(--spacing-xxl);
+    }
+  }
+
+  .icon-column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl);
+  }
+
+  .feature-item {
+    display: flex;
+    align-items: center;
+    text-align: left;
+    gap: var(--spacing-lg);
+  }
+
+  .feature-icon {
+    font-size: 40px;
+    color: var(--primary-color-dark);
+  }
+
+  .feature-item h3 {
+    font-size: 1.1rem;
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-color-headings);
+    margin: 0;
+  }
+
+  .text-column {
+    text-align: left; // Text in der Spalte linksbündig
+
+    h2 {
+      text-align: left;
+      margin-top: 0; // Kein Abstand nach oben, falls die Spalten gestapelt sind
+      margin-bottom: var(--spacing-lg);
+      font-size: 2rem;
+      font-weight: var(--font-weight-semibold);
+      color: var(--text-color-headings);
+    }
+
+    p {
+      text-align: left;
+      font-size: 1.1rem;
+      line-height: 1.7;
+      color: var(--text-color-secondary);
+      max-width: none; // Entfernt die max-width, da die Spalte die Breite steuert
+      margin: 0;
     }
   }
 }

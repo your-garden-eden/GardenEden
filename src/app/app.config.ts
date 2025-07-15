@@ -1,69 +1,71 @@
-// /src/app/app.config.ts
-import { ApplicationConfig, LOCALE_ID, isDevMode, PLATFORM_ID, inject, APP_INITIALIZER } from '@angular/core';
+// /src/app/app.config.ts (Final, Korrigiert, SSR-sicher)
+import { ApplicationConfig, LOCALE_ID, isDevMode, APP_INITIALIZER, makeStateKey, TransferState } from '@angular/core';
 import { AuthService } from './shared/services/auth.service';
-import { isPlatformBrowser } from '@angular/common';
 import {
   provideRouter,
   withComponentInputBinding,
   withViewTransitions,
   withInMemoryScrolling,
-  RouteReuseStrategy
+  RouteReuseStrategy,
+  TitleStrategy // NEUER IMPORT
 } from '@angular/router';
-import { provideClientHydration } from '@angular/platform-browser';
+import { provideClientHydration, withHttpTransferCacheOptions } from '@angular/platform-browser';
 import { provideHttpClient, HTTP_INTERCEPTORS, withInterceptorsFromDi, withFetch } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, firstValueFrom } from 'rxjs';
 
-// Firebase-Imports (Kern)
-import { initializeApp, provideFirebaseApp, getApp } from '@angular/fire/app';
+// Firebase-Imports
+import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
 import { environment } from '../environments/environment';
-
-// Firebase-Imports (Module/Features)
 import { getFirestore, provideFirestore } from '@angular/fire/firestore';
 import { getFunctions, provideFunctions } from '@angular/fire/functions';
 import { getStorage, provideStorage } from '@angular/fire/storage';
-import { provideAnalytics, getAnalytics, ScreenTrackingService, UserTrackingService } from '@angular/fire/analytics';
+// ANALYTICS IMPORTE WERDEN HIER NICHT MEHR GLOBAL GEPROVIDET
 
-// Import für ngx-markdown
+// Andere Imports
 import { provideMarkdown } from 'ngx-markdown';
-
-// Routen importieren
 import { routes } from './app.routes';
-
-// --- LOCALE DATEN IMPORTIEREN UND REGISTRIEREN ---
 import { registerLocaleData, CurrencyPipe } from '@angular/common';
 import localeDe from '@angular/common/locales/de';
 import localeDeExtra from '@angular/common/locales/extra/de';
 import localeEs from '@angular/common/locales/es';
 import localePl from '@angular/common/locales/pl';
-// KORREKTUR START: Fehlende Locales für en und hr hinzufügen
 import localeEn from '@angular/common/locales/en';
 import localeHr from '@angular/common/locales/hr';
-// KORREKTUR ENDE
 
-// --- TRANSLOCO IMPORTS ---
+import { provideTransloco, TranslocoService } from '@ngneat/transloco';
 import { TranslocoHttpLoader } from './transloco-loader';
-import { provideTransloco } from '@ngneat/transloco';
 
-// --- BENUTZERDEFINIERTER HTTP INTERCEPTOR ---
 import { AuthHttpInterceptor } from './core/interceptors/auth-http.interceptor';
+import { CustomRouteReuseStrategy } from './core/strategies/custom-route-reuse.service';
+import { SeoTitleStrategy } from './core/strategies/seo-title.strategy'; // NEUER IMPORT
 
-// --- BENUTZERDEFINIERTE ROUTE REUSE STRATEGY ---
-import { CustomRouteReuseStrategy } from './core/strategies/custom-route-reuse.service'
-
-// KORREKTUR START: Alle verfügbaren Locales registrieren
 registerLocaleData(localeDe, 'de-DE', localeDeExtra);
 registerLocaleData(localeEs, 'es');
 registerLocaleData(localePl, 'pl');
 registerLocaleData(localeEn, 'en');
 registerLocaleData(localeHr, 'hr');
-// KORREKTUR ENDE
-// --- ENDE LOCALE ---
-
 
 export function appInitializerFactory(authService: AuthService): () => Observable<any> {
-  return () => authService.init();
+  return () => authService.initAuth();
 }
 
+export function translocoInitializerFactory(
+  transloco: TranslocoService,
+  transferState: TransferState
+): () => Promise<any> {
+  return async () => {
+    const lang = transloco.getActiveLang();
+    const TRANSLATION_KEY = makeStateKey<any>(`translation-${lang}`);
+
+    if (transferState.hasKey(TRANSLATION_KEY)) {
+      const translation = transferState.get(TRANSLATION_KEY, {});
+      transloco.setTranslation(translation, lang);
+    } else {
+      const translation = await firstValueFrom(transloco.load(lang));
+      transferState.set(TRANSLATION_KEY, translation);
+    }
+  };
+}
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -71,6 +73,12 @@ export const appConfig: ApplicationConfig = {
       provide: APP_INITIALIZER,
       useFactory: appInitializerFactory,
       deps: [AuthService],
+      multi: true
+    },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: translocoInitializerFactory,
+      deps: [TranslocoService, TransferState],
       multi: true
     },
     provideRouter(
@@ -83,6 +91,12 @@ export const appConfig: ApplicationConfig = {
       })
     ),
     
+    provideClientHydration(
+      withHttpTransferCacheOptions({
+        includePostRequests: true,
+      })
+    ),
+    
     provideHttpClient(
       withInterceptorsFromDi(),
       withFetch()
@@ -92,23 +106,27 @@ export const appConfig: ApplicationConfig = {
       useClass: AuthHttpInterceptor,
       multi: true,
     },
-
     {
       provide: RouteReuseStrategy,
       useClass: CustomRouteReuseStrategy
     },
-
+    // NEUER PROVIDER: Hier weisen wir Angular an, unsere benutzerdefinierte
+    // TitleStrategy anstelle der Standard-Implementierung zu verwenden.
+    {
+      provide: TitleStrategy,
+      useClass: SeoTitleStrategy,
+    },
     { provide: LOCALE_ID, useValue: 'de-DE' },
     CurrencyPipe,
     provideMarkdown(),
 
+    // Firebase Core Services - sicher für Server und Client
     provideFirebaseApp(() => initializeApp(environment.firebase)),
     provideFirestore(() => getFirestore()),
-    provideFunctions(() => getFunctions(getApp(), 'europe-west1')),
+    provideFunctions(() => getFunctions()),
     provideStorage(() => getStorage()),
-    provideAnalytics(() => getAnalytics()),
-    ScreenTrackingService,
-    UserTrackingService,
+    // WICHTIG: provideAnalytics() und die TrackingServices werden hier bewusst entfernt.
+    // Die Initialisierung wird nun vollständig im TrackingService gehandhabt.
 
     provideTransloco({
       config: {

@@ -1,0 +1,20 @@
+// src/app/app.component.scss
+
+.routing-loader-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%; // use 100% instead of 100vw to avoid layout shifts if a scrollbar appears/disappears
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; // Stellt sicher, dass es über allen anderen Inhalten liegt
+  
+  // Optional: Fügt einen leichten Weichzeichner-Effekt auf den Hintergrund hinzu
+  // Kann auf älteren Browsern die Performance beeinträchtigen, sieht aber modern aus.
+  @supports (backdrop-filter: blur(4px)) {
+    backdrop-filter: blur(4px);
+  }
+}

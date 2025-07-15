@@ -1,5 +1,17 @@
 <!-- /src/app/app.component.html -->
 
+<!--
+  NEU: Globaler Lade-Spinner für blockierende Router-Navigation.
+  Dieser Block wird angezeigt, sobald eine Navigation beginnt (z.B. durch einen Klick,
+  der einen Resolver auslöst) und verschwindet, wenn die Navigation abgeschlossen ist.
+  Er greift auf das neue isRouting-Signal im UiStateService zu.
+-->
+@if (uiStateService.isRouting()) {
+  <div class="routing-loader-overlay">
+    <app-loading-spinner></app-loading-spinner>
+  </div>
+}
+
 <!-- Wartungsseite anzeigen, wenn maintenanceMode true ist -->
 <app-maintenance *ngIf="maintenanceMode"></app-maintenance>
 
@@ -11,18 +23,24 @@
   </main>
   <app-footer></app-footer>
 
-  <!-- KORREKTUR: Greift jetzt auf den public uiStateService zu -->
+  <!-- Greift auf den public uiStateService zu -->
   <app-login-overlay
       *ngIf="uiStateService.isLoginOverlayOpen$()"
       [class.visible]="uiStateService.isLoginOverlayOpen$()">
   </app-login-overlay>
 
-  <app-cookie-consent-banner></app-cookie-consent-banner>
+  <!-- 
+    KORREKTUR: Der Cookie-Banner wird nur gerendert, wenn die App im Browser läuft.
+    Dies verhindert SSR-Hydrationsfehler, da der Banner vom Server-Rendering ausgeschlossen wird.
+  -->
+  @if (isBrowser) {
+    <app-cookie-consent-banner></app-cookie-consent-banner>
+  }
 
-  <!-- KORREKTUR: Greift jetzt auf den public uiStateService zu -->
+  <!-- Greift auf den public uiStateService zu -->
   <app-maintenance-info-modal *ngIf="uiStateService.showMaintenancePopup$()"></app-maintenance-info-modal>
 
-  <!-- KORREKTUR: Greift jetzt auf den public uiStateService zu -->
+  <!-- Greift auf den public uiStateService zu -->
   <app-cart-discount-info-modal *ngIf="uiStateService.showCartDiscountPopup$()"></app-cart-discount-info-modal>
 
   <!-- Globales Bestätigungs-Modal -->

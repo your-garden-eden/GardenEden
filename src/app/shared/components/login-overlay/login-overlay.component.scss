@@ -3,62 +3,78 @@ $mobile-breakpoint-medium: 768px;
 $transition-duration: 0.3s;
 
 :host {
-  display: block; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background-color: var(--background-color-dark-overlay);
-  z-index: var(--z-index-modal);
-  display: flex; align-items: center; justify-content: center;
-  opacity: 0; visibility: hidden;
-  transition: opacity $transition-duration ease, visibility 0s linear $transition-duration;
-
-  &.visible {
-    opacity: 1; visibility: visible;
-    transition: opacity $transition-duration ease, visibility 0s linear 0s;
-    .overlay-content { transform: scale(1) translateY(0); opacity: 1; }
-  }
+  z-index: var(--z-index-modal); // Bleibt bei 1050 für Modals
+  align-items: center;
+  justify-content: center;
 }
 
 .overlay-content {
   position: relative;
   background-color: var(--background-color-component);
   padding: var(--spacing-xl) var(--spacing-xxl);
-  border-radius: var(--border-radius-lg); // Radius für Desktop
+  border-radius: var(--border-radius-lg);
   box-shadow: var(--box-shadow-lg);
-
   width: auto;
   min-width: 300px;
-  max-width: 600px; // Passe diesen Wert für Desktop-Breite an
+  max-width: 600px;
   margin-left: var(--spacing-lg);
   margin-right: var(--spacing-lg);
-
   max-height: 90vh;
   overflow-y: auto;
+  // Behält die Animation für ein sanftes Erscheinen bei
+  animation: scaleIn $transition-duration ease-out forwards;
+}
 
-  transform: scale(0.95) translateY(10px);
-  opacity: 0;
-  transition: transform $transition-duration ease-out, opacity $transition-duration ease-out;
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95) translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
 }
 
 .close-button {
   position: absolute;
-  top: var(--spacing-md); right: var(--spacing-md);
-  background: none; border: none;
-  padding: var(--spacing-xs); cursor: pointer;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
+  background: none;
+  border: none;
+  padding: var(--spacing-xs);
+  cursor: pointer;
   color: var(--text-color-muted);
   line-height: 1;
   z-index: 10;
-  &:hover { color: var(--text-color-base); }
-  .material-symbols-outlined { font-size: 28px; }
+
+  &:hover {
+    color: var(--text-color-base);
+  }
+
+  .material-symbols-outlined {
+    font-size: 28px;
+  }
 }
 
 .overlay-header {
   text-align: center;
   margin-bottom: var(--spacing-lg);
+
   h1 {
     margin-top: 0;
     margin-bottom: var(--spacing-sm);
     font-size: 1.6rem;
     color: var(--text-color-headings);
   }
+
   p {
     margin-bottom: 0;
     color: var(--text-color-muted);
@@ -66,17 +82,21 @@ $transition-duration: 0.3s;
 }
 
 .overlay-form {
-  display: flex; flex-direction: column;
+  display: flex;
+  flex-direction: column;
   gap: var(--spacing-lg);
 
   .form-field {
-    display: flex; flex-direction: column;
+    display: flex;
+    flex-direction: column;
     gap: var(--spacing-xs);
+
     label {
       font-weight: var(--font-weight-semibold);
       font-size: 0.85rem;
       color: var(--text-color-base);
     }
+
     input[type="text"], input[type="email"], input[type="password"] {
       padding: var(--spacing-sm) var(--spacing-md);
       border: 1px solid var(--border-color-base);
@@ -89,25 +109,29 @@ $transition-duration: 0.3s;
         border-color: var(--accent-color-vibrant-green);
         box-shadow: 0 0 0 2px var(--accent-color-vibrant-green-rgba-02);
       }
+
       &[aria-invalid="true"] {
         border-color: var(--error-color);
       }
     }
-    // STYLING-KORREKTUR: Ersetzt den alten ".forgot-password-link"-Block
+
     .forgot-links-container {
       display: flex;
-      justify-content: flex-end; // Richtet die Links rechtsbündig aus
-      gap: var(--spacing-lg);      // Fügt einen Abstand zwischen den Links hinzu
+      justify-content: flex-end;
+      gap: var(--spacing-lg);
       margin-top: var(--spacing-xxs);
     }
   }
+
   .error-container {
     min-height: 1em;
+
     small {
       color: var(--error-color);
       font-size: 0.75rem;
     }
   }
+
   .error-message.general-error {
     background-color: var(--error-background-color);
     color: var(--error-text-color);
@@ -118,8 +142,12 @@ $transition-duration: 0.3s;
     font-size: 0.85rem;
     margin-top: var(--spacing-xs);
   }
+
   .submit-button {
-    display: inline-flex; align-items: center; justify-content: center; gap: var(--spacing-sm);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
     padding: var(--spacing-sm) var(--spacing-lg);
     background-color: var(--primary-color);
     color: var(--primary-color-text);
@@ -131,40 +159,62 @@ $transition-duration: 0.3s;
     transition: background-color 0.2s ease, opacity 0.2s ease;
     margin-top: var(--spacing-sm);
 
-    &:hover:not(:disabled) { background-color: var(--primary-color-dark); }
+    &:hover:not(:disabled) {
+      background-color: var(--primary-color-dark);
+    }
+
     &:disabled {
       background-color: var(--disabled-background-color);
       color: var(--text-color-muted);
-      cursor: not-allowed; opacity: 0.7;
+      cursor: not-allowed;
+      opacity: 0.7;
     }
+
     .button-loading-spinner {
       border: 2px solid var(--primary-color-text-rgba-03);
       border-radius: var(--border-radius-circle);
       border-top-color: var(--primary-color-text);
-      width: 16px; height: 16px;
+      width: 16px;
+      height: 16px;
       animation: spin 1s ease infinite;
     }
   }
 }
 
 .link-button {
-  background: none; border: none; padding: 0; margin: 0;
-  font-size: 0.8rem; // Etwas kleiner, um sicherzustellen, dass sie gut nebeneinander passen
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.8rem;
   color: var(--text-color-link);
   text-decoration: underline;
   cursor: pointer;
-  font-weight: var(--font-weight-normal); // Etwas weniger fett für ein dezenteres Erscheinungsbild
-  &:hover { color: var(--text-color-link-hover); }
+  font-weight: var(--font-weight-normal);
+
+  &:hover {
+    color: var(--text-color-link-hover);
+  }
 }
 
 .social-login-divider {
-  display: flex; align-items: center; text-align: center;
+  display: flex;
+  align-items: center;
+  text-align: center;
   color: var(--text-color-muted);
   margin: var(--spacing-lg) 0;
   font-size: 0.8rem;
   font-weight: var(--font-weight-medium);
-  &::before, &::after { content: ''; flex: 1; border-bottom: 1px solid var(--border-color-light); }
-  span { padding: 0 var(--spacing-lg); }
+
+  &::before, &::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid var(--border-color-light);
+  }
+
+  span {
+    padding: 0 var(--spacing-lg);
+  }
 }
 
 .social-login-buttons {
@@ -182,33 +232,47 @@ $transition-duration: 0.3s;
   color: var(--text-color-muted);
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
-// Mobile Style mit Radius
 @media (max-width: $mobile-breakpoint-medium) {
   .overlay-content {
-    width: calc(100% - (2 * var(--spacing-lg))); // Nimmt nicht volle Breite, lässt Rand
+    width: calc(100% - (2 * var(--spacing-lg)));
     min-width: 0;
-    height: auto; // Höhe passt sich Inhalt an
-    max-width: none; // Keine Desktop-max-width
-    max-height: calc(100% - (2 * var(--spacing-lg))); // Lässt Rand oben/unten
-    box-shadow: var(--box-shadow-lg); // Schatten beibehalten
-    margin-left: auto;   // Zentrierung
-    margin-right: auto;  // Zentrierung
-    margin-top: var(--spacing-lg);    // Abstand oben
-    margin-bottom: var(--spacing-lg); // Abstand unten
-    display: flex; flex-direction: column;
+    height: auto;
+    max-width: none;
+    max-height: calc(100% - (2 * var(--spacing-lg)));
+    box-shadow: var(--box-shadow-lg);
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    display: flex;
+    flex-direction: column;
     overflow-y: auto;
   }
-  .close-button { top: var(--spacing-lg); right: var(--spacing-lg); }
+
+  .close-button {
+    top: var(--spacing-lg);
+    right: var(--spacing-lg);
+  }
+
   .overlay-header {
     margin-bottom: var(--spacing-lg);
-    h1 { font-size: 1.5rem; }
+
+    h1 {
+      font-size: 1.5rem;
+    }
   }
+
   .overlay-form {
     flex-grow: 1;
     gap: var(--spacing-sm);
   }
+
   .auth-switch-link.overlay-switch-link {
     margin-top: var(--spacing-lg);
     padding-bottom: var(--spacing-lg);

@@ -1,4 +1,8 @@
-<!-- /src/app/features/home/home.component.html -->
+<section class="main-heading-section content-container">
+  <h1>{{ 'home.h1' | transloco }}</h1>
+  <p class="hero-subtitle">{{ 'home.subtitle' | transloco }}</p>
+</section>
+
 <section class="hero-section">
   <video class="hero-video" autoplay loop muted playsinline preload="metadata">
     <source src="assets/videos/SchleifenVideo.mp4" type="video/mp4" />
@@ -34,11 +38,9 @@
   </div>
 </section>
 
-<!-- HIER GEÄNDERT: [class.is-loading] hinzugefügt -->
 <section class="bestseller-section content-container" [class.is-loading]="isLoadingBestsellers()">
   <h2>{{ 'home.bestsellersTitle' | transloco }}</h2>
   @if (isLoadingBestsellers()) {
-    <!-- HIER GEÄNDERT: [showOverlay]="false" hinzugefügt -->
     <app-loading-spinner [showOverlay]="false"></app-loading-spinner>
   } @else if (errorBestsellers()) {
     <div class="error-message"><p>{{ errorBestsellers() }}</p></div>
@@ -68,4 +70,28 @@
       <p class="info-message">{{ 'home.noBestsellers' | transloco }}</p>
     }
   }
+</section>
+
+<section class="intro-section content-container">
+  <div class="intro-grid">
+    <div class="icon-column">
+      <div class="feature-item">
+        <span class="material-symbols-outlined feature-icon">spa</span>
+        <h3>{{ 'home.feature1Title' | transloco }}</h3>
+      </div>
+      <div class="feature-item">
+        <span class="material-symbols-outlined feature-icon">park</span>
+        <h3>{{ 'home.feature2Title' | transloco }}</h3>
+      </div>
+      <div class="feature-item">
+        <span class="material-symbols-outlined feature-icon">eco</span>
+        <h3>{{ 'home.feature3Title' | transloco }}</h3>
+      </div>
+    </div>
+
+    <div class="text-column">
+      <h2>{{ 'home.introTitle' | transloco }}</h2>
+      <p>{{ 'home.introTextFollowup' | transloco }}</p>
+    </div>
+  </div>
 </section>
