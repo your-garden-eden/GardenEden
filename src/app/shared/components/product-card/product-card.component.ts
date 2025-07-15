@@ -11,9 +11,9 @@ import { CartService } from '../../services/cart.service';
 import { LoadingSpinnerComponent } from '../loading-spinner/loading-spinner.component';
 import { TrackingService } from '../../../core/services/tracking.service';
 import { WooCommerceProduct } from '../../../core/services/woocommerce.service';
-// --- HINZUGEFÜGT: Imports für BreakpointObserver ---
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { map } from 'rxjs/operators';
+import { SeoService } from '../../../core/services/seo.service'; // HINZUGEFÜGT
 
 type ProductEffectiveStatus = 'available' | 'on_backorder' | 'out_of_stock' | 'price_unavailable';
 
@@ -29,6 +29,7 @@ export class ProductCardComponent {
   // --- Inputs ---
   @Input({ required: true }) productId!: number;
   @Input({ required: true }) productName!: string;
+  @Input() categoryName?: string; // HINZUGEFÜGT
   
   @Input() priceHtml?: string;
   @Input() singlePrice?: string;
@@ -53,15 +54,19 @@ export class ProductCardComponent {
   private cartService = inject(CartService);
   private transloco = inject(TranslocoService);
   private trackingService = inject(TrackingService);
-  // --- HINZUGEFÜGT: BreakpointObserver injizieren ---
   private breakpointObserver = inject(BreakpointObserver);
+  private seoService = inject(SeoService); // HINZUGEFÜGT
 
   // --- State Signals ---
   public isLoggedIn: Signal<boolean> = toSignal(this.authService.isLoggedIn$, { initialValue: false });
   public isAddingToCart = signal(false);
   public isImageLoading = signal(true);
 
-  // --- HINZUGEFÜGT: Signal zur Erkennung der mobilen Ansicht ---
+  // --- HINZUGEFÜGT: Signal für den dynamischen alt-Text ---
+  public imageAltText: Signal<string> = computed(() => {
+    return this.seoService.generateImageAltText(this.productName, this.categoryName);
+  });
+
   public isMobile: Signal<boolean> = toSignal(
     this.breakpointObserver.observe('(max-width: 767.98px)').pipe(
       map(result => result.matches)
@@ -118,7 +123,9 @@ export class ProductCardComponent {
       id: this.productId,
       name: this.productName,
       price: this.singlePrice || '0',
-      categories: []
+      // Wir können hier nur den Namen, nicht das volle Kategorieobjekt, übergeben.
+      // Das ist für Tracking in Ordnung.
+      categories: this.categoryName ? [{ id: 0, name: this.categoryName, slug: '' }] : []
     };
     this.trackingService.trackAddToCart(productForTracking as WooCommerceProduct, 1);
 

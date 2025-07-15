@@ -20,7 +20,7 @@
     @if (imageUrl) {
       <img
         [src]="imageUrl"
-        [alt]="productName"
+        [alt]="imageAltText()"
         [loading]="isLazy ? 'lazy' : 'eager'"
         class="product-image"
         [hidden]="isImageLoading()"

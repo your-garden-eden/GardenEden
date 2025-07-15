@@ -339,7 +339,6 @@ $primary-color-sass-equivalent-for-productpage: #A1B48A;
         height: 35px;
         margin-right: var(--spacing-sm);
         
-        // Benutze ::ng-deep um das Bild im Spinner zu stylen
         ::ng-deep .spinner-image {
           width: 100% !important;
           height: 100% !important;
@@ -367,6 +366,33 @@ $primary-color-sass-equivalent-for-productpage: #A1B48A;
           }
         }
         
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+      }
+    }
+
+    // +++ NEUE STYLES FÜR DEN SHARE-BUTTON +++
+    .share-btn {
+      &.icon-button {
+        color: var(--text-color-on-gradient-light);
+        padding: var(--spacing-sm);
+
+        &:hover:not(:disabled) {
+          color: var(--primary-color-dark);
+          background-color: transparent;
+        }
+
+        .material-symbols-outlined {
+          font-size: 28px;
+          transition: transform 0.2s ease, color 0.2s ease;
+        }
+
+        &:active:not(:disabled) {
+          transform: scale(0.9);
+        }
+
         &:disabled {
           opacity: 0.5;
           cursor: not-allowed;
@@ -511,6 +537,8 @@ $primary-color-sass-equivalent-for-productpage: #A1B48A;
       flex-direction: column; align-items: stretch;
       .add-to-cart-btn { width: 100%; justify-content: center; }
       .add-to-wishlist-btn { width: auto; align-self: center; margin-top: var(--spacing-sm); }
+      // +++ NEUER STYLE FÜR MOBILE ANSICHT +++
+      .share-btn { width: auto; align-self: center; margin-top: var(--spacing-sm); }
     }
   }
 }

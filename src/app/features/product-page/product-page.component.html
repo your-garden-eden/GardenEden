@@ -1,6 +1,5 @@
 <!-- /src/app/features/product-page/product-page.component.html -->
 <div class="product-page-content">
-  <!-- +++ NEU: Overlay-Spinner für die Wishlist-Aktion +++ -->
   @if (isTogglingWishlist()) {
     <div class="action-overlay">
       <app-loading-spinner></app-loading-spinner>
@@ -28,11 +27,11 @@
           <div class="product-media-gallery">
             @if (selectedImage(); as mainImg) {
               <div class="main-image-container">
-                <img [src]="mainImg.src" [alt]="mainImg.alt || productData.name" />
+                <img [src]="mainImg.src" [alt]="imageAltText()" />
               </div>
             } @else if (productData.images && productData.images.length > 0) {
               <div class="main-image-container">
-                <img [src]="productData.images[0].src" [alt]="productData.images[0].alt || productData.name" />
+                <img [src]="productData.images[0].src" [alt]="imageAltText()" />
               </div>
             } @else {
               <div class="main-image-container">
@@ -48,7 +47,7 @@
                        (click)="selectImageOnClick(image)"
                        [class.selected]="selectedImage()?.id === image.id">
                     <img [src]="image.src"
-                         [alt]="('productPage.thumbnailAlt' | transloco: { index: i + 1 })" />
+                         [alt]="imageAltText()" />
                   </div>
                 }
               </div>
@@ -121,7 +120,6 @@
                 }
               </button>
               
-              <!-- +++ GEÄNDERT: Spinner-Logik entfernt, da diese jetzt durch das globale Overlay gehandhabt wird +++ -->
               <button class="add-to-wishlist-btn icon-button"
                       (click)="toggleWishlist()"
                       [disabled]="!isLoggedIn() || isTogglingWishlist() || isAddingToCart()"
@@ -130,6 +128,16 @@
                   {{ isOnWishlist() ? 'favorite' : 'favorite_border' }}
                 </span>
               </button>
+
+              <!-- +++ NEUER TEILEN-BUTTON +++ -->
+              @if (canShare()) {
+                <button class="share-btn icon-button"
+                        (click)="shareProduct()"
+                        [title]="'productPage.share.buttonTitle' | transloco">
+                  <span class="material-symbols-outlined">share</span>
+                </button>
+              }
+
             </div>
 
             @if (addToCartError(); as cartErr) {

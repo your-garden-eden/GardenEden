@@ -69,7 +69,6 @@ export class TrackingService implements OnDestroy {
     this.consentEffectRef?.destroy(); // Korrekter Aufruf der destroy-Methode
   }
   
-  // Öffentliche Methoden bleiben gleich, prüfen aber auf this.analytics
   public trackViewItem(product: WooCommerceProduct): void {
     if (!this.analytics || this.cookieConsentService.getCurrentConsentStatus() !== 'accepted_all' || !product) return;
     const itemData = {
@@ -114,6 +113,24 @@ export class TrackingService implements OnDestroy {
     logEvent(this.analytics, 'select_content', {
       content_type: 'product_category',
       item_id: categoryName
+    });
+  }
+
+  // +++ NEUE METHODE +++
+  /**
+   * Trackt, wenn ein Benutzer erfolgreich einen Inhalt teilt.
+   * @param contentName Der Name des geteilten Inhalts (z.B. Produktname).
+   * @param sharedUrl Die URL, die geteilt wurde.
+   */
+  public trackShare(contentName: string, sharedUrl: string): void {
+    if (!this.analytics || this.cookieConsentService.getCurrentConsentStatus() !== 'accepted_all') return;
+    
+    console.log(`[TrackingService] Sende "share"-Event für Inhalt: ${contentName}`);
+    logEvent(this.analytics, 'share', {
+      method: 'Web Share API',
+      content_type: 'product',
+      item_id: contentName,
+      content_url: sharedUrl
     });
   }
 }

@@ -1,9 +1,10 @@
+// src/app/features/product-page/product-page.component.ts
 import {
   Component, OnInit, inject, signal, WritableSignal, ChangeDetectionStrategy,
   ChangeDetectorRef, OnDestroy, computed, Signal, effect, PLATFORM_ID, untracked, isDevMode
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { CommonModule, CurrencyPipe, Location, isPlatformBrowser } from '@angular/common';
+import { CommonModule, CurrencyPipe, Location, isPlatformBrowser, DOCUMENT } from '@angular/common';
 import { Meta } from '@angular/platform-browser';
 import { Subscription } from 'rxjs';
 import { startWith } from 'rxjs/operators';
@@ -24,6 +25,7 @@ import { FormsModule } from '@angular/forms';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 import { TrackingService } from '../../core/services/tracking.service';
 import { JsonLdService, Schema } from '../../core/services/json-ld.service';
+import { SeoService } from '../../core/services/seo.service'; // HINZUGEFÜGT
 
 interface SelectedOptions {
   [attributeSlug: string]: string;
@@ -55,12 +57,14 @@ export class ProductPageComponent implements OnInit, OnDestroy {
   private metaService = inject(Meta);
   private translocoService = inject(TranslocoService);
   private location = inject(Location);
-  private platformId = inject(PLATFORM_ID);
   private cdr = inject(ChangeDetectorRef);
   private currencyPipe = inject(CurrencyPipe);
   private trackingService = inject(TrackingService);
   private jsonLdService = inject(JsonLdService);
-
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly document = inject(DOCUMENT);
+  private seoService = inject(SeoService); // HINZUGEFÜGT
+  
   product: WritableSignal<WooCommerceProduct | null> = signal(null);
   variations: WritableSignal<WooCommerceProductVariation[]> = signal([]);
   variationAttributes: WritableSignal<WooCommerceAttribute[]> = signal([]);
@@ -77,6 +81,19 @@ export class ProductPageComponent implements OnInit, OnDestroy {
   addToCartError: WritableSignal<string | null> = signal(null);
   private addToCartErrorKey: WritableSignal<string | null> = signal(null);
   
+  public canShare: WritableSignal<boolean> = signal(false);
+
+  // HINZUGEFÜGT: Signal für den dynamischen alt-Text
+  public imageAltText: Signal<string> = computed(() => {
+    const product = this.product();
+    if (!product) {
+      // Sinnvoller Fallback, bis das Produkt geladen ist
+      return this.translocoService.translate('general.loadingText');
+    }
+    const categoryName = product.categories?.[0]?.name;
+    return this.seoService.generateImageAltText(product.name, categoryName);
+  });
+
   currentSelectedVariation: Signal<WooCommerceProductVariation | null> = computed(() => {
     const productData = this.product();
     const allVariations = this.variations();
@@ -161,7 +178,6 @@ export class ProductPageComponent implements OnInit, OnDestroy {
         this.product.set(product);
         this.updateMetadataAndSchema(product);
         this.trackingService.trackViewItem(product);
-
         if (product.type === 'variable' && product.variations && product.variations.length > 0) {
           this.loadVariations(product.id, product);
         } else {
@@ -185,12 +201,42 @@ export class ProductPageComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       });
     this.subscriptions.add(langSub);
+    
+    if (isPlatformBrowser(this.platformId)) {
+      this.canShare.set(!!navigator.share);
+    }
   }
 
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
-    // KORRIGIERT: Entfernt das Schema unter dem spezifischen Schlüssel 'product'.
     this.jsonLdService.removeSchema('product');
+  }
+  
+  async shareProduct(): Promise<void> {
+    const product = this.product();
+    if (!product || !isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    // ACHTUNG: Hier muss ein neuer Translation-Key hinzugefügt werden.
+    const shareText = this.translocoService.translate('productPage.share.discoveredAt', { productName: product.name });
+
+    const shareData: ShareData = {
+      title: product.name,
+      text: shareText,
+      url: this.document.location.href
+    };
+
+    try {
+      if (this.canShare()) {
+        await navigator.share(shareData);
+        this.trackingService.trackShare(product.name, this.document.location.href);
+      }
+    } catch (err) {
+      if (isDevMode()) {
+        console.error('Error sharing product:', err);
+      }
+    }
   }
   
   private loadVariations(productId: number, productData: WooCommerceProduct): void {
@@ -216,7 +262,6 @@ export class ProductPageComponent implements OnInit, OnDestroy {
     this.metaService.updateTag({ name: 'description', content: cleanedDescription });
     
     const productSchema = this.generateProductSchema(product);
-    // KORRIGIERT: Setzt das Schema unter dem spezifischen Schlüssel 'product'.
     this.jsonLdService.setSchema('product', productSchema);
   }
 
@@ -251,7 +296,7 @@ export class ProductPageComponent implements OnInit, OnDestroy {
 
     return schema;
   }
-
+  
   private _mapStockStatusToSchema(status: 'instock' | 'outofstock' | 'onbackorder' | null): string {
     switch (status) {
       case 'instock':

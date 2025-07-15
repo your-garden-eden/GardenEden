@@ -58,6 +58,7 @@
               <app-product-card
                 [productId]="product.id"
                 [productName]="product.name"
+                [categoryName]="categoryTitle() ?? undefined"
                 [priceHtml]="product.price_html"
                 [singlePrice]="product.price"
                 [currencySymbol]="getProductCurrencySymbol(product)"

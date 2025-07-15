@@ -158,6 +158,9 @@
       "playfun.accessories.description": "Alles für Ihr Trampolin. Von Leiter über Schutzrand bis hin zu Erdankern – finden Sie hier das passende Zubehör für mehr Sicherheit und Langlebigkeit."
     }
   },
+  "breadcrumbs": {
+    "home": "Startseite"
+  },
   "categoryDescriptions": {
     "furniture": "Verwandeln Sie Ihren Außenbereich in ein zweites Wohnzimmer. Ob gemütliche Lounge-Ecke, eine stilvolle Essgruppe für gesellige Abende oder eine bequeme Sonnenliege zum Entspannen – hier finden Sie langlebige und wetterfeste Gartenmöbel, die Design mit Komfort vereinen.",
     "furniture_sofas": "Machen Sie es sich unter freiem Himmel so richtig gemütlich. Unsere Gartensofas bieten höchsten Sitzkomfort und sind aus robusten, wetterfesten Materialien gefertigt, die jeder Witterung standhalten. Ideal für entspannte Stunden allein oder mit Freunden.",
@@ -324,7 +327,11 @@
     "errorAddingToCart": "Fehler beim Hinzufügen zum Warenkorb.",
     "pageTitle": "{{productName}} - Your Garden Eden",
     "pageTitleError": "{{errorName}} - Your Garden Eden",
-    "selectOption": "Wähle {{optionName}}"
+    "selectOption": "Wähle {{optionName}}",
+    "share": {
+      "buttonTitle": "Produkt teilen",
+      "discoveredAt": "{{productName}} - entdeckt bei Your Garden Eden"
+    }
   },
   "staticPage": {
     "loadingPage": "Seite wird geladen...",

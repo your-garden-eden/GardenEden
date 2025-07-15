@@ -1,5 +1,6 @@
+// src/environments/environment.ts
 export const environment = {
-  baseUrl: '',
+  baseUrl: 'https://www.your-garden-eden.de', // KORREKTUR: Die Basis-URL wurde gesetzt.
   production: true,
   maintenanceMode: false,
   firebase: {
