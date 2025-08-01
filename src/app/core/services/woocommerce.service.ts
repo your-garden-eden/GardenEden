@@ -1,4 +1,4 @@
-// /src/app/core/services/woocommerce.service.ts (Version 2.0 - Event-basiertes Token-Update)
+// /src/app/core/services/woocommerce.service.ts (FINALE, KORRIGIERTE VERSION)
 import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams, HttpResponse } from '@angular/common/http';
 import { Injectable, inject, PLATFORM_ID, OnDestroy } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
@@ -53,7 +53,6 @@ export class WoocommerceService implements OnDestroy {
   private readonly CART_TOKEN_STORAGE_KEY = 'wc_cart_token';
   private tokenPromise: Promise<{ cartToken: string | null, nonce: string | null }> | null = null;
 
-  // NEU: Subscription für das Event vom AuthService.
   private guestTokenRefreshedSub: Subscription | null = null;
 
   constructor() {
@@ -61,17 +60,14 @@ export class WoocommerceService implements OnDestroy {
       this._cartToken = localStorage.getItem(this.CART_TOKEN_STORAGE_KEY);
       this.initializeTokens();
       
-      // NEU: Auf das Event vom AuthService hören.
-      // Wenn der Gast-Token erneuert wurde, müssen wir unsere Tokens auch erneuern.
       this.guestTokenRefreshedSub = this.authService.guestTokenRefreshed$.subscribe(() => {
         console.log('[WC_SERVICE] Gast-Token wurde erneuert. Lösche alte Store-Tokens und initialisiere neu.');
-        this.clearLocalCartToken(); // Löscht die alten, ungültigen Store-Tokens.
-        this.initializeTokens();      // Stößt die Neu-Initialisierung an.
+        this.clearLocalCartToken();
+        this.initializeTokens();
       });
     }
   }
 
-  // NEU: OnDestroy-Hook, um die Subscription sauber zu beenden.
   ngOnDestroy(): void {
     this.guestTokenRefreshedSub?.unsubscribe();
   }
@@ -163,7 +159,12 @@ export class WoocommerceService implements OnDestroy {
   getProducts( categoryId?: number, perPage: number = 10, page: number = 1, otherParams?: HttpParams ): Observable<WooCommerceProductsResponse> {
     let params = new HttpParams()
       .set('per_page', perPage.toString())
-      .set('page', page.toString());
+      .set('page', page.toString())
+      // --- NEU: BEGINN - Problem 2 Behebung ---
+      // Stellt sicher, dass nur veröffentlichte Produkte abgefragt werden.
+      .set('status', 'publish');
+      // --- NEU: ENDE ---
+      
     if (categoryId) { 
       params = params.set('category', categoryId.toString()); 
     }
@@ -186,7 +187,7 @@ export class WoocommerceService implements OnDestroy {
   }
 
   getProductBySlug(productSlug: string): Observable<WooCommerceProduct | undefined> {
-    const params = new HttpParams().set('slug', productSlug);
+    const params = new HttpParams().set('slug', productSlug).set('status', 'publish');
     const requestUrl = this.buildProxyUrl('products');
     return this.http.get<WooCommerceProduct[]>(requestUrl, { params }).pipe(map(p => p && p.length > 0 ? p[0] : undefined), catchError(this.handleError));
   }
@@ -197,7 +198,8 @@ export class WoocommerceService implements OnDestroy {
     }
     const params = new HttpParams()
       .set('include', productIds.join(','))
-      .set('per_page', productIds.length.toString());
+      .set('per_page', productIds.length.toString())
+      .set('status', 'publish');
       
     const requestUrl = this.buildProxyUrl('products');
     

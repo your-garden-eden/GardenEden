@@ -1,3 +1,4 @@
+<!-- src/app/features/home/home.component.html (FINALE, KORRIGIERTE VERSION) -->
 <section class="main-heading-section content-container">
   <h1>{{ 'home.h1' | transloco }}</h1>
   <p class="hero-subtitle">{{ 'home.subtitle' | transloco }}</p>
@@ -54,7 +55,6 @@
             [priceHtml]="product.price_html"
             [singlePrice]="product.price"
             [currencySymbol]="getProductCurrencySymbol(product)"
-            [pricePrefix]="(product.type === 'variable' && product.price_html && product.price_html.toLowerCase().includes('ab')) ? '' : (product.type === 'variable' ? ('productCard.priceFrom' | transloco) + ' ' : '')"
             [imageUrl]="getProductImage(product)"
             [productLink]="getProductLink(product)"
             [onSale]="product.on_sale"
@@ -62,7 +62,6 @@
             [isLazy]="i >= 4"
             [stockStatus]="product.stock_status"
             [isVariable]="product.type === 'variable'"
-            [priceRange]="extractPriceRange(product)"
           ></app-product-card>
         }
       </div>

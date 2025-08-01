@@ -21,29 +21,27 @@ export class SeoTitleStrategy extends TitleStrategy {
   }
 
   override updateTitle(snapshot: RouterStateSnapshot): void {
-    // 1. Generiere Canonical URL
+    // Der sprachneutrale Pfad, z.B. '/product/mein-produkt'
     const cleanUrlPath = snapshot.url.split('?')[0];
-    const canonicalUrl = `${environment.baseUrl}${cleanUrlPath}`;
+
+    // 1. Generiere Canonical URL
+    const canonicalUrl = `${environment.baseUrl}/${this.transloco.getActiveLang()}${cleanUrlPath === '/' ? '' : cleanUrlPath}`;
     this.seoService.updateCanonicalUrl(canonicalUrl);
 
-    // 2. FINALE KORREKTUR: Explizite Typsicherheit
-    // Deklariere die Variable, die garantiert ein String sein wird.
-    let finalTitle: string; 
-    
-    // Hole den potenziell undefinierten Titel.
-    const customTitle = this.buildSeoTitle(snapshot);
+    // 2. HINZUGEFÜGT: Generiere Hreflang-Tags
+    this.seoService.updateHreflangTags(cleanUrlPath);
 
-    // Prüfe explizit, ob ein Titel generiert wurde.
+    // 3. Generiere Seitentitel
+    let finalTitle: string; 
+    const customTitle = this.buildSeoTitle(snapshot);
     if (customTitle) {
-      // Wenn ja, ist er hier garantiert ein String.
       finalTitle = customTitle;
     } else {
-      // Wenn nein, weise den Fallback-String zu.
       finalTitle = this.transloco.translate('seo.defaultPageTitle');
     }
-
-    // Ab hier ist 'finalTitle' garantiert ein String. Der Fehler ist behoben.
     this.titleService.setTitle(finalTitle);
+
+    // 4. Generiere Social Media Tags
     this.updateSocialMediaTags(snapshot, finalTitle, canonicalUrl);
   }
   

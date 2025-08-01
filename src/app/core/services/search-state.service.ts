@@ -1,15 +1,17 @@
 // src/app/core/services/search-state.service.ts
 import { Injectable, signal, WritableSignal, computed, inject } from '@angular/core';
-import { Subject, of, from, firstValueFrom } from 'rxjs'; // firstValueFrom importiert
+import { Subject, of, from, firstValueFrom } from 'rxjs';
 import { debounceTime, switchMap, catchError, tap, filter, map } from 'rxjs/operators';
 import { HttpParams } from '@angular/common/http';
 import { WoocommerceService, WooCommerceProduct, WooCommerceProductsResponse } from './woocommerce.service';
 import { FilterStateService } from './filter-state.service';
 import { TranslocoService } from '@ngneat/transloco';
+import { NavSubItem, navItems } from '../data/navigation.data'; // HINZUGEFÜGT
 
 export interface SearchState {
   searchTerm: string;
   searchResults: readonly WooCommerceProduct[];
+  matchingCategories: readonly NavSubItem[]; // HINZUGEFÜGT
   isLoading: boolean;
   isLoadingMore: boolean;
   error: string | null;
@@ -19,6 +21,7 @@ export interface SearchState {
 const initialState: SearchState = {
   searchTerm: '',
   searchResults: [],
+  matchingCategories: [], // HINZUGEFÜGT
   isLoading: false,
   isLoadingMore: false,
   error: null,
@@ -36,6 +39,7 @@ export class SearchStateService {
   private state: WritableSignal<SearchState> = signal(initialState);
 
   public readonly searchResults = computed(() => this.state().searchResults);
+  public readonly matchingCategories = computed(() => this.state().matchingCategories); // HINZUGEFÜGT
   public readonly isLoading = computed(() => this.state().isLoading);
   public readonly isLoadingMore = computed(() => this.state().isLoadingMore);
   public readonly error = computed(() => this.state().error);
@@ -52,7 +56,6 @@ export class SearchStateService {
   }
   
   public applyFiltersAndSearch(): void {
-    // debounceTime in der Pipeline verhindert, dass dies zu schnell hintereinander ausgelöst wird.
     this.searchTrigger$.next(this.searchTerm());
   }
 
@@ -76,20 +79,21 @@ export class SearchStateService {
   private setupSearchPipeline(): void {
     this.searchTrigger$.pipe(
       debounceTime(400),
-      // KORREKTUR: distinctUntilChanged() entfernt, damit der "Anwenden"-Button immer funktioniert.
       tap(term => {
-        const cleanTerm = term ?? '';
+        const cleanTerm = (term ?? '').trim();
         this.currentPage = 1;
+        const matchingCats = this.findMatchingCategories(cleanTerm); // Kategorien hier finden
         this.state.update(s => ({
             ...initialState,
             searchTerm: cleanTerm,
+            matchingCategories: matchingCats, // Kategorien im State setzen
             isLoading: cleanTerm.length >= 3,
-            error: null, // Fehler bei neuer Suche zurücksetzen
+            error: null,
         }));
       }),
       filter(term => (term ?? '').length >= 3),
       switchMap(term => {
-        this.state.update(s => ({ ...s, isLoading: true })); // Ladezustand hier setzen
+        this.state.update(s => ({ ...s, isLoading: true }));
         const filterParams = this.filterStateService.getFilterParams();
         const categorySlug = this.filterStateService.selectedCategorySlug();
         
@@ -99,7 +103,6 @@ export class SearchStateService {
           return this.woocommerceService.getCategoryBySlug(categorySlug).pipe(
             switchMap(category => {
               if (!category) {
-                // Wenn Kategorie nicht gefunden wird, leere Ergebnisse zurückgeben.
                 throw new Error(`Category with slug '${categorySlug}' not found.`);
               }
               return this.fetchProducts(term!, 1, category.id, filterParams)
@@ -113,6 +116,17 @@ export class SearchStateService {
         }
       })
     ).subscribe();
+  }
+
+  private findMatchingCategories(term: string): NavSubItem[] {
+    if (term.length < 3) return [];
+
+    const lowerCaseTerm = term.toLowerCase();
+    const allSubItems: NavSubItem[] = navItems.flatMap(item => item.subItems || []);
+    
+    return allSubItems.filter(subItem => 
+      this.translocoService.translate(subItem.i18nId).toLowerCase().includes(lowerCaseTerm)
+    );
   }
 
   private fetchProducts(term: string, page: number, categoryId?: number, otherParams?: HttpParams) {

@@ -3,7 +3,7 @@
    class="product-card"
    [class.is-mobile]="isMobile()"
    [class.is-on-sale]="onSale"
-   [class.is-unavailable]="effectiveStatus() !== 'available'"
+   [class.is-unavailable]="effectiveStatus() !== 'available' && effectiveStatus() !== 'on_backorder'"
    [class.is-variable]="isVariable"
    [attr.aria-label]="productName">
 
@@ -23,7 +23,7 @@
         [alt]="imageAltText()"
         [loading]="isLazy ? 'lazy' : 'eager'"
         class="product-image"
-        [hidden]="isImageLoading()"
+        [class.is-loading]="isImageLoading()"
         (load)="onImageLoad()"
         (error)="onImageError()"
       />
@@ -58,9 +58,10 @@
 
       <div class="product-price-container">
         @if (onSale && regularPrice && !isVariable && singlePrice && regularPrice !== singlePrice) {
-          <span class="product-price-regular">{{ regularPrice }}{{ currencySymbol }}</span>
+          <span class="product-price-regular">{{ regularPrice | number: '1.2-2' }}{{ currencySymbol }}</span>
         }
-        <span class="product-price" [innerHTML]="displayPrice()"></span>
+        <!-- KORREKTUR (Preis): Ersetzt [innerHTML] durch sichere Interpolation -->
+        <span class="product-price">{{ displayPrice() }}</span>
       </div>
 
       <div class="product-actions">
@@ -110,9 +111,10 @@
       <div class="product-actions">
         <div class="product-price-container">
           @if (onSale && regularPrice && !isVariable && singlePrice && regularPrice !== singlePrice) {
-            <span class="product-price-regular">{{ regularPrice }}{{ currencySymbol }}</span>
+            <span class="product-price-regular">{{ regularPrice | number: '1.2-2' }}{{ currencySymbol }}</span>
           }
-          <span class="product-price" [innerHTML]="displayPrice()"></span>
+          <!-- KORREKTUR (Preis): Ersetzt [innerHTML] durch sichere Interpolation -->
+          <span class="product-price">{{ displayPrice() }}</span>
         </div>
 
         <div class="actions-cluster">

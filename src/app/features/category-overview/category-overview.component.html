@@ -1,3 +1,4 @@
+<!-- src/app/features/category-overview/category-overview.component.html (FINALE, KORRIGIERTE VERSION) -->
 <div class="category-overview-page">
 
   @if (isLoading()) {
@@ -80,7 +81,6 @@
                     [priceHtml]="product.price_html"
                     [singlePrice]="product.price"
                     [currencySymbol]="getProductCurrencySymbol(product)"
-                    [pricePrefix]="(product.type === 'variable' && product.price_html && product.price_html.toLowerCase().includes('ab')) ? '' : (product.type === 'variable' ? ('productCard.priceFrom' | transloco) + ' ' : '')"
                     [imageUrl]="getProductImage(product)"
                     [productLink]="getProductLink(product)"
                     [onSale]="product.on_sale"

@@ -1,3 +1,4 @@
+// src/app/shared/components/header/header.component.ts
 import {
   Component, inject, Renderer2, PLATFORM_ID, OnDestroy, Signal, OnInit,
   WritableSignal, signal, ChangeDetectionStrategy, computed, ChangeDetectorRef, ElementRef, ViewChild, HostListener, HostBinding
@@ -13,7 +14,7 @@ import { AuthService, WordPressUser } from '../../../shared/services/auth.servic
 import { CartService } from '../../../shared/services/cart.service';
 import { UiStateService } from '../../../shared/services/ui-state.service';
 import { WishlistService } from '../../../shared/services/wishlist.service';
-import { navItems, NavItem } from '../../../core/data/navigation.data';
+import { navItems, NavItem, NavSubItem } from '../../../core/data/navigation.data';
 import { WooCommerceProduct } from '../../../core/services/woocommerce.service';
 import { TrackingService } from '../../../core/services/tracking.service';
 import { SearchStateService } from '../../../core/services/search-state.service';
@@ -51,7 +52,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
   private trackingService = inject(TrackingService);
   private hostElement = inject(ElementRef);
 
-  // KORREKTUR: Die Klasse wird jetzt an das Host-Element gebunden
   @HostBinding('class.mobile-menu-active')
   isMobileMenuOpen = false;
 
@@ -220,6 +220,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   getSearchResultLink(product: WooCommerceProduct): string { return `/product/${product.slug}`; }
   getSearchResultImage(product: WooCommerceProduct): string | undefined { return product.images?.[0]?.src; }
+
+  public getCategoryIconPath(category: NavSubItem): string | null {
+    if (category && category.iconFilename) {
+      return `assets/icons/categories/${category.iconFilename}`;
+    }
+    return null;
+  }
 
   getCategoryNameBySlug(slug: string | null): string {
     if (!slug) return '';

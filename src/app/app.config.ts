@@ -1,4 +1,5 @@
-// /src/app/app.config.ts (Final, Korrigiert, SSR-sicher)
+// /src/app/app.config.ts
+
 import { ApplicationConfig, LOCALE_ID, isDevMode, APP_INITIALIZER, makeStateKey, TransferState } from '@angular/core';
 import { AuthService } from './shared/services/auth.service';
 import {
@@ -7,7 +8,7 @@ import {
   withViewTransitions,
   withInMemoryScrolling,
   RouteReuseStrategy,
-  TitleStrategy // NEUER IMPORT
+  TitleStrategy
 } from '@angular/router';
 import { provideClientHydration, withHttpTransferCacheOptions } from '@angular/platform-browser';
 import { provideHttpClient, HTTP_INTERCEPTORS, withInterceptorsFromDi, withFetch } from '@angular/common/http';
@@ -19,7 +20,6 @@ import { environment } from '../environments/environment';
 import { getFirestore, provideFirestore } from '@angular/fire/firestore';
 import { getFunctions, provideFunctions } from '@angular/fire/functions';
 import { getStorage, provideStorage } from '@angular/fire/storage';
-// ANALYTICS IMPORTE WERDEN HIER NICHT MEHR GLOBAL GEPROVIDET
 
 // Andere Imports
 import { provideMarkdown } from 'ngx-markdown';
@@ -37,7 +37,7 @@ import { TranslocoHttpLoader } from './transloco-loader';
 
 import { AuthHttpInterceptor } from './core/interceptors/auth-http.interceptor';
 import { CustomRouteReuseStrategy } from './core/strategies/custom-route-reuse.service';
-import { SeoTitleStrategy } from './core/strategies/seo-title.strategy'; // NEUER IMPORT
+import { SeoTitleStrategy } from './core/strategies/seo-title.strategy';
 
 registerLocaleData(localeDe, 'de-DE', localeDeExtra);
 registerLocaleData(localeEs, 'es');
@@ -45,10 +45,13 @@ registerLocaleData(localePl, 'pl');
 registerLocaleData(localeEn, 'en');
 registerLocaleData(localeHr, 'hr');
 
+// Factory für den Auth-Service
 export function appInitializerFactory(authService: AuthService): () => Observable<any> {
+  // Diese Funktion sorgt dafür, dass Angular auf den Abschluss von initAuth() wartet.
   return () => authService.initAuth();
 }
 
+// Factory für Transloco
 export function translocoInitializerFactory(
   transloco: TranslocoService,
   transferState: TransferState
@@ -69,18 +72,21 @@ export function translocoInitializerFactory(
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    // WICHTIG: Der APP_INITIALIZER für die Authentifizierung
     {
       provide: APP_INITIALIZER,
       useFactory: appInitializerFactory,
       deps: [AuthService],
       multi: true
     },
+    // APP_INITIALIZER für Übersetzungen
     {
       provide: APP_INITIALIZER,
       useFactory: translocoInitializerFactory,
       deps: [TranslocoService, TransferState],
       multi: true
     },
+    
     provideRouter(
       routes,
       withComponentInputBinding(),
@@ -110,8 +116,6 @@ export const appConfig: ApplicationConfig = {
       provide: RouteReuseStrategy,
       useClass: CustomRouteReuseStrategy
     },
-    // NEUER PROVIDER: Hier weisen wir Angular an, unsere benutzerdefinierte
-    // TitleStrategy anstelle der Standard-Implementierung zu verwenden.
     {
       provide: TitleStrategy,
       useClass: SeoTitleStrategy,
@@ -120,13 +124,11 @@ export const appConfig: ApplicationConfig = {
     CurrencyPipe,
     provideMarkdown(),
 
-    // Firebase Core Services - sicher für Server und Client
+    // Firebase Core Services
     provideFirebaseApp(() => initializeApp(environment.firebase)),
     provideFirestore(() => getFirestore()),
     provideFunctions(() => getFunctions()),
     provideStorage(() => getStorage()),
-    // WICHTIG: provideAnalytics() und die TrackingServices werden hier bewusst entfernt.
-    // Die Initialisierung wird nun vollständig im TrackingService gehandhabt.
 
     provideTransloco({
       config: {

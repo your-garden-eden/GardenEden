@@ -1,4 +1,4 @@
-// src/app/features/product-list/product-list.component.ts
+// src/app/features/product-list/product-list.component.ts (FINALE, BEREINIGTE VERSION)
 import {
   Component, OnInit, OnDestroy, inject, signal, WritableSignal, ChangeDetectionStrategy,
   ViewChild, ElementRef, ChangeDetectorRef, afterNextRender, HostListener, PLATFORM_ID,
@@ -211,22 +211,8 @@ export class ProductListPageComponent implements OnInit, OnDestroy {
   private initializeFiltersFromUrl(): void { const queryParams = this.route.snapshot.queryParamMap; const minPrice = queryParams.has('min_price') ? Number(queryParams.get('min_price')) : null; const maxPrice = queryParams.has('max_price') ? Number(queryParams.get('max_price')) : null; const inStock = queryParams.get('stock_status') === 'instock'; this.filterStateService.setPriceRange(minPrice, maxPrice); this.filterStateService.setInStockOnly(inStock); }
   private updateUrlWithFilters(): void { const filterParams = this.filterStateService.getFilterParams(); const queryParams: { [key: string]: string } = {}; filterParams.keys().forEach(key => { const value = filterParams.get(key); if (value !== null && value !== undefined) queryParams[key] = value; }); this.router.navigate([], { relativeTo: this.route, queryParams: Object.keys(queryParams).length > 0 ? queryParams : null, queryParamsHandling: 'merge', replaceUrl: true }); }
   
-  // KORREKTUR: Fehlende Methoden wieder hinzugefügt
   getProductCurrencySymbol(product: WooCommerceProduct): string {
     const currencyMeta = product.meta_data?.find((m: WooCommerceMetaData) => m.key === '_currency_symbol');
     return (currencyMeta?.value as string) || '€';
-  }
-  
-  extractPriceRange(product: WooCommerceProduct): { min: string, max: string } | null {
-    if (product.type === 'variable') {
-      if (product.price_html) {
-        const rangeMatch = product.price_html.match(/<span class="woocommerce-Price-amount amount"><bdi>.*?([\d,.]+).*?<\/bdi><\/span>\s*–\s*<span class="woocommerce-Price-amount amount"><bdi>.*?([\d,.]+).*?<\/bdi><\/span>/);
-        if (rangeMatch?.[1] && rangeMatch?.[2]) return { min: rangeMatch[1].replace(',', '.'), max: rangeMatch[2].replace(',', '.') };
-        const singlePriceMatch = product.price_html.match(/<span class="woocommerce-Price-amount amount"><bdi>.*?([\d,.]+).*?<\/bdi><\/span>/);
-        if (singlePriceMatch?.[1]) { const priceVal = singlePriceMatch[1].replace(',', '.'); return { min: priceVal, max: priceVal }; }
-      }
-      return product.price ? { min: product.price, max: product.price } : null;
-    }
-    return null;
   }
 }

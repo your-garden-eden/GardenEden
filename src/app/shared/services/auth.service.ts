@@ -1,7 +1,7 @@
 // /src/app/shared/services/auth.service.ts
 
 import { Injectable, inject, signal, WritableSignal, PLATFORM_ID, OnDestroy, computed, Signal, Optional, Inject } from '@angular/core';
-import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders, HttpRequest, HttpHandler, HttpEvent } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, BehaviorSubject, throwError, of, Subscription, Subject } from 'rxjs';
 import { catchError, tap, map, switchMap, finalize } from 'rxjs/operators';
@@ -57,111 +57,108 @@ export class AuthService implements OnDestroy {
 
   private guestTokenRefreshedSource = new Subject<void>();
   public guestTokenRefreshed$ = this.guestTokenRefreshedSource.asObservable();
-
-  private initSubscription: Subscription | null = null;
   
-  // KORRIGIERT: Klassische und sichere Dependency Injection über Konstruktor-Parameter
   constructor(
     @Inject(PLATFORM_ID) private platformId: object,
     @Optional() @Inject('REQUEST') private request: Request | null
   ) {
     this.loadInitialStateFromStorage();
   }
-  
-  private loadInitialStateFromStorage(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      const user = this.loadUserFromLocalStorage();
-      if (user) {
-        this.currentWordPressUserSubject.next(user);
-      }
-      const guestToken = this.loadGuestTokenFromStorage();
-      if (guestToken) {
-        this.guestJwt.set(guestToken);
-      }
-    } else if (isPlatformServer(this.platformId) && this.request) {
-      console.log('[AuthService SSR] Lese Cookies vom Server Request.');
-      const guestTokenFromCookie = this.request.cookies['wordpress_guest_jwt_token'];
-      if (guestTokenFromCookie) {
-        console.log('[AuthService SSR] Gast-Token im Cookie gefunden.');
-        this.guestJwt.set(guestTokenFromCookie);
-      } else {
-        console.log('[AuthService SSR] Kein Gast-Token im Cookie gefunden.');
-      }
-    }
-  }
 
-  public initAuth(): Observable<any> {
-    if (this.initSubscription && !this.initSubscription.closed) {
-        return of(null);
-    }
+  ngOnDestroy(): void {
+    // ggf. Subscriptions hier beenden
+  }
+  
+  // ==================================================================================
+  // --- KORRIGIERTE, ROBUSTERE INITIALISIERUNGSLOGIK ---
+  // ==================================================================================
+  public initAuth(): Observable<boolean> {
+    console.log('[AuthService.init] Starting Auth Initialization for APP_INITIALIZER...');
     this.isLoading.set(true);
-    return this.validateUserToken().pipe(
-      switchMap((userIsValid) => {
-        if (userIsValid) {
-          console.log('[AuthService.init] Gültiger Benutzer-Token. Session wird fortgesetzt.');
-          return of(true);
-        }
-        const guestToken = this.guestJwt();
-        if (guestToken && !this.isTokenExpired(guestToken)) {
-          console.log('[AuthService.init] Gültiger Gast-Token. Session wird fortgesetzt.');
-          return of(true);
-        }
-        console.log('[AuthService.init] Kein gültiger Token gefunden. Fordere neuen Gast-Token an.');
-        return this.fetchAndStoreGuestToken().pipe(
-            map(token => !!token)
+
+    const currentUser = this.getCurrentUserValue();
+    if (currentUser && !this.isTokenExpired(currentUser.jwt)) {
+        console.log('[AuthService.init] Found potentially valid user session. Validating with server...');
+        return this.validateToken(currentUser.jwt).pipe(
+            switchMap(isValid => {
+                if (isValid) {
+                    console.log('[AuthService.init] User token is valid. Initialization successful.');
+                    return of(true);
+                }
+                console.warn('[AuthService.init] User token is invalid on server. Clearing data and fetching guest token.');
+                this.clearLocalUserData();
+                return this.ensureGuestTokenIsPresent();
+            }),
+            finalize(() => this.isLoading.set(false))
         );
-      }),
-      catchError(err => {
-        console.error('[AuthService.init] Kritischer Fehler während der Initialisierung.', err);
-        this.authError.set('Sitzung konnte nicht initialisiert werden.');
-        return of(false);
-      }),
-      finalize(() => {
-        this.isLoading.set(false);
-      })
+    }
+
+    return this.ensureGuestTokenIsPresent().pipe(
+        finalize(() => this.isLoading.set(false))
     );
   }
 
-  ngOnDestroy(): void {
-    this.initSubscription?.unsubscribe();
+  private ensureGuestTokenIsPresent(): Observable<boolean> {
+    const guestToken = this.guestJwt();
+    if (guestToken && !this.isTokenExpired(guestToken)) {
+        console.log('[AuthService.init] Found valid guest token. Initialization successful.');
+        return of(true);
+    }
+
+    console.log('[AuthService.init] No valid token found. Fetching new guest token...');
+    return this.fetchAndStoreGuestToken().pipe(
+        map(token => {
+            const success = !!token;
+            if (success) {
+                console.log('[AuthService.init] New guest token fetched. Initialization successful.');
+            } else {
+                console.error('[AuthService.init] FAILED to fetch guest token. App might not work correctly.');
+            }
+            return success;
+        }),
+        catchError(err => {
+            console.error('[AuthService.init] CRITICAL error while fetching guest token.', err);
+            this.authError.set('Sitzung konnte nicht initialisiert werden.');
+            return of(false);
+        })
+    );
+  }
+  // ==================================================================================
+  // --- ENDE DER NEUEN LOGIK ---
+  // ==================================================================================
+
+  private loadInitialStateFromStorage(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      const user = this.loadUserFromLocalStorage();
+      if (user) this.currentWordPressUserSubject.next(user);
+      const guestToken = this.loadGuestTokenFromStorage();
+      if (guestToken) this.guestJwt.set(guestToken);
+    } else if (isPlatformServer(this.platformId) && this.request) {
+      const guestTokenFromCookie = this.request.cookies['wordpress_guest_jwt_token'];
+      if (guestTokenFromCookie) this.guestJwt.set(guestTokenFromCookie);
+    }
   }
 
   private isTokenExpired(token: string): boolean {
-    if (!token || token.split('.').length < 2) {
-        return true;
-    }
+    if (!token || token.split('.').length < 2) return true;
     const payload = this.decodeJwtPayload(token);
-    if (!payload || !payload.exp) {
-      return true;
-    }
+    if (!payload || !payload.exp) return true;
     const expiryDate = new Date(0);
     expiryDate.setUTCSeconds(payload.exp);
-    const now = new Date();
-    return expiryDate.valueOf() < (now.valueOf() + 5000);
+    return expiryDate.valueOf() <= Date.now();
   }
   
   private validateUserToken(): Observable<boolean> {
     const currentUser = this.getCurrentUserValue();
-    if (!currentUser || !currentUser.jwt) {
-      return of(false);
-    }
+    if (!currentUser || !currentUser.jwt) return of(false);
     if (this.isTokenExpired(currentUser.jwt)) {
-        console.warn('[AuthService] Abgelaufener Benutzer-Token bei Validierung gefunden. Daten werden gelöscht.');
         this.clearLocalUserData();
         return of(false);
     }
     this.isLoading.set(true);
     return this.validateToken(currentUser.jwt).pipe(
-      tap(isValid => {
-        if (!isValid) {
-          console.warn('[AuthService] Benutzer-Token ist serverseitig ungültig. Daten werden gelöscht.');
-          this.clearLocalUserData();
-        }
-      }),
-      catchError(() => {
-        this.clearLocalUserData();
-        return of(false);
-      }),
+      tap(isValid => { if (!isValid) this.clearLocalUserData(); }),
+      catchError(() => { this.clearLocalUserData(); return of(false); }),
       finalize(() => this.isLoading.set(false))
     );
   }
@@ -173,7 +170,6 @@ export class AuthService implements OnDestroy {
       const userJson = localStorage.getItem(this.wpUserKey);
       if (token && userJson) {
         if (this.isTokenExpired(token)) {
-            console.warn('[AuthService] Abgelaufener Benutzer-Token im Speicher gefunden. Daten werden gelöscht.');
             this.clearLocalUserData();
             return null;
         }
@@ -182,7 +178,6 @@ export class AuthService implements OnDestroy {
         return user;
       }
     } catch (e) { 
-        console.error('[AuthService] Fehler beim Parsen der Benutzerdaten aus localStorage.', e);
         this.clearLocalUserData(); 
     }
     return null;
@@ -192,14 +187,9 @@ export class AuthService implements OnDestroy {
     if (!isPlatformBrowser(this.platformId)) return null;
     try {
         const token = localStorage.getItem(this.wpGuestTokenKey);
-        if (token && !this.isTokenExpired(token)) {
-            return token;
-        }
-        if (token) {
-            localStorage.removeItem(this.wpGuestTokenKey);
-        }
+        if (token && !this.isTokenExpired(token)) return token;
+        if (token) localStorage.removeItem(this.wpGuestTokenKey);
     } catch (e) {
-        console.error('[AuthService] Fehler beim Lesen des Gast-Tokens aus localStorage.', e);
         localStorage.removeItem(this.wpGuestTokenKey);
     }
     return null;
@@ -218,7 +208,6 @@ export class AuthService implements OnDestroy {
         localStorage.removeItem(this.wpGuestTokenKey);
         this.guestJwt.set(null);
       } catch (e) {
-          console.error("Fehler beim Speichern der Auth-Daten im localStorage.", e);
           this.authError.set("Sitzung konnte nicht gespeichert werden. Ist der Speicher voll?");
       }
     }
@@ -249,31 +238,21 @@ export class AuthService implements OnDestroy {
   }
 
   private fetchAndStoreGuestToken(): Observable<string | null> {
-    if (this.getCurrentUserValue()) {
-      return of(null);
-    }
-    console.log('[AuthService] Fordere neuen Gast-Token an...');
+    if (this.getCurrentUserValue()) return of(null);
     this.isLoading.set(true);
     return this.http.get<GuestTokenResponse>(this.guestTokenUrl).pipe(
       map(response => {
         if (response && response.token) {
           if (isPlatformBrowser(this.platformId)) {
-            try {
-                localStorage.setItem(this.wpGuestTokenKey, response.token);
-            } catch (e) {
-                console.error("Fehler beim Speichern des Gast-Tokens im localStorage.", e);
-                this.authError.set("Gast-Sitzung konnte nicht gespeichert werden.");
-            }
+            localStorage.setItem(this.wpGuestTokenKey, response.token);
           }
           this.guestJwt.set(response.token);
-          console.log('[AuthService] Neuer Gast-Token erhalten und gespeichert. Sende Benachrichtigung...');
           this.guestTokenRefreshedSource.next();
           return response.token;
         }
         return null;
       }),
       catchError(err => {
-        console.error('Fehler beim Abrufen des Gast-Tokens:', err);
         this.authError.set('Keine Gast-Sitzung möglich.');
         return of(null);
       }),
@@ -283,40 +262,27 @@ export class AuthService implements OnDestroy {
 
   private decodeJwtPayload(token: string): any | null {
     if (isPlatformServer(this.platformId)) {
-        // Auf dem Server verwenden wir Buffer für eine robustere Base64-Dekodierung
         try {
             const payloadBase64 = token.split('.')[1];
             if (!payloadBase64) return null;
             return JSON.parse(Buffer.from(payloadBase64, 'base64').toString('utf8'));
-        } catch (e) {
-            console.error('Fehler beim Dekodieren des JWT auf dem Server', e);
-            return null;
-        }
+        } catch (e) { return null; }
     }
-    // Browser-Logik mit atob
     try {
       const payloadBase64 = token.split('.')[1];
       if (!payloadBase64) return null;
       return JSON.parse(atob(payloadBase64));
-    } catch (e) {
-      console.error('Fehler beim Dekodieren des JWT im Browser', e);
-      return null;
-    }
+    } catch (e) { return null; }
   }
 
   login(credentials: { emailOrUsername: string; password: string }): Observable<WordPressUser> {
     this.isLoading.set(true);
     this.authError.set(null);
-    const payload = {
-      username: credentials.emailOrUsername,
-      password: credentials.password
-    };
+    const payload = { username: credentials.emailOrUsername, password: credentials.password };
     return this.http.post<JwtLoginResponse>(this.loginUrl, payload).pipe(
       map(response => {
         const decodedPayload = this.decodeJwtPayload(response.token);
-        if (!decodedPayload?.data?.user?.id) {
-          throw new Error('Ungültiger Token vom Server erhalten.');
-        }
+        if (!decodedPayload?.data?.user?.id) throw new Error('Ungültiger Token vom Server erhalten.');
         const user: WordPressUser = {
           jwt: response.token,
           email: response.user_email,
@@ -350,12 +316,8 @@ export class AuthService implements OnDestroy {
   }
   
   validateToken(token: string): Observable<boolean> {
-    if (!token) {
-      return of(false);
-    }
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`
-    });
+    if (!token) return of(false);
+    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
     return this.http.post<JwtValidateResponse>(this.validateTokenUrl, {}, { headers }).pipe(
       map(response => response.code === 'jwt_auth_valid_token'),
       catchError(() => of(false))
@@ -366,15 +328,30 @@ export class AuthService implements OnDestroy {
     this.isLoading.set(true);
     const wasLoggedIn = !!this.getCurrentUserValue();
     this.clearLocalUserData();
-    if (wasLoggedIn) {
-        this.setSuccessMessage('Du wurdest erfolgreich abgemeldet.');
-    }
+    if (wasLoggedIn) this.setSuccessMessage('Du wurdest erfolgreich abgemeldet.');
+    // Nach dem Logout neu initialisieren, um einen Gast-Token zu bekommen
     return this.initAuth().pipe(
         finalize(() => {
             this.router.navigate(['/']);
             this.isLoading.set(false);
         }),
         map(() => undefined)
+    );
+  }
+
+  public handleInvalidTokenAndRetry(failedRequest: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    console.warn('[AuthService] Serverseitig ungültiger Token erkannt. Starte Self-Healing-Prozess.');
+    if (this.getCurrentUserValue()) this.clearLocalUserData();
+
+    return this.fetchAndStoreGuestToken().pipe(
+      switchMap(newToken => {
+        if (newToken) {
+          console.log('[AuthService] Self-Healing: Neuer Gast-Token erhalten. Wiederhole ursprüngliche Anfrage.');
+          const newAuthReq = failedRequest.clone({ setHeaders: { Authorization: `Bearer ${newToken}` } });
+          return next.handle(newAuthReq);
+        }
+        return throwError(() => new Error('Konnte die Sitzung nach einem ungültigen Token nicht wiederherstellen.'));
+      })
     );
   }
 

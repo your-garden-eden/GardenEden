@@ -2,6 +2,8 @@
 import { Injectable, inject } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import { Meta } from '@angular/platform-browser';
+import { TranslocoService } from '@ngneat/transloco';
+import { environment } from '../../../environments/environment';
 
 /**
  * Definiert die Struktur für Daten, die zur Erstellung von
@@ -23,6 +25,7 @@ export interface SocialTags {
 export class SeoService {
   private readonly document = inject(DOCUMENT);
   private readonly meta = inject(Meta);
+  private readonly transloco = inject(TranslocoService); // HINZUGEFÜGT
 
   /**
    * Aktualisiert den Canonical-Link-Tag im <head> des Dokuments.
@@ -105,5 +108,41 @@ export class SeoService {
     }
 
     return `${productName} - ${siteName}`;
+  }
+
+  /**
+   * Erstellt oder aktualisiert hreflang-Tags für alle verfügbaren Sprachen.
+   * @param pathWithoutLang Der sprachneutrale Pfad der aktuellen Seite (z.B. /product/mein-produkt)
+   */
+  public updateHreflangTags(pathWithoutLang: string): void {
+    const availableLangs = this.transloco.getAvailableLangs() as string[];
+    const defaultLang = this.transloco.getDefaultLang();
+    const baseUrl = environment.baseUrl;
+
+    // 1. Bestehende hreflang-Tags entfernen, um Duplikate bei Navigation zu vermeiden
+    const existingTags: NodeListOf<HTMLLinkElement> = this.document.head.querySelectorAll('link[rel="alternate"]');
+    existingTags.forEach(tag => {
+      if (tag.hasAttribute('hreflang')) {
+        this.document.head.removeChild(tag);
+      }
+    });
+
+    // 2. Neue hreflang-Tags für jede Sprache erstellen
+    availableLangs.forEach(lang => {
+      const url = `${baseUrl}/${lang}${pathWithoutLang === '/' ? '' : pathWithoutLang}`;
+      this.createLinkTag({ rel: 'alternate', hreflang: lang, href: url });
+    });
+
+    // 3. Einen "x-default"-Tag erstellen, der auf die Standardsprache verweist
+    const defaultUrl = `${baseUrl}/${defaultLang}${pathWithoutLang === '/' ? '' : pathWithoutLang}`;
+    this.createLinkTag({ rel: 'alternate', hreflang: 'x-default', href: defaultUrl });
+  }
+
+  private createLinkTag(attributes: { [key: string]: string }): void {
+    const link = this.document.createElement('link');
+    Object.keys(attributes).forEach(key => {
+      link.setAttribute(key, attributes[key]);
+    });
+    this.document.head.appendChild(link);
   }
 }

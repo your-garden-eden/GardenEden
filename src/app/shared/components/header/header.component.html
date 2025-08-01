@@ -210,7 +210,30 @@
             <div class="search-error">{{ searchStateService.error() }}</div>
         } @else if(searchStateService.searchTerm().length < 3) {
             <div class="search-prompt">{{ 'general.searchPrompt' | transloco }}</div>
-        } @else if (searchStateService.searchResults().length > 0 || filterStateService.activeFilterCount() > 0) {
+        } @else {
+            <!-- HINZUGEFÜGT: Block für Kategorie-Ergebnisse -->
+            @if(searchStateService.matchingCategories().length > 0) {
+              <div class="category-results-list">
+                <h4 class="search-section-title">{{ 'header.matchingCategories' | transloco }}</h4>
+                <ul>
+                  @for(category of searchStateService.matchingCategories(); track category.link) {
+                    <li>
+                      <a [routerLink]="category.link" (click)="closeAllOverlays()" class="category-result-item">
+                        <!-- HINZUGEFÜGT: Logik zur Icon-Anzeige -->
+                        @if(getCategoryIconPath(category); as iconPath) {
+                          <img [src]="iconPath" [alt]="category.i18nId | transloco" class="category-result-icon" width="24" height="24">
+                        } @else {
+                          <span class="material-symbols-outlined category-result-icon">category</span>
+                        }
+                        <span class="category-result-title">{{ category.i18nId | transloco }}</span>
+                      </a>
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
+
+            <!-- Block für Produkt-Ergebnisse -->
             @if (searchStateService.searchResults().length > 0) {
               <ul>
                 @for(product of searchStateService.searchResults(); track product.id) {
@@ -233,11 +256,9 @@
                    </li>
                 }
               </ul>
-            } @else {
+            } @else if (searchStateService.matchingCategories().length === 0) {
                <div class="search-no-results">{{ 'header.searchNoResults' | transloco : { term: searchControl.value } }}</div>
             }
-        } @else {
-            <div class="search-no-results">{{ 'header.searchNoResults' | transloco : { term: searchControl.value } }}</div>
         }
       </div>
     </div>

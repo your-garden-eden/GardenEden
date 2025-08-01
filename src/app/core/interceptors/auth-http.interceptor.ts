@@ -1,29 +1,25 @@
-// /src/app/core/interceptors/auth-http.interceptor.ts
+// In src/app/core/interceptors/auth-http.interceptor.ts
 
 import { Injectable, inject } from '@angular/core';
-import { HttpEvent, HttpInterceptor, HttpHandler, HttpRequest } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpEvent, HttpInterceptor, HttpHandler, HttpRequest, HttpErrorResponse } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { catchError, switchMap } from 'rxjs/operators'; // WICHTIG: Imports hinzufügen
 import { AuthService } from '../../shared/services/auth.service';
 import { environment } from '../../../environments/environment';
 
 @Injectable()
 export class AuthHttpInterceptor implements HttpInterceptor {
   private authService = inject(AuthService);
-  // Die Basis-URL deiner API, an die der Token gesendet werden soll
   private apiUrl = environment.woocommerce.apiUrl.split('/wc/v3/')[0];
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const activeToken = this.authService.activeJwt();
 
-    // Füge den Header nur hinzu, wenn die Anfrage an deine API geht und ein Token existiert
     if (activeToken && req.url.startsWith(this.apiUrl)) {
-      // Bestimmte Endpunkte, die explizit keinen Token benötigen (z.B. Login selbst)
       const excludedEndpoints = [
         '/jwt-auth/v1/token',
         '/your-garden-eden/v1/guest-token'
       ];
-
-      // Prüfen, ob die URL einen der ausgeschlossenen Pfade enthält
       const isExcluded = excludedEndpoints.some(endpoint => req.url.includes(endpoint));
 
       if (!isExcluded) {
@@ -32,11 +28,30 @@ export class AuthHttpInterceptor implements HttpInterceptor {
             Authorization: `Bearer ${activeToken}`
           }
         });
-        return next.handle(authReq);
+        // ERWEITERUNG: Fehlerbehandlung hinzufügen
+        return this.handleRequest(authReq, next);
       }
     }
 
-    // Für alle anderen Anfragen die Originalanfrage weiterleiten
     return next.handle(req);
+  }
+
+  // NEUE HELPER-METHODE FÜR FEHLERBEHANDLUNG
+  private handleRequest(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    return next.handle(req).pipe(
+      catchError((error: HttpErrorResponse) => {
+        // Prüfen, ob es sich um den spezifischen "Ungültige Signatur"-Fehler handelt
+        const isInvalidTokenError = error.status === 403 && 
+                                    error.error?.code?.includes('jwt_auth_invalid_token');
+
+        if (isInvalidTokenError) {
+          // Wenn ja, starte den Self-Healing-Prozess
+          return this.authService.handleInvalidTokenAndRetry(req, next);
+        }
+
+        // Für alle anderen Fehler, den Fehler einfach weiterwerfen
+        return throwError(() => error);
+      })
+    );
   }
 }
