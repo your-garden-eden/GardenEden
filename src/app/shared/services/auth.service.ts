@@ -57,6 +57,9 @@ export class AuthService implements OnDestroy {
 
   private guestTokenRefreshedSource = new Subject<void>();
   public guestTokenRefreshed$ = this.guestTokenRefreshedSource.asObservable();
+
+  // Observable to hold the in-flight guest token request.
+  private guestTokenRequest$: Observable<string | null> | null = null;
   
   constructor(
     @Inject(PLATFORM_ID) private platformId: object,
@@ -235,12 +238,25 @@ export class AuthService implements OnDestroy {
         this.currentWordPressUserSubject.next(null);
     }
     this.authError.set(null);
+    // When user data is cleared, any in-flight guest token request is now invalid.
+    this.guestTokenRequest$ = null;
   }
 
   private fetchAndStoreGuestToken(): Observable<string | null> {
-    if (this.getCurrentUserValue()) return of(null);
+    if (this.getCurrentUserValue()) {
+      // If a user is logged in, we don't need a guest token.
+      return of(null);
+    }
+
+    // If a request is already in-flight, return it.
+    if (this.guestTokenRequest$) {
+      return this.guestTokenRequest$;
+    }
+
     this.isLoading.set(true);
-    return this.http.get<GuestTokenResponse>(this.guestTokenUrl).pipe(
+
+    // Create the new request and share it.
+    this.guestTokenRequest$ = this.http.get<GuestTokenResponse>(this.guestTokenUrl).pipe(
       map(response => {
         if (response && response.token) {
           if (isPlatformBrowser(this.platformId)) {
@@ -254,10 +270,20 @@ export class AuthService implements OnDestroy {
       }),
       catchError(err => {
         this.authError.set('Keine Gast-Sitzung möglich.');
+        // On error, clear the request observable so the next attempt can trigger a new call.
+        this.guestTokenRequest$ = null;
         return of(null);
       }),
-      finalize(() => this.isLoading.set(false))
+      finalize(() => {
+        this.isLoading.set(false);
+      }),
+      // This is the key: it shares the result of the single HTTP call with all concurrent subscribers.
+      // It caches the last emitted value for future subscribers.
+      // refCount: true means the observable completes when all subscribers unsubscribe.
+      shareReplay({ bufferSize: 1, refCount: true })
     );
+
+    return this.guestTokenRequest$;
   }
 
   private decodeJwtPayload(token: string): any | null {
@@ -327,7 +353,7 @@ export class AuthService implements OnDestroy {
   logout(): Observable<void> {
     this.isLoading.set(true);
     const wasLoggedIn = !!this.getCurrentUserValue();
-    this.clearLocalUserData();
+    this.clearLocalUserData(); // This will also nullify guestTokenRequest$
     if (wasLoggedIn) this.setSuccessMessage('Du wurdest erfolgreich abgemeldet.');
     // Nach dem Logout neu initialisieren, um einen Gast-Token zu bekommen
     return this.initAuth().pipe(
@@ -341,15 +367,23 @@ export class AuthService implements OnDestroy {
 
   public handleInvalidTokenAndRetry(failedRequest: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     console.warn('[AuthService] Serverseitig ungültiger Token erkannt. Starte Self-Healing-Prozess.');
-    if (this.getCurrentUserValue()) this.clearLocalUserData();
+
+    // Nullify the old, failed request observable to ensure a new one is created.
+    this.guestTokenRequest$ = null;
+    if (this.getCurrentUserValue()) {
+      this.clearLocalUserData();
+    }
 
     return this.fetchAndStoreGuestToken().pipe(
       switchMap(newToken => {
         if (newToken) {
           console.log('[AuthService] Self-Healing: Neuer Gast-Token erhalten. Wiederhole ursprüngliche Anfrage.');
-          const newAuthReq = failedRequest.clone({ setHeaders: { Authorization: `Bearer ${newToken}` } });
+          const newAuthReq = failedRequest.clone({
+            setHeaders: { Authorization: `Bearer ${newToken}` }
+          });
           return next.handle(newAuthReq);
         }
+        console.error('[AuthService] Self-Healing fehlgeschlagen: Konnte keinen neuen Gast-Token beziehen.');
         return throwError(() => new Error('Konnte die Sitzung nach einem ungültigen Token nicht wiederherstellen.'));
       })
     );
