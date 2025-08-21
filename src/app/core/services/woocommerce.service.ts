@@ -51,19 +51,21 @@ export class WoocommerceService implements OnDestroy {
   private _storeApiNonce: string | null = null;
   private _cartToken: string | null = null;
   private readonly CART_TOKEN_STORAGE_KEY = 'wc_cart_token';
-  private tokenPromise: Promise<{ cartToken: string | null, nonce: string | null }> | null = null;
+
+  // Shared observable for in-flight WC token requests.
+  private wcTokenRequest$: Observable<{ cartToken: string | null, nonce: string | null }> | null = null;
 
   private guestTokenRefreshedSub: Subscription | null = null;
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
       this._cartToken = localStorage.getItem(this.CART_TOKEN_STORAGE_KEY);
-      this.initializeTokens();
+      // No eager initialization. Tokens will be fetched lazily when first needed.
       
       this.guestTokenRefreshedSub = this.authService.guestTokenRefreshed$.subscribe(() => {
-        console.log('[WC_SERVICE] Gast-Token wurde erneuert. Lösche alte Store-Tokens und initialisiere neu.');
+        console.log('[WC_SERVICE] Guest token was refreshed. Clearing old WC store tokens.');
         this.clearLocalCartToken();
-        this.initializeTokens();
+        // No need to re-initialize here. The next call that requires tokens will trigger the fetch.
       });
     }
   }
@@ -114,41 +116,51 @@ export class WoocommerceService implements OnDestroy {
     }
   }
 
-  private async fetchAndSetTokensAsync(): Promise<{ cartToken: string | null, nonce: string | null }> {
-    if (!isPlatformBrowser(this.platformId)) { return { cartToken: null, nonce: null }; }
+  private ensureTokensPresent$(): Observable<{ cartToken: string | null, nonce: string | null }> {
+    if (!isPlatformBrowser(this.platformId)) {
+      return throwError(() => new Error('Token operations are not supported on non-browser platforms.'));
+    }
+
+    // If a token request is already in flight, return it.
+    if (this.wcTokenRequest$) {
+      return this.wcTokenRequest$;
+    }
+
+    // If tokens are already present and valid, return them as an observable.
+    if (this._cartToken && this._storeApiNonce) {
+      return of({ cartToken: this._cartToken, nonce: this._storeApiNonce });
+    }
+
+    // Otherwise, create a new token request.
     const requestUrl = `${this.storeApiUrl}/cart`;
     const initialHeaders = this.getStoreApiHeaders();
-    try {
-      const response = await firstValueFrom(this.http.get<WooCommerceStoreCart>(requestUrl, { headers: initialHeaders, observe: 'response', withCredentials: true }));
-      this.updateTokensFromResponse(response, `GET ${requestUrl} (initial token fetch)`);
-      return { cartToken: this._cartToken, nonce: this._storeApiNonce };
-    } catch (err: any) {
-      console.warn(`[WC_SERVICE] fetchAndSetTokensAsync: Error during GET ${requestUrl}. Status: ${err.status}`, err);
-      if (err.status === 403 || err.status === 401 || (err.error?.code && (err.error.code.includes('cart_token_invalid') || err.error.code.includes('nonce_invalid')) )) {
-          this.clearLocalCartToken();
-      }
-      if (err.headers) { this.updateTokensFromResponse(err as HttpResponse<any>, `ERROR ${requestUrl} (initial token fetch)`); }
-      return { cartToken: this._cartToken, nonce: this._storeApiNonce };
-    }
-  }
 
-  private initializeTokens(): void {
-    if (!isPlatformBrowser(this.platformId) || this.tokenPromise) { return; }
-    if (!this._cartToken || !this._storeApiNonce) {
-        this.tokenPromise = this.fetchAndSetTokensAsync().finally(() => { this.tokenPromise = null; });
-    }
-  }
+    this.wcTokenRequest$ = this.http.get<WooCommerceStoreCart>(requestUrl, { headers: initialHeaders, observe: 'response', withCredentials: true }).pipe(
+      tap(response => {
+        this.updateTokensFromResponse(response, `GET ${requestUrl} (initial token fetch)`);
+      }),
+      map(() => ({ cartToken: this._cartToken, nonce: this._storeApiNonce })),
+      catchError((err: any) => {
+        console.warn(`[WC_SERVICE] ensureTokensPresent$: Error during GET ${requestUrl}. Status: ${err.status}`, err);
+        if (err.status === 403 || err.status === 401 || (err.error?.code && (err.error.code.includes('cart_token_invalid') || err.error.code.includes('nonce_invalid')))) {
+          this.clearLocalCartToken(); // This will also nullify wcTokenRequest$
+        } else {
+          // On other errors, just nullify the request to allow retries.
+          this.wcTokenRequest$ = null;
+        }
 
-  public async ensureTokensPresent(): Promise<{ cartToken: string | null, nonce: string | null }> {
-    if (!isPlatformBrowser(this.platformId)) { throw new Error('Token operations are not supported on non-browser platform.');}
-    if (this.tokenPromise) {
-        return this.tokenPromise;
-    }
-    if (!this._cartToken || !this._storeApiNonce) {
-        this.tokenPromise = this.fetchAndSetTokensAsync();
-        try { return await this.tokenPromise; } finally { this.tokenPromise = null; }
-    }
-    return { cartToken: this._cartToken, nonce: this._storeApiNonce };
+        // Still update tokens from error response headers if they exist
+        if (err.headers) {
+          this.updateTokensFromResponse(err as HttpResponse<any>, `ERROR ${requestUrl} (token fetch)`);
+        }
+
+        // Propagate a non-fatal value to allow call chains to continue gracefully if needed
+        return of({ cartToken: this._cartToken, nonce: this._storeApiNonce });
+      }),
+      shareReplay({ bufferSize: 1, refCount: true })
+    );
+
+    return this.wcTokenRequest$;
   }
 
   private buildProxyUrl(endpoint: string): string {
@@ -236,8 +248,8 @@ export class WoocommerceService implements OnDestroy {
   public getWcCart(): Observable<WooCommerceStoreCart | null> {
     if (!isPlatformBrowser(this.platformId)) { return of(null); }
     const requestUrl = `${this.storeApiUrl}/cart`;
-    return from(this.ensureTokensPresent()).pipe(
-      switchMap((tokens) => {
+    return this.ensureTokensPresent$().pipe(
+      switchMap(() => {
         const headers = this.getStoreApiHeaders();
         return this.http.get<WooCommerceStoreCart>(requestUrl, { headers, observe: 'response', withCredentials: true });
       }),
@@ -253,8 +265,8 @@ export class WoocommerceService implements OnDestroy {
 
   public addItemToWcCart(productId: number, quantity: number, variationAttributes?: WooCommerceProductVariationAttribute[], variationId?: number): Observable<WooCommerceStoreCart | null> {
     if (!isPlatformBrowser(this.platformId)) return throwError(() => new Error('Cart operations are not supported on non-browser platform.'));
-    return from(this.ensureTokensPresent()).pipe(
-      switchMap(tokens => {
+    return this.ensureTokensPresent$().pipe(
+      switchMap(() => {
         const headers = this.getStoreApiHeaders(); 
         const requestUrl = `${this.storeApiUrl}/cart/add-item`;
         let body: any = { quantity };
@@ -271,8 +283,8 @@ export class WoocommerceService implements OnDestroy {
 
   public updateWcCartItemQuantity(itemKey: string, quantity: number): Observable<WooCommerceStoreCart | null> {
     if (!isPlatformBrowser(this.platformId)) return throwError(() => new Error('Cart operations are not supported on non-browser platform.'));
-    return from(this.ensureTokensPresent()).pipe(
-      switchMap(tokens => {
+    return this.ensureTokensPresent$().pipe(
+      switchMap(() => {
         const headers = this.getStoreApiHeaders(); const body = { key: itemKey, quantity };
         return this.http.post<WooCommerceStoreCart>(`${this.storeApiUrl}/cart/update-item`, body, { headers, observe: 'response', withCredentials: true });
       }),
@@ -284,8 +296,8 @@ export class WoocommerceService implements OnDestroy {
 
   public removeWcCartItem(itemKey: string): Observable<WooCommerceStoreCart | null> {
     if (!isPlatformBrowser(this.platformId)) return throwError(() => new Error('Cart operations are not supported on non-browser platform.'));
-    return from(this.ensureTokensPresent()).pipe(
-      switchMap(tokens => {
+    return this.ensureTokensPresent$().pipe(
+      switchMap(() => {
         const headers = this.getStoreApiHeaders(); const body = { key: itemKey };
         return this.http.post<WooCommerceStoreCart>(`${this.storeApiUrl}/cart/remove-item`, body, { headers, observe: 'response', withCredentials: true });
       }),
@@ -297,8 +309,8 @@ export class WoocommerceService implements OnDestroy {
   
   public clearWcCart(): Observable<WooCommerceStoreCart | null> {
     if (!isPlatformBrowser(this.platformId)) return throwError(() => new Error('Cart operations are not supported on non-browser platform.'));
-    return from(this.ensureTokensPresent()).pipe(
-      switchMap(tokens => {
+    return this.ensureTokensPresent$().pipe(
+      switchMap(() => {
         const headers = this.getStoreApiHeaders(); 
         const requestUrl = `${this.storeApiUrl}/cart/items`;
         return this.http.delete<WooCommerceStoreCart>(requestUrl, { headers, observe: 'response', withCredentials: true });
@@ -313,7 +325,7 @@ export class WoocommerceService implements OnDestroy {
 
   public updateWcCustomer(customerData: { billing_address: Partial<WooCommerceStoreAddress>, shipping_address?: Partial<WooCommerceStoreAddress> }): Observable<WooCommerceStoreCart | null> {
     if (!isPlatformBrowser(this.platformId)) return throwError(() => new Error('Cart operations are not supported on non-browser platform.'));
-    return from(this.ensureTokensPresent()).pipe(
+    return this.ensureTokensPresent$().pipe(
         switchMap(tokens => {
             if (!tokens.cartToken && !tokens.nonce) return throwError(() => new Error('Auth token missing for updateWcCustomer.'));
             const headers = this.getStoreApiHeaders(); const requestUrl = `${this.storeApiUrl}/cart/update-customer`;
@@ -359,6 +371,8 @@ export class WoocommerceService implements OnDestroy {
         localStorage.removeItem(this.CART_TOKEN_STORAGE_KEY);
         this._cartToken = null;
         this._storeApiNonce = null;
+        // Also clear the in-flight request observable.
+        this.wcTokenRequest$ = null;
     }
   }
 
