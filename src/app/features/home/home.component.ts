@@ -137,20 +137,21 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
           products = this.filterProductsByStockStatus(products);
           return products.slice(0, this.DISPLAY_BESTSELLER_COUNT);
         }),
-        catchError(err => {
-          console.error('HomeComponent: Bestseller Fehler:', err);
-          this.errorBestsellers.set(
-            this.translocoService.translate('home.errorLoadingBestsellers')
-          );
-          return of([]);
-        }),
         finalize(() => {
           this.isLoadingBestsellers.set(false);
           this.cdr.markForCheck();
         })
       )
-      .subscribe(verifiedProducts => {
-        this.bestsellerProducts.set(verifiedProducts);
+      .subscribe({
+        next: verifiedProducts => {
+          this.bestsellerProducts.set(verifiedProducts);
+        },
+        error: err => {
+          console.error('HomeComponent: Bestseller Fehler:', err);
+          this.errorBestsellers.set(
+            this.translocoService.translate('home.errorLoadingBestsellers')
+          );
+        }
       });
     
     this.subscriptions.add(bestsellerSub);

@@ -34,7 +34,9 @@ export const productResolver: ResolveFn<WooCommerceProduct | null | UrlTree> = (
         `ProductResolver: Fehler beim Abrufen des Produkts mit Slug "${productSlug}".`,
         error
       );
-      return of(null); // Im Fehlerfall null zurückgeben
+      // Let the interceptor handle auth errors. For other errors, navigate away.
+      // The interceptor will retry, and if it fails again, this will trigger.
+      return of(router.createUrlTree(['/']));
     })
   );
 };
