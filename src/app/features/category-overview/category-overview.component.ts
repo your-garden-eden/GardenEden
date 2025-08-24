@@ -147,8 +147,7 @@ export class CategoryOverviewComponent implements OnInit {
         if (validIds.length === 0) return of([]);
         const productObservables = validIds.map(id =>
           this.woocommerceService.getProducts(id, this.FETCH_PRODUCTS_PER_SUBCATEGORY, 1).pipe(
-            map(res => this.filterProductsByStockStatus(this.filterProductsWithNoImageArray(res.products))),
-            catchError(() => of([] as WooCommerceProduct[]))
+            map(res => this.filterProductsByStockStatus(this.filterProductsWithNoImageArray(res.products)))
           )
         );
         return forkJoin(productObservables);
