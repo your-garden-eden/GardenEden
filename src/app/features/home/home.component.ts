@@ -150,8 +150,16 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
           this.cdr.markForCheck();
         })
       )
-      .subscribe(verifiedProducts => {
-        this.bestsellerProducts.set(verifiedProducts);
+      .subscribe({
+        next: verifiedProducts => {
+          this.bestsellerProducts.set(verifiedProducts);
+        },
+        error: err => {
+          console.error('HomeComponent: Bestseller Fehler:', err);
+          this.errorBestsellers.set(
+            this.translocoService.translate('home.errorLoadingBestsellers')
+          );
+        }
       });
     
     this.subscriptions.add(bestsellerSub);
