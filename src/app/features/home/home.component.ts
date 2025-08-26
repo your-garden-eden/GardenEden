@@ -16,7 +16,7 @@ import {
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Title, Meta } from '@angular/platform-browser';
 import { TranslocoService, TranslocoModule } from '@ngneat/transloco';
-import { Subscription, of } from 'rxjs';
+import { Subscription, of, throwError } from 'rxjs';
 import { catchError, finalize, take, map } from 'rxjs/operators';
 import { RouterModule } from '@angular/router';
 import { HttpParams } from '@angular/common/http';
@@ -136,6 +136,14 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
           let products = this.filterProductsWithNoImageArray(response.products);
           products = this.filterProductsByStockStatus(products);
           return products.slice(0, this.DISPLAY_BESTSELLER_COUNT);
+        }),
+        catchError(err => {
+          console.error('HomeComponent: Bestseller Fehler:', err);
+          this.errorBestsellers.set(
+            this.translocoService.translate('home.errorLoadingBestsellers')
+          );
+          // Wir werfen den Fehler weiter, damit der Interceptor ihn fangen kann
+          return throwError(() => err);
         }),
         finalize(() => {
           this.isLoadingBestsellers.set(false);
