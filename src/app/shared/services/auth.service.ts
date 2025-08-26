@@ -4,7 +4,7 @@ import { Injectable, inject, signal, WritableSignal, PLATFORM_ID, OnDestroy, com
 import { HttpClient, HttpErrorResponse, HttpHeaders, HttpRequest, HttpHandler, HttpEvent } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, BehaviorSubject, throwError, of, Subscription, Subject } from 'rxjs';
-import { catchError, tap, map, switchMap, finalize } from 'rxjs/operators';
+import { catchError, tap, map, switchMap, finalize, shareReplay } from 'rxjs/operators';
 import { isPlatformBrowser, isPlatformServer } from '@angular/common';
 import { Request } from 'express';
 

@@ -3,7 +3,7 @@ import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams, HttpResponse } 
 import { Injectable, inject, PLATFORM_ID, OnDestroy } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Observable, throwError, of, from, Subscription, firstValueFrom } from 'rxjs';
-import { catchError, map, tap, switchMap } from 'rxjs/operators';
+import { catchError, map, tap, switchMap, shareReplay } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../../shared/services/auth.service';
 
