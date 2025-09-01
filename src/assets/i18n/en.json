@@ -727,17 +727,10 @@
     "title": "Page Not Found - Your Garden Eden"
   },
   "maintenancePage": {
-    "mainTitle": "Something big is growing...",
-    "countdown": {
-      "days": "Days",
-      "hours": "Hours",
-      "minutes": "Minutes",
-      "seconds": "Seconds"
-    },
-    "countdownEnded": "The time has come! The gates to Your Garden Eden are opening!",
-    "mysteryTextLine1": "Shhh... something unique is growing behind the scenes.",
-    "mysteryTextLine2": "An oasis of inspiration for your perfect garden awaits you with exclusive designs and green secrets.",
-    "mysteryTextHighlight": "Stay tuned – it will be worth the wait!"
+    "mainTitle": "We are renovating for you!",
+    "mysteryTextLine1": "A major update is coming! We are working behind the scenes to improve our service and product quality for you.",
+    "mysteryTextLine2": "Just in time for the upcoming garden season, we will be back with many new, high-quality products and great offers.",
+    "mysteryTextHighlight": "Look forward to an even better shopping experience at Your Garden Eden!"
   },
   "productCard": {
     "sale": "Sale!",

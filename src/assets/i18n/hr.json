@@ -727,17 +727,10 @@
     "title": "Stranica nije pronađena - Your Garden Eden"
   },
   "maintenancePage": {
-    "mainTitle": "Nešto veliko raste...",
-    "countdown": {
-      "days": "Dana",
-      "hours": "Sati",
-      "minutes": "Minuta",
-      "seconds": "Sekundi"
-    },
-    "countdownEnded": "Došlo je vrijeme! Vrata vašeg vrta Eden se otvaraju!",
-    "mysteryTextLine1": "Psst... iza kulisa raste nešto jedinstveno.",
-    "mysteryTextLine2": "Oaza inspiracije za vaš savršen vrt čeka vas s ekskluzivnim dizajnima i zelenim tajnama.",
-    "mysteryTextHighlight": "Ostanite s nama – isplatit će se čekati!"
+    "mainTitle": "Renoviramo za vas!",
+    "mysteryTextLine1": "Slijedi veliko ažuriranje! Radimo iza kulisa na poboljšanju naših usluga i kvalitete proizvoda za vas.",
+    "mysteryTextLine2": "Točno na vrijeme za nadolazeću vrtlarsku sezonu, vraćamo se s mnogo novih, visokokvalitetnih proizvoda i sjajnih ponuda.",
+    "mysteryTextHighlight": "Radujte se još boljem iskustvu kupovine u Your Garden Eden!"
   },
   "productCard": {
     "sale": "Akcija!",
