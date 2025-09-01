@@ -377,15 +377,10 @@ export class WoocommerceService implements OnDestroy {
   }
 
   private handleError(error: any): Observable<never> {
-    let errorMessage = `WooCommerce API Error! Status: ${error.status || 'N/A'}`;
-    if (error.error && typeof error.error === 'object') {
-        const errDetails = error.error;
-        errorMessage += `. Code: ${errDetails.code || 'N/A'}. Message: ${errDetails.message || JSON.stringify(errDetails)}`;
-    } else if (error.message) {
-        errorMessage += `. Message: ${error.message}`;
-    }
-    console.error(`[WC_SERVICE_ERROR_HANDLER] ${errorMessage}`, error);
-    return throwError(() => new Error(errorMessage));
+    // By returning the original error, we allow interceptors to see the full HttpErrorResponse
+    // instead of a generic Error, which is crucial for the auth self-healing process.
+    console.error(`[WC_SERVICE_ERROR_HANDLER] WooCommerce API Error`, error);
+    return throwError(() => error);
   }
   
   public stageCartForPopulation(cartData: StageCartPayload): Observable<StageCartResponse> {
