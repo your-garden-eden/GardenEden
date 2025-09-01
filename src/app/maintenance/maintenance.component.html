@@ -4,31 +4,6 @@
 
   <h1>{{ 'maintenancePage.mainTitle' | transloco }}</h1>
 
-  @if (!countdownEnded) {
-    <div class="countdown">
-      <div class="time-unit">
-        <span class="value">{{ days }}</span>
-        <span class="label">{{ 'maintenancePage.countdown.days' | transloco }}</span>
-      </div>
-      <div class="time-unit">
-        <span class="value">{{ hours }}</span>
-        <span class="label">{{ 'maintenancePage.countdown.hours' | transloco }}</span>
-      </div>
-      <div class="time-unit">
-        <span class="value">{{ minutes }}</span>
-        <span class="label">{{ 'maintenancePage.countdown.minutes' | transloco }}</span>
-      </div>
-      <div class="time-unit">
-        <span class="value">{{ seconds }}</span>
-        <span class="label">{{ 'maintenancePage.countdown.seconds' | transloco }}</span>
-      </div>
-    </div>
-  } @else {
-    <div class="countdown-ended">
-      <h2>{{ 'maintenancePage.countdownEnded' | transloco }}</h2>
-    </div>
-  }
-
   <div class="info-text-section">
     <p>{{ 'maintenancePage.mysteryTextLine1' | transloco }}</p>
     <p>{{ 'maintenancePage.mysteryTextLine2' | transloco }}</p>

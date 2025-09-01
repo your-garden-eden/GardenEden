@@ -6,7 +6,7 @@
     "noResults": "Nema rezultata",
     "searchPrompt": "Molimo unesite najmanje 3 znaka.",
     "close": "Zatvori",
-    "locale": "hr-HR",
+    "locale": "pl-PL",
     "free": "Besplatno",
     "processing": "Obrada...",
     "scrollToTop": "Pomakni na vrh",
@@ -727,17 +727,10 @@
     "title": "Stranica nije pronađena - Your Garden Eden"
   },
   "maintenancePage": {
-    "mainTitle": "Nešto veliko raste...",
-    "countdown": {
-      "days": "Dana",
-      "hours": "Sati",
-      "minutes": "Minuta",
-      "seconds": "Sekundi"
-    },
-    "countdownEnded": "Došlo je vrijeme! Vrata vašeg vrta Eden se otvaraju!",
-    "mysteryTextLine1": "Psst... iza kulisa raste nešto jedinstveno.",
-    "mysteryTextLine2": "Oaza inspiracije za vaš savršen vrt čeka vas s ekskluzivnim dizajnima i zelenim tajnama.",
-    "mysteryTextHighlight": "Ostanite s nama – isplatit će se čekati!"
+    "mainTitle": "Przebudowujemy dla Ciebie!",
+    "mysteryTextLine1": "Nadchodzi duża aktualizacja! Pracujemy za kulisami, aby ulepszyć nasze usługi i jakość produktów dla Ciebie.",
+    "mysteryTextLine2": "W samą porę na nadchodzący sezon ogrodniczy, wrócimy z wieloma nowymi, wysokiej jakości produktami i wspaniałymi ofertami.",
+    "mysteryTextHighlight": "Ciesz się jeszcze lepszymi zakupami w Your Garden Eden!"
   },
   "productCard": {
     "sale": "Akcija!",

@@ -727,17 +727,10 @@
     "title": "Página no encontrada - Your Garden Eden"
   },
   "maintenancePage": {
-    "mainTitle": "Algo grande está creciendo...",
-    "countdown": {
-      "days": "Días",
-      "hours": "Horas",
-      "minutes": "Minutos",
-      "seconds": "Segundos"
-    },
-    "countdownEnded": "¡Ha llegado el momento! ¡Las puertas de Your Garden Eden se abren!",
-    "mysteryTextLine1": "Shhh... algo único está creciendo entre bastidores.",
-    "mysteryTextLine2": "Un oasis de inspiración para tu jardín perfecto te espera con diseños exclusivos y secretos verdes.",
-    "mysteryTextHighlight": "¡Mantente atento, la espera merecerá la pena!"
+    "mainTitle": "¡Estamos renovando para usted!",
+    "mysteryTextLine1": "¡Se acerca una gran actualización! Estamos trabajando entre bastidores para mejorar nuestro servicio y la calidad de nuestros productos para usted.",
+    "mysteryTextLine2": "Justo a tiempo para la próxima temporada de jardinería, volveremos con muchos productos nuevos, de alta calidad y grandes ofertas.",
+    "mysteryTextHighlight": "¡Disfrute de una experiencia de compra aún mejor en Your Garden Eden!"
   },
   "productCard": {
     "sale": "¡Oferta!",

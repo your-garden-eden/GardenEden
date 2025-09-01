@@ -735,17 +735,10 @@
     "title": "Seite nicht gefunden - Your Garden Eden"
   },
   "maintenancePage": {
-    "mainTitle": "Etwas Großes entsteht...",
-    "countdown": {
-      "days": "Tage",
-      "hours": "Stunden",
-      "minutes": "Minuten",
-      "seconds": "Sekunden"
-    },
-    "countdownEnded": "Es ist soweit! Die Tore zu Ihrem Garten Eden öffnen sich!",
-    "mysteryTextLine1": "Psst... hinter den Kulissen wächst etwas Einzigartiges heran.",
-    "mysteryTextLine2": "Eine Oase der Inspiration für Ihren perfekten Garten erwartet Sie mit exklusiven Designs und grünen Geheimnissen.",
-    "mysteryTextHighlight": "Seien Sie gespannt – das Warten wird sich lohnen!"
+    "mainTitle": "Wir bauen für Sie um!",
+    "mysteryTextLine1": "Ein großes Update steht bevor! Wir arbeiten hinter den Kulissen daran, unseren Service und unsere Produktqualität für Sie zu verbessern.",
+    "mysteryTextLine2": "Pünktlich zur kommenden Gartensaison sind wir mit vielen neuen, hochwertigen Produkten und tollen Angeboten wieder für Sie da.",
+    "mysteryTextHighlight": "Freuen Sie sich auf ein noch besseres Einkaufserlebnis bei Your Garden Eden!"
   },
   "productCard": {
     "sale": "Angebot!",

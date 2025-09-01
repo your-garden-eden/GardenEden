@@ -2,7 +2,7 @@
 export const environment = {
   baseUrl: 'https://www.your-garden-eden.de', // KORREKTUR: Die Basis-URL wurde gesetzt.
   production: true,
-  maintenanceMode: false,
+  maintenanceMode: true,
   firebase: {
     apiKey: 'AIzaSyA2W0UsyZEPQA8_GbRYbftcDEtGCe6pDSc', // Dieser bleibt, wird für die Firebase-App-Initialisierung benötigt
     authDomain: 'your-garden-eden.firebaseapp.com',
